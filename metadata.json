@@ -1,0 +1,6 @@
+{
+  "name": "Nile School Weekly Planner - Grade 2",
+  "description": "Weekly school timetable and organizer for Nile Egyptian International School Grade 2 (G2A, G2B, G2C), tracking Classwork, Homework, and Tomorrow preparation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

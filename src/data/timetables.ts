@@ -1,0 +1,326 @@
+import { ClassId, SchoolDay, SubjectName, PeriodSlot, BreakSlot } from '../types';
+
+export const SCHOOL_NAME = 'Nile Egyptian International School';
+export const SCHOOL_BRANCH = 'Menia';
+export const SCHOOL_GRADE = 'Grade 2';
+
+export const SCHOOL_DAYS: SchoolDay[] = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+];
+
+export const PERIOD_TIMES: Record<number, string> = {
+  1: '7:45 - 8:35',
+  2: '8:35 - 9:25',
+  3: '9:45 - 10:35',
+  4: '10:35 - 11:25',
+  5: '11:25 - 12:15',
+  6: '12:15 - 13:05',
+  7: '13:25 - 14:15',
+  8: '14:15 - 15:05',
+};
+
+export const BREAK_SLOTS: BreakSlot[] = [
+  { name: 'Morning Line & Assembly', time: '7:30 - 7:45', type: 'line' },
+  { name: 'Breakfast Break', time: '9:25 - 9:45', type: 'breakfast' },
+  { name: 'Lunch Break', time: '13:05 - 13:25', type: 'lunch' },
+];
+
+export interface SubjectMeta {
+  name: SubjectName;
+  arabicName: string;
+  iconName: string;
+  color: string;
+  badgeBg: string;
+  badgeText: string;
+  borderColor: string;
+  standardBagItems: string[];
+}
+
+export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
+  Mathematics: {
+    name: 'Mathematics',
+    arabicName: 'رياضيات',
+    iconName: 'Calculator',
+    color: '#0284c7', // Sky-600
+    badgeBg: 'bg-sky-50 text-sky-700 border-sky-200',
+    badgeText: 'text-sky-700',
+    borderColor: 'border-sky-300',
+    standardBagItems: ['Math Student Book', 'Math Practice Book', 'Grid Notebook', 'Pencil Case (Ruler & Eraser)'],
+  },
+  English: {
+    name: 'English',
+    arabicName: 'لغة إنجليزية',
+    iconName: 'BookOpen',
+    color: '#4f46e5', // Indigo-600
+    badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    badgeText: 'text-indigo-700',
+    borderColor: 'border-indigo-300',
+    standardBagItems: ['English Pupil Book', 'Activity Book', 'English Lined Copybook', 'Phonics Booklet'],
+  },
+  Arabic: {
+    name: 'Arabic',
+    arabicName: 'لغة عربية',
+    iconName: 'Languages',
+    color: '#059669', // Emerald-600
+    badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    badgeText: 'text-emerald-700',
+    borderColor: 'border-emerald-300',
+    standardBagItems: ['كتاب اللغة العربية', 'كشكول العربي المسطر', 'كراسة الخط'],
+  },
+  Science: {
+    name: 'Science',
+    arabicName: 'علوم',
+    iconName: 'FlaskConical',
+    color: '#0d9488', // Teal-600
+    badgeBg: 'bg-teal-50 text-teal-700 border-teal-200',
+    badgeText: 'text-teal-700',
+    borderColor: 'border-teal-300',
+    standardBagItems: ['Science Learner’s Book', 'Science Workbook', 'Science Notebook'],
+  },
+  'Social Studies': {
+    name: 'Social Studies',
+    arabicName: 'دراسات اجتماعية',
+    iconName: 'Globe',
+    color: '#d97706', // Amber-600
+    badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
+    badgeText: 'text-amber-800',
+    borderColor: 'border-amber-300',
+    standardBagItems: ['Social Studies Book', 'Social Studies Notebook', 'Colored Pencils'],
+  },
+  French: {
+    name: 'French',
+    arabicName: 'لغة فرنسية',
+    iconName: 'Flag',
+    color: '#2563eb', // Blue-600
+    badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
+    badgeText: 'text-blue-700',
+    borderColor: 'border-blue-300',
+    standardBagItems: ['French Manuel de cours', 'Cahier d’activités', 'Cahier de classe'],
+  },
+  Religion: {
+    name: 'Religion',
+    arabicName: 'تربية دينية',
+    iconName: 'Sparkles',
+    color: '#7c3aed', // Violet-600
+    badgeBg: 'bg-violet-50 text-violet-700 border-violet-200',
+    badgeText: 'text-violet-700',
+    borderColor: 'border-violet-300',
+    standardBagItems: ['كتاب التربية الدينية', 'كشكول الدين'],
+  },
+  ICT: {
+    name: 'ICT',
+    arabicName: 'تكنولوجيا المعلومات',
+    iconName: 'Laptop',
+    color: '#0891b2', // Cyan-600
+    badgeBg: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    badgeText: 'text-cyan-700',
+    borderColor: 'border-cyan-300',
+    standardBagItems: ['ICT Booklet / Notes'],
+  },
+  Arts: {
+    name: 'Arts',
+    arabicName: 'تربية فنية',
+    iconName: 'Palette',
+    color: '#e11d48', // Rose-600
+    badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
+    badgeText: 'text-rose-700',
+    borderColor: 'border-rose-300',
+    standardBagItems: ['Drawing Sketchbook (A4/A3)', 'Watercolor / Wax Crayons', 'Glue Stick & Scissors', 'Art Apron'],
+  },
+  Music: {
+    name: 'Music',
+    arabicName: 'تربية موسيقية',
+    iconName: 'Music',
+    color: '#db2777', // Pink-600
+    badgeBg: 'bg-pink-50 text-pink-700 border-pink-200',
+    badgeText: 'text-pink-700',
+    borderColor: 'border-pink-300',
+    standardBagItems: ['Music Notebook / Instrument (if assigned)'],
+  },
+  PE: {
+    name: 'PE',
+    arabicName: 'تربية رياضية',
+    iconName: 'Dumbbell',
+    color: '#16a34a', // Green-600
+    badgeBg: 'bg-lime-50 text-lime-800 border-lime-200',
+    badgeText: 'text-lime-800',
+    borderColor: 'border-lime-300',
+    standardBagItems: ['PE School Sportswear Uniform', 'Sneakers / Running Shoes', 'Extra Water Bottle', 'Small Towel'],
+  },
+};
+
+export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> = {
+  // G2A
+  G2A: {
+    Sunday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'PE', teacher: 'Kareem Mostafa' },
+      { period: 2, time: '8:35 - 9:25', subject: 'Social Studies', teacher: 'Walaa Fayz' },
+      { period: 3, time: '9:45 - 10:35', subject: 'ICT', teacher: 'Rana' },
+      { period: 4, time: '10:35 - 11:25', subject: 'Arts', teacher: 'Walid Ahmed Fouad' },
+      { period: 5, time: '11:25 - 12:15', subject: 'Science', teacher: 'Salma Ahmed' },
+      { period: 6, time: '12:15 - 13:05', subject: 'English', teacher: 'Toqa' },
+      { period: 7, time: '13:25 - 14:15', subject: 'Arabic', teacher: 'Eman' },
+      { period: 8, time: '14:15 - 15:05', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+    ],
+    Monday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'Music', teacher: 'Afronia' },
+      { period: 2, time: '8:35 - 9:25', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 3, time: '9:45 - 10:35', subject: 'English', teacher: 'Toqa' },
+      { period: 4, time: '10:35 - 11:25', subject: 'English', teacher: 'Toqa' },
+      { period: 5, time: '11:25 - 12:15', subject: 'Arabic', teacher: 'Eman' },
+      { period: 6, time: '12:15 - 13:05', subject: 'Arabic', teacher: 'Eman' },
+      { period: 7, time: '13:25 - 14:15', subject: 'ICT', teacher: 'Rana' },
+      { period: 8, time: '14:15 - 15:05', subject: 'PE', teacher: 'Kareem Mostafa' },
+    ],
+    Tuesday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Toqa' },
+      { period: 2, time: '8:35 - 9:25', subject: 'English', teacher: 'Toqa' },
+      { period: 3, time: '9:45 - 10:35', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 4, time: '10:35 - 11:25', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 5, time: '11:25 - 12:15', subject: 'Religion', teacher: 'Eman / Maryam', notes: 'Islamic: Eman / Christian: Maryam' },
+      { period: 6, time: '12:15 - 13:05', subject: 'French', teacher: "Doa'a Fekry" },
+      { period: 7, time: '13:25 - 14:15', subject: 'Arts', teacher: 'Walid Ahmed Fouad' },
+      { period: 8, time: '14:15 - 15:05', subject: 'Arabic', teacher: 'Eman' },
+    ],
+    Wednesday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 2, time: '8:35 - 9:25', subject: 'Science', teacher: 'Salma Ahmed' },
+      { period: 3, time: '9:45 - 10:35', subject: 'ICT', teacher: 'Rana' },
+      { period: 4, time: '10:35 - 11:25', subject: 'Social Studies', teacher: 'Walaa Fayz' },
+      { period: 5, time: '11:25 - 12:15', subject: 'French', teacher: "Doa'a Fekry" },
+      { period: 6, time: '12:15 - 13:05', subject: 'Arabic', teacher: 'Eman' },
+      { period: 7, time: '13:25 - 14:15', subject: 'English', teacher: 'Toqa' },
+      { period: 8, time: '14:15 - 15:05', subject: 'English', teacher: 'Toqa' },
+    ],
+    Thursday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Toqa' },
+      { period: 2, time: '8:35 - 9:25', subject: 'French', teacher: "Doa'a Fekry" },
+      { period: 3, time: '9:45 - 10:35', subject: 'Religion', teacher: 'Eman / Maryam', notes: 'Islamic: Eman / Christian: Maryam' },
+      { period: 4, time: '10:35 - 11:25', subject: 'Arabic', teacher: 'Eman' },
+      { period: 5, time: '11:25 - 12:15', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 6, time: '12:15 - 13:05', subject: 'Music', teacher: 'Afronia' },
+      { period: 7, time: '13:25 - 14:15', subject: 'Social Studies', teacher: 'Walaa Fayz' },
+      { period: 8, time: '14:15 - 15:05', subject: 'Science', teacher: 'Salma Ahmed' },
+    ],
+  },
+
+  // G2B
+  G2B: {
+    Sunday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'French', teacher: "Doa'a Fekry" },
+      { period: 2, time: '8:35 - 9:25', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 3, time: '9:45 - 10:35', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 4, time: '10:35 - 11:25', subject: 'Science', teacher: 'Salma Ahmed' },
+      { period: 5, time: '11:25 - 12:15', subject: 'English', teacher: "Ala'a" },
+      { period: 6, time: '12:15 - 13:05', subject: 'English', teacher: "Ala'a" },
+      { period: 7, time: '13:25 - 14:15', subject: 'ICT', teacher: 'Mariem' },
+      { period: 8, time: '14:15 - 15:05', subject: 'Music', teacher: 'Afronia' },
+    ],
+    Monday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'Social Studies', teacher: 'Manar Hassan' },
+      { period: 2, time: '8:35 - 9:25', subject: 'PE', teacher: 'Rana' },
+      { period: 3, time: '9:45 - 10:35', subject: 'English', teacher: "Ala'a" },
+      { period: 4, time: '10:35 - 11:25', subject: 'English', teacher: "Ala'a" },
+      { period: 5, time: '11:25 - 12:15', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 6, time: '12:15 - 13:05', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 7, time: '13:25 - 14:15', subject: 'French', teacher: "Doa'a Fekry" },
+      { period: 8, time: '14:15 - 15:05', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+    ],
+    Tuesday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 2, time: '8:35 - 9:25', subject: 'Arts', teacher: 'Walid Ahmed Fouad' },
+      { period: 3, time: '9:45 - 10:35', subject: 'ICT', teacher: 'Mariem' },
+      { period: 4, time: '10:35 - 11:25', subject: 'French', teacher: "Doa'a Fekry" },
+      { period: 5, time: '11:25 - 12:15', subject: 'Religion', teacher: 'Marwa Mamdouh / Maryam', notes: 'Islamic: Marwa Mamdouh / Christian: Maryam' },
+      { period: 6, time: '12:15 - 13:05', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 7, time: '13:25 - 14:15', subject: 'Music', teacher: 'Afronia' },
+      { period: 8, time: '14:15 - 15:05', subject: 'English', teacher: "Ala'a" },
+    ],
+    Wednesday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: "Ala'a" },
+      { period: 2, time: '8:35 - 9:25', subject: 'Social Studies', teacher: 'Manar Hassan' },
+      { period: 3, time: '9:45 - 10:35', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 4, time: '10:35 - 11:25', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 5, time: '11:25 - 12:15', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 6, time: '12:15 - 13:05', subject: 'PE', teacher: 'Rana' },
+      { period: 7, time: '13:25 - 14:15', subject: 'Science', teacher: 'Salma Ahmed' },
+      { period: 8, time: '14:15 - 15:05', subject: 'Arts', teacher: 'Walid Ahmed Fouad' },
+    ],
+    Thursday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 2, time: '8:35 - 9:25', subject: 'Social Studies', teacher: 'Manar Hassan' },
+      { period: 3, time: '9:45 - 10:35', subject: 'Religion', teacher: 'Marwa Mamdouh / Maryam', notes: 'Islamic: Marwa Mamdouh / Christian: Maryam' },
+      { period: 4, time: '10:35 - 11:25', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 5, time: '11:25 - 12:15', subject: 'English', teacher: "Ala'a" },
+      { period: 6, time: '12:15 - 13:05', subject: 'English', teacher: "Ala'a" },
+      { period: 7, time: '13:25 - 14:15', subject: 'Science', teacher: 'Salma Ahmed' },
+      { period: 8, time: '14:15 - 15:05', subject: 'ICT', teacher: 'Mariem' },
+    ],
+  },
+
+  // G2C
+  G2C: {
+    Sunday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Mostafa Mohamed' },
+      { period: 2, time: '8:35 - 9:25', subject: 'French', teacher: 'Lamiaa' },
+      { period: 3, time: '9:45 - 10:35', subject: 'Mathematics', teacher: 'Sandy' },
+      { period: 4, time: '10:35 - 11:25', subject: 'Mathematics', teacher: 'Sandy' },
+      { period: 5, time: '11:25 - 12:15', subject: 'ICT', teacher: 'Rana' },
+      { period: 6, time: '12:15 - 13:05', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 7, time: '13:25 - 14:15', subject: 'Social Studies', teacher: 'Manar Hassan' },
+      { period: 8, time: '14:15 - 15:05', subject: 'PE', teacher: 'Ahmed Hasanin' },
+    ],
+    Monday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 2, time: '8:35 - 9:25', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 3, time: '9:45 - 10:35', subject: 'French', teacher: 'Lamiaa' },
+      { period: 4, time: '10:35 - 11:25', subject: 'English', teacher: 'Mostafa Mohamed' },
+      { period: 5, time: '11:25 - 12:15', subject: 'Science', teacher: 'Salma Ahmed' },
+      { period: 6, time: '12:15 - 13:05', subject: 'Social Studies', teacher: 'Manar Hassan' },
+      { period: 7, time: '13:25 - 14:15', subject: 'Music', teacher: 'Afronia' },
+      { period: 8, time: '14:15 - 15:05', subject: 'Mathematics', teacher: 'Sandy' },
+    ],
+    Tuesday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'PE', teacher: 'Ahmed Hasanin' },
+      { period: 2, time: '8:35 - 9:25', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 3, time: '9:45 - 10:35', subject: 'Science', teacher: 'Salma Ahmed' },
+      { period: 4, time: '10:35 - 11:25', subject: 'Mathematics', teacher: 'Sandy' },
+      { period: 5, time: '11:25 - 12:15', subject: 'Religion', teacher: 'Fatema / Maryam', notes: 'Islamic: Fatema / Christian: Maryam' },
+      { period: 6, time: '12:15 - 13:05', subject: 'ICT', teacher: 'Rana' },
+      { period: 7, time: '13:25 - 14:15', subject: 'English', teacher: 'Mostafa Mohamed' },
+      { period: 8, time: '14:15 - 15:05', subject: 'English', teacher: 'Mostafa Mohamed' },
+    ],
+    Wednesday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'Social Studies', teacher: 'Manar Hassan' },
+      { period: 2, time: '8:35 - 9:25', subject: 'French', teacher: 'Lamiaa' },
+      { period: 3, time: '9:45 - 10:35', subject: 'English', teacher: 'Mostafa Mohamed' },
+      { period: 4, time: '10:35 - 11:25', subject: 'English', teacher: 'Mostafa Mohamed' },
+      { period: 5, time: '11:25 - 12:15', subject: 'Arts', teacher: 'Walid Ahmed Fouad' },
+      { period: 6, time: '12:15 - 13:05', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 7, time: '13:25 - 14:15', subject: 'Mathematics', teacher: 'Sandy' },
+      { period: 8, time: '14:15 - 15:05', subject: 'Music', teacher: 'Afronia' },
+    ],
+    Thursday: [
+      { period: 1, time: '7:45 - 8:35', subject: 'ICT', teacher: 'Rana' },
+      { period: 2, time: '8:35 - 9:25', subject: 'Science', teacher: 'Salma Ahmed' },
+      { period: 3, time: '9:45 - 10:35', subject: 'Religion', teacher: 'Fatema / Maryam', notes: 'Islamic: Fatema / Christian: Maryam' },
+      { period: 4, time: '10:35 - 11:25', subject: 'English', teacher: 'Mostafa Mohamed' },
+      { period: 5, time: '11:25 - 12:15', subject: 'English', teacher: 'Mostafa Mohamed' },
+      { period: 6, time: '12:15 - 13:05', subject: 'Mathematics', teacher: 'Sandy' },
+      { period: 7, time: '13:25 - 14:15', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
+      { period: 8, time: '14:15 - 15:05', subject: 'Arts', teacher: 'Walid Ahmed Fouad' },
+    ],
+  },
+};
+
+export const NEXT_SCHOOL_DAY: Record<SchoolDay, SchoolDay> = {
+  Sunday: 'Monday',
+  Monday: 'Tuesday',
+  Tuesday: 'Wednesday',
+  Wednesday: 'Thursday',
+  Thursday: 'Sunday',
+};
