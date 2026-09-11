@@ -38,7 +38,6 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   const [filterMode, setFilterMode] = useState<'all' | 'pending' | 'urgent' | 'completed'>('all');
   const [weekFilter, setWeekFilter] = useState<'all' | number>('all');
   const [dayFilter, setDayFilter] = useState<SchoolDay | 'All'>('All');
-  const [dayBasis, setDayBasis] = useState<'assigned' | 'due'>('assigned');
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   // New HW form state
@@ -72,8 +71,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
     }
 
     if (dayFilter !== 'All') {
-      const targetDay = dayBasis === 'assigned' ? h.assignedDay : h.dueDay;
-      if (targetDay !== dayFilter) return false;
+      if (h.assignedDay !== dayFilter) return false;
     }
 
     return true;
@@ -199,7 +197,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
           {(['All', ...SCHOOL_DAYS] as const).map((day) => {
             const count = day === 'All'
               ? classHomework.length
-              : classHomework.filter((h) => (dayBasis === 'assigned' ? h.assignedDay === day : h.dueDay === day)).length;
+              : classHomework.filter((h) => h.assignedDay === day).length;
             const isActive = dayFilter === day;
 
             return (
@@ -227,7 +225,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
           })}
         </div>
 
-        {/* View Controls: Week Filter & View Basis */}
+        {/* View Controls: Week Filter */}
         <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
           {/* Week Filter */}
           <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs shrink-0">
@@ -264,30 +262,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
             </button>
           </div>
 
-          {/* View basis switch */}
-          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs shrink-0">
-            <span className="text-[10px] font-bold text-slate-500 px-1.5">View by:</span>
-            <button
-              onClick={() => setDayBasis('assigned')}
-              className={`px-2 py-1 rounded-md text-[11px] font-black transition-all ${
-                dayBasis === 'assigned'
-                  ? 'bg-white text-indigo-950 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Assigned Day
-            </button>
-            <button
-              onClick={() => setDayBasis('due')}
-              className={`px-2 py-1 rounded-md text-[11px] font-black transition-all ${
-                dayBasis === 'due'
-                  ? 'bg-white text-indigo-950 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Due Date
-            </button>
-          </div>
+          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
+            كل واجب في يومه
+          </span>
         </div>
       </div>
 
@@ -345,8 +322,11 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       </span>
 
                       {/* Assigned day tag */}
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                        Assigned: {hw.assignedDay}
+                      <span className="text-[11px] font-black px-2 py-0.5 rounded bg-indigo-50 text-indigo-950 border border-indigo-200">
+                        Day: {hw.assignedDay}
+                      </span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                        Hand in: {hw.dueDay}
                       </span>
 
                       {/* Link task badge */}

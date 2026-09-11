@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
 import {
-  Briefcase,
+  Calendar,
   CheckCircle2,
   Circle,
-  AlertTriangle,
   Clock,
   User,
-  Coffee,
   Utensils,
-  Sparkles,
-  Printer,
-  Calendar,
+  ExternalLink,
+  BookOpen,
   CheckSquare,
-  PackageCheck,
-  ChevronRight,
-  Pin,
+  AlertCircle,
+  Printer,
+  Sparkles,
 } from 'lucide-react';
 import { ClassId, SchoolDay, HomeworkEntry } from '../types';
 import {
@@ -23,7 +20,6 @@ import {
   SUBJECT_METADATA,
   SCHOOL_DAYS,
 } from '../data/timetables';
-import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { SubjectIcon } from './SubjectIcon';
 
 interface TomorrowViewProps {
@@ -44,438 +40,397 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   onPrint,
 }) => {
   // Target tomorrow day based on selectedDay
-  const tomorrowDay = NEXT_SCHOOL_DAY[selectedDay];
+  const defaultTomorrow = NEXT_SCHOOL_DAY[selectedDay];
+  const [activeDay, setActiveDay] = useState<SchoolDay>(defaultTomorrow);
 
-  // Packed items interactive checklist state (saved locally in session)
-  const [packedItems, setPackedItems] = useState<Record<string, boolean>>({});
+  // Update activeDay if selectedDay changes
+  React.useEffect(() => {
+    setActiveDay(NEXT_SCHOOL_DAY[selectedDay]);
+  }, [selectedDay]);
 
-  const togglePacked = (itemKey: string) => {
-    setPackedItems((prev) => ({
-      ...prev,
-      [itemKey]: !prev[itemKey],
-    }));
-  };
+  // Target day's timetable periods (8 periods)
+  const targetPeriods = CLASS_TIMETABLES[currentClass][activeDay] || [];
 
-  // Tomorrow's timetable periods
-  const tomorrowPeriods = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
-
-  // Homework due tomorrow (for active week)
-  const dueHomework = homeworkList.filter(
-    (h) => h.classId === currentClass && h.dueDay === tomorrowDay && (h.week === currentWeek || (!h.week && currentWeek === 1))
-  );
-  const pendingDueHomework = dueHomework.filter((h) => !h.completed);
-
-  // Derive unique required bag items based on tomorrow's subjects
-  const subjectBagItemsMap = new Map<string, { subject: string; items: string[] }>();
-  for (const slot of tomorrowPeriods) {
-    const meta = SUBJECT_METADATA[slot.subject];
-    if (meta && !subjectBagItemsMap.has(slot.subject)) {
-      subjectBagItemsMap.set(slot.subject, {
-        subject: slot.subject,
-        items: meta.standardBagItems,
-      });
-    }
-  }
-
-  // Teacher special instructions and notes from Weekly plan (Week 1 & 2)
-  const tomorrowSpecialNotes = SPECIAL_TEACHER_NOTES.filter(
-    (n) => n.classId === currentClass && n.targetDay === tomorrowDay && (n.week === currentWeek || (!n.week && currentWeek === 1))
+  // Homework strictly organized for this day (Assigned on activeDay)
+  const dayHomework = homeworkList.filter(
+    (h) =>
+      h.classId === currentClass &&
+      h.assignedDay === activeDay &&
+      (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
 
-  // Daily universal bag essentials
-  const universalEssentials = [
-    'Pencil case with sharpened pencils, eraser, ruler, and glue',
-    'Healthy breakfast box & snack (for 9:25 AM break)',
-    'Water bottle (filled)',
-    'Nile Egyptian International School ID card / Bus badge',
-  ];
-
-  // Calculate total packing progress
-  let totalPackItems = universalEssentials.length;
-  let packedCount = 0;
-
-  universalEssentials.forEach((item, idx) => {
-    if (packedItems[`essential-${idx}`]) packedCount++;
-  });
-
-  tomorrowSpecialNotes.forEach((sn, idx) => {
-    if (sn.bagItem) {
-      totalPackItems++;
-      if (packedItems[`special-note-${idx}`]) packedCount++;
-    }
-  });
-
-  Array.from(subjectBagItemsMap.values()).forEach((grp) => {
-    grp.items.forEach((it, idx) => {
-      totalPackItems++;
-      if (packedItems[`subject-${grp.subject}-${idx}`]) packedCount++;
-    });
-  });
-
-  const packProgressPercent =
-    totalPackItems > 0 ? Math.round((packedCount / totalPackItems) * 100) : 0;
+  const completedHwCount = dayHomework.filter((h) => h.completed).length;
 
   return (
     <div className="space-y-6">
-      {/* Header card with Tomorrow info */}
-      <div className="bg-gradient-to-r from-indigo-900 to-slate-900 text-white p-6 rounded-2xl shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 rounded-2xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
-              Evening Bag & Prep Routine
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+              Grade 2 • {currentClass}
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/10 text-white">
-              {currentClass}
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-600 text-white shadow-xs">
+              Block 1 • Week {currentWeek}
+            </span>
+            <span className="text-xs text-slate-400 font-medium">
+              Reference Today: {selectedDay}
             </span>
           </div>
 
-          <h2 className="text-2xl font-black tracking-tight">
-            Preparing for Tomorrow: <span className="text-amber-400">{tomorrowDay}</span>
+          <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+            <span>Schedule & Homework for:</span>
+            <span className="text-amber-400 underline decoration-amber-400/50 underline-offset-4">
+              {activeDay}
+            </span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-            Check off your school bag essentials, verify homework due tomorrow morning, and review
-            tomorrow's 8 periods.
+            8 periods arranged side-by-side in pairs (2, 4, 6, 8) with all homework for {activeDay}.
           </p>
         </div>
 
-        {/* Progress Badge */}
-        <div className="bg-white/10 backdrop-blur-xs p-4 rounded-xl border border-white/10 flex items-center gap-4 shrink-0">
-          <div>
-            <div className="text-[11px] uppercase tracking-wider font-semibold text-slate-300">
-              Bag Packing
-            </div>
-            <div className="text-xl font-black text-white">
-              {packedCount} / {totalPackItems} items
-            </div>
+        {/* Quick Day Switcher & Print */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 shrink-0">
+          <div className="flex items-center bg-white/10 p-1 rounded-xl border border-white/10 flex-wrap gap-1">
+            {SCHOOL_DAYS.map((d) => (
+              <button
+                key={d}
+                onClick={() => setActiveDay(d)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all ${
+                  activeDay === d
+                    ? 'bg-amber-400 text-slate-950 shadow-xs'
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {d.slice(0, 3)}
+              </button>
+            ))}
           </div>
-          <div className="w-12 h-12 rounded-full border-4 border-emerald-400/30 flex items-center justify-center font-bold text-xs text-emerald-300 bg-emerald-950/40">
-            {packProgressPercent}%
-          </div>
+
+          <button
+            onClick={onPrint}
+            className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 border border-white/20 self-end sm:self-auto"
+            title="Print Schedule & Prep Sheet"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Print</span>
+          </button>
         </div>
       </div>
 
-      {/* Alert if there is pending homework due tomorrow! */}
-      {pendingDueHomework.length > 0 && (
-        <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-rose-100 flex items-center justify-center text-rose-700 shrink-0">
-              <AlertTriangle className="w-5 h-5" />
+      {/* 2-by-2 Timetable Grid (2, 4, 6, 8 side-by-side) */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+              <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-rose-900">
-                Action Required: {pendingDueHomework.length} Homework assignment(s) due tomorrow!
-              </h4>
-              <p className="text-xs text-rose-700 mt-0.5">
-                Complete and place inside the school bag before tomorrow morning:
-              </p>
-              <ul className="mt-2 space-y-1">
-                {pendingDueHomework.map((hw) => (
-                  <li key={hw.id} className="text-xs font-semibold text-rose-800 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
-                    <strong>{hw.subject}:</strong> {hw.task}
-                    {hw.pages && <span className="font-normal">({hw.pages})</span>}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="self-end sm:self-center shrink-0">
-            <button
-              onClick={() => {
-                pendingDueHomework.forEach((h) => onToggleHomework(h.id));
-              }}
-              className="text-xs font-bold px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition-colors"
-            >
-              Mark All Done & Packed
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Teacher Special Instructions & Notes for Tomorrow */}
-      {tomorrowSpecialNotes.length > 0 && (
-        <div className="bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold">
-              <Pin className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-amber-950">
-                Teacher Notes & Special Preparation for {tomorrowDay}
+              <h3 className="text-base font-black text-slate-900">
+                {activeDay}'s 8-Period Timetable
               </h3>
-              <p className="text-xs text-amber-800">
-                ملاحظات وتوجيهات المعلمين الخاصة بتجهيزات الغد (خطة الأسبوع الأول)
+              <p className="text-xs text-slate-500 font-medium">
+                Official periods laid out in side-by-side pairs (1 & 2, 3 & 4, 5 & 6, 7 & 8)
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {tomorrowSpecialNotes.map((sn, idx) => (
-              <div
-                key={idx}
-                className="bg-white/90 p-3 rounded-xl border border-amber-200 flex items-start gap-3"
-              >
-                <div className="p-2 rounded-lg bg-amber-100 text-amber-800 shrink-0 mt-0.5">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-amber-900">{sn.subject}</span>
-                    <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
-                      Notice
-                    </span>
-                  </div>
-                  <p className="text-xs font-semibold text-slate-800 mt-1 leading-snug">
-                    {sn.note}
-                  </p>
-                  <p className="text-[11px] text-slate-600 mt-0.5 font-medium leading-snug dir-rtl">
-                    {sn.arabicNote}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <span className="text-xs font-black text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200/60 self-start sm:self-auto">
+            8 Periods • 4 Pairs
+          </span>
         </div>
-      )}
 
-      {/* Two Column Layout: Tomorrow's Schedule & Tomorrow's Bag Checklist */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Interactive Bag Checklist (7 cols) */}
-        <div className="lg:col-span-7 space-y-5">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <PackageCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">
-                    School Bag Packing Checklist
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Auto-generated from {tomorrowDay}'s periods & subjects
-                  </p>
-                </div>
-              </div>
+        {/* The 2-Column Grid: 2 cards per row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {/* Periods 1 to 6 (Pairs 1 & 2, 3 & 4, 5 & 6) */}
+          {targetPeriods.slice(0, 6).map((slot) => {
+            const meta = SUBJECT_METADATA[slot.subject];
+            const hasHw = dayHomework.some((h) => h.subject === slot.subject);
 
-              <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-200">
-                {packProgressPercent === 100 ? 'Bag Ready!' : `${packedCount}/${totalPackItems} Packed`}
-              </span>
-            </div>
-
-            {/* Special Teacher Requested Items (if any for tomorrow) */}
-            {tomorrowSpecialNotes.filter((n) => !!n.bagItem).length > 0 && (
-              <div className="mb-5 p-3.5 rounded-xl border-2 border-amber-300 bg-amber-50/60">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <Pin className="w-3.5 h-3.5 text-amber-600" />
-                    Special Teacher Requests for {tomorrowDay}
+            return (
+              <div
+                key={slot.period}
+                className="bg-slate-50/70 hover:bg-white border border-slate-200 hover:border-indigo-400 rounded-xl p-3.5 transition-all shadow-2xs hover:shadow-xs flex items-center justify-between gap-3 group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Period Badge */}
+                  <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-900 font-black text-xs flex flex-col items-center justify-center shrink-0 shadow-2xs group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors">
+                    <span className="text-[9px] uppercase tracking-tighter text-slate-400">P</span>
+                    <span className="leading-none text-sm font-black">{slot.period}</span>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
-                    تجهيزات هامة
+
+                  {/* Subject Icon */}
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs ${
+                      meta?.badgeBg || 'bg-slate-100 text-slate-800 border-slate-300'
+                    }`}
+                  >
+                    <SubjectIcon subject={slot.subject} className="w-5 h-5" />
+                  </div>
+
+                  {/* Subject Details */}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="text-sm font-black text-slate-900 truncate leading-tight">
+                        {slot.subject}
+                      </h4>
+                      {meta?.arabicName && (
+                        <span className="text-[11px] text-slate-500 font-semibold truncate">
+                          ({meta.arabicName})
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-600 font-medium">
+                      <span className="inline-flex items-center gap-1">
+                        <User className="w-3 h-3 text-slate-400" />
+                        <span className="truncate max-w-[130px]">{slot.teacher}</span>
+                      </span>
+                      {hasHw && (
+                        <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.2 rounded">
+                          📝 Homework
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Time Badge */}
+                <div className="text-right shrink-0">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-white px-2 py-1 rounded-md border border-slate-200 shadow-2xs">
+                    <Clock className="w-3 h-3 text-slate-400" />
+                    <span>{slot.time}</span>
                   </span>
                 </div>
-                <div className="space-y-2">
-                  {tomorrowSpecialNotes
-                    .filter((n) => !!n.bagItem)
-                    .map((sn, idx) => {
-                      const key = `special-note-${idx}`;
-                      const isChecked = !!packedItems[key];
-                      return (
-                        <button
-                          key={key}
-                          onClick={() => togglePacked(key)}
-                          className={`w-full text-left p-2.5 rounded-lg border flex items-center gap-3 transition-all ${
-                            isChecked
-                              ? 'bg-emerald-50 border-emerald-300 text-slate-400 line-through'
-                              : 'bg-white border-amber-200 hover:border-amber-300 text-slate-900'
+              </div>
+            );
+          })}
+
+          {/* Lunch Break Banner across both columns between Period 6 and 7 */}
+          <div className="col-span-1 md:col-span-2 bg-gradient-to-r from-blue-50 via-indigo-50/50 to-blue-50 border border-blue-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs font-bold text-blue-950 shadow-2xs">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+                <Utensils className="w-3.5 h-3.5" />
+              </div>
+              <span>Lunch & Recess Break (استراحة الغداء والصلاة)</span>
+            </div>
+            <span className="bg-white text-blue-900 px-2.5 py-0.5 rounded-md border border-blue-200 font-black text-[11px]">
+              13:05 – 13:40
+            </span>
+          </div>
+
+          {/* Periods 7 & 8 (Final Pair) */}
+          {targetPeriods.slice(6, 8).map((slot) => {
+            const meta = SUBJECT_METADATA[slot.subject];
+            const hasHw = dayHomework.some((h) => h.subject === slot.subject);
+
+            return (
+              <div
+                key={slot.period}
+                className="bg-slate-50/70 hover:bg-white border border-slate-200 hover:border-indigo-400 rounded-xl p-3.5 transition-all shadow-2xs hover:shadow-xs flex items-center justify-between gap-3 group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Period Badge */}
+                  <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-900 font-black text-xs flex flex-col items-center justify-center shrink-0 shadow-2xs group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors">
+                    <span className="text-[9px] uppercase tracking-tighter text-slate-400">P</span>
+                    <span className="leading-none text-sm font-black">{slot.period}</span>
+                  </div>
+
+                  {/* Subject Icon */}
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs ${
+                      meta?.badgeBg || 'bg-slate-100 text-slate-800 border-slate-300'
+                    }`}
+                  >
+                    <SubjectIcon subject={slot.subject} className="w-5 h-5" />
+                  </div>
+
+                  {/* Subject Details */}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="text-sm font-black text-slate-900 truncate leading-tight">
+                        {slot.subject}
+                      </h4>
+                      {meta?.arabicName && (
+                        <span className="text-[11px] text-slate-500 font-semibold truncate">
+                          ({meta.arabicName})
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-600 font-medium">
+                      <span className="inline-flex items-center gap-1">
+                        <User className="w-3 h-3 text-slate-400" />
+                        <span className="truncate max-w-[130px]">{slot.teacher}</span>
+                      </span>
+                      {hasHw && (
+                        <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.2 rounded">
+                          📝 Homework
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Time Badge */}
+                <div className="text-right shrink-0">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-white px-2 py-1 rounded-md border border-slate-200 shadow-2xs">
+                    <Clock className="w-3 h-3 text-slate-400" />
+                    <span>{slot.time}</span>
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Homework of this Day Section */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+              <CheckSquare className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-black text-slate-900">
+                Homework Assigned on {activeDay} (واجبات يوم {activeDay})
+              </h3>
+              <p className="text-xs text-slate-500 font-medium">
+                Directly associated with {activeDay}'s lessons (Week {currentWeek})
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="text-xs font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
+              {completedHwCount} / {dayHomework.length} Completed
+            </span>
+          </div>
+        </div>
+
+        {dayHomework.length === 0 ? (
+          <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-8 text-center">
+            <BookOpen className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+            <h4 className="text-sm font-black text-slate-800">
+              No Homework Assigned on {activeDay}
+            </h4>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto font-medium">
+              There are no homework assignments scheduled for {activeDay} in Week {currentWeek}.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {dayHomework.map((hw) => {
+              const meta = SUBJECT_METADATA[hw.subject];
+              return (
+                <div
+                  key={hw.id}
+                  className={`border rounded-xl p-3.5 transition-all shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                    hw.completed
+                      ? 'bg-emerald-50/30 border-emerald-300 opacity-85'
+                      : hw.priority === 'urgent'
+                      ? 'bg-rose-50/20 border-rose-300 hover:shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-indigo-300 hover:shadow-xs'
+                  }`}
+                >
+                  <div className="flex items-start gap-3 flex-1">
+                    <button
+                      onClick={() => onToggleHomework(hw.id)}
+                      className="mt-0.5 text-slate-400 hover:text-emerald-600 transition-colors shrink-0"
+                      title={hw.completed ? 'Mark as incomplete' : 'Mark as done'}
+                    >
+                      {hw.completed ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-slate-400 hover:text-emerald-600" />
+                      )}
+                    </button>
+
+                    <div className="space-y-1 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-black border ${
+                            meta?.badgeBg || 'bg-slate-100 text-slate-950 border-slate-300'
                           }`}
                         >
-                          {isChecked ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                          ) : (
-                            <Circle className="w-4 h-4 text-amber-500 shrink-0" />
-                          )}
-                          <div className="text-xs font-semibold leading-tight">
-                            <span className="text-amber-800 font-bold mr-1">[{sn.subject}]</span>
-                            {sn.bagItem}
-                          </div>
-                        </button>
-                      );
-                    })}
-                </div>
-              </div>
-            )}
+                          <SubjectIcon subject={hw.subject} className="w-3.5 h-3.5" />
+                          <span>{hw.subject}</span>
+                        </span>
 
-            {/* Universal Essentials */}
-            <div className="mb-5">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                Daily Essentials
-              </div>
-              <div className="space-y-2">
-                {universalEssentials.map((item, idx) => {
-                  const key = `essential-${idx}`;
-                  const isChecked = !!packedItems[key];
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => togglePacked(key)}
-                      className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 transition-all ${
-                        isChecked
-                          ? 'bg-emerald-50/50 border-emerald-200 text-slate-500'
-                          : 'bg-slate-50/70 border-slate-200 hover:bg-slate-50 text-slate-800'
-                      }`}
-                    >
-                      {isChecked ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-slate-300 shrink-0" />
-                      )}
-                      <span className={`text-xs font-semibold ${isChecked ? 'line-through' : ''}`}>
-                        {item}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">
+                          Day: {hw.assignedDay}
+                        </span>
 
-            {/* Subject Specific Books & Materials */}
-            <div className="space-y-4">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Required Books & Subject Materials for {tomorrowDay}
-              </div>
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                          Hand in: {hw.dueDay}
+                        </span>
 
-              {Array.from(subjectBagItemsMap.values()).map((group) => {
-                const meta = SUBJECT_METADATA[group.subject as any];
-                return (
-                  <div
-                    key={group.subject}
-                    className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/50"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-bold border ${meta?.badgeBg || 'bg-slate-200 text-slate-800'}`}
+                        {(hw.isLinkTask || hw.linkUrl) && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded bg-blue-50 text-blue-900 border border-blue-300">
+                            <ExternalLink className="w-3 h-3 text-blue-700" />
+                            <span>رابط فيديو</span>
+                          </span>
+                        )}
+
+                        {hw.priority === 'urgent' && !hw.completed && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-900 border border-rose-300">
+                            <AlertCircle className="w-3 h-3 text-rose-700" />
+                            Urgent
+                          </span>
+                        )}
+
+                        {hw.pages && (
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-950 border border-indigo-200">
+                            📖 {hw.pages}
+                          </span>
+                        )}
+                      </div>
+
+                      <p
+                        className={`text-sm font-semibold text-slate-900 leading-snug ${
+                          hw.completed ? 'line-through text-slate-500' : ''
+                        }`}
                       >
-                        <SubjectIcon subject={group.subject as any} className="w-3.5 h-3.5" />
-                        <span>{group.subject}</span>
-                      </span>
-                      <span className="text-[11px] text-slate-400 font-medium">
-                        ({meta?.arabicName})
-                      </span>
-                    </div>
+                        {hw.task}
+                      </p>
 
-                    <div className="space-y-1.5 pl-1">
-                      {group.items.map((item, idx) => {
-                        const key = `subject-${group.subject}-${idx}`;
-                        const isChecked = !!packedItems[key];
-                        return (
-                          <button
-                            key={key}
-                            onClick={() => togglePacked(key)}
-                            className={`w-full text-left p-2 rounded-lg flex items-center gap-2.5 text-xs transition-all ${
-                              isChecked
-                                ? 'bg-emerald-100/50 text-slate-400 line-through'
-                                : 'hover:bg-white text-slate-700'
-                            }`}
+                      {hw.details && (
+                        <p className="text-xs text-slate-600 leading-snug font-medium dir-rtl">
+                          {hw.details}
+                        </p>
+                      )}
+
+                      {hw.linkUrl && (
+                        <div className="pt-1">
+                          <a
+                            href={hw.linkUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-blue-50 text-blue-900 border border-blue-300 hover:bg-blue-100 transition-colors shadow-2xs"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            {isChecked ? (
-                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                            ) : (
-                              <Circle className="w-4 h-4 text-slate-300 shrink-0" />
-                            )}
-                            <span className="font-medium">{item}</span>
-                          </button>
-                        );
-                      })}
+                            <ExternalLink className="w-3.5 h-3.5 text-blue-700" />
+                            <span>فتح رابط الفيديو والمشاهدة 🔗</span>
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
 
-        {/* Right Column: Tomorrow's Schedule Preview (5 cols) */}
-        <div className="lg:col-span-5 space-y-5">
-          {/* Schedule Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">
-                    Tomorrow's Timetable ({tomorrowDay})
-                  </h3>
-                  <p className="text-xs text-slate-500">Periods order 1 to 8</p>
-                </div>
-              </div>
-
-              <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
-                8 Periods
-              </span>
-            </div>
-
-            {/* Period List */}
-            <div className="space-y-2">
-              {tomorrowPeriods.map((slot) => {
-                const meta = SUBJECT_METADATA[slot.subject];
-                return (
-                  <div
-                    key={slot.period}
-                    className="p-3 rounded-xl border border-slate-200 hover:border-indigo-300 flex items-center justify-between gap-3 bg-white"
+                  <button
+                    onClick={() => onToggleHomework(hw.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all shrink-0 self-end sm:self-center ${
+                      hw.completed
+                        ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-900 font-black text-xs flex items-center justify-center shrink-0 border border-slate-200">
-                        {slot.period}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-black text-slate-950">{slot.subject}</span>
-                        </div>
-                        <div className="text-[11px] text-slate-600 font-semibold flex items-center gap-1 mt-0.5">
-                          <User className="w-3 h-3 text-slate-500" />
-                          <span>{slot.teacher}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                        {slot.time}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    {hw.completed ? 'Mark Incomplete' : 'Done ✓'}
+                  </button>
+                </div>
+              );
+            })}
           </div>
-
-          {/* Quick Parent & Student Reminder Box */}
-          <div className="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-900 mb-2 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-indigo-600" />
-              Night-Before Tips (Grade 2)
-            </h4>
-            <ul className="text-xs text-indigo-950 space-y-2">
-              <li className="flex items-start gap-2">
-                <span className="text-indigo-600 font-bold">•</span>
-                <span>Sleep early (by 8:30 PM) so the child wakes up fresh for the 7:30 AM line.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-indigo-600 font-bold">•</span>
-                <span>Ensure PE sportswear is washed and ready if sports class is scheduled.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-indigo-600 font-bold">•</span>
-                <span>Double check that pencils are sharpened and no heavy unnecessary books are carried.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
