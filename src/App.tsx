@@ -220,6 +220,7 @@ export default function App() {
               currentWeek={currentWeek}
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
+              onToggleHomework={handleToggleHomework}
             />
           )}
 

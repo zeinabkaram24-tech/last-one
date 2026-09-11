@@ -481,6 +481,47 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // Strictly from the weekly plan items marked as واجب منزلي / Devoir
   // ===========================================================
 
+  // --- Arabic HW: Sunday (Assigned Sunday 13/9, Due Monday 14/9) ---
+  {
+    id: 'hw-w2-ar-sun-g2a',
+    classId: 'G2A',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'Arabic',
+    task: 'كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل في كشكول اللغة العربية',
+    pages: 'كشكول اللغة العربية',
+    details: 'كتابة الفقرة الأولى من درس (يوم جديد) بخط نسخ جميل ومراعاة الحركات وضبط الحروف.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+  {
+    id: 'hw-w2-ar-sun-g2b',
+    classId: 'G2B',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'Arabic',
+    task: 'كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل في كشكول اللغة العربية',
+    pages: 'كشكول اللغة العربية',
+    details: 'كتابة الفقرة الأولى من درس (يوم جديد) بخط نسخ جميل ومراعاة الحركات وضبط الحروف.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+  {
+    id: 'hw-w2-ar-sun-g2c',
+    classId: 'G2C',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'Arabic',
+    task: 'كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل في كشكول اللغة العربية',
+    pages: 'كشكول اللغة العربية',
+    details: 'كتابة الفقرة الأولى من درس (يوم جديد) بخط نسخ جميل ومراعاة الحركات وضبط الحروف.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+
   // --- Arabic HW: Tuesday Workbook p. 46 (Assigned Tuesday 15/9, Due Wednesday 16/9) ---
   {
     id: 'hw-w2-ar-tue-g2a-wb',

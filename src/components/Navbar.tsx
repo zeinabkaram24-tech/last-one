@@ -49,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       id: 'homework',
       label: 'Homework',
       icon: CheckSquare,
-      badge: pendingHomeworkCount > 0 ? pendingHomeworkCount : null,
+      badge: null,
     },
     {
       id: 'tomorrow',
@@ -162,15 +162,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                   <span className="truncate">{tab.label}</span>
-                  {tab.badge && (
-                    <span
-                      className={`text-[9.5px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                        isActive ? 'bg-white text-indigo-700' : 'bg-rose-500 text-white'
-                      }`}
-                    >
-                      {tab.badge}
-                    </span>
-                  )}
                 </button>
               );
             })}
