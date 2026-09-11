@@ -1544,40 +1544,40 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
 // BLOCK 1 - WEEK 1 OFFICIAL HOMEWORK (6/9/2026 - 10/9/2026)
 // -------------------------------------------------------------
 export const INITIAL_HOMEWORK: HomeworkEntry[] = [
-  // --- ICT Lesson 1 (Assigned Sunday) ---
+  // --- ICT Lesson 1 (Assigned strictly in the 3rd ICT session for each class) ---
   {
     id: 'hw-ict-g2a-1',
     classId: 'G2A',
-    assignedDay: 'Sunday',
-    dueDay: 'Monday',
+    assignedDay: 'Wednesday', // 3rd ICT session for G2A is Wednesday Period 3
+    dueDay: 'Sunday',
     subject: 'ICT',
     task: 'Keyboard parts & special keys (Enter, Space bar, Shift, Backspace, Caps lock)',
     pages: 'Page 14',
-    details: 'Complete labeling and matching exercises on Page 14 in the ICT Booklet.',
+    details: 'Complete labeling and matching exercises on Page 14 in the ICT Booklet (Assigned in 3rd ICT session).',
     completed: false,
     priority: 'normal',
   },
   {
     id: 'hw-ict-g2b-1',
     classId: 'G2B',
-    assignedDay: 'Sunday',
-    dueDay: 'Tuesday',
+    assignedDay: 'Thursday', // 3rd ICT session for G2B is Thursday Period 8
+    dueDay: 'Sunday',
     subject: 'ICT',
     task: 'Keyboard parts & special keys (Enter, Space bar, Shift, Backspace, Caps lock)',
     pages: 'Page 14',
-    details: 'Complete labeling and matching exercises on Page 14 in the ICT Booklet.',
+    details: 'Complete labeling and matching exercises on Page 14 in the ICT Booklet (Assigned in 3rd ICT session).',
     completed: false,
     priority: 'normal',
   },
   {
     id: 'hw-ict-g2c-1',
     classId: 'G2C',
-    assignedDay: 'Sunday',
-    dueDay: 'Tuesday',
+    assignedDay: 'Thursday', // 3rd ICT session for G2C is Thursday Period 1
+    dueDay: 'Sunday',
     subject: 'ICT',
     task: 'Keyboard parts & special keys (Enter, Space bar, Shift, Backspace, Caps lock)',
     pages: 'Page 14',
-    details: 'Complete labeling and matching exercises on Page 14 in the ICT Booklet.',
+    details: 'Complete labeling and matching exercises on Page 14 in the ICT Booklet (Assigned in 3rd ICT session).',
     completed: false,
     priority: 'normal',
   },

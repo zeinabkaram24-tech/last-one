@@ -46,9 +46,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'رياضيات',
     iconName: 'Calculator',
     color: '#0284c7', // Sky-600
-    badgeBg: 'bg-sky-50 text-sky-700 border-sky-200',
-    badgeText: 'text-sky-700',
-    borderColor: 'border-sky-300',
+    badgeBg: 'bg-sky-50 text-sky-950 border-sky-300',
+    badgeText: 'text-sky-900',
+    borderColor: 'border-sky-400',
     standardBagItems: ['Math Student Book', 'Math Practice Book', 'Grid Notebook', 'Pencil Case (Ruler & Eraser)'],
   },
   English: {
@@ -56,9 +56,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'لغة إنجليزية',
     iconName: 'BookOpen',
     color: '#4f46e5', // Indigo-600
-    badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    badgeText: 'text-indigo-700',
-    borderColor: 'border-indigo-300',
+    badgeBg: 'bg-indigo-50 text-indigo-950 border-indigo-300',
+    badgeText: 'text-indigo-900',
+    borderColor: 'border-indigo-400',
     standardBagItems: ['English Pupil Book', 'Activity Book', 'English Lined Copybook', 'Phonics Booklet'],
   },
   Arabic: {
@@ -66,9 +66,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'لغة عربية',
     iconName: 'Languages',
     color: '#059669', // Emerald-600
-    badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    badgeText: 'text-emerald-700',
-    borderColor: 'border-emerald-300',
+    badgeBg: 'bg-emerald-50 text-emerald-950 border-emerald-300',
+    badgeText: 'text-emerald-900',
+    borderColor: 'border-emerald-400',
     standardBagItems: ['كتاب اللغة العربية', 'كشكول العربي المسطر', 'كراسة الخط'],
   },
   Science: {
@@ -76,9 +76,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'علوم',
     iconName: 'FlaskConical',
     color: '#0d9488', // Teal-600
-    badgeBg: 'bg-teal-50 text-teal-700 border-teal-200',
-    badgeText: 'text-teal-700',
-    borderColor: 'border-teal-300',
+    badgeBg: 'bg-teal-50 text-teal-950 border-teal-300',
+    badgeText: 'text-teal-900',
+    borderColor: 'border-teal-400',
     standardBagItems: ['Science Learner’s Book', 'Science Workbook', 'Science Notebook'],
   },
   'Social Studies': {
@@ -86,9 +86,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'دراسات اجتماعية',
     iconName: 'Globe',
     color: '#d97706', // Amber-600
-    badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
-    badgeText: 'text-amber-800',
-    borderColor: 'border-amber-300',
+    badgeBg: 'bg-amber-50 text-amber-950 border-amber-300',
+    badgeText: 'text-amber-900',
+    borderColor: 'border-amber-400',
     standardBagItems: ['Social Studies Book', 'Social Studies Notebook', 'Colored Pencils'],
   },
   French: {
@@ -96,9 +96,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'لغة فرنسية',
     iconName: 'Flag',
     color: '#2563eb', // Blue-600
-    badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
-    badgeText: 'text-blue-700',
-    borderColor: 'border-blue-300',
+    badgeBg: 'bg-blue-50 text-blue-950 border-blue-300',
+    badgeText: 'text-blue-900',
+    borderColor: 'border-blue-400',
     standardBagItems: ['French Manuel de cours', 'Cahier d’activités', 'Cahier de classe'],
   },
   Religion: {
@@ -106,9 +106,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'تربية دينية',
     iconName: 'Sparkles',
     color: '#7c3aed', // Violet-600
-    badgeBg: 'bg-violet-50 text-violet-700 border-violet-200',
-    badgeText: 'text-violet-700',
-    borderColor: 'border-violet-300',
+    badgeBg: 'bg-violet-50 text-violet-950 border-violet-300',
+    badgeText: 'text-violet-900',
+    borderColor: 'border-violet-400',
     standardBagItems: ['كتاب التربية الدينية', 'كشكول الدين'],
   },
   ICT: {
@@ -116,9 +116,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'تكنولوجيا المعلومات',
     iconName: 'Laptop',
     color: '#0891b2', // Cyan-600
-    badgeBg: 'bg-cyan-50 text-cyan-700 border-cyan-200',
-    badgeText: 'text-cyan-700',
-    borderColor: 'border-cyan-300',
+    badgeBg: 'bg-cyan-50 text-cyan-950 border-cyan-300',
+    badgeText: 'text-cyan-900',
+    borderColor: 'border-cyan-400',
     standardBagItems: ['ICT Booklet / Notes'],
   },
   Arts: {
@@ -126,9 +126,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'تربية فنية',
     iconName: 'Palette',
     color: '#e11d48', // Rose-600
-    badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
-    badgeText: 'text-rose-700',
-    borderColor: 'border-rose-300',
+    badgeBg: 'bg-rose-50 text-rose-950 border-rose-300',
+    badgeText: 'text-rose-900',
+    borderColor: 'border-rose-400',
     standardBagItems: ['Drawing Sketchbook (A4/A3)', 'Watercolor / Wax Crayons', 'Glue Stick & Scissors', 'Art Apron'],
   },
   Music: {
@@ -136,9 +136,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'تربية موسيقية',
     iconName: 'Music',
     color: '#db2777', // Pink-600
-    badgeBg: 'bg-pink-50 text-pink-700 border-pink-200',
-    badgeText: 'text-pink-700',
-    borderColor: 'border-pink-300',
+    badgeBg: 'bg-pink-50 text-pink-950 border-pink-300',
+    badgeText: 'text-pink-900',
+    borderColor: 'border-pink-400',
     standardBagItems: ['Music Notebook / Instrument (if assigned)'],
   },
   PE: {
@@ -146,9 +146,9 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     arabicName: 'تربية رياضية',
     iconName: 'Dumbbell',
     color: '#16a34a', // Green-600
-    badgeBg: 'bg-lime-50 text-lime-800 border-lime-200',
-    badgeText: 'text-lime-800',
-    borderColor: 'border-lime-300',
+    badgeBg: 'bg-lime-50 text-lime-950 border-lime-300',
+    badgeText: 'text-lime-900',
+    borderColor: 'border-lime-400',
     standardBagItems: ['PE School Sportswear Uniform', 'Sneakers / Running Shoes', 'Extra Water Bottle', 'Small Towel'],
   },
 };

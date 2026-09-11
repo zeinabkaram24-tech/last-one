@@ -417,12 +417,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
               </span>
             </div>
 
-            {/* Assembly Note */}
-            <div className="p-2.5 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-900 font-semibold mb-3">
-              <span>🔔 7:30 AM: Morning Line & Anthem</span>
-              <span className="text-[11px] text-amber-700">Don't be late!</span>
-            </div>
-
             {/* Period List */}
             <div className="space-y-2">
               {tomorrowPeriods.map((slot) => {
@@ -430,26 +424,25 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                 return (
                   <div
                     key={slot.period}
-                    className="p-3 rounded-xl border border-slate-200 hover:border-indigo-200 flex items-center justify-between gap-3 bg-white"
+                    className="p-3 rounded-xl border border-slate-200 hover:border-indigo-300 flex items-center justify-between gap-3 bg-white"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-900 font-black text-xs flex items-center justify-center shrink-0 border border-slate-200">
                         {slot.period}
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-slate-900">{slot.subject}</span>
-                          <span className="text-[11px] text-slate-400">({meta?.arabicName})</span>
+                          <span className="text-xs font-black text-slate-950">{slot.subject}</span>
                         </div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                          <User className="w-3 h-3 text-slate-400" />
+                        <div className="text-[11px] text-slate-600 font-semibold flex items-center gap-1 mt-0.5">
+                          <User className="w-3 h-3 text-slate-500" />
                           <span>{slot.teacher}</span>
                         </div>
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                      <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                         {slot.time}
                       </span>
                     </div>

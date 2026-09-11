@@ -11,7 +11,7 @@ import {
   BookOpen,
   CheckCheck,
 } from 'lucide-react';
-import { ClassId, SchoolDay, ClassworkEntry, SubjectName } from '../types';
+import { ClassId, SchoolDay, ClassworkEntry, SubjectName, HomeworkEntry } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 
@@ -19,6 +19,7 @@ interface ClassworkViewProps {
   currentClass: ClassId;
   selectedDay: SchoolDay;
   classworkList: ClassworkEntry[];
+  homeworkList?: HomeworkEntry[];
   onToggleClasswork: (id: string) => void;
   onSaveClasswork: (entry: ClassworkEntry) => void;
 }
@@ -27,6 +28,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   currentClass,
   selectedDay,
   classworkList,
+  homeworkList = [],
   onToggleClasswork,
   onSaveClasswork,
 }) => {
@@ -110,17 +112,8 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
         </div>
       </div>
 
-      {/* Assembly line banner */}
-      <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-amber-900 text-xs font-medium">
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-amber-600" />
-          <span><strong>7:30 - 7:45 AM:</strong> Morning Line & National Anthem (طابور الصباح)</span>
-        </div>
-        <span className="hidden sm:inline text-amber-700 text-[11px]">School starts promptly</span>
-      </div>
-
-      {/* Timetable Period Cards with Breaks */}
-      <div className="space-y-3">
+      {/* Timetable Period Cards */}
+      <div className="space-y-2.5">
         {timetablePeriods.map((slot, index) => {
           const meta = SUBJECT_METADATA[slot.subject];
           const cwEntry = classworkList.find(
@@ -131,37 +124,37 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             <React.Fragment key={slot.period}>
               {/* Period Card */}
               <div
-                className={`group bg-white rounded-xl border transition-all p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                className={`group bg-white rounded-xl border transition-all p-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs ${
                   cwEntry?.completed
-                    ? 'border-emerald-200 bg-emerald-50/20'
-                    : 'border-slate-200 hover:border-indigo-200 hover:shadow-xs'
+                    ? 'border-emerald-300 bg-emerald-50/30'
+                    : 'border-slate-200 hover:border-indigo-300 hover:shadow-xs'
                 }`}
               >
                 {/* Left: Period & Subject badge */}
-                <div className="flex items-start sm:items-center gap-3 min-w-[240px]">
-                  <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 shrink-0">
-                    <span className="text-[10px] uppercase font-bold text-slate-400">Period</span>
-                    <span className="text-base font-extrabold text-slate-800">{slot.period}</span>
+                <div className="flex items-start sm:items-center gap-2.5 min-w-[220px]">
+                  <div className="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 shrink-0">
+                    <span className="text-[9px] uppercase font-black text-slate-600">P</span>
+                    <span className="text-sm font-black text-slate-950 leading-none">{slot.period}</span>
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold border ${meta?.badgeBg || 'bg-slate-100 text-slate-800 border-slate-200'}`}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-black border ${meta?.badgeBg || 'bg-slate-100 text-slate-950 border-slate-300'}`}
                       >
                         <SubjectIcon subject={slot.subject} className="w-3.5 h-3.5" />
                         <span>{slot.subject}</span>
                       </span>
-                      <span className="text-xs text-slate-400 font-medium">({meta?.arabicName})</span>
                     </div>
 
-                    <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <div className="flex items-center gap-2.5 mt-1 text-xs">
+                      <span className="flex items-center gap-1 font-bold text-slate-600">
+                        <Clock className="w-3.5 h-3.5 text-slate-500" />
                         {slot.time}
                       </span>
-                      <span className="flex items-center gap-1 text-slate-600 font-medium">
-                        <User className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-slate-300">•</span>
+                      <span className="flex items-center gap-1 font-bold text-slate-800">
+                        <User className="w-3.5 h-3.5 text-slate-500" />
                         {slot.teacher}
                       </span>
                     </div>
@@ -169,41 +162,80 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                 </div>
 
                 {/* Center: Classwork content */}
-                <div className="flex-1 bg-slate-50/70 p-3 rounded-xl border border-slate-100">
+                <div className="flex-1 bg-slate-50/80 p-2.5 rounded-lg border border-slate-200">
                   {cwEntry ? (
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <h4
-                          className={`text-sm font-semibold ${
-                            cwEntry.completed ? 'text-slate-500 line-through' : 'text-slate-800'
+                          className={`text-sm font-black ${
+                            cwEntry.completed ? 'text-slate-500 line-through' : 'text-slate-950'
                           }`}
                         >
                           {cwEntry.title}
                         </h4>
                         {cwEntry.pages && (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-white text-indigo-700 border border-indigo-100 whitespace-nowrap shrink-0">
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-white text-indigo-900 border border-indigo-200 whitespace-nowrap shrink-0">
                             📖 {cwEntry.pages}
                           </span>
                         )}
                       </div>
                       {cwEntry.details && (
-                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                        <p className="text-xs font-semibold text-slate-700 mt-1 leading-relaxed">
                           {cwEntry.details}
                         </p>
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between text-xs text-slate-400 py-1">
-                      <span className="italic">No specific classwork entered yet for this period.</span>
+                    <div className="flex items-center justify-between text-xs text-slate-500 py-0.5">
+                      <span className="italic font-medium">Standard curriculum plan for this period.</span>
                       <button
                         onClick={() => openEdit(slot.period, slot.subject)}
-                        className="text-indigo-600 hover:text-indigo-700 font-medium inline-flex items-center gap-1"
+                        className="text-indigo-700 hover:text-indigo-900 font-bold inline-flex items-center gap-1"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Add Lesson Note
                       </button>
                     </div>
                   )}
+
+                  {/* Period Homework Tags: Assigned Today or Due Today */}
+                  {(() => {
+                    const assignedHw = homeworkList.filter(
+                      (h) => h.classId === currentClass && h.assignedDay === selectedDay && h.subject === slot.subject
+                    );
+                    const dueHw = homeworkList.filter(
+                      (h) => h.classId === currentClass && h.dueDay === selectedDay && h.subject === slot.subject
+                    );
+
+                    if (assignedHw.length === 0 && dueHw.length === 0) return null;
+
+                    return (
+                      <div className="mt-2 pt-1.5 border-t border-slate-200/80 flex flex-wrap items-center gap-1.5">
+                        {assignedHw.map((hw) => (
+                          <div
+                            key={hw.id}
+                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50 text-amber-950 border border-amber-300 text-[11px] font-medium"
+                          >
+                            <span className="font-bold text-amber-900">📝 Assigned:</span>
+                            <span className="font-black text-slate-900 max-w-[200px] truncate">{hw.task}</span>
+                            <span className="bg-amber-200/90 text-amber-950 px-1.5 py-0.2 rounded font-black text-[10px]">
+                              Due: {hw.dueDay}
+                            </span>
+                          </div>
+                        ))}
+
+                        {dueHw.map((hw) => (
+                          <div
+                            key={hw.id}
+                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-950 border border-indigo-300 text-[11px] font-medium"
+                          >
+                            <span className="font-bold text-indigo-900">📥 Due Today:</span>
+                            <span className="font-black text-slate-900 max-w-[200px] truncate">{hw.task}</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Right: Actions (Check completion & Edit) */}
@@ -211,15 +243,15 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                   {cwEntry && (
                     <button
                       onClick={() => onToggleClasswork(cwEntry.id)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         cwEntry.completed
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                          ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
+                          : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
                       }`}
                     >
                       {cwEntry.completed ? (
                         <>
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                           <span>Done</span>
                         </>
                       ) : (
@@ -233,7 +265,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
                   <button
                     onClick={() => openEdit(slot.period, slot.subject, cwEntry)}
-                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    className="p-1.5 text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-200"
                     title="Edit Classwork"
                   >
                     <Edit2 className="w-4 h-4" />
@@ -241,25 +273,14 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                 </div>
               </div>
 
-              {/* Breakfast break after Period 2 */}
-              {slot.period === 2 && (
-                <div className="bg-emerald-50/70 border border-dashed border-emerald-300 rounded-xl px-4 py-2.5 flex items-center justify-between text-emerald-900 text-xs font-semibold my-2">
-                  <div className="flex items-center gap-2">
-                    <Coffee className="w-4 h-4 text-emerald-600" />
-                    <span>9:25 - 9:45 AM: Breakfast Break (فسحة الإفطار)</span>
-                  </div>
-                  <span className="text-emerald-700 text-[11px]">20 Minutes Snack & Play</span>
-                </div>
-              )}
-
               {/* Lunch break after Period 6 */}
               {slot.period === 6 && (
-                <div className="bg-blue-50/70 border border-dashed border-blue-300 rounded-xl px-4 py-2.5 flex items-center justify-between text-blue-900 text-xs font-semibold my-2">
+                <div className="bg-blue-50/70 border border-dashed border-blue-300 rounded-xl px-4 py-2 flex items-center justify-between text-blue-950 text-xs font-bold my-1.5">
                   <div className="flex items-center gap-2">
-                    <Utensils className="w-4 h-4 text-blue-600" />
-                    <span>13:05 - 13:25 PM: Lunch Break (فسحة الغداء والراحة)</span>
+                    <Utensils className="w-4 h-4 text-blue-700" />
+                    <span>13:05 - 13:25 PM: Lunch Break (20 min)</span>
                   </div>
-                  <span className="text-blue-700 text-[11px]">20 Minutes Meal & Refresh</span>
+                  <span className="text-blue-800 text-[11px] font-semibold">Meal & Refresh</span>
                 </div>
               )}
             </React.Fragment>

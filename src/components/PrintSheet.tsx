@@ -63,11 +63,6 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
         </div>
       </div>
 
-      {/* Assembly Reminder */}
-      <div className="border border-black p-2 mb-4 font-bold text-center bg-slate-100">
-        Morning Line & Assembly: 7:30 - 7:45 AM (Prompt Attendance Required)
-      </div>
-
       <div className="grid grid-cols-2 gap-4 mb-4">
         {/* Today's Classwork & Periods */}
         <div className="border border-black p-3 rounded">

@@ -237,6 +237,7 @@ export default function App() {
               currentClass={currentClass}
               selectedDay={selectedDay}
               classworkList={classworkList}
+              homeworkList={homeworkList}
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
             />

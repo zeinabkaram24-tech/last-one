@@ -54,53 +54,45 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
           <table className="w-full border-collapse text-xs text-left min-w-[980px]">
             {/* Table Header with Periods & Times */}
             <thead>
-              <tr className="bg-slate-50 text-slate-700 border-b border-slate-200">
-                <th className="p-3 font-bold text-center border-r border-slate-200 w-28 bg-slate-100/70">
-                  Day / Period
+              <tr className="bg-slate-100 text-slate-800 border-b-2 border-slate-300">
+                <th className="p-2.5 font-black text-center border-r border-slate-300 w-24 bg-slate-200/80 text-slate-900 text-xs">
+                  Day
                 </th>
-                <th className="p-2 font-bold text-center border-r border-slate-200 w-24 bg-amber-50/50">
-                  <div className="text-amber-800 font-extrabold text-[11px]">Line</div>
-                  <div className="text-[10px] text-amber-600 font-normal">7:30 - 7:45</div>
+                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
+                  <div className="text-slate-900 font-black text-xs">Period 1</div>
+                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[1]}</div>
                 </th>
-                <th className="p-2 font-bold text-center border-r border-slate-200 w-28">
-                  <div className="text-slate-800 font-extrabold text-[11px]">1</div>
-                  <div className="text-[10px] text-slate-500 font-normal">{PERIOD_TIMES[1]}</div>
+                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
+                  <div className="text-slate-900 font-black text-xs">Period 2</div>
+                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[2]}</div>
                 </th>
-                <th className="p-2 font-bold text-center border-r border-slate-200 w-28">
-                  <div className="text-slate-800 font-extrabold text-[11px]">2</div>
-                  <div className="text-[10px] text-slate-500 font-normal">{PERIOD_TIMES[2]}</div>
+                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
+                  <div className="text-slate-900 font-black text-xs">Period 3</div>
+                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[3]}</div>
                 </th>
-                <th className="p-2 font-bold text-center border-r border-slate-200 w-24 bg-emerald-50/60">
-                  <div className="text-emerald-800 font-extrabold text-[11px]">Breakfast</div>
-                  <div className="text-[10px] text-emerald-600 font-normal">9:25 - 9:45</div>
+                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
+                  <div className="text-slate-900 font-black text-xs">Period 4</div>
+                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[4]}</div>
                 </th>
-                <th className="p-2 font-bold text-center border-r border-slate-200 w-28">
-                  <div className="text-slate-800 font-extrabold text-[11px]">3</div>
-                  <div className="text-[10px] text-slate-500 font-normal">{PERIOD_TIMES[3]}</div>
+                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
+                  <div className="text-slate-900 font-black text-xs">Period 5</div>
+                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[5]}</div>
                 </th>
-                <th className="p-2 font-bold text-center border-r border-slate-200 w-28">
-                  <div className="text-slate-800 font-extrabold text-[11px]">4</div>
-                  <div className="text-[10px] text-slate-500 font-normal">{PERIOD_TIMES[4]}</div>
+                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
+                  <div className="text-slate-900 font-black text-xs">Period 6</div>
+                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[6]}</div>
                 </th>
-                <th className="p-2 font-bold text-center border-r border-slate-200 w-28">
-                  <div className="text-slate-800 font-extrabold text-[11px]">5</div>
-                  <div className="text-[10px] text-slate-500 font-normal">{PERIOD_TIMES[5]}</div>
+                <th className="p-1 font-bold text-center border-r border-slate-300 w-16 bg-blue-50/70">
+                  <div className="text-blue-900 font-black text-[10px]">Lunch</div>
+                  <div className="text-[9px] text-blue-700 font-semibold">13:05</div>
                 </th>
-                <th className="p-2 font-bold text-center border-r border-slate-200 w-28">
-                  <div className="text-slate-800 font-extrabold text-[11px]">6</div>
-                  <div className="text-[10px] text-slate-500 font-normal">{PERIOD_TIMES[6]}</div>
+                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
+                  <div className="text-slate-900 font-black text-xs">Period 7</div>
+                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[7]}</div>
                 </th>
-                <th className="p-2 font-bold text-center border-r border-slate-200 w-24 bg-blue-50/60">
-                  <div className="text-blue-800 font-extrabold text-[11px]">Lunch</div>
-                  <div className="text-[10px] text-blue-600 font-normal">13:05 - 13:25</div>
-                </th>
-                <th className="p-2 font-bold text-center border-r border-slate-200 w-28">
-                  <div className="text-slate-800 font-extrabold text-[11px]">7</div>
-                  <div className="text-[10px] text-slate-500 font-normal">{PERIOD_TIMES[7]}</div>
-                </th>
-                <th className="p-2 font-bold text-center w-28">
-                  <div className="text-slate-800 font-extrabold text-[11px]">8</div>
-                  <div className="text-[10px] text-slate-500 font-normal">{PERIOD_TIMES[8]}</div>
+                <th className="p-1.5 font-extrabold text-center min-w-[90px]">
+                  <div className="text-slate-900 font-black text-xs">Period 8</div>
+                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[8]}</div>
                 </th>
               </tr>
             </thead>
@@ -117,28 +109,20 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
                   <tr
                     key={day}
                     onClick={() => onSelectDay(day)}
-                    className={`cursor-pointer transition-colors border-b border-slate-100 ${
+                    className={`cursor-pointer transition-colors border-b border-slate-200 ${
                       isSelected
-                        ? 'bg-indigo-50/40 hover:bg-indigo-50/60'
-                        : 'hover:bg-slate-50/80'
+                        ? 'bg-indigo-50/60 hover:bg-indigo-50/80'
+                        : 'hover:bg-slate-50'
                     }`}
                   >
                     {/* Day Column */}
-                    <td className="p-3 font-bold border-r border-slate-200 text-center bg-slate-50/60">
-                      <div className="text-xs text-slate-900">{day}</div>
+                    <td className="p-2.5 font-black border-r border-slate-300 text-center bg-slate-100/70">
+                      <div className="text-xs font-black text-slate-950">{day}</div>
                       {isSelected && (
-                        <span className="text-[9px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded-full mt-1 inline-block">
+                        <span className="text-[9px] font-black text-indigo-800 bg-indigo-100/90 border border-indigo-200 px-1.5 py-0.5 rounded-full mt-1 inline-block">
                           Active
                         </span>
                       )}
-                    </td>
-
-                    {/* Assembly Line */}
-                    <td className="p-2 text-center border-r border-slate-200 bg-amber-50/30 text-amber-900">
-                      <div className="flex flex-col items-center justify-center">
-                        <Flag className="w-4 h-4 text-amber-600 mb-1" />
-                        <span className="text-[10px] font-semibold">Assembly</span>
-                      </div>
                     </td>
 
                     {/* Period 1 */}
@@ -146,14 +130,6 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
 
                     {/* Period 2 */}
                     <SlotCell slot={getPeriod(2)} />
-
-                    {/* Breakfast Break */}
-                    <td className="p-2 text-center border-r border-slate-200 bg-emerald-50/30 text-emerald-900">
-                      <div className="flex flex-col items-center justify-center">
-                        <Coffee className="w-4 h-4 text-emerald-600 mb-1" />
-                        <span className="text-[10px] font-semibold">Breakfast</span>
-                      </div>
-                    </td>
 
                     {/* Period 3 */}
                     <SlotCell slot={getPeriod(3)} />
@@ -168,10 +144,10 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
                     <SlotCell slot={getPeriod(6)} />
 
                     {/* Lunch Break */}
-                    <td className="p-2 text-center border-r border-slate-200 bg-blue-50/30 text-blue-900">
+                    <td className="p-1 text-center border-r border-slate-300 bg-blue-50/40 text-blue-950">
                       <div className="flex flex-col items-center justify-center">
-                        <Utensils className="w-4 h-4 text-blue-600 mb-1" />
-                        <span className="text-[10px] font-semibold">Lunch</span>
+                        <Utensils className="w-3.5 h-3.5 text-blue-600 mb-0.5" />
+                        <span className="text-[9px] font-extrabold">Lunch</span>
                       </div>
                     </td>
 
@@ -205,7 +181,7 @@ const SlotCell: React.FC<SlotCellProps> = ({ slot, isLast }) => {
   if (!slot) {
     return (
       <td
-        className={`p-2 text-center text-slate-300 ${isLast ? '' : 'border-r border-slate-200'}`}
+        className={`p-1 text-center text-slate-300 font-bold ${isLast ? '' : 'border-r border-slate-300'}`}
       >
         -
       </td>
@@ -216,21 +192,20 @@ const SlotCell: React.FC<SlotCellProps> = ({ slot, isLast }) => {
 
   return (
     <td
-      className={`p-2 text-center align-top ${isLast ? '' : 'border-r border-slate-200'} transition-all`}
+      className={`p-1 text-center align-top ${isLast ? '' : 'border-r border-slate-300'} transition-all`}
     >
       <div
-        className={`rounded-lg p-2 border ${meta?.badgeBg || 'bg-slate-100 text-slate-800 border-slate-200'} flex flex-col items-center justify-between min-h-[76px]`}
+        className={`rounded-lg p-1.5 border shadow-2xs ${meta?.badgeBg || 'bg-slate-100 text-slate-950 border-slate-300'} flex flex-col items-center justify-between min-h-[58px] transition-transform hover:scale-[1.02]`}
       >
-        <div className="flex flex-col items-center gap-0.5">
-          <SubjectIcon subject={slot.subject} className="w-4 h-4 mb-0.5" />
-          <span className="font-extrabold text-[11px] leading-tight text-center">
+        <div className="flex flex-col items-center gap-0.5 w-full">
+          <SubjectIcon subject={slot.subject} className="w-3.5 h-3.5 shrink-0" />
+          <span className="font-black text-[11px] leading-tight text-center text-slate-950 block">
             {slot.subject}
           </span>
-          <span className="text-[9px] opacity-75">({meta?.arabicName})</span>
         </div>
 
-        <div className="mt-1 pt-1 border-t border-current/10 w-full text-center">
-          <span className="text-[10px] font-medium leading-none block truncate" title={slot.teacher}>
+        <div className="mt-1 pt-0.5 border-t border-slate-300/60 w-full text-center">
+          <span className="text-[10px] font-bold text-slate-800 block truncate leading-tight" title={slot.teacher}>
             {slot.teacher}
           </span>
         </div>
