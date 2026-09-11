@@ -75,15 +75,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-inner shrink-0">
               <School className="w-3.5 h-3.5 text-white" />
             </div>
-            <div>
-              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none">
+            <div className="flex flex-col items-center justify-center text-center">
+              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none text-center">
                 Nile Egyptian International School
               </h1>
-              <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-0.5 leading-none flex items-center gap-1">
+              <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-1 leading-none flex items-center justify-center gap-1.5">
                 <span>Grade 2</span>
                 <span className="text-slate-400">•</span>
                 <span className="text-amber-300 font-black">خطة المذاكرة الأسبوعية</span>
-                <span className="text-slate-400 hidden md:inline">| Weekly Study Planner</span>
               </p>
             </div>
           </div>

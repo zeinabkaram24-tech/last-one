@@ -35,11 +35,14 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   currentWeek = 2,
   onToggleHomework,
 }) => {
-  // Only homework assigned for the selected day (Arabic, French, Mathematics)
+  // Only homework assigned for the selected day (Arabic, French, Mathematics, Social Studies)
   const dayHomework = homeworkList.filter(
     (h) =>
       h.classId === currentClass &&
-      (h.subject === 'Arabic' || h.subject === 'French' || h.subject === 'Mathematics') &&
+      (h.subject === 'Arabic' ||
+        h.subject === 'French' ||
+        h.subject === 'Mathematics' ||
+        h.subject === 'Social Studies') &&
       h.assignedDay === selectedDay &&
       (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
@@ -90,7 +93,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
             لا توجد واجبات مقررة ليوم {ARABIC_DAY_NAMES[selectedDay]} ({selectedDay})
           </h4>
           <p className="text-xs text-slate-400">
-            بحسب الخطة الأسبوعية المعتمدة، لا يوجد واجب منزلي مقرر لهذا اليوم في مادة العربي أو الفرنش أو الماث.
+            بحسب الخطة الأسبوعية المعتمدة، لا يوجد واجب منزلي مقرر لهذا اليوم في المواد المسجلة.
           </p>
         </div>
       ) : (
@@ -121,7 +124,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                   </button>
 
                   <div className="space-y-1 flex-1 min-w-0">
-                    {/* Badges: Subject with colorful icon + Due date */}
+                    {/* Badges: Subject with colorful icon + الواجب المنزلي + Due date */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-black border ${
@@ -130,6 +133,10 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       >
                         <SubjectIcon subject={hw.subject} className="w-3.5 h-3.5" />
                         <span>{hw.subject}</span>
+                      </span>
+
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-black border bg-amber-50 text-amber-900 border-amber-300">
+                        الواجب المنزلي
                       </span>
 
                       {hw.dueDay && (

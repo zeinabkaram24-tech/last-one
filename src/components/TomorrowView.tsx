@@ -115,7 +115,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
               >
                 <div className="flex items-start gap-2 text-slate-900">
                   <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-950 font-black text-[11px] shrink-0">
-                    {note.subject === 'Arabic' ? 'ملاحظات' : note.subject === 'French' ? 'Remarque' : 'Notes'} • {note.subject}
+                    {note.subject === 'French'
+                      ? 'Remarque'
+                      : note.subject === 'Arabic'
+                      ? 'ملاحظات'
+                      : 'الملاحظات'}{' '}
+                    • {note.subject === 'Social Studies' ? 'الدراسات الاجتماعية' : note.subject}
                   </span>
                   <span className="font-bold leading-relaxed">{note.arabicNote || note.note}</span>
                 </div>
