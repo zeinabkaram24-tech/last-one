@@ -72,21 +72,20 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         key={slot.period}
         className="bg-white rounded-2xl border border-slate-200/90 hover:border-indigo-400 p-3 sm:p-4 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all group min-h-[140px] sm:min-h-[155px]"
       >
-        {/* Top Header: Period & Time */}
+        {/* Top Header: Period only (no time, no 'الحصة') */}
         <div className="flex items-center justify-between gap-1">
-          <div className="flex items-center gap-1.5">
-            <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-slate-900 text-white shadow-2xs group-hover:bg-indigo-600 transition-colors">
-              P{slot.period}
-            </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-              الحصة {slot.period}
-            </span>
-          </div>
-
-          <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
-            <Clock className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-            <span className="whitespace-nowrap">{slot.time}</span>
+          <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-slate-900 text-white shadow-2xs group-hover:bg-indigo-600 transition-colors">
+            P{slot.period}
           </span>
+          {hasHw ? (
+            <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
+              📝 واجب
+            </span>
+          ) : (
+            <span className="text-[10px] text-slate-400 font-semibold">
+              لا واجب
+            </span>
+          )}
         </div>
 
         {/* Center: Icon + Subject Info */}
@@ -100,33 +99,18 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           </div>
 
           <div className="min-w-0">
-            <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">
+            <h4 className="text-sm font-black text-slate-900 leading-tight truncate">
               {slot.subject}
             </h4>
-            {meta?.arabicName && (
-              <p className="text-[11px] font-semibold text-slate-500 truncate mt-0.5">
-                {meta.arabicName}
-              </p>
-            )}
           </div>
         </div>
 
-        {/* Bottom: Teacher + HW Indicator */}
-        <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-slate-100 text-[10px] sm:text-[11px]">
-          <span className="inline-flex items-center gap-1 text-slate-600 font-medium truncate max-w-[130px]">
-            <User className="w-3 h-3 text-slate-400 shrink-0" />
+        {/* Bottom: Teacher */}
+        <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-slate-100 text-[11px]">
+          <span className="inline-flex items-center gap-1 text-slate-600 font-medium truncate">
+            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span className="truncate">{slot.teacher}</span>
           </span>
-
-          {hasHw ? (
-            <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded shrink-0">
-              📝 واجب
-            </span>
-          ) : (
-            <span className="text-[9px] text-slate-400 font-semibold shrink-0">
-              لا واجب
-            </span>
-          )}
         </div>
       </div>
     );

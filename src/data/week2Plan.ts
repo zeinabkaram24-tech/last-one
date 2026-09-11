@@ -145,6 +145,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     pages: 'De page 11 à page 14',
     completed: false,
     week: 2,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-w2-g2a-tue-8',
@@ -171,6 +173,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     pages: 'Pages 16, 18 & 19',
     completed: false,
     week: 2,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-w2-g2a-wed-6',
@@ -192,10 +196,12 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     period: 2,
     subject: 'French',
     title: 'Révision: Les goûts et les activités',
-    details: 'Expression des goûts (J’aime / Je n’aime pas) et des activités quotidiennes et sportives. (Devoir: Page 23).',
+    details: 'Expression des goûts (J’aime / Je n’aime pas) et des activités quotidiennes et sportives.',
     pages: 'Fiche de devoir Page 23',
     completed: false,
     week: 2,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-w2-g2a-thu-4',
@@ -223,6 +229,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     pages: 'De page 11 à page 14',
     completed: false,
     week: 2,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-w2-g2b-sun-3',
@@ -248,6 +256,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     pages: 'Pages 16, 18 & 19',
     completed: false,
     week: 2,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-w2-g2b-mon-8',
@@ -269,10 +279,12 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     period: 4,
     subject: 'French',
     title: 'Révision: Les goûts et les activités',
-    details: 'Expression des goûts (J’aime / Je n’aime pas). (Devoir: Page 23).',
+    details: 'Expression des goûts (J’aime / Je n’aime pas).',
     pages: 'Fiche de devoir Page 23',
     completed: false,
     week: 2,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-w2-g2b-tue-6',
@@ -339,6 +351,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     pages: 'De page 11 à page 14',
     completed: false,
     week: 2,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-w2-g2c-sun-6',
@@ -388,6 +402,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     pages: 'Pages 16, 18 & 19',
     completed: false,
     week: 2,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   // Tuesday
   {
@@ -411,10 +427,12 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     period: 2,
     subject: 'French',
     title: 'Révision: Les goûts et les activités',
-    details: 'Expression des goûts (J’aime / Je n’aime pas). (Devoir: Page 23).',
+    details: 'Expression des goûts (J’aime / Je n’aime pas).',
     pages: 'Fiche de devoir Page 23',
     completed: false,
     week: 2,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-w2-g2c-wed-6',

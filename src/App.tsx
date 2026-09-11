@@ -217,56 +217,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Block 1, Week 1 / Week 2 Plan Indicator Banner */}
-        <div className="mb-4 bg-white border border-slate-200/90 rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-2xs print:hidden">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="px-2.5 py-1 rounded-md text-xs font-black bg-indigo-600 text-white shadow-xs">
-              Block 1 • Week {currentWeek}
-            </span>
-            <span className="text-xs font-semibold text-slate-700">
-              {currentWeek === 2 ? 'Active Plan (13/9/2026 – 17/9/2026)' : 'Active Plan (6/9/2026 – 10/9/2026)'}
-            </span>
-            <span className="text-slate-300 hidden sm:inline">|</span>
-            <span className="text-xs text-slate-500 font-medium hidden sm:inline">
-              Nile Egyptian International Schools ({currentClass})
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs flex-wrap">
-            {/* Quick Week Switch */}
-            <div className="flex items-center bg-indigo-50/70 p-0.5 rounded-lg border border-indigo-200">
-              <button
-                onClick={() => setCurrentWeek(1)}
-                className={`px-2.5 py-0.5 rounded text-xs font-black transition-all ${
-                  currentWeek === 1
-                    ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'text-indigo-700 hover:text-indigo-950'
-                }`}
-              >
-                Week 1
-              </button>
-              <button
-                onClick={() => setCurrentWeek(2)}
-                className={`px-2.5 py-0.5 rounded text-xs font-black transition-all ${
-                  currentWeek === 2
-                    ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'text-indigo-700 hover:text-indigo-950'
-                }`}
-              >
-                Week 2
-              </button>
-            </div>
-
-            <button
-              onClick={() => setIsPlanModalOpen(true)}
-              className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold transition-colors inline-flex items-center gap-1 border border-indigo-200/60"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-              AI Plan Classifier
-            </button>
-          </div>
-        </div>
-
         {/* Dynamic View rendering based on activeTab */}
         <div className="print:hidden">
           {activeTab === 'classwork' && (

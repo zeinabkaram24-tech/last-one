@@ -21,8 +21,8 @@ interface NavbarProps {
   onSelectTab: (t: 'classwork' | 'homework' | 'tomorrow' | 'timetable') => void;
   selectedDay: SchoolDay;
   onSelectDay: (d: SchoolDay) => void;
-  onOpenPlanModal: () => void;
-  onPrint: () => void;
+  onOpenPlanModal?: () => void;
+  onPrint?: () => void;
   pendingHomeworkCount: number;
 }
 
@@ -35,8 +35,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTab,
   selectedDay,
   onSelectDay,
-  onOpenPlanModal,
-  onPrint,
   pendingHomeworkCount,
 }) => {
   const classes: { id: ClassId; label: string; desc: string }[] = [
@@ -81,28 +79,28 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Top Bar: Brand & Class Selector */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3">
-          {/* Logo & School info */}
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center text-white shadow-xs">
-              <School className="w-6 h-6" />
+          {/* Logo & School info - Dark Distinct Container for high contrast */}
+          <div className="flex items-center gap-3 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-800">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-inner shrink-0">
+              <School className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-slate-900 tracking-tight">
+                <h1 className="text-base sm:text-lg font-black text-white tracking-tight">
                   Nile Egyptian International School
                 </h1>
-                <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-bold bg-amber-400 text-slate-950">
                   Menia
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
-                Grade 2 Weekly Organizer • Classwork • Homework • Tomorrow Prep
+              <p className="text-[11px] text-slate-300 font-medium">
+                Grade 2 Weekly Organizer • Timetable • Classwork • Homework
               </p>
             </div>
           </div>
 
-          {/* Right Controls: Class Picker & Actions */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Right Controls: Class Tabs with Block 1 Week 1/2 positioned directly underneath */}
+          <div className="flex flex-col items-start md:items-end gap-1.5 self-start md:self-center">
             {/* Class Picker */}
             <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
               {classes.map((cls) => {
@@ -111,9 +109,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     key={cls.id}
                     onClick={() => onSelectClass(cls.id)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       isActive
-                        ? 'bg-white text-indigo-700 shadow-xs border border-slate-200'
+                        ? 'bg-indigo-600 text-white shadow-xs font-black'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
@@ -123,50 +121,36 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </div>
 
-            {/* Block 1 Week Picker */}
-            <div className="flex items-center bg-indigo-50/60 p-1 rounded-xl border border-indigo-200">
-              <button
-                onClick={() => onSelectWeek(1)}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  currentWeek === 1
-                    ? 'bg-white text-indigo-900 shadow-xs border border-indigo-300'
-                    : 'text-indigo-600 hover:text-indigo-950'
-                }`}
-                title="Week 1 (6 Sep - 10 Sep)"
-              >
-                Week 1
-              </button>
-              <button
-                onClick={() => onSelectWeek(2)}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  currentWeek === 2
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-indigo-600 hover:text-indigo-950'
-                }`}
-                title="Week 2 (13 Sep - 17 Sep)"
-              >
-                Week 2
-              </button>
+            {/* Block 1 Week Selector positioned directly under Grade 2A/2B/2C */}
+            <div className="flex items-center gap-1.5 bg-indigo-50/80 px-2.5 py-1 rounded-xl border border-indigo-200">
+              <span className="text-[11px] font-black text-indigo-950 whitespace-nowrap">
+                Block 1:
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => onSelectWeek(1)}
+                  className={`px-2.5 py-0.5 rounded-md text-xs font-black transition-all ${
+                    currentWeek === 1
+                      ? 'bg-indigo-600 text-white shadow-2xs'
+                      : 'text-indigo-700 hover:text-indigo-950 hover:bg-white/60'
+                  }`}
+                  title="Week 1 (6 Sep - 10 Sep)"
+                >
+                  Week 1
+                </button>
+                <button
+                  onClick={() => onSelectWeek(2)}
+                  className={`px-2.5 py-0.5 rounded-md text-xs font-black transition-all ${
+                    currentWeek === 2
+                      ? 'bg-indigo-600 text-white shadow-2xs'
+                      : 'text-indigo-700 hover:text-indigo-950 hover:bg-white/60'
+                  }`}
+                  title="Week 2 (13 Sep - 17 Sep)"
+                >
+                  Week 2
+                </button>
+              </div>
             </div>
-
-            {/* Paste / Enter Weekly Plan Button */}
-            <button
-              onClick={onOpenPlanModal}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Paste Weekly Plan</span>
-            </button>
-
-            {/* Print / Export button */}
-            <button
-              onClick={onPrint}
-              title="Print daily preparation or schedule"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition-colors"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Print / Save</span>
-            </button>
           </div>
         </div>
 

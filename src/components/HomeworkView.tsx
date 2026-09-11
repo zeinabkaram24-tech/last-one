@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   CheckCircle2,
   Circle,
-  Plus,
   Trash2,
   Calendar,
   AlertCircle,
@@ -38,20 +37,6 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   const [filterMode, setFilterMode] = useState<'all' | 'pending' | 'urgent' | 'completed'>('all');
   const [weekFilter, setWeekFilter] = useState<'all' | number>('all');
   const [dayFilter, setDayFilter] = useState<SchoolDay | 'All'>('All');
-  const [isAddOpen, setIsAddOpen] = useState(false);
-
-  // New HW form state
-  const [newSubject, setNewSubject] = useState<SubjectName>('Mathematics');
-  const [newTask, setNewTask] = useState('');
-  const [newPages, setNewPages] = useState('');
-  const [newDetails, setNewDetails] = useState('');
-  const [newAssignedDay, setNewAssignedDay] = useState<SchoolDay>(selectedDay);
-  const [newDueDay, setNewDueDay] = useState<SchoolDay>(
-    selectedDay === 'Thursday' ? 'Sunday' : 'Monday'
-  );
-  const [newPriority, setNewPriority] = useState<'normal' | 'urgent'>('normal');
-  const [newWeek, setNewWeek] = useState<number>(currentWeek || 2);
-  const [newLinkUrl, setNewLinkUrl] = useState('');
 
   const classHomework = homeworkList.filter((h) => h.classId === currentClass);
 
@@ -77,61 +62,8 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
     return true;
   });
 
-  const handleCreate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTask.trim()) return;
-
-    const newHw: HomeworkEntry = {
-      id: `hw-${Date.now()}`,
-      classId: currentClass,
-      subject: newSubject,
-      task: newTask.trim(),
-      pages: newPages.trim() || undefined,
-      details: newDetails.trim() || undefined,
-      assignedDay: newAssignedDay,
-      dueDay: newDueDay,
-      priority: newPriority,
-      completed: false,
-      week: newWeek,
-      isLinkTask: Boolean(newLinkUrl.trim()),
-      linkUrl: newLinkUrl.trim() || undefined,
-    };
-
-    onAddHomework(newHw);
-    setNewTask('');
-    setNewPages('');
-    setNewDetails('');
-    setNewLinkUrl('');
-    setIsAddOpen(false);
-  };
-
   return (
     <div className="space-y-4">
-      {/* Top Header Card */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-indigo-50 text-indigo-900 border border-indigo-200">
-              {currentClass}
-            </span>
-            <h2 className="text-lg font-black text-slate-900 tracking-tight">
-              Homework & Assignments Tracker
-            </h2>
-          </div>
-          <p className="text-xs text-slate-600 mt-0.5 font-medium">
-            Assignments mapped to school days with explicit due submission dates.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors self-start sm:self-auto"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add Assignment</span>
-        </button>
-      </div>
-
       {/* Metrics Row - 4 Compact Boxes Side-by-Side in One Horizontal Row */}
       <div className="grid grid-cols-4 gap-2 bg-slate-100/90 p-1.5 rounded-xl border border-slate-200">
         <button
@@ -409,174 +341,6 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
           })
         )}
       </div>
-
-      {/* Add Homework Modal */}
-      {isAddOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900 mb-1">Add New Assignment</h3>
-            <p className="text-xs text-slate-500 mb-4">
-              Create a homework task with due date for {currentClass}
-            </p>
-
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Subject
-                  </label>
-                  <select
-                    value={newSubject}
-                    onChange={(e) => setNewSubject(e.target.value as SubjectName)}
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {Object.keys(SUBJECT_METADATA).map((s) => (
-                      <option key={s} value={s}>
-                        {s} ({SUBJECT_METADATA[s as SubjectName].arabicName})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Priority
-                  </label>
-                  <select
-                    value={newPriority}
-                    onChange={(e) => setNewPriority(e.target.value as any)}
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="normal">Normal</option>
-                    <option value="urgent">Urgent / Quiz / Project</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Homework Task Description *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newTask}
-                  onChange={(e) => setNewTask(e.target.value)}
-                  placeholder="e.g. Workbook page 15, exercises 1 to 6"
-                  className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Assigned Day
-                  </label>
-                  <select
-                    value={newAssignedDay}
-                    onChange={(e) => setNewAssignedDay(e.target.value as SchoolDay)}
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {SCHOOL_DAYS.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Due Day *
-                  </label>
-                  <select
-                    value={newDueDay}
-                    onChange={(e) => setNewDueDay(e.target.value as SchoolDay)}
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {SCHOOL_DAYS.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Page Reference
-                  </label>
-                  <input
-                    type="text"
-                    value={newPages}
-                    onChange={(e) => setNewPages(e.target.value)}
-                    placeholder="p. 15"
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Week
-                  </label>
-                  <select
-                    value={newWeek}
-                    onChange={(e) => setNewWeek(Number(e.target.value))}
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value={1}>Block 1 - Week 1 (6-10 Sep)</option>
-                    <option value={2}>Block 1 - Week 2 (13-17 Sep)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Video / Resource Link URL (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={newLinkUrl}
-                    onChange={(e) => setNewLinkUrl(e.target.value)}
-                    placeholder="https://youtube.com/..."
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Additional Notes
-                </label>
-                <textarea
-                  rows={2}
-                  value={newDetails}
-                  onChange={(e) => setNewDetails(e.target.value)}
-                  placeholder="e.g. Write with neat handwriting in blue pen, draw margin..."
-                  className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs"
-                >
-                  Add Assignment
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

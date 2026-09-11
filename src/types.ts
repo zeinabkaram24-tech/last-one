@@ -46,6 +46,7 @@ export interface ClassworkEntry {
   completed: boolean;
   week?: number;
   linkUrl?: string;
+  linkTitle?: string;
 }
 
 export interface HomeworkEntry {

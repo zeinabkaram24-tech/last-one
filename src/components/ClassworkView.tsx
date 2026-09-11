@@ -83,42 +83,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   const progressPercent = dayClassworks.length > 0 ? Math.round((completedCount / dayClassworks.length) * 100) : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header bar */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-              {currentClass}
-            </span>
-            <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white shadow-2xs">
-              Block 1 • Week {currentWeek}
-            </span>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-              Classwork for {selectedDay}
-            </h2>
-          </div>
-          <p className="text-sm text-slate-500 mt-1">
-            Official 8-period timetable with daily lesson plans, student book pages & exercises ({currentWeek === 2 ? '13 Sep - 17 Sep' : '6 Sep - 10 Sep'}).
-          </p>
-        </div>
-
-        {/* Daily progress counter */}
-        <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200 self-start sm:self-auto">
-          <div className="text-right">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Lessons Completed
-            </div>
-            <div className="text-base font-bold text-slate-800">
-              {completedCount} of {dayClassworks.length} completed
-            </div>
-          </div>
-          <div className="w-12 h-12 rounded-full border-4 border-indigo-100 flex items-center justify-center font-bold text-xs text-indigo-700 bg-white shadow-2xs">
-            {progressPercent}%
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {/* Timetable Period Cards or Weekend Message */}
       {timetablePeriods.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-xs">
@@ -212,10 +177,14 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                             href={cwEntry.linkUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-black bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100 transition-colors shadow-2xs"
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all shadow-2xs ${
+                              cwEntry.subject === 'French'
+                                ? 'bg-purple-100 text-purple-950 border border-purple-300 hover:bg-purple-200'
+                                : 'bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100'
+                            }`}
                           >
-                            <ExternalLink className="w-3.5 h-3.5 text-blue-700" />
-                            <span>رابط فيديو الدرس / النشيد 🔗</span>
+                            <ExternalLink className={`w-3.5 h-3.5 ${cwEntry.subject === 'French' ? 'text-purple-700' : 'text-blue-700'}`} />
+                            <span>{cwEntry.linkTitle || (cwEntry.subject === 'French' ? 'Compétition de français' : 'رابط فيديو الدرس / النشيد 🔗')}</span>
                           </a>
                         </div>
                       )}
