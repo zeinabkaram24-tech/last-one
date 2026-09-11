@@ -119,9 +119,22 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
         </div>
       </div>
 
-      {/* Timetable Period Cards */}
-      <div className="space-y-2.5">
-        {timetablePeriods.map((slot, index) => {
+      {/* Timetable Period Cards or Weekend Message */}
+      {timetablePeriods.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-xs">
+          <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center mx-auto mb-3">
+            <BookOpen className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-black text-slate-900">
+            يوم السبت مخصص للتجهيز والتحضير (Weekend Prep)
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
+            لا توجد حصص مدرسية يوم السبت. يمكنك الانتقال إلى تبويب <strong>Tomorrow Prep</strong> لتجهيز جدول وحقيبة يوم الأحد.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2.5">
+          {timetablePeriods.map((slot, index) => {
           const meta = SUBJECT_METADATA[slot.subject];
           const cwEntry = classworkList.find(
             (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && c.week === currentWeek
@@ -309,6 +322,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           );
         })}
       </div>
+      )}
 
       {/* Edit Classwork Modal */}
       {editingPeriod !== null && (

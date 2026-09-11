@@ -99,7 +99,7 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
 
             {/* Table Body */}
             <tbody>
-              {SCHOOL_DAYS.map((day) => {
+              {SCHOOL_DAYS.filter((d) => (schedule[d] || []).length > 0).map((day) => {
                 const daySlots = schedule[day] || [];
                 const isSelected = selectedDay === day;
 

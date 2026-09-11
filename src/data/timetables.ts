@@ -5,6 +5,7 @@ export const SCHOOL_BRANCH = 'Menia';
 export const SCHOOL_GRADE = 'Grade 2';
 
 export const SCHOOL_DAYS: SchoolDay[] = [
+  'Saturday',
   'Sunday',
   'Monday',
   'Tuesday',
@@ -156,6 +157,7 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
 export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> = {
   // G2A
   G2A: {
+    Saturday: [],
     Sunday: [
       { period: 1, time: '7:45 - 8:35', subject: 'PE', teacher: 'Kareem Mostafa' },
       { period: 2, time: '8:35 - 9:25', subject: 'Social Studies', teacher: 'Walaa Fayz' },
@@ -210,6 +212,7 @@ export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> 
 
   // G2B
   G2B: {
+    Saturday: [],
     Sunday: [
       { period: 1, time: '7:45 - 8:35', subject: 'French', teacher: "Doa'a Fekry" },
       { period: 2, time: '8:35 - 9:25', subject: 'Mathematics', teacher: 'Maryem Sameer' },
@@ -264,6 +267,7 @@ export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> 
 
   // G2C
   G2C: {
+    Saturday: [],
     Sunday: [
       { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Mostafa Mohamed' },
       { period: 2, time: '8:35 - 9:25', subject: 'French', teacher: 'Lamiaa' },
@@ -318,6 +322,7 @@ export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> 
 };
 
 export const NEXT_SCHOOL_DAY: Record<SchoolDay, SchoolDay> = {
+  Saturday: 'Sunday',
   Sunday: 'Monday',
   Monday: 'Tuesday',
   Tuesday: 'Wednesday',

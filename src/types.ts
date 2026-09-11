@@ -1,6 +1,6 @@
 export type ClassId = 'G2A' | 'G2B' | 'G2C';
 
-export type SchoolDay = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday';
+export type SchoolDay = 'Saturday' | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday';
 
 export type SubjectName =
   | 'Mathematics'

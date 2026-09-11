@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Calendar,
   CheckCircle2,
@@ -11,20 +11,19 @@ import {
   CheckSquare,
   AlertCircle,
   Printer,
-  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
-import { ClassId, SchoolDay, HomeworkEntry } from '../types';
+import { ClassId, SchoolDay, HomeworkEntry, PeriodSlot } from '../types';
 import {
   CLASS_TIMETABLES,
   NEXT_SCHOOL_DAY,
   SUBJECT_METADATA,
-  SCHOOL_DAYS,
 } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 
 interface TomorrowViewProps {
   currentClass: ClassId;
-  selectedDay: SchoolDay; // The reference today
+  selectedDay: SchoolDay; // The active day in the top navbar
   homeworkList: HomeworkEntry[];
   currentWeek?: number;
   onToggleHomework: (id: string) => void;
@@ -39,31 +38,103 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   onToggleHomework,
   onPrint,
 }) => {
-  // Target tomorrow day based on selectedDay
-  const defaultTomorrow = NEXT_SCHOOL_DAY[selectedDay];
-  const [activeDay, setActiveDay] = useState<SchoolDay>(defaultTomorrow);
+  // Target tomorrow day is strictly determined by selectedDay
+  // When selectedDay is Sunday -> tomorrowDay is Monday
+  // When selectedDay is Saturday -> tomorrowDay is Sunday
+  const tomorrowDay: SchoolDay = NEXT_SCHOOL_DAY[selectedDay] || 'Sunday';
 
-  // Update activeDay if selectedDay changes
-  React.useEffect(() => {
-    setActiveDay(NEXT_SCHOOL_DAY[selectedDay]);
-  }, [selectedDay]);
+  // Tomorrow's 8 timetable periods
+  const targetPeriods: PeriodSlot[] = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
 
-  // Target day's timetable periods (8 periods)
-  const targetPeriods = CLASS_TIMETABLES[currentClass][activeDay] || [];
-
-  // Homework strictly organized for this day (Assigned on activeDay)
+  // Homework strictly assigned for tomorrowDay
   const dayHomework = homeworkList.filter(
     (h) =>
       h.classId === currentClass &&
-      h.assignedDay === activeDay &&
+      h.assignedDay === tomorrowDay &&
       (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
 
   const completedHwCount = dayHomework.filter((h) => h.completed).length;
 
+  // Period pairs
+  const pair1 = targetPeriods.filter((p) => p.period === 1 || p.period === 2);
+  const pair2 = targetPeriods.filter((p) => p.period === 3 || p.period === 4);
+  const pair3 = targetPeriods.filter((p) => p.period === 5 || p.period === 6);
+  const pair4 = targetPeriods.filter((p) => p.period === 7 || p.period === 8);
+
+  const renderSquareCard = (slot?: PeriodSlot) => {
+    if (!slot) return null;
+    const meta = SUBJECT_METADATA[slot.subject];
+    const hasHw = dayHomework.some((h) => h.subject === slot.subject);
+
+    return (
+      <div
+        key={slot.period}
+        className="bg-white rounded-2xl border border-slate-200/90 hover:border-indigo-400 p-3 sm:p-4 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all group min-h-[140px] sm:min-h-[155px]"
+      >
+        {/* Top Header: Period & Time */}
+        <div className="flex items-center justify-between gap-1">
+          <div className="flex items-center gap-1.5">
+            <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-slate-900 text-white shadow-2xs group-hover:bg-indigo-600 transition-colors">
+              P{slot.period}
+            </span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+              الحصة {slot.period}
+            </span>
+          </div>
+
+          <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
+            <Clock className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+            <span className="whitespace-nowrap">{slot.time}</span>
+          </span>
+        </div>
+
+        {/* Center: Icon + Subject Info */}
+        <div className="my-2 flex items-center gap-2.5">
+          <div
+            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs ${
+              meta?.badgeBg || 'bg-slate-100 text-slate-800 border-slate-300'
+            }`}
+          >
+            <SubjectIcon subject={slot.subject} className="w-5 h-5" />
+          </div>
+
+          <div className="min-w-0">
+            <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">
+              {slot.subject}
+            </h4>
+            {meta?.arabicName && (
+              <p className="text-[11px] font-semibold text-slate-500 truncate mt-0.5">
+                {meta.arabicName}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom: Teacher + HW Indicator */}
+        <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-slate-100 text-[10px] sm:text-[11px]">
+          <span className="inline-flex items-center gap-1 text-slate-600 font-medium truncate max-w-[130px]">
+            <User className="w-3 h-3 text-slate-400 shrink-0" />
+            <span className="truncate">{slot.teacher}</span>
+          </span>
+
+          {hasHw ? (
+            <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded shrink-0">
+              📝 واجب
+            </span>
+          ) : (
+            <span className="text-[9px] text-slate-400 font-semibold shrink-0">
+              لا واجب
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
+      {/* Header Banner - Explaining Today ➔ Tomorrow */}
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 rounded-2xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -73,217 +144,107 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-600 text-white shadow-xs">
               Block 1 • Week {currentWeek}
             </span>
-            <span className="text-xs text-slate-400 font-medium">
-              Reference Today: {selectedDay}
+            <span className="text-xs text-amber-300 font-bold bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/20">
+              اليوم الحالي في التبويب: {selectedDay}
             </span>
           </div>
 
-          <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
-            <span>Schedule & Homework for:</span>
-            <span className="text-amber-400 underline decoration-amber-400/50 underline-offset-4">
-              {activeDay}
-            </span>
-          </h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+              <span>تجهيز جدول بكرة:</span>
+              <span className="text-amber-400 underline decoration-amber-400/50 underline-offset-4">
+                {tomorrowDay}
+              </span>
+            </h2>
+            <div className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-300 bg-white/10 px-2 py-1 rounded-lg">
+              <span>({selectedDay}</span>
+              <ArrowRight className="w-3 h-3 text-amber-400" />
+              <span className="font-bold text-amber-300">{tomorrowDay})</span>
+            </div>
+          </div>
+
           <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-            8 periods arranged side-by-side in pairs (2, 4, 6, 8) with all homework for {activeDay}.
+            مربعات الحصص الثنائية ليوم <strong>{tomorrowDay}</strong> والواجبات المطلوبة لتجهيز الحقيبة المدرسية اليوم.
           </p>
         </div>
 
-        {/* Quick Day Switcher & Print */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 shrink-0">
-          <div className="flex items-center bg-white/10 p-1 rounded-xl border border-white/10 flex-wrap gap-1">
-            {SCHOOL_DAYS.map((d) => (
-              <button
-                key={d}
-                onClick={() => setActiveDay(d)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all ${
-                  activeDay === d
-                    ? 'bg-amber-400 text-slate-950 shadow-xs'
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                {d.slice(0, 3)}
-              </button>
-            ))}
-          </div>
-
+        {/* Print button */}
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
           <button
             onClick={onPrint}
-            className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 border border-white/20 self-end sm:self-auto"
-            title="Print Schedule & Prep Sheet"
+            className="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 border border-white/20 shadow-xs"
+            title="طباعة جدول وتحضير الغد"
           >
-            <Printer className="w-3.5 h-3.5" />
-            <span>Print</span>
+            <Printer className="w-4 h-4" />
+            <span>طباعة الجدول</span>
           </button>
         </div>
       </div>
 
-      {/* 2-by-2 Timetable Grid (2, 4, 6, 8 side-by-side) */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+      {/* 2-by-2 Timetable Squares Section */}
+      <div className="bg-slate-50/70 rounded-2xl border border-slate-200/90 p-4 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
-              <Calendar className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold shadow-2xs">
+              <Calendar className="w-4 h-4" />
             </div>
             <div>
               <h3 className="text-base font-black text-slate-900">
-                {activeDay}'s 8-Period Timetable
+                جدول حصص يوم {tomorrowDay} (8 حصص في مربعات زوجية)
               </h3>
               <p className="text-xs text-slate-500 font-medium">
-                Official periods laid out in side-by-side pairs (1 & 2, 3 & 4, 5 & 6, 7 & 8)
+                مربعين للأولى والثانية • مربعين للثالثة والرابعة • مربعين للخامسة والسادسة • ثم السابعة والثامنة
               </p>
             </div>
           </div>
 
           <span className="text-xs font-black text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200/60 self-start sm:self-auto">
-            8 Periods • 4 Pairs
+            {targetPeriods.length} حصص • {tomorrowDay}
           </span>
         </div>
 
-        {/* The 2-Column Grid: 2 cards per row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          {/* Periods 1 to 6 (Pairs 1 & 2, 3 & 4, 5 & 6) */}
-          {targetPeriods.slice(0, 6).map((slot) => {
-            const meta = SUBJECT_METADATA[slot.subject];
-            const hasHw = dayHomework.some((h) => h.subject === slot.subject);
+        {/* 2-Column Grid of Square Tiles */}
+        <div className="space-y-3.5">
+          {/* Row 1: Period 1 & Period 2 */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {renderSquareCard(pair1[0])}
+            {renderSquareCard(pair1[1])}
+          </div>
 
-            return (
-              <div
-                key={slot.period}
-                className="bg-slate-50/70 hover:bg-white border border-slate-200 hover:border-indigo-400 rounded-xl p-3.5 transition-all shadow-2xs hover:shadow-xs flex items-center justify-between gap-3 group"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  {/* Period Badge */}
-                  <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-900 font-black text-xs flex flex-col items-center justify-center shrink-0 shadow-2xs group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors">
-                    <span className="text-[9px] uppercase tracking-tighter text-slate-400">P</span>
-                    <span className="leading-none text-sm font-black">{slot.period}</span>
-                  </div>
+          {/* Row 2: Period 3 & Period 4 */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {renderSquareCard(pair2[0])}
+            {renderSquareCard(pair2[1])}
+          </div>
 
-                  {/* Subject Icon */}
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs ${
-                      meta?.badgeBg || 'bg-slate-100 text-slate-800 border-slate-300'
-                    }`}
-                  >
-                    <SubjectIcon subject={slot.subject} className="w-5 h-5" />
-                  </div>
+          {/* Row 3: Period 5 & Period 6 */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {renderSquareCard(pair3[0])}
+            {renderSquareCard(pair3[1])}
+          </div>
 
-                  {/* Subject Details */}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="text-sm font-black text-slate-900 truncate leading-tight">
-                        {slot.subject}
-                      </h4>
-                      {meta?.arabicName && (
-                        <span className="text-[11px] text-slate-500 font-semibold truncate">
-                          ({meta.arabicName})
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-600 font-medium">
-                      <span className="inline-flex items-center gap-1">
-                        <User className="w-3 h-3 text-slate-400" />
-                        <span className="truncate max-w-[130px]">{slot.teacher}</span>
-                      </span>
-                      {hasHw && (
-                        <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.2 rounded">
-                          📝 Homework
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Time Badge */}
-                <div className="text-right shrink-0">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-white px-2 py-1 rounded-md border border-slate-200 shadow-2xs">
-                    <Clock className="w-3 h-3 text-slate-400" />
-                    <span>{slot.time}</span>
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Lunch Break Banner across both columns between Period 6 and 7 */}
-          <div className="col-span-1 md:col-span-2 bg-gradient-to-r from-blue-50 via-indigo-50/50 to-blue-50 border border-blue-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs font-bold text-blue-950 shadow-2xs">
+          {/* Lunch & Prayer Break Bar */}
+          <div className="bg-gradient-to-r from-blue-50 via-indigo-50/60 to-blue-50 border border-blue-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs font-bold text-blue-950 shadow-2xs">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                 <Utensils className="w-3.5 h-3.5" />
               </div>
-              <span>Lunch & Recess Break (استراحة الغداء والصلاة)</span>
+              <span>استراحة الغداء وصلاة الظهر (Lunch & Prayer Break)</span>
             </div>
             <span className="bg-white text-blue-900 px-2.5 py-0.5 rounded-md border border-blue-200 font-black text-[11px]">
-              13:05 – 13:40
+              13:05 – 13:25
             </span>
           </div>
 
-          {/* Periods 7 & 8 (Final Pair) */}
-          {targetPeriods.slice(6, 8).map((slot) => {
-            const meta = SUBJECT_METADATA[slot.subject];
-            const hasHw = dayHomework.some((h) => h.subject === slot.subject);
-
-            return (
-              <div
-                key={slot.period}
-                className="bg-slate-50/70 hover:bg-white border border-slate-200 hover:border-indigo-400 rounded-xl p-3.5 transition-all shadow-2xs hover:shadow-xs flex items-center justify-between gap-3 group"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  {/* Period Badge */}
-                  <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-900 font-black text-xs flex flex-col items-center justify-center shrink-0 shadow-2xs group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors">
-                    <span className="text-[9px] uppercase tracking-tighter text-slate-400">P</span>
-                    <span className="leading-none text-sm font-black">{slot.period}</span>
-                  </div>
-
-                  {/* Subject Icon */}
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs ${
-                      meta?.badgeBg || 'bg-slate-100 text-slate-800 border-slate-300'
-                    }`}
-                  >
-                    <SubjectIcon subject={slot.subject} className="w-5 h-5" />
-                  </div>
-
-                  {/* Subject Details */}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="text-sm font-black text-slate-900 truncate leading-tight">
-                        {slot.subject}
-                      </h4>
-                      {meta?.arabicName && (
-                        <span className="text-[11px] text-slate-500 font-semibold truncate">
-                          ({meta.arabicName})
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-600 font-medium">
-                      <span className="inline-flex items-center gap-1">
-                        <User className="w-3 h-3 text-slate-400" />
-                        <span className="truncate max-w-[130px]">{slot.teacher}</span>
-                      </span>
-                      {hasHw && (
-                        <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.2 rounded">
-                          📝 Homework
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Time Badge */}
-                <div className="text-right shrink-0">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-white px-2 py-1 rounded-md border border-slate-200 shadow-2xs">
-                    <Clock className="w-3 h-3 text-slate-400" />
-                    <span>{slot.time}</span>
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          {/* Row 4: Period 7 & Period 8 */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {renderSquareCard(pair4[0])}
+            {renderSquareCard(pair4[1])}
+          </div>
         </div>
       </div>
 
-      {/* Homework of this Day Section */}
+      {/* Homework for tomorrowDay Section */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
@@ -292,17 +253,17 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             </div>
             <div>
               <h3 className="text-base font-black text-slate-900">
-                Homework Assigned on {activeDay} (واجبات يوم {activeDay})
+                واجبات يوم {tomorrowDay} (Homework for {tomorrowDay})
               </h3>
               <p className="text-xs text-slate-500 font-medium">
-                Directly associated with {activeDay}'s lessons (Week {currentWeek})
+                الواجبات المرتبطة بحصص ودروس يوم {tomorrowDay} (الأسبوع {currentWeek})
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <span className="text-xs font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
-              {completedHwCount} / {dayHomework.length} Completed
+              {completedHwCount} من {dayHomework.length} مكتمل
             </span>
           </div>
         </div>
@@ -311,10 +272,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-8 text-center">
             <BookOpen className="w-8 h-8 text-slate-400 mx-auto mb-2" />
             <h4 className="text-sm font-black text-slate-800">
-              No Homework Assigned on {activeDay}
+              لا توجد واجبات مقررة ليوم {tomorrowDay}
             </h4>
             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto font-medium">
-              There are no homework assignments scheduled for {activeDay} in Week {currentWeek}.
+              لم يتم تعيين أي واجبات مدرسية مسجلة ليوم {tomorrowDay} في الأسبوع {currentWeek}.
             </p>
           </div>
         ) : (
@@ -336,7 +297,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                     <button
                       onClick={() => onToggleHomework(hw.id)}
                       className="mt-0.5 text-slate-400 hover:text-emerald-600 transition-colors shrink-0"
-                      title={hw.completed ? 'Mark as incomplete' : 'Mark as done'}
+                      title={hw.completed ? 'وضع كغير مكتمل' : 'وضع كمكتمل'}
                     >
                       {hw.completed ? (
                         <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -357,11 +318,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                         </span>
 
                         <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">
-                          Day: {hw.assignedDay}
+                          يوم الحصة: {hw.assignedDay}
                         </span>
 
                         <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                          Hand in: {hw.dueDay}
+                          التسليم: {hw.dueDay}
                         </span>
 
                         {(hw.isLinkTask || hw.linkUrl) && (
@@ -374,7 +335,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                         {hw.priority === 'urgent' && !hw.completed && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-900 border border-rose-300">
                             <AlertCircle className="w-3 h-3 text-rose-700" />
-                            Urgent
+                            عاجل
                           </span>
                         )}
 
@@ -424,7 +385,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                         : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
                     }`}
                   >
-                    {hw.completed ? 'Mark Incomplete' : 'Done ✓'}
+                    {hw.completed ? 'غير مكتمل' : 'تم الإنجاز ✓'}
                   </button>
                 </div>
               );
