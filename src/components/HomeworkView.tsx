@@ -9,6 +9,7 @@ import { ClassId, SchoolDay, HomeworkEntry } from '../types';
 import { SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
+import { getSubjectTheme } from '../data/subjectThemes';
 
 interface HomeworkViewProps {
   currentClass: ClassId;
@@ -100,13 +101,14 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         <div className="space-y-2.5">
           {dayHomework.map((hw) => {
             const meta = SUBJECT_METADATA[hw.subject];
+            const theme = getSubjectTheme(hw.subject);
             return (
               <div
                 key={hw.id}
-                className={`rounded-2xl border p-3.5 transition-all flex items-start justify-between gap-3 shadow-2xs ${
+                className={`rounded-2xl border border-s-4 p-3.5 sm:p-4 transition-all flex items-start justify-between gap-3 shadow-2xs ${
                   hw.completed
-                    ? 'border-emerald-300 bg-emerald-50/25 opacity-90'
-                    : 'border-slate-200 bg-white hover:border-indigo-300'
+                    ? 'border-emerald-300 border-s-emerald-600 bg-emerald-50/30 opacity-85'
+                    : `${theme.hwCard} ${theme.hwAccentBorder} shadow-xs`
                 }`}
               >
                 {/* Checkbox and Task Details */}
@@ -123,24 +125,28 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                     )}
                   </button>
 
-                  <div className="space-y-1 flex-1 min-w-0">
+                  <div className="space-y-1.5 flex-1 min-w-0">
                     {/* Badges: Subject with colorful icon + الواجب المنزلي + Due date */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-black border ${
-                          meta?.badgeBg || 'bg-slate-100 text-slate-950 border-slate-300'
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black border transition-colors ${
+                          theme.hwSubjectBadge
                         }`}
                       >
                         <SubjectIcon subject={hw.subject} className="w-3.5 h-3.5" />
                         <span>{hw.subject}</span>
                       </span>
 
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-black border bg-amber-50 text-amber-900 border-amber-300">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black border transition-colors ${
+                          theme.hwTag
+                        }`}
+                      >
                         الواجب المنزلي
                       </span>
 
                       {hw.dueDay && (
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200">
+                        <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white/95 text-slate-800 border border-slate-200 shadow-2xs">
                           موعد التسليم: يوم {ARABIC_DAY_NAMES[hw.dueDay] || hw.dueDay}
                         </span>
                       )}
@@ -148,7 +154,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
                     {/* Task Description */}
                     <p
-                      className={`text-sm font-bold leading-snug pt-0.5 ${
+                      className={`text-sm font-black leading-snug pt-0.5 ${
                         hw.completed ? 'line-through text-slate-400' : 'text-slate-950'
                       }`}
                     >
@@ -157,7 +163,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
                     {/* Required Tools / Pages */}
                     {hw.pages && (
-                      <div className="text-xs text-indigo-900 font-bold bg-indigo-50/80 px-2.5 py-0.5 rounded-md border border-indigo-100 inline-block">
+                      <div className={`text-xs font-bold px-2.5 py-1 rounded-md border inline-block transition-colors ${theme.hwPagesBadge}`}>
                         المطلوب / الكراسة: {hw.pages}
                       </div>
                     )}

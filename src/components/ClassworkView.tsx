@@ -12,6 +12,7 @@ import { ClassId, SchoolDay, ClassworkEntry, SubjectName } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
+import { getSubjectTheme } from '../data/subjectThemes';
 
 interface ClassworkViewProps {
   currentClass: ClassId;
@@ -117,6 +118,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           {timetablePeriods.map((slot) => {
             const isFrench = slot.subject === 'French';
             const meta = SUBJECT_METADATA[slot.subject];
+            const theme = getSubjectTheme(slot.subject);
             const cwEntry = classworkList.find(
               (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && c.week === currentWeek
             ) || classworkList.find(
@@ -151,23 +153,29 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             <React.Fragment key={slot.period}>
               {/* Period Card */}
               <div
-                className={`group bg-white rounded-2xl border transition-all p-3 sm:p-3.5 space-y-3 shadow-2xs ${
+                className={`group rounded-2xl border transition-all p-3 sm:p-3.5 space-y-3 shadow-2xs ${
                   cwEntry?.completed
-                    ? 'border-emerald-300 bg-emerald-50/20'
-                    : 'border-slate-200 hover:border-indigo-300 hover:shadow-xs'
+                    ? 'border-emerald-300 bg-emerald-50/40 shadow-xs'
+                    : `${theme.cwCard} shadow-xs`
                 }`}
               >
                 {/* 3 Equal-Width Boxes in a row: Period, Subject, Teacher */}
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 w-full items-stretch">
                   {/* Box 1: رقم الحصة */}
-                  <div className="bg-slate-900 text-white font-black text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center text-center shadow-2xs">
+                  <div
+                    className={`${
+                      cwEntry?.completed ? 'bg-emerald-700 text-white' : theme.cwPeriodBox
+                    } font-black text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center text-center shadow-2xs transition-colors`}
+                  >
                     Period {slot.period}
                   </div>
 
                   {/* Box 2: اسم المادة */}
                   <div
-                    className={`border font-black text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-center truncate shadow-2xs ${
-                      meta?.badgeBg || 'bg-slate-100 text-slate-900 border-slate-300'
+                    className={`border font-black text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-center truncate transition-colors ${
+                      cwEntry?.completed
+                        ? 'bg-white/95 text-emerald-950 border-emerald-300 shadow-2xs'
+                        : theme.cwSubjectBox
                     }`}
                   >
                     <SubjectIcon subject={slot.subject} className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
@@ -175,14 +183,26 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                   </div>
 
                   {/* Box 3: اسم المدرس */}
-                  <div className="bg-white border border-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-center truncate shadow-2xs">
+                  <div
+                    className={`border font-bold text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-center truncate transition-colors ${
+                      cwEntry?.completed
+                        ? 'bg-white/95 border-emerald-200 text-slate-800 shadow-2xs'
+                        : theme.cwTeacherBox
+                    }`}
+                  >
                     <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span className="truncate">{slot.teacher}</span>
                   </div>
                 </div>
 
                 {/* Center: Classwork content & actions */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50/80 p-3 rounded-xl border border-slate-200">
+                <div
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-xl border transition-all ${
+                    cwEntry?.completed
+                      ? 'bg-white/95 border-emerald-200/80 shadow-2xs'
+                      : theme.cwContentBox
+                  }`}
+                >
                   <div className="flex-1 min-w-0">
                     {cwEntry ? (
                       <div>
@@ -195,7 +215,13 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                             {cwEntry.title}
                           </h4>
                           {cwEntry.pages && (
-                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-white text-indigo-900 border border-indigo-200 whitespace-nowrap shrink-0">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap shrink-0 ${
+                                cwEntry.completed
+                                  ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                                  : theme.cwPageBadge
+                              }`}
+                            >
                               📖 {cwEntry.pages}
                             </span>
                           )}
