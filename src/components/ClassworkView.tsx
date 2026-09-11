@@ -167,7 +167,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                       cwEntry?.completed ? 'bg-emerald-700 text-white' : theme.cwPeriodBox
                     } font-black text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center text-center shadow-2xs transition-colors`}
                   >
-                    Period {slot.period}
+                    P{slot.period}
                   </div>
 
                   {/* Box 2: اسم المادة */}
@@ -326,7 +326,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-1">
-              Edit Period {editingPeriod} Classwork
+              Edit P{editingPeriod} Classwork
             </h3>
             <p className="text-xs text-slate-500 mb-4">
               {selectedDay} • {editSubject} • {currentClass}
