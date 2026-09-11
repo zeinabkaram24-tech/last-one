@@ -16,7 +16,7 @@ const STORAGE_KEYS = {
   DAY: 'nile_planner_selected_day_v3',
   WEEK: 'nile_planner_current_week_v3',
   CLASSWORK: 'nile_planner_classwork_b1_w1_w2_v9',
-  HOMEWORK: 'nile_planner_homework_b1_w1_w2_v9',
+  HOMEWORK: 'nile_planner_homework_b1_w1_w2_v10',
 };
 
 export default function App() {

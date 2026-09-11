@@ -32,13 +32,13 @@ Sunday:
 - English: Unit 1 Back to School (Phonics short a & e). CW: Pupil's Book p. 10-13. HW: Activity Book p. 8 (Due Monday)
 
 Monday:
-- Social Studies: My Community and Neighborhood. CW: Book p. 8-11. HW: Draw 3 places in notebook (Due Wednesday)
 - PE: Agility ladder & ball bouncing. Bring sports shoes!
 - English: Story Time The Kind Rabbit. CW: Pupil's Book p. 14-15. HW: Copybook sentences
 - Mathematics: Comparing numbers with <, >, =. CW: Student Book p. 18-20. HW: Practice Book p. 12 (Due Tuesday)
 - Arabic: أسماء الإشارة (هذا وهذه). CW: كتاب المدرسة ص 16. HW: حل التدريب 3
 
 Tuesday:
+- Social Studies: My Community and Neighborhood. CW: Book p. 8-11. HW: Draw 3 places in notebook (Due Wednesday)
 - Mathematics: Skip counting by 2s and 5s. CW: Student Book p. 22-24. HW: Sheet 4
 - Arts: Primary colors & watercolor painting. Bring sketch and watercolor set!
 - Religion: سورة الفلق وحفظ الآيات الكريمة. HW: حفظ السورة للتسميع (Urgent Quiz)

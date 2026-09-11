@@ -1166,4 +1166,48 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     priority: 'normal',
     week: 2,
   },
+
+  // ===========================================================
+  // WEEK 2: OFFICIAL SOCIAL STUDIES HOMEWORK (Classes 2A, 2B, 2C)
+  // Assigned Tuesday, Due Wednesday
+  // ===========================================================
+  {
+    id: 'hw-w2-soc-tue-g2a',
+    classId: 'G2A',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'Social Studies',
+    task: 'واجب الدراسات الاجتماعية: رسم 3 أماكن في كشكول الدراسات',
+    pages: 'كشكول الدراسات الاجتماعية',
+    details: 'رسم 3 أماكن في كشكول الدراسات الاجتماعية - التسليم يوم الأربعاء.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+  {
+    id: 'hw-w2-soc-tue-g2b',
+    classId: 'G2B',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'Social Studies',
+    task: 'واجب الدراسات الاجتماعية: رسم 3 أماكن في كشكول الدراسات',
+    pages: 'كشكول الدراسات الاجتماعية',
+    details: 'رسم 3 أماكن في كشكول الدراسات الاجتماعية - التسليم يوم الأربعاء.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+  {
+    id: 'hw-w2-soc-tue-g2c',
+    classId: 'G2C',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'Social Studies',
+    task: 'واجب الدراسات الاجتماعية: رسم 3 أماكن في كشكول الدراسات',
+    pages: 'كشكول الدراسات الاجتماعية',
+    details: 'رسم 3 أماكن في كشكول الدراسات الاجتماعية - التسليم يوم الأربعاء.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
 ];
