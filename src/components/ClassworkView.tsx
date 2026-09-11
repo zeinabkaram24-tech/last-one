@@ -34,9 +34,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   onSaveClasswork,
   onToggleHomework,
 }) => {
-  // Filter strictly to Arabic and French as requested by user
+  // Filter strictly to Arabic, French, and Mathematics as requested by user
   const timetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
-    (s) => s.subject === 'Arabic' || s.subject === 'French'
+    (s) => s.subject === 'Arabic' || s.subject === 'French' || s.subject === 'Mathematics'
   );
 
   // Edit modal state
@@ -104,10 +104,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           ) : (
             <>
               <h3 className="text-base font-black text-slate-900">
-                لا توجد حصص عربي أو فرنش مقررة ليوم {selectedDay} ({currentClass})
+                لا توجد حصص عربي أو فرنش أو ماث مقررة ليوم {selectedDay} ({currentClass})
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
-                تم حجب باقي المواد مؤقتاً (PE, Art, Music...) حيث يقتصر العرض حالياً على مادتي العربي والفرنش لحين إدراج خطط باقي المواد.
+                يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (عربي وفرنش وماث).
               </p>
             </>
           )}
