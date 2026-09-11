@@ -7,9 +7,8 @@ import {
   User,
   BookOpen,
   ExternalLink,
-  CheckSquare,
 } from 'lucide-react';
-import { ClassId, SchoolDay, ClassworkEntry, SubjectName, HomeworkEntry } from '../types';
+import { ClassId, SchoolDay, ClassworkEntry, SubjectName } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 
@@ -17,22 +16,18 @@ interface ClassworkViewProps {
   currentClass: ClassId;
   selectedDay: SchoolDay;
   classworkList: ClassworkEntry[];
-  homeworkList?: HomeworkEntry[];
   currentWeek?: number;
   onToggleClasswork: (id: string) => void;
   onSaveClasswork: (entry: ClassworkEntry) => void;
-  onToggleHomework?: (id: string) => void;
 }
 
 export const ClassworkView: React.FC<ClassworkViewProps> = ({
   currentClass,
   selectedDay,
   classworkList,
-  homeworkList = [],
   currentWeek = 2,
   onToggleClasswork,
   onSaveClasswork,
-  onToggleHomework,
 }) => {
   // Filter strictly to Arabic, French, and Mathematics as requested by user
   const timetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
@@ -121,15 +116,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
               (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && c.week === currentWeek
             ) || classworkList.find(
               (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && (!c.week || c.week === 1)
-            );
-
-            // Find homework assigned for this subject on this day (Arabic or French)
-            const slotHomework = homeworkList.find(
-              (h) =>
-                h.classId === currentClass &&
-                h.assignedDay === selectedDay &&
-                h.subject === slot.subject &&
-                (h.week === currentWeek || (!h.week && currentWeek === 1))
             );
 
             const activeLinkUrl = cwEntry?.linkUrl || (isFrench ? 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900' : undefined);
@@ -293,47 +279,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                     </button>
                   </div>
                 </div>
-
-                {/* Associated Homework for this period/day if assigned */}
-                {slotHomework && (
-                  <div className="bg-amber-50/70 border border-amber-200/90 rounded-xl p-2.5 sm:p-3 flex items-start justify-between gap-2.5">
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="px-2 py-0.5 rounded bg-amber-200/80 text-amber-950 font-black text-[10.5px]">
-                          واجب منزلي لهذه الحصة ({slot.subject})
-                        </span>
-                        {slotHomework.dueDay && (
-                          <span className="text-[10.5px] text-amber-900 font-bold">
-                            تسليم: {slotHomework.dueDay}
-                          </span>
-                        )}
-                      </div>
-                      <p
-                        className={`text-xs sm:text-sm font-bold leading-snug ${
-                          slotHomework.completed ? 'line-through text-slate-400' : 'text-slate-950'
-                        }`}
-                      >
-                        {slotHomework.task}
-                      </p>
-                      {slotHomework.pages && (
-                        <span className="text-[10.5px] text-indigo-900 font-bold bg-white px-2 py-0.5 rounded border border-indigo-100 inline-block">
-                          الكراسة / المطلوب: {slotHomework.pages}
-                        </span>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => onToggleHomework && onToggleHomework(slotHomework.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all shrink-0 self-start sm:self-center ${
-                        slotHomework.completed
-                          ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
-                          : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-2xs'
-                      }`}
-                    >
-                      {slotHomework.completed ? 'Done ✓' : 'Mark Done'}
-                    </button>
-                  </div>
-                )}
               </div>
             </React.Fragment>
           );

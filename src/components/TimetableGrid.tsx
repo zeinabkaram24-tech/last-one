@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, User, Coffee, Utensils, Flag, CalendarDays } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import { ClassId, SchoolDay } from '../types';
 import {
   CLASS_TIMETABLES,
@@ -25,143 +25,96 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
   const schedule = CLASS_TIMETABLES[currentClass];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Header Info Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="px-2 py-0.5 rounded-md text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
               {currentClass} Timetable
             </span>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-              Official 8-Period Weekly Schedule
+            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              جدول الحصص الأسبوعي (8 حصص)
             </h2>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-0.5">
             {SCHOOL_NAME} • {SCHOOL_BRANCH} Campus • Grade 2 ({currentClass})
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
-          <CalendarDays className="w-4 h-4 text-indigo-600" />
-          <span>Click any day row to inspect Classwork and Homework</span>
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200 self-start sm:self-auto">
+          <CalendarDays className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+          <span>اضغطي على أي يوم للانتقال إليه</span>
         </div>
       </div>
 
-      {/* Responsive Horizontal Scroll Timetable Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-xs text-left min-w-[980px]">
-            {/* Table Header with Periods & Times */}
-            <thead>
-              <tr className="bg-slate-100 text-slate-800 border-b-2 border-slate-300">
-                <th className="p-2.5 font-black text-center border-r border-slate-300 w-24 bg-slate-200/80 text-slate-900 text-xs">
-                  Day
+      {/* Full-width Responsive Timetable Table (No horizontal scrolling, no lunch column) */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+        <table className="w-full table-fixed border-collapse text-xs text-left">
+          {/* Table Header with Periods & Times (Without Lunch) */}
+          <thead>
+            <tr className="bg-slate-100 text-slate-800 border-b-2 border-slate-300">
+              <th className="p-1 sm:p-2 font-black text-center border-r border-slate-300 w-[10%] bg-slate-200/80 text-slate-900 text-[11px] sm:text-xs">
+                اليوم
+              </th>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((pNum) => (
+                <th
+                  key={pNum}
+                  className={`p-1 sm:p-1.5 font-extrabold text-center w-[11.25%] ${
+                    pNum === 8 ? '' : 'border-r border-slate-300'
+                  }`}
+                >
+                  <div className="text-slate-900 font-black text-[10px] sm:text-xs">P{pNum}</div>
+                  <div className="text-[8.5px] sm:text-[10px] text-slate-500 font-semibold hidden md:block">
+                    {PERIOD_TIMES[pNum]}
+                  </div>
                 </th>
-                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
-                  <div className="text-slate-900 font-black text-xs">Period 1</div>
-                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[1]}</div>
-                </th>
-                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
-                  <div className="text-slate-900 font-black text-xs">Period 2</div>
-                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[2]}</div>
-                </th>
-                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
-                  <div className="text-slate-900 font-black text-xs">Period 3</div>
-                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[3]}</div>
-                </th>
-                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
-                  <div className="text-slate-900 font-black text-xs">Period 4</div>
-                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[4]}</div>
-                </th>
-                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
-                  <div className="text-slate-900 font-black text-xs">Period 5</div>
-                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[5]}</div>
-                </th>
-                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
-                  <div className="text-slate-900 font-black text-xs">Period 6</div>
-                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[6]}</div>
-                </th>
-                <th className="p-1 font-bold text-center border-r border-slate-300 w-16 bg-blue-50/70">
-                  <div className="text-blue-900 font-black text-[10px]">Lunch</div>
-                  <div className="text-[9px] text-blue-700 font-semibold">13:05</div>
-                </th>
-                <th className="p-1.5 font-extrabold text-center border-r border-slate-300 min-w-[90px]">
-                  <div className="text-slate-900 font-black text-xs">Period 7</div>
-                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[7]}</div>
-                </th>
-                <th className="p-1.5 font-extrabold text-center min-w-[90px]">
-                  <div className="text-slate-900 font-black text-xs">Period 8</div>
-                  <div className="text-[10px] text-slate-600 font-bold">{PERIOD_TIMES[8]}</div>
-                </th>
-              </tr>
-            </thead>
+              ))}
+            </tr>
+          </thead>
 
-            {/* Table Body */}
-            <tbody>
-              {SCHOOL_DAYS.filter((d) => (schedule[d] || []).length > 0).map((day) => {
-                const daySlots = schedule[day] || [];
-                const isSelected = selectedDay === day;
+          {/* Table Body */}
+          <tbody>
+            {SCHOOL_DAYS.filter((d) => (schedule[d] || []).length > 0).map((day) => {
+              const daySlots = schedule[day] || [];
+              const isSelected = selectedDay === day;
+              const getPeriod = (num: number) => daySlots.find((p) => p.period === num);
 
-                const getPeriod = (num: number) => daySlots.find((p) => p.period === num);
+              return (
+                <tr
+                  key={day}
+                  onClick={() => onSelectDay(day)}
+                  className={`cursor-pointer transition-colors border-b border-slate-200 ${
+                    isSelected
+                      ? 'bg-indigo-50/70 hover:bg-indigo-50/90'
+                      : 'hover:bg-slate-50/80'
+                  }`}
+                >
+                  {/* Day Column */}
+                  <td className="p-1 sm:p-1.5 font-black border-r border-slate-300 text-center bg-slate-100/70">
+                    <div className="text-[10px] sm:text-xs font-black text-slate-950 truncate">
+                      {day}
+                    </div>
+                    {isSelected && (
+                      <span className="text-[8px] sm:text-[9px] font-black text-indigo-800 bg-indigo-100 border border-indigo-200 px-1 py-0.2 rounded-full mt-0.5 inline-block">
+                        Active
+                      </span>
+                    )}
+                  </td>
 
-                return (
-                  <tr
-                    key={day}
-                    onClick={() => onSelectDay(day)}
-                    className={`cursor-pointer transition-colors border-b border-slate-200 ${
-                      isSelected
-                        ? 'bg-indigo-50/60 hover:bg-indigo-50/80'
-                        : 'hover:bg-slate-50'
-                    }`}
-                  >
-                    {/* Day Column */}
-                    <td className="p-2.5 font-black border-r border-slate-300 text-center bg-slate-100/70">
-                      <div className="text-xs font-black text-slate-950">{day}</div>
-                      {isSelected && (
-                        <span className="text-[9px] font-black text-indigo-800 bg-indigo-100/90 border border-indigo-200 px-1.5 py-0.5 rounded-full mt-1 inline-block">
-                          Active
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Period 1 */}
-                    <SlotCell slot={getPeriod(1)} />
-
-                    {/* Period 2 */}
-                    <SlotCell slot={getPeriod(2)} />
-
-                    {/* Period 3 */}
-                    <SlotCell slot={getPeriod(3)} />
-
-                    {/* Period 4 */}
-                    <SlotCell slot={getPeriod(4)} />
-
-                    {/* Period 5 */}
-                    <SlotCell slot={getPeriod(5)} />
-
-                    {/* Period 6 */}
-                    <SlotCell slot={getPeriod(6)} />
-
-                    {/* Lunch Break */}
-                    <td className="p-1 text-center border-r border-slate-300 bg-blue-50/40 text-blue-950">
-                      <div className="flex flex-col items-center justify-center">
-                        <Utensils className="w-3.5 h-3.5 text-blue-600 mb-0.5" />
-                        <span className="text-[9px] font-extrabold">Lunch</span>
-                      </div>
-                    </td>
-
-                    {/* Period 7 */}
-                    <SlotCell slot={getPeriod(7)} />
-
-                    {/* Period 8 */}
-                    <SlotCell slot={getPeriod(8)} isLast />
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                  {/* 8 Periods directly side-by-side without lunch column */}
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((pNum) => (
+                    <SlotCell
+                      key={pNum}
+                      slot={getPeriod(pNum)}
+                      isLast={pNum === 8}
+                    />
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -181,7 +134,9 @@ const SlotCell: React.FC<SlotCellProps> = ({ slot, isLast }) => {
   if (!slot) {
     return (
       <td
-        className={`p-1 text-center text-slate-300 font-bold ${isLast ? '' : 'border-r border-slate-300'}`}
+        className={`p-0.5 sm:p-1 text-center text-slate-300 font-bold ${
+          isLast ? '' : 'border-r border-slate-300'
+        }`}
       >
         -
       </td>
@@ -192,20 +147,27 @@ const SlotCell: React.FC<SlotCellProps> = ({ slot, isLast }) => {
 
   return (
     <td
-      className={`p-1 text-center align-top ${isLast ? '' : 'border-r border-slate-300'} transition-all`}
+      className={`p-0.5 sm:p-1 text-center align-top ${
+        isLast ? '' : 'border-r border-slate-300'
+      } transition-all`}
     >
       <div
-        className={`rounded-lg p-1.5 border shadow-2xs ${meta?.badgeBg || 'bg-slate-100 text-slate-950 border-slate-300'} flex flex-col items-center justify-between min-h-[58px] transition-transform hover:scale-[1.02]`}
+        className={`rounded-lg p-1 sm:p-1.5 border shadow-2xs ${
+          meta?.badgeBg || 'bg-slate-100 text-slate-950 border-slate-300'
+        } flex flex-col items-center justify-between min-h-[50px] sm:min-h-[58px]`}
       >
         <div className="flex flex-col items-center gap-0.5 w-full">
-          <SubjectIcon subject={slot.subject} className="w-3.5 h-3.5 shrink-0" />
-          <span className="font-black text-[11px] leading-tight text-center text-slate-950 block">
+          <SubjectIcon subject={slot.subject} className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+          <span className="font-black text-[9px] sm:text-[11px] leading-tight text-center text-slate-950 block truncate w-full">
             {slot.subject}
           </span>
         </div>
 
-        <div className="mt-1 pt-0.5 border-t border-slate-300/60 w-full text-center">
-          <span className="text-[10px] font-bold text-slate-800 block truncate leading-tight" title={slot.teacher}>
+        <div className="mt-0.5 pt-0.5 border-t border-slate-300/60 w-full text-center">
+          <span
+            className="text-[8px] sm:text-[9.5px] font-bold text-slate-700 block truncate leading-tight"
+            title={slot.teacher}
+          >
             {slot.teacher}
           </span>
         </div>

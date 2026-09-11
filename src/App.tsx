@@ -15,8 +15,8 @@ const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
   DAY: 'nile_planner_selected_day_v3',
   WEEK: 'nile_planner_current_week_v3',
-  CLASSWORK: 'nile_planner_classwork_b1_w1_w2_v6',
-  HOMEWORK: 'nile_planner_homework_b1_w1_w2_v6',
+  CLASSWORK: 'nile_planner_classwork_b1_w1_w2_v7',
+  HOMEWORK: 'nile_planner_homework_b1_w1_w2_v7',
 };
 
 export default function App() {
@@ -224,11 +224,9 @@ export default function App() {
               currentClass={currentClass}
               selectedDay={selectedDay}
               classworkList={classworkList}
-              homeworkList={homeworkList}
               currentWeek={currentWeek}
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
-              onToggleHomework={handleToggleHomework}
             />
           )}
 
