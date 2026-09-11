@@ -79,8 +79,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none">
                 Nile Egyptian International School
               </h1>
-              <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-0.5 leading-none">
-                Grade 2
+              <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-0.5 leading-none flex items-center gap-1">
+                <span>Grade 2</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-amber-300 font-black">خطة المذاكرة الأسبوعية</span>
+                <span className="text-slate-400 hidden md:inline">| Weekly Study Planner</span>
               </p>
             </div>
           </div>

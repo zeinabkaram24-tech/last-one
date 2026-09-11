@@ -8,6 +8,7 @@ import {
 import { ClassId, SchoolDay, HomeworkEntry } from '../types';
 import { SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
+import { triggerDoneCelebration } from '../utils/celebrate';
 
 interface HomeworkViewProps {
   currentClass: ClassId;
@@ -42,6 +43,13 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       h.assignedDay === selectedDay &&
       (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
+
+  const handleToggle = (id: string, currentlyCompleted: boolean) => {
+    if (!currentlyCompleted) {
+      triggerDoneCelebration();
+    }
+    onToggleHomework(id);
+  };
 
   const completedCount = dayHomework.filter((h) => h.completed).length;
   const totalCount = dayHomework.length;
@@ -101,9 +109,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                 {/* Checkbox and Task Details */}
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <button
-                    onClick={() => onToggleHomework(hw.id)}
+                    onClick={() => handleToggle(hw.id, hw.completed)}
                     className="mt-0.5 text-slate-400 hover:text-emerald-600 transition-colors shrink-0"
-                    title={hw.completed ? 'وضع كغير منجز' : 'وضع كمنجز'}
+                    title={hw.completed ? 'Done' : 'Mark as Done'}
                   >
                     {hw.completed ? (
                       <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -164,16 +172,24 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                   </div>
                 </div>
 
-                {/* Interactive toggle button: She decides if Done or Not Done */}
+                {/* Interactive toggle button: Done with celebration */}
                 <button
-                  onClick={() => onToggleHomework(hw.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 self-start sm:self-center ${
+                  onClick={() => handleToggle(hw.id, hw.completed)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 self-start sm:self-center flex items-center gap-1.5 ${
                     hw.completed
-                      ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
+                      ? 'bg-emerald-100 text-emerald-800 hover:bg-slate-100 hover:text-slate-600 border border-emerald-300'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs hover:scale-105 active:scale-95'
                   }`}
+                  title={hw.completed ? 'اضغطي للإلغاء' : 'اضغطي للتحديد كـ Done'}
                 >
-                  {hw.completed ? 'غير مكتمل' : 'تم الإنجاز ✓'}
+                  {hw.completed ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>Done ✓</span>
+                    </>
+                  ) : (
+                    <span>Done</span>
+                  )}
                 </button>
               </div>
             );

@@ -11,6 +11,7 @@ import {
 import { ClassId, SchoolDay, ClassworkEntry, SubjectName } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
+import { triggerDoneCelebration } from '../utils/celebrate';
 
 interface ClassworkViewProps {
   currentClass: ClassId;
@@ -123,8 +124,12 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
             const handleToggleLesson = () => {
               if (cwEntry) {
+                if (!cwEntry.completed) {
+                  triggerDoneCelebration();
+                }
                 onToggleClasswork(cwEntry.id);
               } else {
+                triggerDoneCelebration();
                 onSaveClasswork({
                   id: `cw-${currentClass}-${selectedDay}-${slot.period}-${Date.now()}`,
                   classId: currentClass,
