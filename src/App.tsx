@@ -25,10 +25,16 @@ export default function App() {
     return saved === 'G2A' || saved === 'G2B' || saved === 'G2C' ? saved : 'G2B';
   });
 
-  // Current Week (1 or 2)
+  // Current Block (1, 2, 3, 4)
+  const [currentBlock, setCurrentBlock] = useState<number>(() => {
+    const saved = localStorage.getItem('nile_planner_block');
+    return saved ? Number(saved) : 1;
+  });
+
+  // Current Week (1, 2, 3, 4)
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved === '1' || saved === '2' ? Number(saved) : 2;
+    return saved ? Number(saved) : 2;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
@@ -165,8 +171,18 @@ export default function App() {
       <Navbar
         currentClass={currentClass}
         onSelectClass={setCurrentClass}
+        currentBlock={currentBlock}
+        onSelectBlock={(b) => {
+          setCurrentBlock(b);
+          localStorage.setItem('nile_planner_block', String(b));
+          showToast(`Switched to Block ${b}`);
+        }}
         currentWeek={currentWeek}
-        onSelectWeek={setCurrentWeek}
+        onSelectWeek={(w) => {
+          setCurrentWeek(w);
+          localStorage.setItem(STORAGE_KEYS.WEEK, String(w));
+          showToast(`Switched to Week ${w}`);
+        }}
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         selectedDay={selectedDay}

@@ -17,6 +17,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     note: 'Apportez vos crayons de couleurs avec vous, on va les utiliser pendant le cours (Les couleurs p. 11 à 14).',
     arabicNote: 'يرجى إحضار أقلام تلوين خشبية لحصة الفرنش (درس الألوان ص 11 إلى 14).',
     bagItem: 'French Colored Pencils (أقلام تلوين خشبية لحصة الفرنش)',
+    week: 2,
   },
   {
     classId: 'G2C',
@@ -25,6 +26,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     note: 'Apportez vos crayons de couleurs avec vous, on va les utiliser pendant le cours (Les couleurs p. 11 à 14).',
     arabicNote: 'يرجى إحضار أقلام تلوين خشبية لحصة الفرنش (درس الألوان ص 11 إلى 14).',
     bagItem: 'French Colored Pencils (أقلام تلوين خشبية لحصة الفرنش)',
+    week: 2,
   },
 
   // Prep for Monday (Sunday night) - Arabic HW submission
@@ -35,6 +37,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     note: 'تسليم واجب كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل.',
     arabicNote: 'تسليم واجب كتابة الفقرة الأولى من درس يوم جديد بخط جميل.',
     bagItem: 'كشكول اللغة العربية (مكتوب فيه الفقرة الأولى من درس يوم جديد)',
+    week: 2,
   },
   {
     classId: 'G2B',
@@ -43,6 +46,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     note: 'تسليم واجب كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل.',
     arabicNote: 'تسليم واجب كتابة الفقرة الأولى من درس يوم جديد بخط جميل.',
     bagItem: 'كشكول اللغة العربية (مكتوب فيه الفقرة الأولى من درس يوم جديد)',
+    week: 2,
   },
   {
     classId: 'G2C',
@@ -51,6 +55,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     note: 'تسليم واجب كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل.',
     arabicNote: 'تسليم واجب كتابة الفقرة الأولى من درس يوم جديد بخط جميل.',
     bagItem: 'كشكول اللغة العربية (مكتوب فيه الفقرة الأولى من درس يوم جديد)',
+    week: 2,
   },
 
   // Prep for Tuesday (Monday night) - G2A French Lesson 1
@@ -61,6 +66,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     note: 'Apportez vos crayons de couleurs avec vous, on va les utiliser pendant le cours (Les couleurs p. 11 à 14).',
     arabicNote: 'يرجى إحضار أقلام تلوين خشبية لحصة الفرنش (درس الألوان ص 11 إلى 14).',
     bagItem: 'French Colored Pencils (أقلام تلوين خشبية لحصة الفرنش)',
+    week: 2,
   },
 
   // Prep for Wednesday (Tuesday night) - Arabic HW & Dictation Notebook
@@ -71,6 +77,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     note: 'تسليم كراسة الواجب المنزلي صفحة 46 + إحضار كراسة الطالب لحصة الإملاء.',
     arabicNote: 'تسليم كراسة الواجب صفحة 46 وإحضار كراسة الطالب للإملاء.',
     bagItem: 'كراسة الواجب المنزلي (محلول ص 46) + كراسة الطالب للإملاء',
+    week: 2,
   },
   {
     classId: 'G2B',
@@ -79,6 +86,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     note: 'تسليم كراسة الواجب المنزلي صفحة 46 + إحضار كراسة الطالب لحصة الإملاء.',
     arabicNote: 'تسليم كراسة الواجب صفحة 46 وإحضار كراسة الطالب للإملاء.',
     bagItem: 'كراسة الواجب المنزلي (محلول ص 46) + كراسة الطالب للإملاء',
+    week: 2,
   },
   {
     classId: 'G2C',
@@ -87,6 +95,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     note: 'تسليم كراسة الواجب المنزلي صفحة 46 + إحضار كراسة الطالب لحصة الإملاء.',
     arabicNote: 'تسليم كراسة الواجب صفحة 46 وإحضار كراسة الطالب للإملاء.',
     bagItem: 'كراسة الواجب المنزلي (محلول ص 46) + كراسة الطالب للإملاء',
+    week: 2,
   },
 ];
 
