@@ -27,6 +27,15 @@ interface TomorrowViewProps {
   onPrint?: () => void;
 }
 
+// Helper to determine note label based on subject
+// Arabic: ملاحظات | French: remarque | Others (Math, English, etc.): notes
+export const getTomorrowNoteLabel = (subject: string): string => {
+  const s = subject.toLowerCase().trim();
+  if (s.includes('arabic') || s.includes('عربي')) return 'ملاحظات';
+  if (s.includes('french') || s.includes('français') || s.includes('فرنش')) return 'remarque';
+  return 'notes';
+};
+
 export const TomorrowView: React.FC<TomorrowViewProps> = ({
   currentClass,
   selectedDay,
@@ -56,10 +65,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             (n.week === currentWeek || (!n.week && currentWeek === 1))
         );
 
-  // Homework strictly assigned for tomorrowDay (Arabic & French only)
+  // Homework strictly assigned for tomorrowDay (Arabic, French, Mathematics)
   const dayHomework = homeworkList.filter(
     (h) =>
-      (h.subject === 'Arabic' || h.subject === 'French') &&
+      (h.subject === 'Arabic' || h.subject === 'French' || h.subject === 'Mathematics') &&
       h.classId === currentClass &&
       h.assignedDay === tomorrowDay &&
       (h.week === currentWeek || (!h.week && currentWeek === 1))
@@ -160,7 +169,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
               >
                 <div className="flex items-start gap-2 font-bold text-slate-900">
                   <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-950 font-black text-[10.5px] shrink-0">
-                    {note.subject === 'Arabic' ? 'ملاحظات' : 'Notes'} • {note.subject}
+                    {getTomorrowNoteLabel(note.subject)} • {note.subject}
                   </span>
                   <span className="leading-snug">{note.arabicNote || note.note}</span>
                 </div>

@@ -80,6 +80,9 @@ export interface ParsedWeeklyPlanResponse {
   homework: Omit<HomeworkEntry, 'id'>[];
   tomorrowNotes?: {
     day: SchoolDay;
+    subject?: SubjectName;
+    label?: 'ملاحظات' | 'remarque' | 'notes' | string;
     note: string;
+    bagItem?: string;
   }[];
 }

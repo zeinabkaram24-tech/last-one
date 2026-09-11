@@ -48,11 +48,11 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   // Mode: show selected day or show all days of the week
   const [viewMode, setViewMode] = useState<'selected' | 'all'>('all');
 
-  // Strictly Arabic and French for the selected Class & Week
+  // Arabic, French, and Mathematics for the selected Class & Week
   const classHomework = homeworkList.filter(
     (h) =>
       h.classId === currentClass &&
-      (h.subject === 'Arabic' || h.subject === 'French') &&
+      (h.subject === 'Arabic' || h.subject === 'French' || h.subject === 'Mathematics') &&
       (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
 
@@ -74,7 +74,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
               واجبات {currentClass} • الأسبوع {currentWeek}
             </span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 font-black border border-indigo-200">
-              عربي وفرنش
+              عربي وفرنش وماث
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5 font-medium">
