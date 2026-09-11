@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   CheckCircle2,
   Circle,
@@ -6,7 +6,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { ClassId, HomeworkEntry, SchoolDay } from '../types';
-import { SUBJECT_METADATA, SCHOOL_DAYS } from '../data/timetables';
+import { SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 
 interface HomeworkViewProps {
@@ -25,9 +25,8 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   currentWeek = 2,
   onToggleHomework,
 }) => {
-  const [dayFilter, setDayFilter] = useState<SchoolDay | 'All'>('All');
-
   // Strictly Arabic and French for the selected Class & Week (selected globally in header)
+  // Only items from the weekly plan marked as واجب منزلي / Devoir
   const classHomework = homeworkList.filter(
     (h) =>
       h.classId === currentClass &&
@@ -35,73 +34,27 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
 
-  const displayedHomework = classHomework.filter((h) => {
-    if (dayFilter !== 'All') {
-      return h.assignedDay === dayFilter;
-    }
-    return true;
-  });
-
   return (
     <div className="space-y-4">
-      {/* Days Bar Directly at Top of Homework - All visible side-by-side with NO horizontal scroll */}
-      <div className="bg-white p-1.5 rounded-xl border border-slate-200 shadow-2xs">
-        <div className="grid grid-cols-7 gap-1 w-full">
-          {(['All', ...SCHOOL_DAYS] as const).map((day) => {
-            const isActive = dayFilter === day;
-            const count =
-              day === 'All'
-                ? classHomework.length
-                : classHomework.filter((h) => h.assignedDay === day).length;
-
-            return (
-              <button
-                key={day}
-                onClick={() => setDayFilter(day)}
-                className={`py-1.5 px-0.5 sm:px-1 rounded-lg text-center transition-all text-[10.5px] sm:text-xs font-black truncate flex items-center justify-center gap-1 ${
-                  isActive
-                    ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'bg-slate-50 text-slate-700 hover:text-slate-950 hover:bg-slate-100 border border-slate-200/80'
-                }`}
-                title={day === 'All' ? 'All Days' : day}
-              >
-                <span>{day === 'All' ? 'All' : day}</span>
-                {count > 0 && (
-                  <span
-                    className={`text-[9.5px] sm:text-[10px] px-1 py-0.2 rounded-full font-black ${
-                      isActive
-                        ? 'bg-white/25 text-white'
-                        : 'bg-slate-200 text-slate-800'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Homework Cards List: Ultra Clean (Subject Name + Homework Task + Required Tools + Checkbox) */}
-      <div className="space-y-2.5">
-        {displayedHomework.length === 0 ? (
+      <div className="space-y-3">
+        {classHomework.length === 0 ? (
           <div className="bg-white p-8 text-center rounded-xl border border-dashed border-slate-200">
             <BookOpen className="w-7 h-7 text-slate-400 mx-auto mb-2" />
             <h3 className="text-sm font-black text-slate-800">
-              لا توجد واجبات مقررة في هذا العرض
+              لا توجد واجبات منزلية مسجلة
             </h3>
             <p className="text-xs text-slate-500 mt-1 font-medium">
-              لم يتم تسجيل واجبات لمادتي العربي والفرنش لهذا اليوم في الأسبوع المختار.
+              يتم عرض الواجبات المقررة في الخطة الأسبوعية تحت بند (واجب منزلي) فقط لمادتي العربي والفرنش.
             </p>
           </div>
         ) : (
-          displayedHomework.map((hw) => {
+          classHomework.map((hw) => {
             const meta = SUBJECT_METADATA[hw.subject];
             return (
               <div
                 key={hw.id}
-                className={`bg-white rounded-xl border p-3.5 transition-all shadow-2xs flex items-start justify-between gap-3 ${
+                className={`bg-white rounded-xl border p-4 transition-all shadow-2xs flex items-start justify-between gap-3 ${
                   hw.completed
                     ? 'border-emerald-300 bg-emerald-50/20 opacity-80'
                     : 'border-slate-200 hover:border-indigo-300 hover:shadow-xs'
@@ -122,8 +75,8 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                   </button>
 
                   <div className="space-y-1.5 flex-1">
-                    {/* Subject Name Only (Strictly English Name) */}
-                    <div>
+                    {/* Header badges: Subject + Day assigned & Due */}
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-black border ${
                           meta?.badgeBg || 'bg-slate-100 text-slate-950 border-slate-300'
@@ -132,11 +85,15 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         <SubjectIcon subject={hw.subject} className="w-3.5 h-3.5" />
                         <span>{hw.subject}</span>
                       </span>
+
+                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                        يوم الحصة: {hw.assignedDay} {hw.dueDay ? `• التسليم: ${hw.dueDay}` : ''}
+                      </span>
                     </div>
 
                     {/* The Homework Task Directly Underneath */}
                     <p
-                      className={`text-sm font-bold text-slate-900 leading-snug ${
+                      className={`text-sm font-bold text-slate-900 leading-snug pt-0.5 ${
                         hw.completed ? 'line-through text-slate-400' : ''
                       }`}
                     >

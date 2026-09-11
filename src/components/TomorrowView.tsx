@@ -15,6 +15,7 @@ import {
   SUBJECT_METADATA,
 } from '../data/timetables';
 import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
+import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
 
 interface TomorrowViewProps {
@@ -38,18 +39,17 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // When selectedDay is Saturday -> tomorrowDay is Sunday
   const tomorrowDay: SchoolDay = NEXT_SCHOOL_DAY[selectedDay] || 'Sunday';
 
-  // Tomorrow's timetable periods strictly filtered to Arabic and French
-  const targetPeriods: PeriodSlot[] = (CLASS_TIMETABLES[currentClass][tomorrowDay] || []).filter(
-    (p) => p.subject === 'Arabic' || p.subject === 'French'
-  );
+  // Tomorrow's timetable periods preserved as is (all 8 periods)
+  const targetPeriods: PeriodSlot[] = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
 
-  // Notes from weekly plan for tomorrow
-  const tomorrowNotes = SPECIAL_TEACHER_NOTES.filter(
-    (n) =>
-      n.classId === currentClass &&
-      n.targetDay === tomorrowDay &&
-      (n.subject === 'Arabic' || n.subject === 'French') &&
-      (currentWeek === 2 ? n.week === 2 : n.week === 1 || !n.week)
+  // Notes and required tools strictly from the weekly plan
+  const allNotes =
+    currentWeek === 2
+      ? [...WEEK2_SPECIAL_NOTES, ...SPECIAL_TEACHER_NOTES.filter((n) => n.week === 2)]
+      : SPECIAL_TEACHER_NOTES.filter((n) => n.week === 1 || !n.week);
+
+  const tomorrowNotes = allNotes.filter(
+    (n) => n.classId === currentClass && n.targetDay === tomorrowDay
   );
 
   // Homework strictly assigned for tomorrowDay (Arabic & French only)
@@ -122,7 +122,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           <div className="bg-white border border-dashed border-slate-200 rounded-xl p-6 text-center">
             <BookOpen className="w-6 h-6 text-slate-400 mx-auto mb-1.5" />
             <h4 className="text-sm font-black text-slate-800">
-              لا توجد حصص لغة عربية أو فرنسية مقررة ليوم {tomorrowDay} ({currentClass})
+              لا توجد حصص مقررة ليوم {tomorrowDay} ({currentClass})
             </h4>
           </div>
         ) : (
@@ -147,13 +147,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
               >
                 <div className="flex items-start gap-2 font-bold text-slate-900">
                   <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-950 font-black text-[11px] shrink-0">
-                    {note.subject}
+                    {note.subject === 'Arabic' ? 'ملاحظات' : 'Notes'} • {note.subject}
                   </span>
                   <span>{note.arabicNote || note.note}</span>
                 </div>
                 {note.bagItem && (
                   <div className="text-[11px] text-amber-900 font-semibold bg-amber-50/60 px-2 py-1 rounded-md border border-amber-100/80">
-                    الأدوات / المطلوب: {note.bagItem}
+                    الأدوات المطلوبة: {note.bagItem}
                   </div>
                 )}
               </div>

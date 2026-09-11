@@ -477,58 +477,18 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
 // -------------------------------------------------------------
 export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // ===========================================================
-  // WEEK 2: OFFICIAL HOMEWORK (Arabic: 2 Homeworks & French: 1 Homework)
+  // WEEK 2: OFFICIAL HOMEWORK (Arabic: Tuesday only & French: 3rd session)
+  // Strictly from the weekly plan items marked as واجب منزلي / Devoir
   // ===========================================================
 
-  // --- Arabic HW 1: Sunday writing task (Assigned Sunday 13/9, Due Monday 14/9) ---
-  {
-    id: 'hw-w2-ar-sun-g2a',
-    classId: 'G2A',
-    assignedDay: 'Sunday',
-    dueDay: 'Monday',
-    subject: 'Arabic',
-    task: 'كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل',
-    pages: 'كشكول اللغة العربية',
-    details: 'كتابة الفقرة الأولى من درس يوم جديد من أول (مع إشراقة شمس يوم جديد إلى.......... صفوفاً منتظمة) بخط جميل ومضبوط بالشكل.',
-    completed: false,
-    priority: 'urgent',
-    week: 2,
-  },
-  {
-    id: 'hw-w2-ar-sun-g2b',
-    classId: 'G2B',
-    assignedDay: 'Sunday',
-    dueDay: 'Monday',
-    subject: 'Arabic',
-    task: 'كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل',
-    pages: 'كشكول اللغة العربية',
-    details: 'كتابة الفقرة الأولى من درس يوم جديد من أول (مع إشراقة شمس يوم جديد إلى.......... صفوفاً منتظمة) بخط جميل ومضبوط بالشكل.',
-    completed: false,
-    priority: 'urgent',
-    week: 2,
-  },
-  {
-    id: 'hw-w2-ar-sun-g2c',
-    classId: 'G2C',
-    assignedDay: 'Sunday',
-    dueDay: 'Monday',
-    subject: 'Arabic',
-    task: 'كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل',
-    pages: 'كشكول اللغة العربية',
-    details: 'كتابة الفقرة الأولى من درس يوم جديد من أول (مع إشراقة شمس يوم جديد إلى.......... صفوفاً منتظمة) بخط جميل ومضبوط بالشكل.',
-    completed: false,
-    priority: 'urgent',
-    week: 2,
-  },
-
-  // --- Arabic HW 2: Tuesday Workbook p. 46 (Assigned Tuesday 15/9, Due Wednesday 16/9) ---
+  // --- Arabic HW: Tuesday Workbook p. 46 (Assigned Tuesday 15/9, Due Wednesday 16/9) ---
   {
     id: 'hw-w2-ar-tue-g2a-wb',
     classId: 'G2A',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Arabic',
-    task: 'حل تدريبات نشيد (مدرستي بيتي الثاني) في كراسة الواجب',
+    task: 'كراسة الواجب المنزلي صفحة 46 (نشيد مدرستي بيتي الثاني)',
     pages: 'كراسة الواجب المنزلي ص 46',
     details: 'حل أسئلة وتدريبات كراسة الواجب المنزلي صفحة 46 الخاصة بنشيد مدرستي بيتي الثاني.',
     completed: false,
@@ -541,7 +501,7 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Arabic',
-    task: 'حل تدريبات نشيد (مدرستي بيتي الثاني) في كراسة الواجب',
+    task: 'كراسة الواجب المنزلي صفحة 46 (نشيد مدرستي بيتي الثاني)',
     pages: 'كراسة الواجب المنزلي ص 46',
     details: 'حل أسئلة وتدريبات كراسة الواجب المنزلي صفحة 46 الخاصة بنشيد مدرستي بيتي الثاني.',
     completed: false,
@@ -554,7 +514,7 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Arabic',
-    task: 'حل تدريبات نشيد (مدرستي بيتي الثاني) في كراسة الواجب',
+    task: 'كراسة الواجب المنزلي صفحة 46 (نشيد مدرستي بيتي الثاني)',
     pages: 'كراسة الواجب المنزلي ص 46',
     details: 'حل أسئلة وتدريبات كراسة الواجب المنزلي صفحة 46 الخاصة بنشيد مدرستي بيتي الثاني.',
     completed: false,
