@@ -21,7 +21,6 @@ interface NavbarProps {
   onSelectTab: (t: 'classwork' | 'homework' | 'tomorrow' | 'timetable') => void;
   selectedDay: SchoolDay;
   onSelectDay: (d: SchoolDay) => void;
-  onOpenPlanModal?: () => void;
   onPrint?: () => void;
   pendingHomeworkCount: number;
 }
@@ -102,14 +101,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Right Controls: Class Tabs with Block 1 Week 1/2 positioned directly underneath */}
           <div className="flex flex-col items-start md:items-end gap-1.5 self-start md:self-center">
             {/* Class Picker */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-2xs">
               {classes.map((cls) => {
                 const isActive = currentClass === cls.id;
                 return (
                   <button
                     key={cls.id}
                     onClick={() => onSelectClass(cls.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       isActive
                         ? 'bg-indigo-600 text-white shadow-xs font-black'
                         : 'text-slate-600 hover:text-slate-900'
@@ -122,14 +121,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Block 1 Week Selector positioned directly under Grade 2A/2B/2C */}
-            <div className="flex items-center gap-1.5 bg-indigo-50/80 px-2.5 py-1 rounded-xl border border-indigo-200">
+            <div className="w-full flex items-center justify-between gap-1.5 bg-indigo-50/80 px-2.5 py-1 rounded-xl border border-indigo-200">
               <span className="text-[11px] font-black text-indigo-950 whitespace-nowrap">
                 Block 1:
               </span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => onSelectWeek(1)}
-                  className={`px-2.5 py-0.5 rounded-md text-xs font-black transition-all ${
+                  className={`px-3 py-0.5 rounded-md text-xs font-black transition-all ${
                     currentWeek === 1
                       ? 'bg-indigo-600 text-white shadow-2xs'
                       : 'text-indigo-700 hover:text-indigo-950 hover:bg-white/60'
@@ -140,7 +139,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
                 <button
                   onClick={() => onSelectWeek(2)}
-                  className={`px-2.5 py-0.5 rounded-md text-xs font-black transition-all ${
+                  className={`px-3 py-0.5 rounded-md text-xs font-black transition-all ${
                     currentWeek === 2
                       ? 'bg-indigo-600 text-white shadow-2xs'
                       : 'text-indigo-700 hover:text-indigo-950 hover:bg-white/60'

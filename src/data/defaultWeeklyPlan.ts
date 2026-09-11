@@ -490,6 +490,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     title: 'Salutations et règles de politesse',
     details: 'Bonjour, Au revoir, Merci, et les salutations en français.',
     completed: false,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-g2a-tue-7',
@@ -566,6 +568,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     title: "Vocabulaire de base et l'alphabet",
     details: 'Pratique des lettres et des mots de bienvenue.',
     completed: false,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-g2a-wed-6',
@@ -623,6 +627,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     title: 'Chansons françaises et jeux éducatifs',
     details: 'Révision de la semaine et écoute active.',
     completed: false,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-g2a-thu-3',
@@ -699,6 +705,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     title: 'Bienvenue et Salutations en Français',
     details: 'Dialogues simples: Bonjour, Au revoir, Je m’appelle...',
     completed: true,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-g2b-sun-2',
@@ -848,6 +856,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     title: 'Les Salutations et Activités Orales',
     details: 'Pratique des salutations avec des chansons.',
     completed: false,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-g2b-mon-8',
@@ -902,6 +912,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     title: "Vocabulaire et l'alphabet",
     details: 'Apprendre les premières lettres de l’alphabet.',
     completed: false,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-g2b-tue-5',
@@ -1143,6 +1155,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     title: 'Bienvenue en classe de français',
     details: 'Les salutations et les règles de base.',
     completed: true,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-g2c-sun-3',
@@ -1240,6 +1254,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     title: 'Activités de bienvenue et dialogue',
     details: 'Pratique orale des salutations.',
     completed: false,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-g2c-mon-4',
@@ -1402,6 +1418,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     title: 'Vocabulaire et pratique orale',
     details: 'Apprentissage des mots courants.',
     completed: false,
+    linkUrl: 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900',
+    linkTitle: 'Compétition de français',
   },
   {
     id: 'cw-g2c-wed-3',
@@ -1563,84 +1581,9 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
 
 // -------------------------------------------------------------
 // BLOCK 1 - WEEK 1 OFFICIAL HOMEWORK (6/9/2026 - 10/9/2026)
+// Only subjects with submitted homework plans are listed (Arabic only for Week 1)
 // -------------------------------------------------------------
 const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
-  // --- ICT Lesson 1 (Assigned strictly in the 3rd ICT session for each class) ---
-  {
-    id: 'hw-ict-g2a-1',
-    classId: 'G2A',
-    assignedDay: 'Wednesday', // 3rd ICT session for G2A is Wednesday Period 3
-    dueDay: 'Sunday',
-    subject: 'ICT',
-    task: 'Keyboard parts & special keys (Enter, Space bar, Shift, Backspace, Caps lock)',
-    pages: 'Page 14',
-    details: 'Complete labeling and matching exercises on Page 14 in the ICT Booklet (Assigned in 3rd ICT session).',
-    completed: false,
-    priority: 'normal',
-  },
-  {
-    id: 'hw-ict-g2b-1',
-    classId: 'G2B',
-    assignedDay: 'Thursday', // 3rd ICT session for G2B is Thursday Period 8
-    dueDay: 'Sunday',
-    subject: 'ICT',
-    task: 'Keyboard parts & special keys (Enter, Space bar, Shift, Backspace, Caps lock)',
-    pages: 'Page 14',
-    details: 'Complete labeling and matching exercises on Page 14 in the ICT Booklet (Assigned in 3rd ICT session).',
-    completed: false,
-    priority: 'normal',
-  },
-  {
-    id: 'hw-ict-g2c-1',
-    classId: 'G2C',
-    assignedDay: 'Thursday', // 3rd ICT session for G2C is Thursday Period 1
-    dueDay: 'Sunday',
-    subject: 'ICT',
-    task: 'Keyboard parts & special keys (Enter, Space bar, Shift, Backspace, Caps lock)',
-    pages: 'Page 14',
-    details: 'Complete labeling and matching exercises on Page 14 in the ICT Booklet (Assigned in 3rd ICT session).',
-    completed: false,
-    priority: 'normal',
-  },
-
-  // --- Mathematics Place Value (Assigned Tuesday, Due Wednesday) ---
-  {
-    id: 'hw-math-g2a-1',
-    classId: 'G2A',
-    assignedDay: 'Tuesday',
-    dueDay: 'Wednesday',
-    subject: 'Mathematics',
-    task: 'Place value and value: Partition and recombine numbers into tens and ones',
-    pages: 'Page 81',
-    details: 'Solve all exercises on Page 81 in Mathematics Practice Book.',
-    completed: false,
-    priority: 'urgent',
-  },
-  {
-    id: 'hw-math-g2b-1',
-    classId: 'G2B',
-    assignedDay: 'Tuesday',
-    dueDay: 'Wednesday',
-    subject: 'Mathematics',
-    task: 'Place value and value: Partition and recombine numbers into tens and ones',
-    pages: 'Page 81',
-    details: 'Solve all exercises on Page 81 in Mathematics Practice Book.',
-    completed: false,
-    priority: 'urgent',
-  },
-  {
-    id: 'hw-math-g2c-1',
-    classId: 'G2C',
-    assignedDay: 'Tuesday',
-    dueDay: 'Wednesday',
-    subject: 'Mathematics',
-    task: 'Place value and value: Partition and recombine numbers into tens and ones',
-    pages: 'Page 81',
-    details: 'Solve all exercises on Page 81 in Mathematics Practice Book.',
-    completed: false,
-    priority: 'urgent',
-  },
-
   // --- Arabic Sound Analysis (Assigned Tuesday, Due Wednesday) ---
   {
     id: 'hw-ar-g2a-1',
@@ -1677,84 +1620,6 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     details: 'حل تدريبات تحليل الكلمات إلى مقاطع صوتية وحروف في كراسة الواجب ص 45.',
     completed: false,
     priority: 'urgent',
-  },
-
-  // --- Science Sound Vibration (Assigned Wednesday, Due Thursday for 2A & 2B) ---
-  {
-    id: 'hw-sci-g2a-1',
-    classId: 'G2A',
-    assignedDay: 'Wednesday',
-    dueDay: 'Thursday',
-    subject: 'Science',
-    task: 'Unit 1: Sound is a vibration - Workbook exercises',
-    pages: 'Page 16',
-    details: 'Complete questions 1 to 4 on Page 16 in the Science Workbook.',
-    completed: false,
-    priority: 'urgent',
-  },
-  {
-    id: 'hw-sci-g2b-1',
-    classId: 'G2B',
-    assignedDay: 'Wednesday',
-    dueDay: 'Thursday',
-    subject: 'Science',
-    task: 'Unit 1: Sound is a vibration - Workbook exercises',
-    pages: 'Page 16',
-    details: 'Complete questions 1 to 4 on Page 16 in the Science Workbook.',
-    completed: false,
-    priority: 'urgent',
-  },
-
-  // --- Mathematics Weekend Review (Assigned Thursday, Due Sunday) ---
-  {
-    id: 'hw-math-g2a-2',
-    classId: 'G2A',
-    assignedDay: 'Thursday',
-    dueDay: 'Sunday',
-    subject: 'Mathematics',
-    task: '1 More \\ 1 Less and Estimation exercises',
-    pages: 'Page 80, 84 Q.1 only',
-    details: 'Complete Page 80 all questions, and Page 84 Question 1 only.',
-    completed: false,
-    priority: 'normal',
-  },
-  {
-    id: 'hw-math-g2b-2',
-    classId: 'G2B',
-    assignedDay: 'Thursday',
-    dueDay: 'Sunday',
-    subject: 'Mathematics',
-    task: '1 More \\ 1 Less and Estimation exercises',
-    pages: 'Page 80, 84 Q.1 only',
-    details: 'Complete Page 80 all questions, and Page 84 Question 1 only.',
-    completed: false,
-    priority: 'normal',
-  },
-  {
-    id: 'hw-math-g2c-2',
-    classId: 'G2C',
-    assignedDay: 'Thursday',
-    dueDay: 'Sunday',
-    subject: 'Mathematics',
-    task: '1 More \\ 1 Less and Estimation exercises',
-    pages: 'Page 80, 84 Q.1 only',
-    details: 'Complete Page 80 all questions, and Page 84 Question 1 only.',
-    completed: false,
-    priority: 'normal',
-  },
-
-  // --- English Review (Assigned Thursday for 2B, Due Sunday) ---
-  {
-    id: 'hw-eng-g2b-1',
-    classId: 'G2B',
-    assignedDay: 'Thursday',
-    dueDay: 'Sunday',
-    subject: 'English',
-    task: 'Previously Taught Review exercises',
-    pages: 'Page 56 and 58',
-    details: 'Solve review exercises on pages 56 and 58 in the Activity Book.',
-    completed: false,
-    priority: 'normal',
   },
 ];
 

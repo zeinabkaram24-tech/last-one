@@ -38,7 +38,10 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   const [weekFilter, setWeekFilter] = useState<'all' | number>('all');
   const [dayFilter, setDayFilter] = useState<SchoolDay | 'All'>('All');
 
-  const classHomework = homeworkList.filter((h) => h.classId === currentClass);
+  // User strictly requested: ONLY Arabic and French in Homework
+  const classHomework = homeworkList.filter(
+    (h) => h.classId === currentClass && (h.subject === 'Arabic' || h.subject === 'French')
+  );
 
   const pendingList = classHomework.filter((h) => !h.completed);
   const completedList = classHomework.filter((h) => h.completed);

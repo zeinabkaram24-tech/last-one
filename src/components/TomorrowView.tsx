@@ -27,7 +27,7 @@ interface TomorrowViewProps {
   homeworkList: HomeworkEntry[];
   currentWeek?: number;
   onToggleHomework: (id: string) => void;
-  onPrint: () => void;
+  onPrint?: () => void;
 }
 
 export const TomorrowView: React.FC<TomorrowViewProps> = ({
@@ -36,19 +36,21 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   homeworkList,
   currentWeek = 2,
   onToggleHomework,
-  onPrint,
 }) => {
   // Target tomorrow day is strictly determined by selectedDay
   // When selectedDay is Sunday -> tomorrowDay is Monday
   // When selectedDay is Saturday -> tomorrowDay is Sunday
   const tomorrowDay: SchoolDay = NEXT_SCHOOL_DAY[selectedDay] || 'Sunday';
 
-  // Tomorrow's 8 timetable periods
-  const targetPeriods: PeriodSlot[] = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
+  // Tomorrow's timetable periods strictly filtered to Arabic and French
+  const targetPeriods: PeriodSlot[] = (CLASS_TIMETABLES[currentClass][tomorrowDay] || []).filter(
+    (p) => p.subject === 'Arabic' || p.subject === 'French'
+  );
 
-  // Homework strictly assigned for tomorrowDay
+  // Homework strictly assigned for tomorrowDay (Arabic & French only)
   const dayHomework = homeworkList.filter(
     (h) =>
+      (h.subject === 'Arabic' || h.subject === 'French') &&
       h.classId === currentClass &&
       h.assignedDay === tomorrowDay &&
       (h.week === currentWeek || (!h.week && currentWeek === 1))
@@ -56,25 +58,18 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const completedHwCount = dayHomework.filter((h) => h.completed).length;
 
-  // Period pairs
-  const pair1 = targetPeriods.filter((p) => p.period === 1 || p.period === 2);
-  const pair2 = targetPeriods.filter((p) => p.period === 3 || p.period === 4);
-  const pair3 = targetPeriods.filter((p) => p.period === 5 || p.period === 6);
-  const pair4 = targetPeriods.filter((p) => p.period === 7 || p.period === 8);
-
-  const renderSquareCard = (slot?: PeriodSlot) => {
-    if (!slot) return null;
+  const renderSquareCard = (slot: PeriodSlot) => {
     const meta = SUBJECT_METADATA[slot.subject];
     const hasHw = dayHomework.some((h) => h.subject === slot.subject);
 
     return (
       <div
         key={slot.period}
-        className="bg-white rounded-2xl border border-slate-200/90 hover:border-indigo-400 p-3 sm:p-4 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all group min-h-[140px] sm:min-h-[155px]"
+        className="bg-white rounded-2xl border border-slate-200/90 hover:border-indigo-400 p-3.5 sm:p-4 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all group min-h-[130px]"
       >
         {/* Top Header: Period only (no time, no 'الحصة') */}
         <div className="flex items-center justify-between gap-1">
-          <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-slate-900 text-white shadow-2xs group-hover:bg-indigo-600 transition-colors">
+          <span className="px-2.5 py-0.5 rounded-md text-[11px] font-black bg-slate-900 text-white shadow-2xs group-hover:bg-indigo-600 transition-colors">
             P{slot.period}
           </span>
           {hasHw ? (
@@ -88,7 +83,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           )}
         </div>
 
-        {/* Center: Icon + Subject Info */}
+        {/* Center: Icon + Subject Name (Strictly English, No Arabic translation under French) */}
         <div className="my-2 flex items-center gap-2.5">
           <div
             className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs ${
@@ -148,24 +143,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           </div>
 
           <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-            مربعات الحصص الثنائية ليوم <strong>{tomorrowDay}</strong> والواجبات المطلوبة لتجهيز الحقيبة المدرسية اليوم.
+            حصص العربي والفرنش المقررة ليوم <strong>{tomorrowDay}</strong> والواجبات المطلوبة لتجهيز الحقيبة المدرسية اليوم.
           </p>
-        </div>
-
-        {/* Print button */}
-        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-          <button
-            onClick={onPrint}
-            className="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 border border-white/20 shadow-xs"
-            title="طباعة جدول وتحضير الغد"
-          >
-            <Printer className="w-4 h-4" />
-            <span>طباعة الجدول</span>
-          </button>
         </div>
       </div>
 
-      {/* 2-by-2 Timetable Squares Section */}
+      {/* Timetable Squares Section */}
       <div className="bg-slate-50/70 rounded-2xl border border-slate-200/90 p-4 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
           <div className="flex items-center gap-2">
@@ -174,10 +157,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             </div>
             <div>
               <h3 className="text-base font-black text-slate-900">
-                جدول حصص يوم {tomorrowDay} (8 حصص في مربعات زوجية)
+                حصص العربي والفرنش ليوم {tomorrowDay}
               </h3>
               <p className="text-xs text-slate-500 font-medium">
-                مربعين للأولى والثانية • مربعين للثالثة والرابعة • مربعين للخامسة والسادسة • ثم السابعة والثامنة
+                مربعات الحصص لتجهيز الكتب والتحضير (بدون مواعيد الحصص)
               </p>
             </div>
           </div>
@@ -187,45 +170,21 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           </span>
         </div>
 
-        {/* 2-Column Grid of Square Tiles */}
-        <div className="space-y-3.5">
-          {/* Row 1: Period 1 & Period 2 */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            {renderSquareCard(pair1[0])}
-            {renderSquareCard(pair1[1])}
+        {targetPeriods.length === 0 ? (
+          <div className="bg-white border border-dashed border-slate-200 rounded-xl p-6 text-center">
+            <BookOpen className="w-7 h-7 text-slate-400 mx-auto mb-2" />
+            <h4 className="text-sm font-black text-slate-800">
+              لا توجد حصص لغة عربية أو فرنسية مقررة ليوم {tomorrowDay} لهذا الفصل ({currentClass})
+            </h4>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto font-medium">
+              تم حجب باقي المواد مؤقتاً (PE, Art, Music...) لحين تزويدنا بخططها الأسبوعية.
+            </p>
           </div>
-
-          {/* Row 2: Period 3 & Period 4 */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            {renderSquareCard(pair2[0])}
-            {renderSquareCard(pair2[1])}
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
+            {targetPeriods.map((slot) => renderSquareCard(slot))}
           </div>
-
-          {/* Row 3: Period 5 & Period 6 */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            {renderSquareCard(pair3[0])}
-            {renderSquareCard(pair3[1])}
-          </div>
-
-          {/* Lunch & Prayer Break Bar */}
-          <div className="bg-gradient-to-r from-blue-50 via-indigo-50/60 to-blue-50 border border-blue-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs font-bold text-blue-950 shadow-2xs">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
-                <Utensils className="w-3.5 h-3.5" />
-              </div>
-              <span>استراحة الغداء وصلاة الظهر (Lunch & Prayer Break)</span>
-            </div>
-            <span className="bg-white text-blue-900 px-2.5 py-0.5 rounded-md border border-blue-200 font-black text-[11px]">
-              13:05 – 13:25
-            </span>
-          </div>
-
-          {/* Row 4: Period 7 & Period 8 */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            {renderSquareCard(pair4[0])}
-            {renderSquareCard(pair4[1])}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Homework for tomorrowDay Section */}

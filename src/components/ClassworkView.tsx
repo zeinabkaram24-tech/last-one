@@ -35,7 +35,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   onToggleClasswork,
   onSaveClasswork,
 }) => {
-  const timetablePeriods = CLASS_TIMETABLES[currentClass][selectedDay] || [];
+  // Filter strictly to Arabic and French as requested by user
+  const timetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
+    (s) => s.subject === 'Arabic' || s.subject === 'French'
+  );
 
   // Edit modal state
   const [editingPeriod, setEditingPeriod] = useState<number | null>(null);
@@ -84,28 +87,45 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Timetable Period Cards or Weekend Message */}
+      {/* Timetable Period Cards or Weekend / Empty Day Message */}
       {timetablePeriods.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-xs">
           <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center mx-auto mb-3">
             <BookOpen className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-black text-slate-900">
-            يوم السبت مخصص للتجهيز والتحضير (Weekend Prep)
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
-            لا توجد حصص مدرسية يوم السبت. يمكنك الانتقال إلى تبويب <strong>Tomorrow Prep</strong> لتجهيز جدول وحقيبة يوم الأحد.
-          </p>
+          {selectedDay === 'Saturday' ? (
+            <>
+              <h3 className="text-base font-black text-slate-900">
+                يوم السبت مخصص للتجهيز والتحضير (Weekend Prep)
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
+                لا توجد حصص مدرسية يوم السبت. يمكنك الانتقال إلى تبويب <strong>Tomorrow Prep</strong> لتجهيز جدول وحقيبة يوم الأحد.
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-base font-black text-slate-900">
+                لا توجد حصص عربي أو فرنش مقررة ليوم {selectedDay} ({currentClass})
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
+                تم حجب باقي المواد مؤقتاً (PE, Art, Music...) حيث يقتصر العرض حالياً على مادتي العربي والفرنش لحين إدراج خطط باقي المواد.
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className="space-y-2.5">
-          {timetablePeriods.map((slot, index) => {
-          const meta = SUBJECT_METADATA[slot.subject];
-          const cwEntry = classworkList.find(
-            (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && c.week === currentWeek
-          ) || classworkList.find(
-            (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && (!c.week || c.week === 1)
-          );
+          {timetablePeriods.map((slot) => {
+            const isFrench = slot.subject === 'French';
+            const meta = SUBJECT_METADATA[slot.subject];
+            const cwEntry = classworkList.find(
+              (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && c.week === currentWeek
+            ) || classworkList.find(
+              (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && (!c.week || c.week === 1)
+            );
+
+            const activeLinkUrl = cwEntry?.linkUrl || (isFrench ? 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900' : undefined);
+            const activeLinkTitle = isFrench ? 'Compétition de français' : (cwEntry?.linkTitle || 'رابط الدرس 🔗');
 
           return (
             <React.Fragment key={slot.period}>
@@ -171,34 +191,53 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                           {cwEntry.details}
                         </p>
                       )}
-                      {cwEntry.linkUrl && (
-                        <div className="pt-1.5">
+                      {activeLinkUrl && (
+                        <div className="pt-2">
                           <a
-                            href={cwEntry.linkUrl}
+                            href={activeLinkUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all shadow-2xs ${
-                              cwEntry.subject === 'French'
-                                ? 'bg-purple-100 text-purple-950 border border-purple-300 hover:bg-purple-200'
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-black transition-all shadow-2xs ${
+                              isFrench
+                                ? 'bg-purple-600 hover:bg-purple-700 text-white border border-purple-700'
                                 : 'bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100'
                             }`}
                           >
-                            <ExternalLink className={`w-3.5 h-3.5 ${cwEntry.subject === 'French' ? 'text-purple-700' : 'text-blue-700'}`} />
-                            <span>{cwEntry.linkTitle || (cwEntry.subject === 'French' ? 'Compétition de français' : 'رابط فيديو الدرس / النشيد 🔗')}</span>
+                            <ExternalLink className={`w-3.5 h-3.5 ${isFrench ? 'text-white' : 'text-blue-700'}`} />
+                            <span>{activeLinkTitle}</span>
+                            {isFrench && <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Kahoot 🎯</span>}
                           </a>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between text-xs text-slate-500 py-0.5">
-                      <span className="italic font-medium">Standard curriculum plan for this period.</span>
-                      <button
-                        onClick={() => openEdit(slot.period, slot.subject)}
-                        className="text-indigo-700 hover:text-indigo-900 font-bold inline-flex items-center gap-1"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        Add Lesson Note
-                      </button>
+                    <div className="space-y-2 py-0.5">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span className="italic font-medium">
+                          {isFrench ? 'Plan de cours de français.' : 'خطة الحصة لمادة اللغة العربية.'}
+                        </span>
+                        <button
+                          onClick={() => openEdit(slot.period, slot.subject)}
+                          className="text-indigo-700 hover:text-indigo-900 font-bold inline-flex items-center gap-1"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Add Lesson Note
+                        </button>
+                      </div>
+                      {isFrench && activeLinkUrl && (
+                        <div>
+                          <a
+                            href={activeLinkUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-black bg-purple-600 hover:bg-purple-700 text-white border border-purple-700 shadow-2xs"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5 text-white" />
+                            <span>{activeLinkTitle}</span>
+                            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Kahoot 🎯</span>
+                          </a>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

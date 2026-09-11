@@ -7,9 +7,8 @@ import { ClassworkView } from './components/ClassworkView';
 import { HomeworkView } from './components/HomeworkView';
 import { TomorrowView } from './components/TomorrowView';
 import { TimetableGrid } from './components/TimetableGrid';
-import { WeeklyPlanModal } from './components/WeeklyPlanModal';
 import { PrintSheet } from './components/PrintSheet';
-import { Sparkles, Calendar, BookOpen, CheckSquare, Briefcase, RotateCcw } from 'lucide-react';
+import { Sparkles, RotateCcw } from 'lucide-react';
 
 const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
@@ -77,8 +76,6 @@ export default function App() {
     return INITIAL_HOMEWORK;
   });
 
-  // Modal state
-  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Persistence effects
@@ -144,26 +141,6 @@ export default function App() {
     showToast('Assignment removed.');
   };
 
-  // Apply parsed plan
-  const handleApplyPlan = (newCw: ClassworkEntry[], newHw: HomeworkEntry[]) => {
-    if (newCw.length > 0) {
-      setClassworkList((prev) => {
-        // Filter out existing for this class if replacing or prepend
-        const otherClasses = prev.filter((c) => c.classId !== currentClass);
-        return [...newCw, ...otherClasses];
-      });
-    }
-
-    if (newHw.length > 0) {
-      setHomeworkList((prev) => {
-        const otherClasses = prev.filter((h) => h.classId !== currentClass);
-        return [...newHw, ...otherClasses];
-      });
-    }
-
-    showToast(`Successfully categorized weekly plan into Classwork, Homework & Tomorrow!`);
-  };
-
   // Reset to sample plan
   const handleResetToDefaults = () => {
     if (confirm('Reset to standard Grade 2 Nile International School weekly plan?')) {
@@ -194,7 +171,6 @@ export default function App() {
         onSelectTab={setActiveTab}
         selectedDay={selectedDay}
         onSelectDay={setSelectedDay}
-        onOpenPlanModal={() => setIsPlanModalOpen(true)}
         onPrint={handlePrint}
         pendingHomeworkCount={pendingHomeworkCount}
       />
@@ -288,13 +264,6 @@ export default function App() {
 
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setIsPlanModalOpen(true)}
-              className="text-indigo-600 hover:text-indigo-800 font-semibold"
-            >
-              Enter New Weekly Plan
-            </button>
-            <span>•</span>
-            <button
               onClick={handleResetToDefaults}
               className="text-slate-500 hover:text-slate-800 inline-flex items-center gap-1"
             >
@@ -304,14 +273,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-
-      {/* Weekly Plan Smart Classifier Modal */}
-      <WeeklyPlanModal
-        isOpen={isPlanModalOpen}
-        onClose={() => setIsPlanModalOpen(false)}
-        currentClass={currentClass}
-        onApplyPlan={handleApplyPlan}
-      />
     </div>
   );
 }
