@@ -8,6 +8,7 @@ import { HomeworkView } from './components/HomeworkView';
 import { TomorrowView } from './components/TomorrowView';
 import { TimetableGrid } from './components/TimetableGrid';
 import { PrintSheet } from './components/PrintSheet';
+import { WeeklyPlanModal } from './components/WeeklyPlanModal';
 import { Sparkles, RotateCcw } from 'lucide-react';
 
 const STORAGE_KEYS = {
@@ -83,6 +84,7 @@ export default function App() {
   });
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   // Persistence effects
   useEffect(() => {
@@ -145,6 +147,12 @@ export default function App() {
   const handleDeleteHomework = (id: string) => {
     setHomeworkList((prev) => prev.filter((h) => h.id !== id));
     showToast('Assignment removed.');
+  };
+
+  const handleApplyWeeklyPlan = (newClasswork: ClassworkEntry[], newHomework: HomeworkEntry[]) => {
+    setClassworkList((prev) => [...newClasswork, ...prev]);
+    setHomeworkList((prev) => [...newHomework, ...prev]);
+    showToast('Weekly plan imported successfully!');
   };
 
   // Reset to sample plan
@@ -281,6 +289,13 @@ export default function App() {
 
           <div className="flex items-center gap-4">
             <button
+              onClick={() => setIsPlanModalOpen(true)}
+              className="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1.5 transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Smart Plan Classifier
+            </button>
+            <button
               onClick={handleResetToDefaults}
               className="text-slate-500 hover:text-slate-800 inline-flex items-center gap-1"
             >
@@ -290,6 +305,14 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Weekly Plan Smart Classifier Modal */}
+      <WeeklyPlanModal
+        isOpen={isPlanModalOpen}
+        onClose={() => setIsPlanModalOpen(false)}
+        currentClass={currentClass}
+        onApplyPlan={handleApplyWeeklyPlan}
+      />
     </div>
   );
 }
