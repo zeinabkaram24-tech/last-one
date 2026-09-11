@@ -43,42 +43,9 @@ function heuristicParser(planText: string, classId: string) {
 
   const classwork: any[] = [];
   const homework: any[] = [];
-  const tomorrowNotes: any[] = [];
 
   let currentDay = 'Sunday';
   let currentSubject = 'English';
-
-  // Specific naming convention for tomorrow notes:
-  // Arabic: ملاحظات | French: remarque | All other subjects: notes
-  const getSubjectNoteLabel = (subj: string): string => {
-    const s = (subj || '').toLowerCase();
-    if (s.includes('arabic') || s.includes('عربي')) return 'ملاحظات';
-    if (s.includes('french') || s.includes('français') || s.includes('فرنش')) return 'remarque';
-    return 'notes';
-  };
-
-  // Timetable periods for Mathematics in Grade 2
-  const MATH_PERIOD_MAP: Record<string, Record<string, number>> = {
-    G2A: { Sunday: 8, Monday: 2, Tuesday: 3, Wednesday: 1, Thursday: 5 },
-    G2B: { Sunday: 2, Monday: 5, Tuesday: 1, Wednesday: 5, Thursday: 4 },
-    G2C: { Sunday: 3, Monday: 8, Tuesday: 4, Wednesday: 7, Thursday: 6 },
-  };
-
-  // Check if text has global Math notes (e.g. bring whiteboard, marker & 100 chart)
-  const mathNotesRegex = /(?:white\s*board|whiteboard|marker|100\s*chart|سبورة|لوحة بيضاء)/i;
-  const hasGlobalMathNote = mathNotesRegex.test(planText);
-
-  if (hasGlobalMathNote) {
-    for (const d of days) {
-      tomorrowNotes.push({
-        day: d,
-        subject: 'Mathematics',
-        label: 'notes',
-        note: 'Please bring a small white board, marker and 100 chart.',
-        bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart',
-      });
-    }
-  }
 
   for (const line of lines) {
     // Check if line indicates a day
@@ -115,28 +82,18 @@ function heuristicParser(planText: string, classId: string) {
     else if (/موسيقى|music/i.test(line)) currentSubject = 'Music';
     else if (/ألعاب|رياضية|pe/i.test(line)) currentSubject = 'PE';
 
-    // Identify Note indicators
-    const isNote = /note|notes|remarque|ملاحظة|ملاحظات|bring|احضار|إحضار/i.test(line);
     // Identify Homework indicators
     const isHw = /hw|homework|واجب|h\.w/i.test(line);
     // Identify Classwork indicators
     const isCw = /cw|classwork|صف|حصة|درس|c\.w/i.test(line);
 
-    const cleanText = line.replace(/^(hw|cw|h\.w|c\.w|homework|classwork|واجب|حصة|note|notes|remarque|ملاحظات)[:\-–\s]*/i, '').trim();
+    const cleanText = line.replace(/^(hw|cw|h\.w|c\.w|homework|classwork|واجب|حصة)[:\-–\s]*/i, '').trim();
 
-    if (isNote && !hasGlobalMathNote) {
-      tomorrowNotes.push({
-        day: currentDay,
-        subject: currentSubject,
-        label: getSubjectNoteLabel(currentSubject),
-        note: cleanText || line,
-        bagItem: cleanText,
-      });
-    } else if (isHw) {
+    if (isHw) {
       const nextDayMap: Record<string, string> = {
         Sunday: 'Monday',
         Monday: 'Tuesday',
-        Tuesday: currentSubject === 'Mathematics' ? 'Wednesday' : 'Wednesday',
+        Tuesday: 'Wednesday',
         Wednesday: 'Thursday',
         Thursday: 'Sunday',
       };
@@ -147,19 +104,13 @@ function heuristicParser(planText: string, classId: string) {
         subject: currentSubject,
         task: cleanText || line,
         completed: false,
-        priority: /urgent|هام|ضروري|quiz|امتحان|test/i.test(line) ? 'urgent' : 'normal',
+        priority: /urgent|هام|ضروري|quiz|امتحان/i.test(line) ? 'urgent' : 'normal',
       });
     } else if (isCw || cleanText.length > 5) {
-      let assignedPeriod = (classwork.length % 8) + 1;
-      const targetClass = classId || 'G2B';
-      if (currentSubject === 'Mathematics' && MATH_PERIOD_MAP[targetClass]?.[currentDay]) {
-        assignedPeriod = MATH_PERIOD_MAP[targetClass][currentDay];
-      }
-
       classwork.push({
-        classId: targetClass,
+        classId: classId || 'G2B',
         day: currentDay,
-        period: assignedPeriod,
+        period: (classwork.length % 8) + 1,
         subject: currentSubject,
         title: cleanText || line,
         completed: false,
@@ -167,7 +118,7 @@ function heuristicParser(planText: string, classId: string) {
     }
   }
 
-  return { classwork, homework, tomorrowNotes };
+  return { classwork, homework };
 }
 
 // API endpoint to parse Weekly Plan using Gemini or fallback
@@ -188,50 +139,33 @@ app.post('/api/parse-weekly-plan', async (req, res) => {
     const prompt = `
 You are an expert school coordinator assistant for Nile Egyptian International School, Grade 2 (${classId || 'G2B'}).
 The user provided their weekly plan text (which can be in English, Arabic, or mixed).
-Your job is to read the plan, categorize it accurately into its places for all days, extract any notes/materials needed, and adhere strictly to naming conventions.
-
-### CRITICAL RULES FOR TOMORROW NOTES NAMING:
-When creating items for "tomorrowNotes" or notes for a subject:
-- For Arabic ('Arabic'): the note category/label MUST be "ملاحظات".
-- For French ('French'): the note category/label MUST be "remarque".
-- For all other subjects ('Mathematics', 'English', 'Science', etc.): the note category/label MUST be "notes".
-
-### GRADE 2 MATHEMATICS TIMETABLE PERIODS:
-- For G2A: Sunday: Period 8, Monday: Period 2, Tuesday: Periods 3 & 4, Wednesday: Period 1, Thursday: Period 5.
-- For G2B: Sunday: Period 2, Monday: Periods 5 & 6, Tuesday: Period 1, Wednesday: Period 5, Thursday: Period 4.
-- For G2C: Sunday: Periods 3 & 4, Monday: Period 8, Tuesday: Period 4, Wednesday: Period 7, Thursday: Period 6.
-
-### OUTPUT STRUCTURE:
-Extract and categorize:
-1. "classwork": An array of lessons/topics taught in class for that day and period.
-   Each item:
+Your job is to categorize and extract:
+1. "classwork": An array of items studied in class for that day and period.
+   Each classwork item must have:
    - "classId": "${classId || 'G2B'}"
    - "day": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
-   - "period": Number (1 to 8, matching the timetable if available)
+   - "period": Number (1 to 8, or estimate 1-8 based on typical school day schedule)
    - "subject": One of "Mathematics", "English", "Arabic", "Science", "Social Studies", "French", "Religion", "ICT", "Arts", "Music", "PE"
-   - "title": Short descriptive title of the topic/lesson
+   - "title": Short descriptive title of the topic/lesson (e.g. "Chapter 2: Subtraction with regrouping")
    - "details": Optional additional instructions or practice details
-   - "pages": Optional page numbers or resource name
+   - "pages": Optional page numbers (e.g. "Student Book p. 24-26")
    - "completed": false
 
 2. "homework": An array of homework tasks assigned.
-   Each item:
+   Each homework item must have:
    - "classId": "${classId || 'G2B'}"
    - "assignedDay": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
-   - "dueDay": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
+   - "dueDay": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday" (usually the next school day or next subject period)
    - "subject": One of "Mathematics", "English", "Arabic", "Science", "Social Studies", "French", "Religion", "ICT", "Arts", "Music", "PE"
-   - "task": The homework description
+   - "task": The homework description (e.g. "Workbook p. 14 exercises 1-5")
    - "details": Extra notes or materials needed
    - "pages": Page reference
    - "completed": false
-   - "priority": "normal" or "urgent" (urgent if quiz, test, or due tomorrow)
+   - "priority": "normal" or "urgent" (urgent if it mentions a quiz, test, spelling bee, project, or due tomorrow)
 
-3. "tomorrowNotes": Items to bring, pack, or special reminders for each day:
-   - "day": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
-   - "subject": Subject name (e.g. "Mathematics", "French", "Arabic")
-   - "label": "ملاحظات" for Arabic, "remarque" for French, "notes" for all other subjects
-   - "note": The reminder text (e.g. "Please bring a small white board, marker and 100 chart")
-   - "bagItem": Bag item to prepare
+3. "tomorrowNotes": Optional list of items to pack or special preparations for tomorrow:
+   - "day": Day of the week
+   - "note": What to pack/bring (e.g. "Bring Art sketch and water colors", "PE sports uniform")
 
 Return ONLY valid JSON matching this structure without Markdown fences or commentary:
 {
@@ -245,7 +179,7 @@ ${planText}
 `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',

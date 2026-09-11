@@ -24,32 +24,38 @@ interface WeeklyPlanModalProps {
 
 const SAMPLE_WEEKLY_PLAN = `Grade 2 Weekly Plan - Nile Egyptian International School
 
-General Notes:
-- Mathematics: Please bring a small white board, marker and 100 chart.
-- French: Apportez vos crayons de couleurs avec vous (remarque).
-- Arabic: إحضار كراسة الواجب وكشكول الحصة وقلم جاف (ملاحظات).
-
 Sunday:
-- Mathematics: 10 more/less & Represent 3 digit number. Resources: Maths-Grade2-B1-All-Sheet1 - Main.
-- French: Unité 1 Salutations & Les couleurs (p. 11-14). Remarque: crayons de couleurs.
-- Arabic: درس يوم جديد والتدريبات الشفوية. ملاحظات: إحضار الكشكول.
+- French: Unité 1 Salutations. CW: Manuel p. 6-8. HW: None
+- Mathematics: Place Value up to 100 with base-ten blocks. CW: Student Book p. 14-17. HW: Practice Book p. 11 exercises 1-8 (Due Monday)
+- Arabic: درس أنا أستطيع. CW: كتاب التلميذ ص 12-15. HW: كتابة الفقرة الأولى في كشكول الواجب (Due Tuesday)
+- Science: Habitats & Living Things. CW: Learner's Book p. 18-21. HW: Workbook p. 15
+- English: Unit 1 Back to School (Phonics short a & e). CW: Pupil's Book p. 10-13. HW: Activity Book p. 8 (Due Monday)
 
 Monday:
-- Mathematics: Pair of 20. Resources: Maths-Grade2-B1-All-Sheet1 - Main.
-- Arabic: استخراج الأساليب والتراكيب اللغوية. HW: كتابة الفقرة الأولى في كشكول الواجب (Due Tuesday).
+- Social Studies: My Community and Neighborhood. CW: Book p. 8-11. HW: Draw 3 places in notebook (Due Wednesday)
+- PE: Agility ladder & ball bouncing. Bring sports shoes!
+- English: Story Time The Kind Rabbit. CW: Pupil's Book p. 14-15. HW: Copybook sentences
+- Mathematics: Comparing numbers with <, >, =. CW: Student Book p. 18-20. HW: Practice Book p. 12 (Due Tuesday)
+- Arabic: أسماء الإشارة (هذا وهذه). CW: كتاب المدرسة ص 16. HW: حل التدريب 3
 
 Tuesday:
-- Mathematics: Word problems. HW: Page 79 & Page 84 Q2 (Due Wednesday).
-- French: Les goûts et les activités (p. 23). HW: Fiche de devoir Page 23.
-- Arabic: التعبير الكتابي وإملاء. HW: حل كراسة الواجب ص 46.
+- Mathematics: Skip counting by 2s and 5s. CW: Student Book p. 22-24. HW: Sheet 4
+- Arts: Primary colors & watercolor painting. Bring sketch and watercolor set!
+- Religion: سورة الفلق وحفظ الآيات الكريمة. HW: حفظ السورة للتسميع (Urgent Quiz)
+- French: L'alphabet français A à H. CW: Cahier p. 11. HW: Cahier d'activités p. 7
+- English: Sight words & sentence building. CW: Workbook p. 16. HW: Practice spelling list
 
 Wednesday:
-- Mathematics: Add several numbers. Check HW Page 79 & 84 Q2.
-- Arabic: إملاء تطبيقي في كراسة الطالب.
+- English: Comprehension Animal Friends. CW: Pupil's Book p. 18. HW: Study 10 spelling words for Thursday Quiz (Urgent)
+- Science: Plant parts & functions (roots, stems, leaves). CW: Learner's Book p. 24. HW: Workbook p. 19
+- Mathematics: Even and odd numbers. CW: Student Book p. 28. HW: Practice Book p. 14
+- Arabic: التاء المربوطة والمفتوحة. CW: ص 22. HW: إملاء كلمات التدريب
 
 Thursday:
-- Mathematics: Math Test: Unit 1. HW: Page 85, 86 (Due Sunday).
-- Arabic: نشاط تطبيقي ومراجعة أسبوعية.`;
+- English: Weekly Spelling Bee & Dictation Quiz!
+- Mathematics: Weekly review & word problems.
+- Arabic: نشيد وطني الجميل وحفظ 3 أبيات.
+- Science: Germinating seeds experiment. Bring plastic cup & cotton.`;
 
 export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
   isOpen,
@@ -251,30 +257,6 @@ Sunday:
                   </div>
                 </div>
               </div>
-
-              {parsedResult.tomorrowNotes && parsedResult.tomorrowNotes.length > 0 && (
-                <div className="bg-white p-3 rounded-lg border border-indigo-100 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      Tomorrow Notes ({parsedResult.tomorrowNotes.length})
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      Arabic: ملاحظات • French: remarque • Other: notes
-                    </span>
-                  </div>
-                  <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
-                    {parsedResult.tomorrowNotes.slice(0, 5).map((tn, i) => (
-                      <div key={i} className="flex items-start justify-between gap-2 p-1.5 rounded bg-slate-50 text-[11px]">
-                        <span className="text-slate-700 truncate font-medium">{tn.note}</span>
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          {tn.label || (tn.subject === 'Arabic' ? 'ملاحظات' : tn.subject === 'French' ? 'remarque' : 'notes')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <div className="pt-2">
                 <button

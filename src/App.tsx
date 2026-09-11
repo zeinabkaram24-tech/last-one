@@ -15,8 +15,8 @@ const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
   DAY: 'nile_planner_selected_day_v3',
   WEEK: 'nile_planner_current_week_v3',
-  CLASSWORK: 'nile_planner_classwork_b1_w1_w2_v6',
-  HOMEWORK: 'nile_planner_homework_b1_w1_w2_v6',
+  CLASSWORK: 'nile_planner_classwork_b1_w1_w2_v5',
+  HOMEWORK: 'nile_planner_homework_b1_w1_w2_v5',
 };
 
 export default function App() {
@@ -224,9 +224,11 @@ export default function App() {
               currentClass={currentClass}
               selectedDay={selectedDay}
               classworkList={classworkList}
+              homeworkList={homeworkList}
               currentWeek={currentWeek}
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
+              onToggleHomework={handleToggleHomework}
             />
           )}
 
@@ -239,7 +241,6 @@ export default function App() {
               onToggleHomework={handleToggleHomework}
               onAddHomework={handleAddHomework}
               onDeleteHomework={handleDeleteHomework}
-              onSelectDay={(d) => setSelectedDay(d)}
             />
           )}
 
@@ -247,7 +248,9 @@ export default function App() {
             <TomorrowView
               currentClass={currentClass}
               selectedDay={selectedDay}
+              homeworkList={homeworkList}
               currentWeek={currentWeek}
+              onToggleHomework={handleToggleHomework}
               onPrint={handlePrint}
             />
           )}
