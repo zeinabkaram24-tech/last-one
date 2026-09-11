@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', 'Cairo', system-ui, -apple-system, sans-serif;
+    color: #1e293b;
+    background-color: #f8fafc;
+  }
+}
