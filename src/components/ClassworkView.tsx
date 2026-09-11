@@ -4,12 +4,8 @@ import {
   Circle,
   Plus,
   Edit2,
-  Clock,
   User,
-  Coffee,
-  Utensils,
   BookOpen,
-  CheckCheck,
   ExternalLink,
 } from 'lucide-react';
 import { ClassId, SchoolDay, ClassworkEntry, SubjectName, HomeworkEntry } from '../types';
@@ -154,12 +150,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2.5 mt-1 text-xs">
-                      <span className="flex items-center gap-1 font-bold text-slate-600">
-                        <Clock className="w-3.5 h-3.5 text-slate-500" />
-                        {slot.time}
-                      </span>
-                      <span className="text-slate-300">•</span>
+                    <div className="flex items-center gap-1.5 mt-1 text-xs">
                       <span className="flex items-center gap-1 font-bold text-slate-800">
                         <User className="w-3.5 h-3.5 text-slate-500" />
                         {slot.teacher}
@@ -276,17 +267,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                   </button>
                 </div>
               </div>
-
-              {/* Lunch break after Period 6 */}
-              {slot.period === 6 && (
-                <div className="bg-blue-50/70 border border-dashed border-blue-300 rounded-xl px-4 py-2 flex items-center justify-between text-blue-950 text-xs font-bold my-1.5">
-                  <div className="flex items-center gap-2">
-                    <Utensils className="w-4 h-4 text-blue-700" />
-                    <span>13:05 - 13:25 PM: Lunch Break (20 min)</span>
-                  </div>
-                  <span className="text-blue-800 text-[11px] font-semibold">Meal & Refresh</span>
-                </div>
-              )}
             </React.Fragment>
           );
         })}
