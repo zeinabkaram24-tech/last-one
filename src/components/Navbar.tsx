@@ -15,6 +15,8 @@ import { SCHOOL_DAYS } from '../data/timetables';
 interface NavbarProps {
   currentClass: ClassId;
   onSelectClass: (c: ClassId) => void;
+  currentWeek: number;
+  onSelectWeek: (w: number) => void;
   activeTab: 'classwork' | 'homework' | 'tomorrow' | 'timetable';
   onSelectTab: (t: 'classwork' | 'homework' | 'tomorrow' | 'timetable') => void;
   selectedDay: SchoolDay;
@@ -27,6 +29,8 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   currentClass,
   onSelectClass,
+  currentWeek,
+  onSelectWeek,
   activeTab,
   onSelectTab,
   selectedDay,
@@ -107,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     key={cls.id}
                     onClick={() => onSelectClass(cls.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       isActive
                         ? 'bg-white text-indigo-700 shadow-xs border border-slate-200'
                         : 'text-slate-600 hover:text-slate-900'
@@ -117,6 +121,32 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
                 );
               })}
+            </div>
+
+            {/* Block 1 Week Picker */}
+            <div className="flex items-center bg-indigo-50/60 p-1 rounded-xl border border-indigo-200">
+              <button
+                onClick={() => onSelectWeek(1)}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  currentWeek === 1
+                    ? 'bg-white text-indigo-900 shadow-xs border border-indigo-300'
+                    : 'text-indigo-600 hover:text-indigo-950'
+                }`}
+                title="Week 1 (6 Sep - 10 Sep)"
+              >
+                Week 1
+              </button>
+              <button
+                onClick={() => onSelectWeek(2)}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  currentWeek === 2
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-indigo-600 hover:text-indigo-950'
+                }`}
+                title="Week 2 (13 Sep - 17 Sep)"
+              >
+                Week 2
+              </button>
             </div>
 
             {/* Paste / Enter Weekly Plan Button */}

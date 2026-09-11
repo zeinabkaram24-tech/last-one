@@ -30,6 +30,7 @@ interface TomorrowViewProps {
   currentClass: ClassId;
   selectedDay: SchoolDay; // The reference today
   homeworkList: HomeworkEntry[];
+  currentWeek?: number;
   onToggleHomework: (id: string) => void;
   onPrint: () => void;
 }
@@ -38,6 +39,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   currentClass,
   selectedDay,
   homeworkList,
+  currentWeek = 2,
   onToggleHomework,
   onPrint,
 }) => {
@@ -57,9 +59,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Tomorrow's timetable periods
   const tomorrowPeriods = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
 
-  // Homework due tomorrow
+  // Homework due tomorrow (for active week)
   const dueHomework = homeworkList.filter(
-    (h) => h.classId === currentClass && h.dueDay === tomorrowDay
+    (h) => h.classId === currentClass && h.dueDay === tomorrowDay && (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
   const pendingDueHomework = dueHomework.filter((h) => !h.completed);
 
@@ -75,9 +77,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     }
   }
 
-  // Teacher special instructions and notes from Block 1 Week 1 plan
+  // Teacher special instructions and notes from Weekly plan (Week 1 & 2)
   const tomorrowSpecialNotes = SPECIAL_TEACHER_NOTES.filter(
-    (n) => n.classId === currentClass && n.targetDay === tomorrowDay
+    (n) => n.classId === currentClass && n.targetDay === tomorrowDay && (n.week === currentWeek || (!n.week && currentWeek === 1))
   );
 
   // Daily universal bag essentials

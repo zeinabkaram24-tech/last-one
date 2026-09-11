@@ -1,4 +1,9 @@
 import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry } from '../types';
+import {
+  WEEK2_CLASSWORK,
+  ALL_LINK_AND_WEEK2_HOMEWORK,
+  WEEK2_SPECIAL_NOTES,
+} from './week2Plan';
 
 export interface TomorrowSpecialNote {
   classId: ClassId;
@@ -8,6 +13,7 @@ export interface TomorrowSpecialNote {
   arabicNote: string;
   bagItem?: string;
   icon?: string;
+  week?: number;
 }
 
 export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
@@ -242,12 +248,13 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     arabicNote: 'تسليم واجب العلوم صفحة 16 غداً.',
     bagItem: 'Science Learner Book / Workbook with Page 16 completed',
   },
+  ...WEEK2_SPECIAL_NOTES,
 ];
 
 // -------------------------------------------------------------
 // BLOCK 1 - WEEK 1 OFFICIAL CLASSWORK (6/9/2026 - 10/9/2026)
 // -------------------------------------------------------------
-export const INITIAL_CLASSWORK: ClassworkEntry[] = [
+const WEEK1_CLASSWORK: ClassworkEntry[] = [
   // ===================== G2A =====================
   // Sunday
   {
@@ -1540,10 +1547,15 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
   },
 ];
 
+export const INITIAL_CLASSWORK: ClassworkEntry[] = [
+  ...WEEK1_CLASSWORK.map((c) => ({ ...c, week: 1 })),
+  ...WEEK2_CLASSWORK,
+];
+
 // -------------------------------------------------------------
 // BLOCK 1 - WEEK 1 OFFICIAL HOMEWORK (6/9/2026 - 10/9/2026)
 // -------------------------------------------------------------
-export const INITIAL_HOMEWORK: HomeworkEntry[] = [
+const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
   // --- ICT Lesson 1 (Assigned strictly in the 3rd ICT session for each class) ---
   {
     id: 'hw-ict-g2a-1',
@@ -1735,4 +1747,9 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     completed: false,
     priority: 'normal',
   },
+];
+
+export const INITIAL_HOMEWORK: HomeworkEntry[] = [
+  ...WEEK1_BASE_HOMEWORK.map((h) => ({ ...h, week: 1 })),
+  ...ALL_LINK_AND_WEEK2_HOMEWORK,
 ];

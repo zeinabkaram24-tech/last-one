@@ -10,6 +10,7 @@ import {
   Utensils,
   BookOpen,
   CheckCheck,
+  ExternalLink,
 } from 'lucide-react';
 import { ClassId, SchoolDay, ClassworkEntry, SubjectName, HomeworkEntry } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
@@ -20,6 +21,7 @@ interface ClassworkViewProps {
   selectedDay: SchoolDay;
   classworkList: ClassworkEntry[];
   homeworkList?: HomeworkEntry[];
+  currentWeek?: number;
   onToggleClasswork: (id: string) => void;
   onSaveClasswork: (entry: ClassworkEntry) => void;
 }
@@ -29,6 +31,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   selectedDay,
   classworkList,
   homeworkList = [],
+  currentWeek = 2,
   onToggleClasswork,
   onSaveClasswork,
 }) => {
@@ -52,7 +55,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   const handleSave = () => {
     if (editingPeriod === null) return;
     const existing = classworkList.find(
-      (c) => c.classId === currentClass && c.day === selectedDay && c.period === editingPeriod
+      (c) => c.classId === currentClass && c.day === selectedDay && c.period === editingPeriod && (c.week === currentWeek || !c.week)
     );
 
     const newEntry: ClassworkEntry = {
@@ -65,6 +68,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       details: editDetails.trim() || undefined,
       pages: editPages.trim() || undefined,
       completed: existing ? existing.completed : false,
+      week: currentWeek,
     };
 
     onSaveClasswork(newEntry);
@@ -73,7 +77,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   // Stats for the day
   const dayClassworks = classworkList.filter(
-    (c) => c.classId === currentClass && c.day === selectedDay
+    (c) => c.classId === currentClass && c.day === selectedDay && (c.week === currentWeek || (!c.week && currentWeek === 1))
   );
   const completedCount = dayClassworks.filter((c) => c.completed).length;
   const progressPercent = dayClassworks.length > 0 ? Math.round((completedCount / dayClassworks.length) * 100) : 0;
@@ -87,12 +91,15 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
               {currentClass}
             </span>
+            <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white shadow-2xs">
+              Block 1 • Week {currentWeek}
+            </span>
             <h2 className="text-xl font-bold text-slate-900 tracking-tight">
               Classwork for {selectedDay}
             </h2>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Official 8-period timetable with daily lesson plans, student book pages & exercises.
+            Official 8-period timetable with daily lesson plans, student book pages & exercises ({currentWeek === 2 ? '13 Sep - 17 Sep' : '6 Sep - 10 Sep'}).
           </p>
         </div>
 
@@ -117,7 +124,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
         {timetablePeriods.map((slot, index) => {
           const meta = SUBJECT_METADATA[slot.subject];
           const cwEntry = classworkList.find(
-            (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period
+            (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && c.week === currentWeek
+          ) || classworkList.find(
+            (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && (!c.week || c.week === 1)
           );
 
           return (
@@ -183,6 +192,19 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                         <p className="text-xs font-semibold text-slate-700 mt-1 leading-relaxed">
                           {cwEntry.details}
                         </p>
+                      )}
+                      {cwEntry.linkUrl && (
+                        <div className="pt-1.5">
+                          <a
+                            href={cwEntry.linkUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-black bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100 transition-colors shadow-2xs"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5 text-blue-700" />
+                            <span>رابط فيديو الدرس / النشيد 🔗</span>
+                          </a>
+                        </div>
                       )}
                     </div>
                   ) : (

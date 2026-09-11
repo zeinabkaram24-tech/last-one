@@ -12,10 +12,11 @@ import { PrintSheet } from './components/PrintSheet';
 import { Sparkles, Calendar, BookOpen, CheckSquare, Briefcase, RotateCcw } from 'lucide-react';
 
 const STORAGE_KEYS = {
-  CLASS: 'nile_planner_current_class_v2',
-  DAY: 'nile_planner_selected_day_v2',
-  CLASSWORK: 'nile_planner_classwork_b1_w1_v2',
-  HOMEWORK: 'nile_planner_homework_b1_w1_v2',
+  CLASS: 'nile_planner_current_class_v3',
+  DAY: 'nile_planner_selected_day_v3',
+  WEEK: 'nile_planner_current_week_v3',
+  CLASSWORK: 'nile_planner_classwork_b1_w1_w2_v5',
+  HOMEWORK: 'nile_planner_homework_b1_w1_w2_v5',
 };
 
 export default function App() {
@@ -23,6 +24,12 @@ export default function App() {
   const [currentClass, setCurrentClass] = useState<ClassId>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.CLASS);
     return saved === 'G2A' || saved === 'G2B' || saved === 'G2C' ? saved : 'G2B';
+  });
+
+  // Current Week (1 or 2)
+  const [currentWeek, setCurrentWeek] = useState<number>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.WEEK);
+    return saved === '1' || saved === '2' ? Number(saved) : 2;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
@@ -78,6 +85,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
   }, [currentClass]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.WEEK, String(currentWeek));
+  }, [currentWeek]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.DAY, selectedDay);
@@ -177,6 +188,8 @@ export default function App() {
       <Navbar
         currentClass={currentClass}
         onSelectClass={setCurrentClass}
+        currentWeek={currentWeek}
+        onSelectWeek={setCurrentWeek}
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         selectedDay={selectedDay}
@@ -204,14 +217,14 @@ export default function App() {
           </div>
         )}
 
-        {/* Block 1, Week 1 Plan Indicator Banner */}
+        {/* Block 1, Week 1 / Week 2 Plan Indicator Banner */}
         <div className="mb-4 bg-white border border-slate-200/90 rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-2xs print:hidden">
-          <div className="flex items-center gap-2.5">
-            <span className="px-2.5 py-1 rounded-md text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
-              Block 1 • Week 1
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="px-2.5 py-1 rounded-md text-xs font-black bg-indigo-600 text-white shadow-xs">
+              Block 1 • Week {currentWeek}
             </span>
             <span className="text-xs font-semibold text-slate-700">
-              Active Plan (6/9/2026 – 10/9/2026)
+              {currentWeek === 2 ? 'Active Plan (13/9/2026 – 17/9/2026)' : 'Active Plan (6/9/2026 – 10/9/2026)'}
             </span>
             <span className="text-slate-300 hidden sm:inline">|</span>
             <span className="text-xs text-slate-500 font-medium hidden sm:inline">
@@ -219,7 +232,31 @@ export default function App() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs flex-wrap">
+            {/* Quick Week Switch */}
+            <div className="flex items-center bg-indigo-50/70 p-0.5 rounded-lg border border-indigo-200">
+              <button
+                onClick={() => setCurrentWeek(1)}
+                className={`px-2.5 py-0.5 rounded text-xs font-black transition-all ${
+                  currentWeek === 1
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'text-indigo-700 hover:text-indigo-950'
+                }`}
+              >
+                Week 1
+              </button>
+              <button
+                onClick={() => setCurrentWeek(2)}
+                className={`px-2.5 py-0.5 rounded text-xs font-black transition-all ${
+                  currentWeek === 2
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'text-indigo-700 hover:text-indigo-950'
+                }`}
+              >
+                Week 2
+              </button>
+            </div>
+
             <button
               onClick={() => setIsPlanModalOpen(true)}
               className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold transition-colors inline-flex items-center gap-1 border border-indigo-200/60"
@@ -238,6 +275,7 @@ export default function App() {
               selectedDay={selectedDay}
               classworkList={classworkList}
               homeworkList={homeworkList}
+              currentWeek={currentWeek}
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
             />
@@ -248,6 +286,7 @@ export default function App() {
               currentClass={currentClass}
               selectedDay={selectedDay}
               homeworkList={homeworkList}
+              currentWeek={currentWeek}
               onToggleHomework={handleToggleHomework}
               onAddHomework={handleAddHomework}
               onDeleteHomework={handleDeleteHomework}
@@ -259,6 +298,7 @@ export default function App() {
               currentClass={currentClass}
               selectedDay={selectedDay}
               homeworkList={homeworkList}
+              currentWeek={currentWeek}
               onToggleHomework={handleToggleHomework}
               onPrint={handlePrint}
             />
