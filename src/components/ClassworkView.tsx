@@ -127,144 +127,144 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             <React.Fragment key={slot.period}>
               {/* Period Card */}
               <div
-                className={`group bg-white rounded-xl border transition-all p-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs ${
+                className={`group bg-white rounded-2xl border transition-all p-3 sm:p-3.5 space-y-3 shadow-2xs ${
                   cwEntry?.completed
-                    ? 'border-emerald-300 bg-emerald-50/30'
+                    ? 'border-emerald-300 bg-emerald-50/20'
                     : 'border-slate-200 hover:border-indigo-300 hover:shadow-xs'
                 }`}
               >
-                {/* Left: Period & Subject badge */}
-                <div className="flex items-start sm:items-center gap-2.5 min-w-[220px]">
-                  <div className="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 shrink-0">
-                    <span className="text-[9px] uppercase font-black text-slate-600">P</span>
-                    <span className="text-sm font-black text-slate-950 leading-none">{slot.period}</span>
+                {/* 3 Equal-Width Boxes in a row: Period, Subject, Teacher */}
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 w-full items-stretch">
+                  {/* Box 1: رقم الحصة */}
+                  <div className="bg-slate-900 text-white font-black text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center text-center shadow-2xs">
+                    Period {slot.period}
                   </div>
 
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-black border ${meta?.badgeBg || 'bg-slate-100 text-slate-950 border-slate-300'}`}
-                      >
-                        <SubjectIcon subject={slot.subject} className="w-3.5 h-3.5" />
-                        <span>{slot.subject}</span>
-                      </span>
-                    </div>
+                  {/* Box 2: اسم المادة */}
+                  <div
+                    className={`border font-black text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-center truncate shadow-2xs ${
+                      meta?.badgeBg || 'bg-slate-100 text-slate-900 border-slate-300'
+                    }`}
+                  >
+                    <SubjectIcon subject={slot.subject} className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <span className="truncate">{slot.subject}</span>
+                  </div>
 
-                    <div className="flex items-center gap-1.5 mt-1 text-xs">
-                      <span className="flex items-center gap-1 font-bold text-slate-800">
-                        <User className="w-3.5 h-3.5 text-slate-500" />
-                        {slot.teacher}
-                      </span>
-                    </div>
+                  {/* Box 3: اسم المدرس */}
+                  <div className="bg-white border border-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-center truncate shadow-2xs">
+                    <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate">{slot.teacher}</span>
                   </div>
                 </div>
 
-                {/* Center: Classwork content */}
-                <div className="flex-1 bg-slate-50/80 p-2.5 rounded-lg border border-slate-200">
-                  {cwEntry ? (
-                    <div>
-                      <div className="flex items-start justify-between gap-2">
-                        <h4
-                          className={`text-sm font-black ${
-                            cwEntry.completed ? 'text-slate-500 line-through' : 'text-slate-950'
-                          }`}
-                        >
-                          {cwEntry.title}
-                        </h4>
-                        {cwEntry.pages && (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-white text-indigo-900 border border-indigo-200 whitespace-nowrap shrink-0">
-                            📖 {cwEntry.pages}
-                          </span>
-                        )}
-                      </div>
-                      {cwEntry.details && (
-                        <p className="text-xs font-semibold text-slate-700 mt-1 leading-relaxed">
-                          {cwEntry.details}
-                        </p>
-                      )}
-                      {activeLinkUrl && (
-                        <div className="pt-2">
-                          <a
-                            href={activeLinkUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-black transition-all shadow-2xs ${
-                              isFrench
-                                ? 'bg-purple-600 hover:bg-purple-700 text-white border border-purple-700'
-                                : 'bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100'
+                {/* Center: Classwork content & actions */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50/80 p-3 rounded-xl border border-slate-200">
+                  <div className="flex-1 min-w-0">
+                    {cwEntry ? (
+                      <div>
+                        <div className="flex items-start justify-between gap-2">
+                          <h4
+                            className={`text-sm font-black ${
+                              cwEntry.completed ? 'text-slate-500 line-through' : 'text-slate-950'
                             }`}
                           >
-                            <ExternalLink className={`w-3.5 h-3.5 ${isFrench ? 'text-white' : 'text-blue-700'}`} />
-                            <span>{activeLinkTitle}</span>
-                            {isFrench && <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Kahoot 🎯</span>}
-                          </a>
+                            {cwEntry.title}
+                          </h4>
+                          {cwEntry.pages && (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-white text-indigo-900 border border-indigo-200 whitespace-nowrap shrink-0">
+                              📖 {cwEntry.pages}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-2 py-0.5">
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span className="italic font-medium">
-                          {isFrench ? 'Plan de cours de français.' : 'خطة الحصة لمادة اللغة العربية.'}
-                        </span>
-                        <button
-                          onClick={() => openEdit(slot.period, slot.subject)}
-                          className="text-indigo-700 hover:text-indigo-900 font-bold inline-flex items-center gap-1"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          Add Lesson Note
-                        </button>
+                        {cwEntry.details && (
+                          <p className="text-xs font-semibold text-slate-700 mt-1 leading-relaxed">
+                            {cwEntry.details}
+                          </p>
+                        )}
+                        {activeLinkUrl && (
+                          <div className="pt-2">
+                            <a
+                              href={activeLinkUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-black transition-all shadow-2xs ${
+                                isFrench
+                                  ? 'bg-purple-600 hover:bg-purple-700 text-white border border-purple-700'
+                                  : 'bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100'
+                              }`}
+                            >
+                              <ExternalLink className={`w-3.5 h-3.5 ${isFrench ? 'text-white' : 'text-blue-700'}`} />
+                              <span>{activeLinkTitle}</span>
+                              {isFrench && <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Kahoot 🎯</span>}
+                            </a>
+                          </div>
+                        )}
                       </div>
-                      {isFrench && activeLinkUrl && (
-                        <div>
-                          <a
-                            href={activeLinkUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-black bg-purple-600 hover:bg-purple-700 text-white border border-purple-700 shadow-2xs"
+                    ) : (
+                      <div className="space-y-2 py-0.5">
+                        <div className="flex items-center justify-between text-xs text-slate-500">
+                          <span className="italic font-medium">
+                            {isFrench ? 'Plan de cours de français.' : 'خطة الحصة لمادة اللغة العربية.'}
+                          </span>
+                          <button
+                            onClick={() => openEdit(slot.period, slot.subject)}
+                            className="text-indigo-700 hover:text-indigo-900 font-bold inline-flex items-center gap-1"
                           >
-                            <ExternalLink className="w-3.5 h-3.5 text-white" />
-                            <span>{activeLinkTitle}</span>
-                            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Kahoot 🎯</span>
-                          </a>
+                            <Plus className="w-3.5 h-3.5" />
+                            Add Lesson Note
+                          </button>
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        {isFrench && activeLinkUrl && (
+                          <div>
+                            <a
+                              href={activeLinkUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-black bg-purple-600 hover:bg-purple-700 text-white border border-purple-700 shadow-2xs"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5 text-white" />
+                              <span>{activeLinkTitle}</span>
+                              <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Kahoot 🎯</span>
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-                {/* Right: Actions (Check completion & Edit) */}
-                <div className="flex items-center gap-2 self-end md:self-center shrink-0">
-                  {cwEntry && (
+                  {/* Actions (Check completion & Edit) */}
+                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 w-full sm:w-auto justify-end">
+                    {cwEntry && (
+                      <button
+                        onClick={() => onToggleClasswork(cwEntry.id)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          cwEntry.completed
+                            ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
+                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        {cwEntry.completed ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                            <span>Done</span>
+                          </>
+                        ) : (
+                          <>
+                            <Circle className="w-4 h-4 text-slate-400" />
+                            <span>Mark Done</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
                     <button
-                      onClick={() => onToggleClasswork(cwEntry.id)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        cwEntry.completed
-                          ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
-                          : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-                      }`}
+                      onClick={() => openEdit(slot.period, slot.subject, cwEntry)}
+                      className="p-2 text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-200"
+                      title="Edit Classwork"
                     >
-                      {cwEntry.completed ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                          <span>Done</span>
-                        </>
-                      ) : (
-                        <>
-                          <Circle className="w-4 h-4 text-slate-400" />
-                          <span>Mark Done</span>
-                        </>
-                      )}
+                      <Edit2 className="w-4 h-4" />
                     </button>
-                  )}
-
-                  <button
-                    onClick={() => openEdit(slot.period, slot.subject, cwEntry)}
-                    className="p-1.5 text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-200"
-                    title="Edit Classwork"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
+                  </div>
                 </div>
               </div>
             </React.Fragment>

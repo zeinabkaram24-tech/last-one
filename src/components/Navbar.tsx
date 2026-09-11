@@ -68,30 +68,25 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm print:hidden">
       {/* Top Bar: Brand, Class buttons (2A, 2B, 2C), and compact Block & Week */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-2.5 gap-2">
-          {/* Logo & School info */}
+          {/* Logo & School info: Nile Egyptian International School / Grade 2 */}
           <div className="flex items-center gap-2.5 bg-slate-900 text-white px-3 py-1.5 rounded-xl shadow-xs border border-slate-800 shrink-0">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-inner shrink-0">
               <School className="w-3.5 h-3.5 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none">
-                  Nile Egyptian Int. School
-                </h1>
-                <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-amber-400 text-slate-950">
-                  Menia
-                </span>
-              </div>
-              <p className="text-[9.5px] text-slate-300 font-medium leading-tight">
-                Grade 2 • Weekly Academic Organizer
+              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none">
+                Nile Egyptian International School
+              </h1>
+              <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-0.5 leading-none">
+                Grade 2
               </p>
             </div>
           </div>
 
           {/* Classes side-by-side (2A, 2B, 2C) + Compact Block & Week Dropdowns */}
-          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 justify-between sm:justify-end w-full sm:w-auto">
             {/* Class Buttons Side-by-Side (2A, 2B, 2C) */}
             <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs">
               {(['G2A', 'G2B', 'G2C'] as const).map((cls) => {

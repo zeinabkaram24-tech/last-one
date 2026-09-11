@@ -61,54 +61,39 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
 
-  const renderSquareCard = (slot: PeriodSlot) => {
+  const renderPeriodRow = (slot: PeriodSlot) => {
     const meta = SUBJECT_METADATA[slot.subject];
     const hasHw = dayHomework.some((h) => h.subject === slot.subject);
 
     return (
       <div
         key={slot.period}
-        className="bg-white rounded-2xl border border-slate-200/90 hover:border-indigo-400 p-3.5 sm:p-4 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all group min-h-[125px]"
+        className="grid grid-cols-3 gap-1.5 sm:gap-2.5 w-full items-stretch"
       >
-        {/* Top Header: Period only (no time, no 'الحصة') */}
-        <div className="flex items-center justify-between gap-1">
-          <span className="px-2.5 py-0.5 rounded-md text-[11px] font-black bg-slate-900 text-white shadow-2xs group-hover:bg-indigo-600 transition-colors">
-            P{slot.period}
-          </span>
-          {hasHw ? (
-            <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
-              📝 واجب
-            </span>
-          ) : (
-            <span className="text-[10px] text-slate-400 font-semibold">
-              لا واجب
+        {/* Box 1: رقم الحصة (Period Number) */}
+        <div className="bg-slate-900 text-white font-black text-xs sm:text-sm py-2.5 px-2 rounded-xl flex items-center justify-center text-center shadow-2xs">
+          <span>Period {slot.period}</span>
+        </div>
+
+        {/* Box 2: اسم المادة (Subject Name in English) */}
+        <div
+          className={`border font-black text-xs sm:text-sm py-2.5 px-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-center truncate shadow-2xs ${
+            meta?.badgeBg || 'bg-slate-100 text-slate-900 border-slate-300'
+          }`}
+        >
+          <SubjectIcon subject={slot.subject} className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="truncate">{slot.subject}</span>
+          {hasHw && (
+            <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 rounded bg-indigo-600 text-white font-black shrink-0">
+              واجب
             </span>
           )}
         </div>
 
-        {/* Center: Icon + Subject Name (Strictly English, No Arabic translation under French) */}
-        <div className="my-2 flex items-center gap-2.5">
-          <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs ${
-              meta?.badgeBg || 'bg-slate-100 text-slate-800 border-slate-300'
-            }`}
-          >
-            <SubjectIcon subject={slot.subject} className="w-5 h-5" />
-          </div>
-
-          <div className="min-w-0">
-            <h4 className="text-sm font-black text-slate-900 leading-tight truncate">
-              {slot.subject}
-            </h4>
-          </div>
-        </div>
-
-        {/* Bottom: Teacher */}
-        <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-slate-100 text-[11px]">
-          <span className="inline-flex items-center gap-1 text-slate-600 font-medium truncate">
-            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span className="truncate">{slot.teacher}</span>
-          </span>
+        {/* Box 3: اسم المدرس (Teacher Name) */}
+        <div className="bg-white border border-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2.5 px-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-center truncate shadow-2xs">
+          <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <span className="truncate">{slot.teacher}</span>
         </div>
       </div>
     );
@@ -116,8 +101,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Timetable Period Squares Section (Direct, No Dark Blue Box, No Explanation Box, No Break Intervals) */}
-      <div className="space-y-3">
+      {/* 8 Periods: Each period in 3 equal-width boxes side-by-side in one row */}
+      <div className="space-y-2 sm:space-y-2.5">
         {targetPeriods.length === 0 ? (
           <div className="bg-white border border-dashed border-slate-200 rounded-xl p-6 text-center">
             <BookOpen className="w-6 h-6 text-slate-400 mx-auto mb-1.5" />
@@ -126,9 +111,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             </h4>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {targetPeriods.map((slot) => renderSquareCard(slot))}
-          </div>
+          targetPeriods.map((slot) => renderPeriodRow(slot))
         )}
       </div>
 
