@@ -232,45 +232,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                       </button>
                     </div>
                   )}
-
-                  {/* Period Homework Tags: Assigned Today or Due Today */}
-                  {(() => {
-                    const assignedHw = homeworkList.filter(
-                      (h) => h.classId === currentClass && h.assignedDay === selectedDay && h.subject === slot.subject
-                    );
-                    const dueHw = homeworkList.filter(
-                      (h) => h.classId === currentClass && h.dueDay === selectedDay && h.subject === slot.subject
-                    );
-
-                    if (assignedHw.length === 0 && dueHw.length === 0) return null;
-
-                    return (
-                      <div className="mt-2 pt-1.5 border-t border-slate-200/80 flex flex-wrap items-center gap-1.5">
-                        {assignedHw.map((hw) => (
-                          <div
-                            key={hw.id}
-                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50 text-amber-950 border border-amber-300 text-[11px] font-medium"
-                          >
-                            <span className="font-bold text-amber-900">📝 Assigned:</span>
-                            <span className="font-black text-slate-900 max-w-[200px] truncate">{hw.task}</span>
-                            <span className="bg-amber-200/90 text-amber-950 px-1.5 py-0.2 rounded font-black text-[10px]">
-                              Due: {hw.dueDay}
-                            </span>
-                          </div>
-                        ))}
-
-                        {dueHw.map((hw) => (
-                          <div
-                            key={hw.id}
-                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-950 border border-indigo-300 text-[11px] font-medium"
-                          >
-                            <span className="font-bold text-indigo-900">📥 Due Today:</span>
-                            <span className="font-black text-slate-900 max-w-[200px] truncate">{hw.task}</span>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })()}
                 </div>
 
                 {/* Right: Actions (Check completion & Edit) */}

@@ -444,159 +444,16 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
 ];
 
 // -------------------------------------------------------------
-// ALL HOMEWORK INCLUDING WEEK 1 VIDEO LINKS & WEEK 2 ASSIGNMENTS
+// OFFICIAL WEEK 2 HOMEWORK ONLY (Arabic & French)
+// Note: Video links are classwork tasks, not homework assignments.
+// Only subjects with homework in the weekly plan are listed.
 // -------------------------------------------------------------
 export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // ===========================================================
-  // WEEK 1: Dedicated Video Link Tasks (Sunday, Tuesday, Wednesday)
-  // Any link in weekly plan is created as a homework task!
-  // ===========================================================
-  // Week 1 Sunday Video Link
-  {
-    id: 'hw-w1-link-ar-sun-g2a',
-    classId: 'G2A',
-    assignedDay: 'Sunday',
-    dueDay: 'Monday',
-    subject: 'Arabic',
-    task: 'مشاهدة فيديو قواعد الصف والسلوكيات المدرسية',
-    pages: 'فيديو تعليمي ترحيبي',
-    details: 'مشاهدة الفيديو التعليمي والتوعوي الخاص بقواعد الصف والسلوكيات الإيجابية ومناقشته مع الأسرة.',
-    completed: false,
-    priority: 'normal',
-    week: 1,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=قواعد+الصف+للأطفال+الصف+الثاني',
-  },
-  {
-    id: 'hw-w1-link-ar-sun-g2b',
-    classId: 'G2B',
-    assignedDay: 'Sunday',
-    dueDay: 'Monday',
-    subject: 'Arabic',
-    task: 'مشاهدة فيديو قواعد الصف والسلوكيات المدرسية',
-    pages: 'فيديو تعليمي ترحيبي',
-    details: 'مشاهدة الفيديو التعليمي والتوعوي الخاص بقواعد الصف والسلوكيات الإيجابية ومناقشته مع الأسرة.',
-    completed: false,
-    priority: 'normal',
-    week: 1,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=قواعد+الصف+للأطفال+الصف+الثاني',
-  },
-  {
-    id: 'hw-w1-link-ar-sun-g2c',
-    classId: 'G2C',
-    assignedDay: 'Sunday',
-    dueDay: 'Monday',
-    subject: 'Arabic',
-    task: 'مشاهدة فيديو قواعد الصف والسلوكيات المدرسية',
-    pages: 'فيديو تعليمي ترحيبي',
-    details: 'مشاهدة الفيديو التعليمي والتوعوي الخاص بقواعد الصف والسلوكيات الإيجابية ومناقشته مع الأسرة.',
-    completed: false,
-    priority: 'normal',
-    week: 1,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=قواعد+الصف+للأطفال+الصف+الثاني',
-  },
-
-  // Week 1 Tuesday Video Link
-  {
-    id: 'hw-w1-link-ar-tue-g2a',
-    classId: 'G2A',
-    assignedDay: 'Tuesday',
-    dueDay: 'Wednesday',
-    subject: 'Arabic',
-    task: 'مشاهدة فيديو شرح المدود والمقاطع الساكنة',
-    pages: 'فيديو تعليمي توضيحي',
-    details: 'مشاهدة الفيديو التعليمي للتدرب على نطق مد الألف والواو والياء وتمييز المقاطع الساكنة وحل التدريبات.',
-    completed: false,
-    priority: 'normal',
-    week: 1,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني',
-  },
-  {
-    id: 'hw-w1-link-ar-tue-g2b',
-    classId: 'G2B',
-    assignedDay: 'Tuesday',
-    dueDay: 'Wednesday',
-    subject: 'Arabic',
-    task: 'مشاهدة فيديو شرح المدود والمقاطع الساكنة',
-    pages: 'فيديو تعليمي توضيحي',
-    details: 'مشاهدة الفيديو التعليمي للتدرب على نطق مد الألف والواو والياء وتمييز المقاطع الساكنة وحل التدريبات.',
-    completed: false,
-    priority: 'normal',
-    week: 1,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني',
-  },
-  {
-    id: 'hw-w1-link-ar-tue-g2c',
-    classId: 'G2C',
-    assignedDay: 'Tuesday',
-    dueDay: 'Wednesday',
-    subject: 'Arabic',
-    task: 'مشاهدة فيديو شرح المدود والمقاطع الساكنة',
-    pages: 'فيديو تعليمي توضيحي',
-    details: 'مشاهدة الفيديو التعليمي للتدرب على نطق مد الألف والواو والياء وتمييز المقاطع الساكنة وحل التدريبات.',
-    completed: false,
-    priority: 'normal',
-    week: 1,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني',
-  },
-
-  // Week 1 Wednesday Video Link
-  {
-    id: 'hw-w1-link-ar-wed-g2a',
-    classId: 'G2A',
-    assignedDay: 'Wednesday',
-    dueDay: 'Thursday',
-    subject: 'Arabic',
-    task: 'مشاهدة فيديو الفرق بين التاء المربوطة والمفتوحة والهاء',
-    pages: 'فيديو تعليمي تفاعلي',
-    details: 'مشاهدة الفيديو التفاعلي لشرح قاعدة التمييز بين التاء المربوطة والمفتوحة والهاء عند الوقف والوصل.',
-    completed: false,
-    priority: 'normal',
-    week: 1,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني',
-  },
-  {
-    id: 'hw-w1-link-ar-wed-g2b',
-    classId: 'G2B',
-    assignedDay: 'Wednesday',
-    dueDay: 'Thursday',
-    subject: 'Arabic',
-    task: 'مشاهدة فيديو الفرق بين التاء المربوطة والمفتوحة والهاء',
-    pages: 'فيديو تعليمي تفاعلي',
-    details: 'مشاهدة الفيديو التفاعلي لشرح قاعدة التمييز بين التاء المربوطة والمفتوحة والهاء عند الوقف والوصل.',
-    completed: false,
-    priority: 'normal',
-    week: 1,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني',
-  },
-  {
-    id: 'hw-w1-link-ar-wed-g2c',
-    classId: 'G2C',
-    assignedDay: 'Wednesday',
-    dueDay: 'Thursday',
-    subject: 'Arabic',
-    task: 'مشاهدة فيديو الفرق بين التاء المربوطة والمفتوحة والهاء',
-    pages: 'فيديو تعليمي تفاعلي',
-    details: 'مشاهدة الفيديو التفاعلي لشرح قاعدة التمييز بين التاء المربوطة والمفتوحة والهاء عند الوقف والوصل.',
-    completed: false,
-    priority: 'normal',
-    week: 1,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني',
-  },
-
-  // ===========================================================
-  // WEEK 2: OFFICIAL HOMEWORK (Arabic & French)
+  // WEEK 2: OFFICIAL HOMEWORK (Arabic: 2 Homeworks & French: 1 Homework)
   // ===========================================================
 
-  // --- Arabic: Sunday writing task (Assigned Sunday 13/9, Due Monday 14/9) ---
+  // --- Arabic HW 1: Sunday writing task (Assigned Sunday 13/9, Due Monday 14/9) ---
   {
     id: 'hw-w2-ar-sun-g2a',
     classId: 'G2A',
@@ -637,7 +494,7 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
 
-  // --- Arabic: Tuesday Workbook p. 46 (Assigned Tuesday 15/9, Due Wednesday 16/9) ---
+  // --- Arabic HW 2: Tuesday Workbook p. 46 (Assigned Tuesday 15/9, Due Wednesday 16/9) ---
   {
     id: 'hw-w2-ar-tue-g2a-wb',
     classId: 'G2A',
@@ -678,54 +535,7 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
 
-  // --- Arabic: Tuesday Video Link Task (Assigned Tuesday 15/9, Due Wednesday 16/9) ---
-  {
-    id: 'hw-w2-ar-tue-g2a-vid',
-    classId: 'G2A',
-    assignedDay: 'Tuesday',
-    dueDay: 'Wednesday',
-    subject: 'Arabic',
-    task: 'مشاهدة واستماع فيديو نشيد (مدرستي بيتي الثاني)',
-    pages: 'فيديو تعليمي تفاعلي',
-    details: 'الاستماع وترديد نشيد (مدرستي بيتي الثاني) عبر الرابط التعليمي وممارسة الإلقاء السليم وحفظ الأبيات.',
-    completed: false,
-    priority: 'normal',
-    week: 2,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=نشيد+مدرستي+بيتي+الثاني+الصف+الثاني',
-  },
-  {
-    id: 'hw-w2-ar-tue-g2b-vid',
-    classId: 'G2B',
-    assignedDay: 'Tuesday',
-    dueDay: 'Wednesday',
-    subject: 'Arabic',
-    task: 'مشاهدة واستماع فيديو نشيد (مدرستي بيتي الثاني)',
-    pages: 'فيديو تعليمي تفاعلي',
-    details: 'الاستماع وترديد نشيد (مدرستي بيتي الثاني) عبر الرابط التعليمي وممارسة الإلقاء السليم وحفظ الأبيات.',
-    completed: false,
-    priority: 'normal',
-    week: 2,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=نشيد+مدرستي+بيتي+الثاني+الصف+الثاني',
-  },
-  {
-    id: 'hw-w2-ar-tue-g2c-vid',
-    classId: 'G2C',
-    assignedDay: 'Tuesday',
-    dueDay: 'Wednesday',
-    subject: 'Arabic',
-    task: 'مشاهدة واستماع فيديو نشيد (مدرستي بيتي الثاني)',
-    pages: 'فيديو تعليمي تفاعلي',
-    details: 'الاستماع وترديد نشيد (مدرستي بيتي الثاني) عبر الرابط التعليمي وممارسة الإلقاء السليم وحفظ الأبيات.',
-    completed: false,
-    priority: 'normal',
-    week: 2,
-    isLinkTask: true,
-    linkUrl: 'https://www.youtube.com/results?search_query=نشيد+مدرستي+بيتي+الثاني+الصف+الثاني',
-  },
-
-  // --- French: 3rd Session Homework (Fiche de devoir Page 23) ---
+  // --- French HW: 3rd Session Homework (Fiche de devoir Page 23) ---
   // G2A: 3rd session is Thursday Period 2 -> Assigned Thursday, Due Sunday
   {
     id: 'hw-w2-fr-g2a',

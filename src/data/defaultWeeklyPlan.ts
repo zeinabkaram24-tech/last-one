@@ -324,10 +324,11 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     day: 'Sunday',
     period: 7,
     subject: 'Arabic',
-    title: 'الوحدة الأولى: العودة إلى المدرسة - حصة تعريفية وقواعد الصف',
-    details: 'حصة تعريفية + وضع قواعد الصف مع فيديو وأنشطة ترحيبية.',
+    title: 'الوحدة الأولى: العودة إلى المدرسة - حصة تعريفية',
+    details: 'حصة تعريفية وتفاعل صفي مع نشاط ترحيبي وفيديو.',
     pages: 'فيديو وأنشطة ترحيبية',
     completed: false,
+    linkUrl: 'https://www.youtube.com/results?search_query=فيديو+ترحيبي+الصف+الثاني+العودة+إلى+المدرسة',
   },
   {
     id: 'cw-g2a-sun-8',
@@ -510,6 +511,7 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     details: 'فيديو تعليمي وكراسة نشاط الوحدة الأولى ص 4 (المدود والمقاطع الساكنة). (الواجب: كراسة الواجب ص 45).',
     pages: 'فيديو وكراسة نشاط ص 4',
     completed: false,
+    linkUrl: 'https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني',
   },
 
   // Wednesday (G2A)
@@ -575,6 +577,7 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     details: 'التمييز بين التاء المربوطة والمفتوحة والهاء نطقاً وكتابة مع فيديو توضيحي.',
     pages: 'فيديو - كراسة نشاط ص 5-6',
     completed: false,
+    linkUrl: 'https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني',
   },
   {
     id: 'cw-g2a-wed-7',
@@ -713,10 +716,11 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     day: 'Sunday',
     period: 3,
     subject: 'Arabic',
-    title: 'الوحدة الأولى: العودة إلى المدرسة - حصة تعريفية وقواعد الصف',
-    details: 'حصة تعريفية + وضع قواعد الصف مع فيديو وأنشطة ترحيبية.',
+    title: 'الوحدة الأولى: العودة إلى المدرسة - حصة تعريفية',
+    details: 'حصة تعريفية وتفاعل صفي مع نشاط ترحيبي وفيديو.',
     pages: 'فيديو وأنشطة ترحيبية',
     completed: true,
+    linkUrl: 'https://www.youtube.com/results?search_query=فيديو+ترحيبي+الصف+الثاني+العودة+إلى+المدرسة',
   },
   {
     id: 'cw-g2b-sun-4',
@@ -919,6 +923,7 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     details: 'فيديو وكراسة نشاط ص 4 (تحليل الكلمات إلى مقاطع وحروف). (الواجب: كراسة الواجب ص 45).',
     pages: 'فيديو وكراسة نشاط ص 4',
     completed: false,
+    linkUrl: 'https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني',
   },
   {
     id: 'cw-g2b-tue-7',
@@ -974,6 +979,7 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     details: 'فيديو - كراسة نشاط الوحدة الأولى ص 5-6 مع أنشطة التفريق.',
     pages: 'فيديو - كراسة نشاط ص 5-6',
     completed: false,
+    linkUrl: 'https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني',
   },
   {
     id: 'cw-g2b-wed-4',
@@ -1175,10 +1181,11 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     day: 'Sunday',
     period: 6,
     subject: 'Arabic',
-    title: 'الوحدة الأولى: العودة إلى المدرسة - حصة تعريفية وقواعد الصف',
-    details: 'حصة تعريفية + وضع قواعد الصف مع فيديو وأنشطة ترحيبية.',
+    title: 'الوحدة الأولى: العودة إلى المدرسة - حصة تعريفية',
+    details: 'حصة تعريفية وتفاعل صفي مع نشاط ترحيبي وفيديو.',
     pages: 'فيديو وأنشطة ترحيبية',
     completed: false,
+    linkUrl: 'https://www.youtube.com/results?search_query=فيديو+ترحيبي+الصف+الثاني+العودة+إلى+المدرسة',
   },
   {
     id: 'cw-g2c-sun-7',
@@ -1307,6 +1314,7 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     details: 'فيديو وكراسة نشاط ص 4 (التحليل إلى مقاطع صوتية). (الواجب: كراسة الواجب ص 45).',
     pages: 'فيديو وكراسة نشاط ص 4',
     completed: false,
+    linkUrl: 'https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني',
   },
   {
     id: 'cw-g2c-tue-3',
@@ -1437,6 +1445,7 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     details: 'فيديو - كراسة نشاط الوحدة الأولى ص 5-6.',
     pages: 'فيديو - كراسة نشاط ص 5-6',
     completed: false,
+    linkUrl: 'https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني',
   },
   {
     id: 'cw-g2c-wed-7',
