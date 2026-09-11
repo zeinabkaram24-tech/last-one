@@ -224,11 +224,9 @@ export default function App() {
               currentClass={currentClass}
               selectedDay={selectedDay}
               classworkList={classworkList}
-              homeworkList={homeworkList}
               currentWeek={currentWeek}
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
-              onToggleHomework={handleToggleHomework}
             />
           )}
 
@@ -241,6 +239,7 @@ export default function App() {
               onToggleHomework={handleToggleHomework}
               onAddHomework={handleAddHomework}
               onDeleteHomework={handleDeleteHomework}
+              onSelectDay={(d) => setSelectedDay(d)}
             />
           )}
 
@@ -248,9 +247,7 @@ export default function App() {
             <TomorrowView
               currentClass={currentClass}
               selectedDay={selectedDay}
-              homeworkList={homeworkList}
               currentWeek={currentWeek}
-              onToggleHomework={handleToggleHomework}
               onPrint={handlePrint}
             />
           )}

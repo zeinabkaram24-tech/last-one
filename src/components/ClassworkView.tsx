@@ -7,13 +7,10 @@ import {
   User,
   BookOpen,
   ExternalLink,
-  CheckSquare,
-  Clock,
   Coffee,
   Utensils,
-  Sparkles,
 } from 'lucide-react';
-import { ClassId, SchoolDay, ClassworkEntry, SubjectName, HomeworkEntry, PeriodSlot } from '../types';
+import { ClassId, SchoolDay, ClassworkEntry, SubjectName, PeriodSlot } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA, PERIOD_TIMES } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 
@@ -21,22 +18,18 @@ interface ClassworkViewProps {
   currentClass: ClassId;
   selectedDay: SchoolDay;
   classworkList: ClassworkEntry[];
-  homeworkList?: HomeworkEntry[];
   currentWeek?: number;
   onToggleClasswork: (id: string) => void;
   onSaveClasswork: (entry: ClassworkEntry) => void;
-  onToggleHomework?: (id: string) => void;
 }
 
 export const ClassworkView: React.FC<ClassworkViewProps> = ({
   currentClass,
   selectedDay,
   classworkList,
-  homeworkList = [],
   currentWeek = 2,
   onToggleClasswork,
   onSaveClasswork,
-  onToggleHomework,
 }) => {
   // All 8 periods for this day from official timetable
   const daySchedule = CLASS_TIMETABLES[currentClass][selectedDay] || [];
@@ -108,15 +101,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       classworkList.find(
         (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && (!c.week || c.week === 1)
       );
-
-    // Homework assigned on this day for this subject
-    const slotHomework = homeworkList.find(
-      (h) =>
-        h.classId === currentClass &&
-        h.assignedDay === selectedDay &&
-        h.subject === slot.subject &&
-        (h.week === currentWeek || (!h.week && currentWeek === 1))
-    );
 
     const activeLinkUrl =
       cwEntry?.linkUrl ||
@@ -241,47 +225,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
               >
                 <Plus className="w-3 h-3" />
                 <span>إضافة ملاحظة</span>
-              </button>
-            </div>
-          )}
-
-          {/* Associated Homework if assigned for this period */}
-          {slotHomework && (
-            <div className="bg-amber-50/90 border border-amber-200/90 rounded-xl p-2.5 mb-2.5 flex items-start justify-between gap-2 shadow-2xs">
-              <div className="space-y-0.5 flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="px-1.5 py-0.5 rounded bg-amber-200/90 text-amber-950 font-black text-[10px]">
-                    واجب منزلي
-                  </span>
-                  {slotHomework.dueDay && (
-                    <span className="text-[10.5px] text-amber-900 font-bold">
-                      تسليم: {slotHomework.dueDay}
-                    </span>
-                  )}
-                </div>
-                <p
-                  className={`text-xs font-bold leading-snug mt-0.5 ${
-                    slotHomework.completed ? 'line-through text-slate-400' : 'text-slate-900'
-                  }`}
-                >
-                  {slotHomework.task}
-                </p>
-                {slotHomework.pages && (
-                  <span className="text-[10px] text-indigo-900 font-bold bg-white px-1.5 py-0.5 rounded border border-indigo-100 inline-block mt-0.5">
-                    المطلوب: {slotHomework.pages}
-                  </span>
-                )}
-              </div>
-
-              <button
-                onClick={() => onToggleHomework && onToggleHomework(slotHomework.id)}
-                className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 self-center ${
-                  slotHomework.completed
-                    ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
-                    : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-2xs'
-                }`}
-              >
-                {slotHomework.completed ? 'Done ✓' : 'Mark'}
               </button>
             </div>
           )}
