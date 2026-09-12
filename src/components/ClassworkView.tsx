@@ -7,12 +7,14 @@ import {
   User,
   BookOpen,
   ExternalLink,
+  Calendar,
 } from 'lucide-react';
 import { ClassId, SchoolDay, ClassworkEntry, SubjectName } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
+import { getWeekDateRange } from '../data/calendarDates';
 
 interface ClassworkViewProps {
   currentClass: ClassId;
@@ -31,13 +33,21 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   onToggleClasswork,
   onSaveClasswork,
 }) => {
-  // Filter to subjects with weekly plans (Arabic, French, Mathematics, Social Studies)
+  const weekDateRange = getWeekDateRange(1, currentWeek);
+
+  // Check if current week has ANY classwork registered for this class
+  const hasWeekPlan = classworkList.some(
+    (c) => c.classId === currentClass && (c.week === currentWeek || (currentWeek === 1 && !c.week))
+  );
+
+  // Filter to subjects with weekly plans (Arabic, French, Mathematics, Social Studies, English)
   const timetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
     (s) =>
       s.subject === 'Arabic' ||
       s.subject === 'French' ||
       s.subject === 'Mathematics' ||
-      s.subject === 'Social Studies'
+      s.subject === 'Social Studies' ||
+      s.subject === 'English'
   );
 
   // Edit modal state
@@ -58,7 +68,11 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   const handleSave = () => {
     if (editingPeriod === null) return;
     const existing = classworkList.find(
-      (c) => c.classId === currentClass && c.day === selectedDay && c.period === editingPeriod && (c.week === currentWeek || !c.week)
+      (c) =>
+        c.classId === currentClass &&
+        c.day === selectedDay &&
+        c.period === editingPeriod &&
+        (c.week === currentWeek || (currentWeek === 1 && !c.week))
     );
 
     const newEntry: ClassworkEntry = {
@@ -87,8 +101,54 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Timetable Period Cards or Weekend / Empty Day Message */}
-      {timetablePeriods.length === 0 ? (
+      {/* Top Banner: Day & Week Info */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-black text-slate-900">
+              كلاس وورك يوم {selectedDay} • {currentClass}
+            </span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-900 font-black border border-indigo-200 flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-indigo-600" />
+              <span>الأسبوع {currentWeek}</span>
+              <span className="text-indigo-400">|</span>
+              <span className="text-slate-600 font-bold">{weekDateRange.labelArabic}</span>
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1 font-medium">
+            متابعة الحصص الدراسية والأنشطة والصفحات المقررة في الخطة الأسبوعية المعتمدة.
+          </p>
+        </div>
+
+        {hasWeekPlan && dayClassworks.length > 0 && (
+          <div className="text-xs font-bold px-3 py-1 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 self-start sm:self-auto flex items-center gap-2">
+            <span>المكتمل: </span>
+            <strong className="text-emerald-700 font-black">{completedCount}</strong>
+            <span className="text-slate-400">/</span>
+            <span>{dayClassworks.length}</span>
+            <span className="text-emerald-600 font-bold">({progressPercent}%)</span>
+          </div>
+        )}
+      </div>
+
+      {/* When the week is not started yet and has no entered plan */}
+      {!hasWeekPlan ? (
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-xs space-y-3.5">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200 shadow-2xs">
+            <BookOpen className="w-7 h-7" />
+          </div>
+          <h3 className="text-base sm:text-lg font-black text-slate-900">
+            الأسبوع {currentWeek} — لم تبدأ خطته بعد
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
+            لم يتم إدخال أو اعتماد الخطة الأسبوعية للأسبوع {currentWeek} حتى الآن، والمحتوى فارغ تماماً لحين اعتماد وتنزيل الخطة الأسبوعية. لا يتم عرض أي بيانات سابقة.
+          </p>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 shadow-2xs">
+            <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+            <span>الفترة المقررة: {weekDateRange.labelArabic} ({weekDateRange.rangeShort})</span>
+          </div>
+        </div>
+      ) : timetablePeriods.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-xs">
           <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center mx-auto mb-3">
             <BookOpen className="w-6 h-6" />
@@ -108,7 +168,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                 لا توجد حصص مقررة ليوم {selectedDay} ({currentClass})
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
-                يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (عربي وفرنش وماث ودراسات اجتماعية).
+                يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (عربي، إنجليزي، فرنش، ماث، ودراسات اجتماعية).
               </p>
             </>
           )}
@@ -120,12 +180,14 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             const meta = SUBJECT_METADATA[slot.subject];
             const theme = getSubjectTheme(slot.subject);
             const cwEntry = classworkList.find(
-              (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && c.week === currentWeek
-            ) || classworkList.find(
-              (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && (!c.week || c.week === 1)
+              (c) =>
+                c.classId === currentClass &&
+                c.day === selectedDay &&
+                c.period === slot.period &&
+                (c.week === currentWeek || (currentWeek === 1 && !c.week))
             );
 
-            const activeLinkUrl = cwEntry?.linkUrl || (isFrench ? 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900' : undefined);
+            const activeLinkUrl = cwEntry?.linkUrl || (isFrench && (currentWeek === 1 || currentWeek === 2) ? 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900' : undefined);
             const activeLinkTitle = isFrench ? 'Compétition de français' : (cwEntry?.linkTitle || 'رابط الدرس 🔗');
 
             const handleToggleLesson = () => {

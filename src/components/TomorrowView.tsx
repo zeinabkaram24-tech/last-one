@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, BookOpen } from 'lucide-react';
+import { Sparkles, BookOpen, Calendar } from 'lucide-react';
 import { ClassId, SchoolDay, PeriodSlot, HomeworkEntry } from '../types';
 import {
   CLASS_TIMETABLES,
@@ -9,6 +9,7 @@ import {
 import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
+import { getWeekDateRange } from '../data/calendarDates';
 
 interface TomorrowViewProps {
   currentClass: ClassId;
@@ -33,6 +34,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   selectedDay,
   currentWeek = 2,
 }) => {
+  const weekDateRange = getWeekDateRange(1, currentWeek);
+
   // Tomorrow's target day based on the active selected day
   const tomorrowDay: SchoolDay = NEXT_SCHOOL_DAY[selectedDay] || 'Sunday';
 
@@ -45,24 +48,34 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       ? WEEK2_SPECIAL_NOTES.filter(
           (n) => n.classId === currentClass && n.targetDay === tomorrowDay
         )
-      : SPECIAL_TEACHER_NOTES.filter(
+      : currentWeek === 1
+      ? SPECIAL_TEACHER_NOTES.filter(
           (n) =>
             n.classId === currentClass &&
             n.targetDay === tomorrowDay &&
-            (n.week === currentWeek || (!n.week && currentWeek === 1))
-        );
+            (n.week === 1 || !n.week)
+        )
+      : [];
 
   return (
     <div className="space-y-4">
       {/* 2x4 Grid of Subject Blocks (8 periods) */}
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs space-y-3">
-        <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-          <span className="text-sm font-black text-slate-900">
-            جدول حصص الغد — يوم {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})
-          </span>
-          <span className="text-xs text-indigo-900 font-bold bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
-            {currentClass} • 8 حصص
-          </span>
+        <div className="flex items-center justify-between pb-1 border-b border-slate-100 flex-wrap gap-2">
+          <div>
+            <span className="text-sm font-black text-slate-900">
+              جدول حصص الغد — يوم {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-indigo-900 font-bold bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200 flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-indigo-600" />
+              <span>الأسبوع {currentWeek}</span>
+            </span>
+            <span className="text-xs text-slate-700 font-bold bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+              {currentClass} • 8 حصص
+            </span>
+          </div>
         </div>
 
         {targetPeriods.length === 0 ? (

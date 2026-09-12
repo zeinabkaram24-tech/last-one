@@ -4,12 +4,14 @@ import {
   Circle,
   ExternalLink,
   BookOpen,
+  Calendar,
 } from 'lucide-react';
 import { ClassId, SchoolDay, HomeworkEntry } from '../types';
 import { SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
+import { getWeekDateRange } from '../data/calendarDates';
 
 interface HomeworkViewProps {
   currentClass: ClassId;
@@ -17,6 +19,8 @@ interface HomeworkViewProps {
   homeworkList: HomeworkEntry[];
   currentWeek?: number;
   onToggleHomework: (id: string) => void;
+  onAddHomework?: (entry: HomeworkEntry) => void;
+  onDeleteHomework?: (id: string) => void;
   onPrint?: () => void;
 }
 
@@ -36,14 +40,24 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   currentWeek = 2,
   onToggleHomework,
 }) => {
-  // Only homework assigned for the selected day (Arabic, French, Mathematics, Social Studies)
+  const weekDateRange = getWeekDateRange(1, currentWeek);
+
+  // Check if current week has ANY homework registered for this class
+  const hasWeekHomework = homeworkList.some(
+    (h) =>
+      h.classId === currentClass &&
+      (h.week === currentWeek || (!h.week && currentWeek === 1))
+  );
+
+  // Only homework assigned for the selected day (Arabic, French, Mathematics, Social Studies, English)
   const dayHomework = homeworkList.filter(
     (h) =>
       h.classId === currentClass &&
       (h.subject === 'Arabic' ||
         h.subject === 'French' ||
         h.subject === 'Mathematics' ||
-        h.subject === 'Social Studies') &&
+        h.subject === 'Social Studies' ||
+        h.subject === 'English') &&
       h.assignedDay === selectedDay &&
       (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
@@ -63,20 +77,23 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       {/* Top Banner: Header for the selected day only */}
       <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-black text-slate-900">
               واجبات يوم {ARABIC_DAY_NAMES[selectedDay]} ({selectedDay}) • {currentClass}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 font-black border border-indigo-200">
-              الأسبوع {currentWeek}
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 font-black border border-indigo-200 flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-indigo-600" />
+              <span>الأسبوع {currentWeek}</span>
+              <span className="text-indigo-400">|</span>
+              <span className="text-slate-600 font-bold">{weekDateRange.labelArabic}</span>
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5 font-medium">
+          <p className="text-xs text-slate-500 mt-1 font-medium">
             الواجبات المقررة ليوم {ARABIC_DAY_NAMES[selectedDay]} فقط حسب الخطة الأسبوعية المعتمدة.
           </p>
         </div>
 
-        {totalCount > 0 && (
+        {hasWeekHomework && totalCount > 0 && (
           <div className="text-xs font-bold px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 self-start sm:self-auto">
             <span>المكتمل: </span>
             <strong className="text-emerald-700 font-black">{completedCount}</strong>
@@ -86,15 +103,31 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         )}
       </div>
 
-      {/* Selected Day Homework List */}
-      {dayHomework.length === 0 ? (
+      {/* When the week has no homework entered yet */}
+      {!hasWeekHomework ? (
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-xs space-y-3.5">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200 shadow-2xs">
+            <BookOpen className="w-7 h-7" />
+          </div>
+          <h3 className="text-base sm:text-lg font-black text-slate-900">
+            الأسبوع {currentWeek} — لا توجد واجبات مسجلة
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
+            لم يتم إدخال أو بدء خطة الواجبات للأسبوع {currentWeek} حتى الآن، والمحتوى فارغ تماماً لحين اعتماد وتنزيل الخطة الأسبوعية. لا يتم عرض أي بيانات سابقة.
+          </p>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 shadow-2xs">
+            <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+            <span>الفترة المقررة: {weekDateRange.labelArabic} ({weekDateRange.rangeShort})</span>
+          </div>
+        </div>
+      ) : dayHomework.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-2xs space-y-2">
           <BookOpen className="w-8 h-8 text-slate-300 mx-auto" />
           <h4 className="text-sm font-bold text-slate-700">
             لا توجد واجبات مقررة ليوم {ARABIC_DAY_NAMES[selectedDay]} ({selectedDay})
           </h4>
           <p className="text-xs text-slate-400">
-            بحسب الخطة الأسبوعية المعتمدة، لا يوجد واجب منزلي مقرر لهذا اليوم في المواد المسجلة.
+            بحسب الخطة الأسبوعية المعتمدة للأسبوع {currentWeek}، لا يوجد واجب منزلي مقرر لهذا اليوم في المواد المسجلة.
           </p>
         </div>
       ) : (
