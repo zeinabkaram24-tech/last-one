@@ -4,8 +4,10 @@ import {
   Circle,
   ExternalLink,
   BookOpen,
+  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
-import { ClassId, SchoolDay, HomeworkEntry } from '../types';
+import { ClassId, SchoolDay, HomeworkEntry, ClassworkEntry } from '../types';
 import { SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
@@ -15,6 +17,7 @@ interface HomeworkViewProps {
   currentClass: ClassId;
   selectedDay: SchoolDay;
   homeworkList: HomeworkEntry[];
+  classworkList?: ClassworkEntry[];
   currentWeek?: number;
   onToggleHomework: (id: string) => void;
   onPrint?: () => void;
@@ -29,10 +32,20 @@ const ARABIC_DAY_NAMES: Record<SchoolDay, string> = {
   Thursday: 'الخميس',
 };
 
+const NEXT_SCHOOL_DAY: Record<SchoolDay, SchoolDay> = {
+  Sunday: 'Monday',
+  Monday: 'Tuesday',
+  Tuesday: 'Wednesday',
+  Wednesday: 'Thursday',
+  Thursday: 'Sunday',
+  Saturday: 'Sunday',
+};
+
 export const HomeworkView: React.FC<HomeworkViewProps> = ({
   currentClass,
   selectedDay,
   homeworkList,
+  classworkList = [],
   currentWeek = 2,
   onToggleHomework,
 }) => {
@@ -49,6 +62,23 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       h.assignedDay === selectedDay &&
       (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
+
+  // Check if tomorrow (next school day) has any scheduled Quiz or Test in classwork
+  const nextDay = NEXT_SCHOOL_DAY[selectedDay];
+  const upcomingTestsAndQuizzes = (classworkList || []).filter((cw) => {
+    if (cw.classId !== currentClass) return false;
+    if (cw.day !== nextDay) return false;
+    if (cw.week && cw.week !== currentWeek) return false;
+    const text = `${cw.title} ${cw.details || ''}`.toLowerCase();
+    return (
+      text.includes('test') ||
+      text.includes('quiz') ||
+      text.includes('اختبار') ||
+      text.includes('كويز') ||
+      text.includes('امتحان') ||
+      text.includes('تقييم')
+    );
+  });
 
   const handleToggle = (id: string, currentlyCompleted: boolean) => {
     if (!currentlyCompleted) {
@@ -88,6 +118,39 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         )}
       </div>
 
+      {/* Dynamic Hint Banner for Tomorrow's Tests & Quizzes */}
+      {upcomingTestsAndQuizzes.length > 0 && (
+        <div className="bg-amber-500/10 border-2 border-amber-400/80 rounded-2xl p-3.5 sm:p-4 text-amber-950 shadow-2xs space-y-2 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
+            <h4 className="text-sm font-black text-amber-950">
+              تنبيه مهم: يوجد اختبار / كويز غداً يوم {ARABIC_DAY_NAMES[nextDay]}!
+            </h4>
+          </div>
+          <div className="space-y-1.5 pt-0.5">
+            {upcomingTestsAndQuizzes.map((t) => (
+              <div
+                key={t.id}
+                className="flex items-center justify-between gap-2 bg-white/95 border border-amber-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-950 border border-amber-300">
+                    {t.subject}
+                  </span>
+                  <span className="font-black text-slate-900">{t.title}</span>
+                </div>
+                <span className="text-[11px] font-black text-amber-900 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 shrink-0">
+                  الحصة {t.period}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-amber-900 font-bold">
+            يرجى مراجعة الدروس اليوم والاستعداد الجيد للاختبار المقرر غداً.
+          </p>
+        </div>
+      )}
+
       {/* Selected Day Homework List */}
       {dayHomework.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-2xs space-y-2">
@@ -104,12 +167,21 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
           {dayHomework.map((hw) => {
             const meta = SUBJECT_METADATA[hw.subject];
             const theme = getSubjectTheme(hw.subject);
+            const isTestOrQuiz =
+              hw.task.toLowerCase().includes('test') ||
+              hw.task.toLowerCase().includes('quiz') ||
+              hw.task.includes('اختبار') ||
+              hw.task.includes('كويز') ||
+              hw.task.includes('امتحان');
+
             return (
               <div
                 key={hw.id}
                 className={`rounded-2xl border border-s-4 p-3.5 sm:p-4 transition-all flex items-start justify-between gap-3 shadow-2xs ${
                   hw.completed
                     ? 'border-emerald-300 border-s-emerald-600 bg-emerald-50/30 opacity-85'
+                    : isTestOrQuiz
+                    ? 'border-amber-300 border-s-amber-600 bg-amber-50/25 shadow-xs'
                     : `${theme.hwCard} ${theme.hwAccentBorder} shadow-xs`
                 }`}
               >
@@ -139,13 +211,20 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         <span>{hw.subject}</span>
                       </span>
 
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black border transition-colors ${
-                          theme.hwTag
-                        }`}
-                      >
-                        الواجب المنزلي
-                      </span>
+                      {isTestOrQuiz ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs">
+                          <AlertCircle className="w-3 h-3 text-amber-700" />
+                          تنبيه اختبار / كويز
+                        </span>
+                      ) : (
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black border transition-colors ${
+                            theme.hwTag
+                          }`}
+                        >
+                          الواجب المنزلي
+                        </span>
+                      )}
 
                       {hw.dueDay && (
                         <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white/95 text-slate-800 border border-slate-200 shadow-2xs">

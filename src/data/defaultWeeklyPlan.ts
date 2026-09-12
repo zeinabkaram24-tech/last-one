@@ -1584,6 +1584,71 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
 // Only subjects with submitted homework plans are listed (Arabic only for Week 1)
 // -------------------------------------------------------------
 const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
+  // --- Week 1 Hints for Tests & Quizzes ---
+  // English Diagnostic Test on Monday -> Hint assigned Sunday for G2A, G2B, G2C
+  {
+    id: 'hw-w1-hint-eng-diag-g2a',
+    classId: 'G2A',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'English',
+    task: '🔔 تنبيه اختبار تشخيصي (English Diagnostic Test): الاستعداد لاختبار تحديد المستوى غداً الإثنين وتجهيز أقلام رصاص مبرية وممحاة',
+    details: 'English Diagnostic Test tomorrow (Monday). Assessing phonics, basic vocabulary, reading, and handwriting.',
+    completed: false,
+    priority: 'urgent',
+    week: 1,
+  },
+  {
+    id: 'hw-w1-hint-eng-diag-g2b',
+    classId: 'G2B',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'English',
+    task: '🔔 تنبيه اختبار تشخيصي (English Diagnostic Test): الاستعداد لاختبار تحديد المستوى غداً الإثنين وتجهيز أقلام رصاص مبرية وممحاة',
+    details: 'English Diagnostic Test tomorrow (Monday). Assessing phonics, basic vocabulary, reading, and handwriting.',
+    completed: false,
+    priority: 'urgent',
+    week: 1,
+  },
+  {
+    id: 'hw-w1-hint-eng-diag-g2c',
+    classId: 'G2C',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'English',
+    task: '🔔 تنبيه اختبار تشخيصي (English Diagnostic Test): الاستعداد لاختبار تحديد المستوى غداً الإثنين وتجهيز أقلام رصاص مبرية وممحاة',
+    details: 'English Diagnostic Test tomorrow (Monday). Assessing phonics, basic vocabulary, reading, and handwriting.',
+    completed: false,
+    priority: 'urgent',
+    week: 1,
+  },
+
+  // Social Studies Pre-Test (الاختبار القبلي) on Wednesday -> Hint assigned Tuesday for G2A, G2B
+  {
+    id: 'hw-w1-hint-soc-test-g2a',
+    classId: 'G2A',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'Social Studies',
+    task: '🔔 تنبيه اختبار قبلي (دراسات اجتماعية): أداء الاختبار القبلي للوحدة الأولى (مجتمع الصف الثاني) غداً الأربعاء',
+    details: 'أداء الاختبار القبلي للوحدة الأولى في الحصة الرابعة يوم الأربعاء.',
+    completed: false,
+    priority: 'urgent',
+    week: 1,
+  },
+  {
+    id: 'hw-w1-hint-soc-test-g2b',
+    classId: 'G2B',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'Social Studies',
+    task: '🔔 تنبيه اختبار قبلي (دراسات اجتماعية): أداء الاختبار القبلي للوحدة الأولى (مجتمع الصف الثاني) غداً الأربعاء',
+    details: 'أداء الاختبار القبلي للوحدة الأولى في الحصة الثانية يوم الأربعاء.',
+    completed: false,
+    priority: 'urgent',
+    week: 1,
+  },
+
   // --- Arabic Sound Analysis (Assigned Tuesday, Due Wednesday) ---
   {
     id: 'hw-ar-g2a-1',
