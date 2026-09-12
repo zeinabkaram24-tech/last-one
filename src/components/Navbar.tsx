@@ -6,8 +6,10 @@ import {
   Briefcase,
   School,
   ChevronDown,
+  User,
+  Eye,
 } from 'lucide-react';
-import { ClassId, SchoolDay } from '../types';
+import { ClassId, SchoolDay, UserProfile } from '../types';
 import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
 
 interface NavbarProps {
@@ -23,6 +25,8 @@ interface NavbarProps {
   onSelectDay: (d: SchoolDay) => void;
   onPrint?: () => void;
   pendingHomeworkCount: number;
+  userProfile?: UserProfile | null;
+  onOpenProfileModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -37,6 +41,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   selectedDay,
   onSelectDay,
   pendingHomeworkCount,
+  userProfile,
+  onOpenProfileModal,
 }) => {
   const tabs = [
     {
@@ -87,8 +93,40 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Classes side-by-side (2A, 2B, 2C) & Separate Block/Week/Date Section */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap justify-between sm:justify-end w-full sm:w-auto">
+          {/* Classes side-by-side (2A, 2B, 2C) & Student Name & Separate Block/Week/Date Section */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end w-full sm:w-auto">
+            {/* Student Name / Profile Badge directly next to 2A, 2B, 2C */}
+            {userProfile?.mode === 'student' && userProfile.studentName ? (
+              <button
+                type="button"
+                onClick={onOpenProfileModal}
+                className="group inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200/90 text-indigo-950 px-2.5 py-1 rounded-xl shadow-2xs cursor-pointer transition-all shrink-0"
+                title="انقر لتعديل اسم الطالب أو التبديل"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <User className="w-3.5 h-3.5 text-indigo-700 shrink-0" />
+                <span className="text-xs font-black text-indigo-950 truncate max-w-[100px] sm:max-w-[160px]">
+                  {userProfile.studentName}
+                </span>
+                <span className="text-[10px] text-indigo-600 group-hover:text-indigo-900 font-bold border-s border-indigo-200 ps-1.5 ms-0.5">
+                  تبديل
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenProfileModal}
+                className="group inline-flex items-center gap-1.5 bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-950 px-2.5 py-1 rounded-xl shadow-2xs cursor-pointer transition-all shrink-0"
+                title="أنت الآن زائر، انقر للدخول باسم الطالب وحفظ إنجازاتك"
+              >
+                <Eye className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-600 shrink-0" />
+                <span className="text-xs font-bold">زائر</span>
+                <span className="text-[10px] text-indigo-600 group-hover:text-indigo-900 font-black border-s border-slate-300 group-hover:border-indigo-200 ps-1.5 ms-0.5">
+                  دخول كطالب
+                </span>
+              </button>
+            )}
+
             {/* Class Buttons Side-by-Side (2A, 2B, 2C) */}
             <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs shrink-0">
               {(['G2A', 'G2B', 'G2C'] as const).map((cls) => {

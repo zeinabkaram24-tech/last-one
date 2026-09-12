@@ -85,3 +85,11 @@ export interface ParsedWeeklyPlanResponse {
     note: string;
   }[];
 }
+
+export type UserMode = 'guest' | 'student';
+
+export interface UserProfile {
+  mode: UserMode;
+  studentName?: string;
+  classId?: ClassId;
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry } from './types';
+import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, UserProfile } from './types';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from './data/defaultWeeklyPlan';
 import { SCHOOL_DAYS, SCHOOL_NAME, SCHOOL_BRANCH } from './data/timetables';
 import { Navbar } from './components/Navbar';
@@ -9,19 +9,65 @@ import { TomorrowView } from './components/TomorrowView';
 import { TimetableGrid } from './components/TimetableGrid';
 import { PrintSheet } from './components/PrintSheet';
 import { WeeklyPlanModal } from './components/WeeklyPlanModal';
+import { StudentAuthModal } from './components/StudentAuthModal';
+import {
+  getActiveUserProfile,
+  setActiveUserProfile,
+  getStudentProgress,
+  saveStudentProgress,
+} from './utils/studentStorage';
 import { Sparkles, RotateCcw } from 'lucide-react';
 
 const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
   DAY: 'nile_planner_selected_day_v3',
   WEEK: 'nile_planner_current_week_v3',
-  CLASSWORK: 'nile_planner_classwork_b1_w1_w2_v13',
-  HOMEWORK: 'nile_planner_homework_b1_w1_w2_v13',
 };
 
+function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
+  if (profile?.mode === 'student' && profile.studentName) {
+    const progress = getStudentProgress(profile.studentName);
+    const set = new Set(progress.completedClassworkIds);
+    return INITIAL_CLASSWORK.map((c) => ({
+      ...c,
+      completed: set.has(c.id),
+    }));
+  }
+  return INITIAL_CLASSWORK.map((c) => ({
+    ...c,
+    completed: false,
+  }));
+}
+
+function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
+  if (profile?.mode === 'student' && profile.studentName) {
+    const progress = getStudentProgress(profile.studentName);
+    const set = new Set(progress.completedHomeworkIds);
+    return INITIAL_HOMEWORK.map((h) => ({
+      ...h,
+      completed: set.has(h.id),
+    }));
+  }
+  return INITIAL_HOMEWORK.map((h) => ({
+    ...h,
+    completed: false,
+  }));
+}
+
 export default function App() {
+  // Active User Profile (Guest vs Student)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+    return getActiveUserProfile();
+  });
+
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(() => {
+    return getActiveUserProfile() === null;
+  });
+
   // Class selection (G2A, G2B, G2C)
   const [currentClass, setCurrentClass] = useState<ClassId>(() => {
+    const profile = getActiveUserProfile();
+    if (profile?.classId) return profile.classId;
     const saved = localStorage.getItem(STORAGE_KEYS.CLASS);
     return saved === 'G2A' || saved === 'G2B' || saved === 'G2C' ? saved : 'G2B';
   });
@@ -44,7 +90,6 @@ export default function App() {
     if (saved && SCHOOL_DAYS.includes(saved as SchoolDay)) {
       return saved as SchoolDay;
     }
-    // Determine current day of week if within Sunday - Thursday
     const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
     const dayMap: Record<number, SchoolDay> = {
       0: 'Sunday',
@@ -52,8 +97,8 @@ export default function App() {
       2: 'Tuesday',
       3: 'Wednesday',
       4: 'Thursday',
-      5: 'Sunday', // Friday -> prep for Sunday
-      6: 'Sunday', // Saturday -> prep for Sunday
+      5: 'Sunday',
+      6: 'Sunday',
     };
     return dayMap[dayOfWeek] || 'Sunday';
   });
@@ -61,32 +106,20 @@ export default function App() {
   // Active View Tab: 'classwork' | 'homework' | 'tomorrow' | 'timetable'
   const [activeTab, setActiveTab] = useState<'classwork' | 'homework' | 'tomorrow' | 'timetable'>('classwork');
 
-  // Classwork state
+  // Classwork state initialized based on user profile
   const [classworkList, setClassworkList] = useState<ClassworkEntry[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.CLASSWORK);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Failed reading classwork from storage', e);
-    }
-    return INITIAL_CLASSWORK;
+    return getProfileClasswork(getActiveUserProfile());
   });
 
-  // Homework state
+  // Homework state initialized based on user profile
   const [homeworkList, setHomeworkList] = useState<HomeworkEntry[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.HOMEWORK);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Failed reading homework from storage', e);
-    }
-    return INITIAL_HOMEWORK;
+    return getProfileHomework(getActiveUserProfile());
   });
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
-  // Persistence effects
+  // Persistence effects for class, week, day
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
   }, [currentClass]);
@@ -99,53 +132,119 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.DAY, selectedDay);
   }, [selectedDay]);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CLASSWORK, JSON.stringify(classworkList));
-  }, [classworkList]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.HOMEWORK, JSON.stringify(homeworkList));
-  }, [homeworkList]);
-
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 4000);
+    setTimeout(() => setToastMsg(null), 4500);
+  };
+
+  // Handle switching user profile (Student vs Guest)
+  const handleSelectProfile = (newProfile: UserProfile) => {
+    setUserProfile(newProfile);
+    setActiveUserProfile(newProfile);
+
+    if (newProfile.classId && newProfile.classId !== currentClass) {
+      setCurrentClass(newProfile.classId);
+    }
+
+    if (newProfile.mode === 'student' && newProfile.studentName) {
+      const progress = getStudentProgress(newProfile.studentName);
+      const cwSet = new Set(progress.completedClassworkIds);
+      const hwSet = new Set(progress.completedHomeworkIds);
+
+      setClassworkList(
+        INITIAL_CLASSWORK.map((c) => ({
+          ...c,
+          completed: cwSet.has(c.id),
+        }))
+      );
+      setHomeworkList(
+        INITIAL_HOMEWORK.map((h) => ({
+          ...h,
+          completed: hwSet.has(h.id),
+        }))
+      );
+      showToast(`مرحباً يا ${newProfile.studentName}! تم تحميل إنجازاتك وواجباتك المحفوظة.`);
+    } else {
+      // Guest mode: Reset all checkmarks (transient session, not saved)
+      setClassworkList(INITIAL_CLASSWORK.map((c) => ({ ...c, completed: false })));
+      setHomeworkList(INITIAL_HOMEWORK.map((h) => ({ ...h, completed: false })));
+      showToast('تم الدخول كزائر (تصفح فقط - لن يتم حفظ علامات الإنجاز بعد إغلاق المتصفح).');
+    }
   };
 
   // Classwork handlers
   const handleToggleClasswork = (id: string) => {
-    setClassworkList((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, completed: !c.completed } : c))
-    );
+    setClassworkList((prev) => {
+      const updated = prev.map((c) => (c.id === id ? { ...c, completed: !c.completed } : c));
+      if (userProfile?.mode === 'student' && userProfile.studentName) {
+        const completedCwIds = updated.filter((c) => c.completed).map((c) => c.id);
+        const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
+        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+      } else {
+        showToast('تنبيه: أنت تتصفح كزائر، لن يتم حفظ علامة الإنجاز بعد إغلاق المتصفح.');
+      }
+      return updated;
+    });
   };
 
   const handleSaveClasswork = (entry: ClassworkEntry) => {
     setClassworkList((prev) => {
       const idx = prev.findIndex((c) => c.id === entry.id);
+      let next: ClassworkEntry[];
       if (idx >= 0) {
-        const next = [...prev];
+        next = [...prev];
         next[idx] = entry;
-        return next;
+      } else {
+        next = [...prev, entry];
       }
-      return [...prev, entry];
+      if (userProfile?.mode === 'student' && userProfile.studentName) {
+        const completedCwIds = next.filter((c) => c.completed).map((c) => c.id);
+        const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
+        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+      }
+      return next;
     });
     showToast('Classwork saved successfully!');
   };
 
   // Homework handlers
   const handleToggleHomework = (id: string) => {
-    setHomeworkList((prev) =>
-      prev.map((h) => (h.id === id ? { ...h, completed: !h.completed } : h))
-    );
+    setHomeworkList((prev) => {
+      const updated = prev.map((h) => (h.id === id ? { ...h, completed: !h.completed } : h));
+      if (userProfile?.mode === 'student' && userProfile.studentName) {
+        const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
+        const completedHwIds = updated.filter((h) => h.completed).map((h) => h.id);
+        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+      } else {
+        showToast('تنبيه: أنت تتصفح كزائر، لن يتم حفظ علامة الإنجاز بعد إغلاق المتصفح.');
+      }
+      return updated;
+    });
   };
 
   const handleAddHomework = (entry: HomeworkEntry) => {
-    setHomeworkList((prev) => [entry, ...prev]);
+    setHomeworkList((prev) => {
+      const next = [entry, ...prev];
+      if (userProfile?.mode === 'student' && userProfile.studentName) {
+        const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
+        const completedHwIds = next.filter((h) => h.completed).map((h) => h.id);
+        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+      }
+      return next;
+    });
     showToast('New homework assignment added!');
   };
 
   const handleDeleteHomework = (id: string) => {
-    setHomeworkList((prev) => prev.filter((h) => h.id !== id));
+    setHomeworkList((prev) => {
+      const next = prev.filter((h) => h.id !== id);
+      if (userProfile?.mode === 'student' && userProfile.studentName) {
+        const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
+        const completedHwIds = next.filter((h) => h.completed).map((h) => h.id);
+        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+      }
+      return next;
+    });
     showToast('Assignment removed.');
   };
 
@@ -158,8 +257,11 @@ export default function App() {
   // Reset to sample plan
   const handleResetToDefaults = () => {
     if (confirm('Reset to standard Grade 2 Nile International School weekly plan?')) {
-      setClassworkList(INITIAL_CLASSWORK);
-      setHomeworkList(INITIAL_HOMEWORK);
+      setClassworkList(INITIAL_CLASSWORK.map((c) => ({ ...c, completed: false })));
+      setHomeworkList(INITIAL_HOMEWORK.map((h) => ({ ...h, completed: false })));
+      if (userProfile?.mode === 'student' && userProfile.studentName) {
+        saveStudentProgress(userProfile.studentName, [], [], currentClass);
+      }
       showToast('Reset to default sample plan.');
     }
   };
@@ -197,6 +299,8 @@ export default function App() {
         onSelectDay={setSelectedDay}
         onPrint={handlePrint}
         pendingHomeworkCount={pendingHomeworkCount}
+        userProfile={userProfile}
+        onOpenProfileModal={() => setIsAuthModalOpen(true)}
       />
 
       {/* Main Container */}
@@ -311,6 +415,15 @@ export default function App() {
         onClose={() => setIsPlanModalOpen(false)}
         currentClass={currentClass}
         onApplyPlan={handleApplyWeeklyPlan}
+      />
+
+      {/* Student Profile / Guest Login Modal */}
+      <StudentAuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        currentProfile={userProfile}
+        currentClass={currentClass}
+        onSelectProfile={handleSelectProfile}
       />
     </div>
   );
