@@ -10,6 +10,8 @@ import { TimetableGrid } from './components/TimetableGrid';
 import { PrintSheet } from './components/PrintSheet';
 import { WeeklyPlanModal } from './components/WeeklyPlanModal';
 import { StudentAuthModal } from './components/StudentAuthModal';
+import { AdminAuthModal } from './components/AdminAuthModal';
+import { AdminDashboardModal } from './components/AdminDashboardModal';
 import {
   getActiveUserProfile,
   setActiveUserProfile,
@@ -81,7 +83,7 @@ export default function App() {
   // Current Week (1, 2, 3, 4)
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 2;
+    return saved ? Number(saved) : 1;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
@@ -118,6 +120,8 @@ export default function App() {
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
+  const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
 
   // Persistence effects for class, week, day
   useEffect(() => {
@@ -301,6 +305,7 @@ export default function App() {
         pendingHomeworkCount={pendingHomeworkCount}
         userProfile={userProfile}
         onOpenProfileModal={() => setIsAuthModalOpen(true)}
+        onOpenAdminAuth={() => setIsAdminAuthOpen(true)}
       />
 
       {/* Main Container */}
@@ -328,6 +333,7 @@ export default function App() {
               currentClass={currentClass}
               selectedDay={selectedDay}
               classworkList={classworkList}
+              currentBlock={currentBlock}
               currentWeek={currentWeek}
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
@@ -340,6 +346,7 @@ export default function App() {
               selectedDay={selectedDay}
               homeworkList={homeworkList}
               classworkList={classworkList}
+              currentBlock={currentBlock}
               currentWeek={currentWeek}
               onToggleHomework={handleToggleHomework}
               onAddHomework={handleAddHomework}
@@ -352,6 +359,7 @@ export default function App() {
               currentClass={currentClass}
               selectedDay={selectedDay}
               homeworkList={homeworkList}
+              currentBlock={currentBlock}
               currentWeek={currentWeek}
               onToggleHomework={handleToggleHomework}
               onPrint={handlePrint}
@@ -424,6 +432,22 @@ export default function App() {
         currentProfile={userProfile}
         currentClass={currentClass}
         onSelectProfile={handleSelectProfile}
+      />
+
+      {/* Admin Password Authentication Modal */}
+      <AdminAuthModal
+        isOpen={isAdminAuthOpen}
+        onClose={() => setIsAdminAuthOpen(false)}
+        onSuccess={() => {
+          setIsAdminAuthOpen(false);
+          setIsAdminDashboardOpen(true);
+        }}
+      />
+
+      {/* Admin Dashboard / Settings Panel (Placeholder for custom settings) */}
+      <AdminDashboardModal
+        isOpen={isAdminDashboardOpen}
+        onClose={() => setIsAdminDashboardOpen(false)}
       />
     </div>
   );

@@ -8,6 +8,8 @@ import {
   ChevronDown,
   User,
   Eye,
+  Shield,
+  GraduationCap,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
 import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
@@ -27,6 +29,7 @@ interface NavbarProps {
   pendingHomeworkCount: number;
   userProfile?: UserProfile | null;
   onOpenProfileModal?: () => void;
+  onOpenAdminAuth?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -43,6 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   pendingHomeworkCount,
   userProfile,
   onOpenProfileModal,
+  onOpenAdminAuth,
 }) => {
   const tabs = [
     {
@@ -77,13 +81,16 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-2.5 gap-2">
           {/* Logo & School info: Nile Egyptian International School / Grade 2 */}
-          <div className="flex items-center gap-2.5 bg-slate-900 text-white px-3 py-1.5 rounded-xl shadow-xs border border-slate-800 shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-inner shrink-0">
-              <School className="w-3.5 h-3.5 text-white" />
+          <div className="flex items-center gap-2.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white px-3 py-1.5 rounded-xl shadow-xs border border-indigo-900/60 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-md border border-white/20 shrink-0 relative">
+              <School className="w-4 h-4 text-white" />
+              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
+                <GraduationCap className="w-2.5 h-2.5 text-slate-900 stroke-[2.5]" />
+              </div>
             </div>
             <div className="flex flex-col items-center justify-center text-center">
-              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none text-center">
-                Nile Egyptian International School
+              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none text-center flex items-center gap-1.5">
+                <span>Nile Egyptian International School</span>
               </h1>
               <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-1 leading-none flex items-center justify-center gap-1.5">
                 <span>Grade 2</span>
@@ -187,6 +194,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </select>
                 <ChevronDown className="w-3.5 h-3.5 text-purple-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
+
+              {/* Admin Button */}
+              <button
+                type="button"
+                onClick={onOpenAdminAuth}
+                className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white hover:text-indigo-200 px-2.5 py-1 rounded-xl text-xs font-black shadow-2xs cursor-pointer transition-all border border-slate-700 active:scale-95"
+                title="لوحة الأدمن"
+              >
+                <Shield className="w-3.5 h-3.5 text-indigo-400" />
+                <span>أدمن</span>
+              </button>
             </div>
           </div>
         </div>
