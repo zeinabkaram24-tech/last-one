@@ -6,11 +6,9 @@ import {
   Briefcase,
   School,
   ChevronDown,
-  Calendar,
 } from 'lucide-react';
 import { ClassId, SchoolDay } from '../types';
 import { SCHOOL_DAYS } from '../data/timetables';
-import { getWeekDateRange } from '../data/calendarDates';
 
 interface NavbarProps {
   currentClass: ClassId;
@@ -40,83 +38,70 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectDay,
   pendingHomeworkCount,
 }) => {
-  const currentDateRange = getWeekDateRange(currentBlock, currentWeek);
-
   const tabs = [
     {
       id: 'classwork',
       label: 'Classwork',
       icon: BookOpen,
+      badge: null,
     },
     {
       id: 'homework',
       label: 'Homework',
       icon: CheckSquare,
+      badge: null,
     },
     {
       id: 'tomorrow',
       label: 'Tomorrow',
       icon: Briefcase,
+      badge: null,
     },
     {
       id: 'timetable',
       label: 'Timetable',
       icon: CalendarDays,
+      badge: null,
     },
   ] as const;
 
   return (
-    <header className="sticky top-0 z-40 shadow-md print:hidden bg-slate-900 border-b border-slate-800">
-      {/* ========================================================= */}
-      {/* ROW 1: صف النايل (Nile School Branding & Branch Info)      */}
-      {/* ========================================================= */}
-      <div className="bg-[#0b1329] border-b border-slate-800/90 px-3 sm:px-6 lg:px-8 py-2">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-md ring-1 ring-white/20 shrink-0">
-              <School className="w-4 h-4 text-white" />
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm print:hidden">
+      {/* Top Bar: Brand, Class buttons (2A, 2B, 2C), and compact Block & Week */}
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-2.5 gap-2">
+          {/* Logo & School info: Nile Egyptian International School / Grade 2 */}
+          <div className="flex items-center gap-2.5 bg-slate-900 text-white px-3 py-1.5 rounded-xl shadow-xs border border-slate-800 shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-inner shrink-0">
+              <School className="w-3.5 h-3.5 text-white" />
             </div>
-            <div>
-              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none">
-                Nile Egyptian International Schools – Minya Branch
+            <div className="flex flex-col items-center justify-center text-center">
+              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none text-center">
+                Nile Egyptian International School
               </h1>
-              <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-1 leading-none flex items-center gap-1.5 flex-wrap">
-                <span className="text-amber-400 font-extrabold">مدارس النيل المصرية الدولية – فرع المنيا</span>
-                <span className="text-slate-500">•</span>
-                <span className="text-indigo-300 font-black">Grade 2 (الصف الثاني الابتدائي)</span>
+              <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-1 leading-none flex items-center justify-center gap-1.5">
+                <span>Grade 2</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-amber-300 font-black">خطة المذاكرة الأسبوعية</span>
               </p>
             </div>
           </div>
 
-          {/* Quick Date Indicator on Top Right */}
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800/90 border border-slate-700/80 text-slate-200 text-xs font-bold shadow-2xs">
-            <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="text-amber-300 font-black">الفترة:</span>
-            <span>{currentDateRange.simpleRange}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================= */}
-      {/* ROW 2: صف الـ 2A (Classes + Block/Week Dropdowns + Date)  */}
-      {/* ========================================================= */}
-      <div className="bg-[#131f37] border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            {/* Class Selection Buttons: 2A, 2B, 2C */}
-            <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 shadow-inner">
-              <span className="text-[11px] font-black text-slate-400 px-1.5 hidden xs:inline">الفصل:</span>
+          {/* Classes side-by-side (2A, 2B, 2C) + Compact Block & Week Dropdowns */}
+          <div className="flex items-center gap-1.5 sm:gap-2 justify-between sm:justify-end w-full sm:w-auto">
+            {/* Class Buttons Side-by-Side (2A, 2B, 2C) */}
+            <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs">
               {(['G2A', 'G2B', 'G2C'] as const).map((cls) => {
                 const isSelected = currentClass === cls;
-                const label = cls.replace('G', '');
+                const label = cls.replace('G', ''); // '2A', '2B', '2C'
                 return (
                   <button
                     key={cls}
                     onClick={() => onSelectClass(cls)}
-                    className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                    className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
                       isSelected
-                        ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400'
-                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                        ? 'bg-slate-900 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                     }`}
                   >
                     {label}
@@ -125,13 +110,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </div>
 
-            {/* Block Dropdown */}
+            {/* Compact Block Dropdown */}
             <div className="relative">
               <select
                 id="block-select"
                 value={currentBlock}
                 onChange={(e) => onSelectBlock(Number(e.target.value))}
-                className="appearance-none bg-slate-900 hover:bg-slate-800 border border-slate-700 text-indigo-200 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-xs focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                className="appearance-none bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200 text-indigo-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 title="Block"
               >
                 <option value={1}>Block 1</option>
@@ -139,46 +124,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <option value={3}>Block 3</option>
                 <option value={4}>Block 4</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-indigo-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-indigo-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
-            {/* Week Dropdown with Dates Displayed Inside */}
+            {/* Compact Week Dropdown */}
             <div className="relative">
               <select
                 id="week-select"
                 value={currentWeek}
                 onChange={(e) => onSelectWeek(Number(e.target.value))}
-                className="appearance-none bg-slate-900 hover:bg-slate-800 border border-slate-700 text-purple-200 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-xs focus:outline-none focus:ring-1 focus:ring-purple-400"
+                className="appearance-none bg-purple-50 hover:bg-purple-100/80 border border-purple-200 text-purple-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-purple-500"
                 title="Week"
               >
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((w) => {
-                  const r = getWeekDateRange(currentBlock, w);
-                  return (
-                    <option key={w} value={w}>
-                      Week {w} ({r.rangeShort})
-                    </option>
-                  );
-                })}
+                <option value={1}>Week 1</option>
+                <option value={2}>Week 2</option>
+                <option value={3}>Week 3</option>
+                <option value={4}>Week 4</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-purple-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-purple-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
-
-          {/* Prominent Week Date Range Display */}
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400/10 border border-amber-400/25 text-amber-300 text-xs font-bold shadow-2xs self-start md:self-auto">
-            <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="font-black">الفترة:</span>
-            <span className="font-bold">{currentDateRange.labelArabic}</span>
-            <span className="text-amber-200/90 font-mono text-[11px]">({currentDateRange.rangeShort})</span>
-          </div>
         </div>
-      </div>
 
-      {/* ========================================================= */}
-      {/* ROW 3: صف الكلاس وورك (Navigation Tabs: 4 Views)           */}
-      {/* ========================================================= */}
-      <div className="bg-[#1a2744] border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-1.5">
-        <div className="max-w-7xl mx-auto">
+        {/* Navigation Tabs - All 4 visible side-by-side in one single line matching row width */}
+        <div className="border-t border-slate-100 py-1.5">
           <nav className="grid grid-cols-4 gap-1 sm:gap-2 w-full">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -187,19 +156,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => onSelectTab(tab.id)}
-                  className={`flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 px-1 rounded-xl text-[11px] sm:text-xs font-black transition-all truncate ${
+                  className={`flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all truncate ${
                     isActive
-                      ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md ring-1 ring-white/20'
-                      : 'bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/70'
+                      ? 'bg-indigo-600 text-white shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200/80'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                   <span className="truncate">{tab.label}</span>
-                  {tab.id === 'homework' && pendingHomeworkCount > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-rose-500 text-white ml-0.5">
-                      {pendingHomeworkCount}
-                    </span>
-                  )}
                 </button>
               );
             })}
@@ -207,11 +171,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* ========================================================= */}
-      {/* ROW 4: صف الـ Saturday (Days: Saturday through Thursday)   */}
-      {/* ========================================================= */}
+      {/* Day Ribbon: NO scroll, NO 'School Day' label, ALL 6 days visible side-by-side in one single row */}
       {activeTab !== 'timetable' && (
-        <div className="bg-[#0f172a] px-3 sm:px-6 lg:px-8 py-1.5">
+        <div className="bg-slate-50 border-t border-slate-200 py-1.5 px-2 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-6 gap-1 sm:gap-1.5 w-full">
               {SCHOOL_DAYS.map((day) => {
@@ -222,12 +184,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => onSelectDay(day)}
                     className={`w-full py-1 sm:py-1.5 px-0.5 sm:px-1 rounded-lg text-center transition-all text-[11px] sm:text-xs font-black truncate ${
                       isSelected
-                        ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-300 font-black'
-                        : 'bg-slate-900/90 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
+                        ? 'bg-indigo-600 text-white shadow-2xs'
+                        : 'bg-white text-slate-700 hover:text-slate-950 border border-slate-200 hover:bg-slate-100'
                     }`}
                     title={day}
                   >
-                    <span>{day}</span>
+                    {day}
                   </button>
                 );
               })}
