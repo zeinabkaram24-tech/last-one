@@ -18,6 +18,7 @@ interface HomeworkViewProps {
   selectedDay: SchoolDay;
   homeworkList: HomeworkEntry[];
   classworkList?: ClassworkEntry[];
+  currentBlock?: number;
   currentWeek?: number;
   onToggleHomework: (id: string) => void;
   onPrint?: () => void;
@@ -46,9 +47,18 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   selectedDay,
   homeworkList,
   classworkList = [],
+  currentBlock = 1,
   currentWeek = 2,
   onToggleHomework,
 }) => {
+  // Check if this Block and Week has ANY homework entered for current class
+  const hasHomeworkForWeek = homeworkList.some(
+    (h) =>
+      h.classId === currentClass &&
+      (h.block || 1) === currentBlock &&
+      (h.week || 1) === currentWeek
+  );
+
   // Only homework assigned for the selected day (Arabic, French, Mathematics, Social Studies, English, ICT)
   const dayHomework = homeworkList.filter(
     (h) =>
@@ -60,7 +70,8 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         h.subject === 'English' ||
         h.subject === 'ICT') &&
       h.assignedDay === selectedDay &&
-      (h.week === currentWeek || (!h.week && currentWeek === 1))
+      (h.block || 1) === currentBlock &&
+      (h.week || 1) === currentWeek
   );
 
   // Check if tomorrow (next school day) has any scheduled Quiz or Test in classwork
@@ -68,7 +79,8 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   const upcomingTestsAndQuizzes = (classworkList || []).filter((cw) => {
     if (cw.classId !== currentClass) return false;
     if (cw.day !== nextDay) return false;
-    if (cw.week && cw.week !== currentWeek) return false;
+    if ((cw.block || 1) !== currentBlock) return false;
+    if ((cw.week || 1) !== currentWeek) return false;
     const text = `${cw.title} ${cw.details || ''}`.toLowerCase();
     return (
       text.includes('test') ||
@@ -89,6 +101,23 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
   const completedCount = dayHomework.filter((h) => h.completed).length;
   const totalCount = dayHomework.length;
+
+  // If this entire week has no homework entered, render clean empty state
+  if (!hasHomeworkForWeek) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-xs space-y-3">
+        <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+          <BookOpen className="w-7 h-7" />
+        </div>
+        <h3 className="text-base sm:text-lg font-black text-slate-800">
+          لا توجد واجبات مسجلة لهذا الأسبوع
+        </h3>
+        <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+          الأسبوع المحدد (Block {currentBlock} - Week {currentWeek}) فارغ حالياً ولم يتم إدخال أي واجبات له.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3.5">

@@ -14,6 +14,7 @@ interface TomorrowViewProps {
   currentClass: ClassId;
   selectedDay: SchoolDay;
   homeworkList?: HomeworkEntry[];
+  currentBlock?: number;
   currentWeek?: number;
   onToggleHomework?: (id: string) => void;
   onPrint?: () => void;
@@ -31,6 +32,7 @@ const ARABIC_DAY_NAMES: Record<SchoolDay, string> = {
 export const TomorrowView: React.FC<TomorrowViewProps> = ({
   currentClass,
   selectedDay,
+  currentBlock = 1,
   currentWeek = 2,
 }) => {
   // Tomorrow's target day based on the active selected day
@@ -39,18 +41,20 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Tomorrow's timetable periods (the 8 periods)
   const targetPeriods: PeriodSlot[] = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
 
-  // Notes from weekly plan for tomorrow (taking ملاحظات for Arabic, Remarque for French, Notes for others)
+  // Notes from weekly plan for tomorrow (only for Block 1 Week 1 and Block 1 Week 2)
   const tomorrowNotes =
-    currentWeek === 2
+    currentBlock === 1 && currentWeek === 2
       ? WEEK2_SPECIAL_NOTES.filter(
           (n) => n.classId === currentClass && n.targetDay === tomorrowDay
         )
-      : SPECIAL_TEACHER_NOTES.filter(
+      : currentBlock === 1 && currentWeek === 1
+      ? SPECIAL_TEACHER_NOTES.filter(
           (n) =>
             n.classId === currentClass &&
             n.targetDay === tomorrowDay &&
-            (n.week === currentWeek || (!n.week && currentWeek === 1))
-        );
+            (n.week === 1 || !n.week)
+        )
+      : [];
 
   return (
     <div className="space-y-4">

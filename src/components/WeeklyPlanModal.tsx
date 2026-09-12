@@ -19,6 +19,8 @@ interface WeeklyPlanModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentClass: ClassId;
+  currentBlock?: number;
+  currentWeek?: number;
   onApplyPlan: (classwork: ClassworkEntry[], homework: HomeworkEntry[]) => void;
 }
 

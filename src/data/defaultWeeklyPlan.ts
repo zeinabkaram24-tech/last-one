@@ -13,6 +13,7 @@ export interface TomorrowSpecialNote {
   arabicNote: string;
   bagItem?: string;
   icon?: string;
+  block?: number;
   week?: number;
 }
 
@@ -1575,8 +1576,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
 ];
 
 export const INITIAL_CLASSWORK: ClassworkEntry[] = [
-  ...WEEK1_CLASSWORK.map((c) => ({ ...c, week: 1 })),
-  ...WEEK2_CLASSWORK,
+  ...WEEK1_CLASSWORK.map((c) => ({ ...c, block: 1, week: 1 })),
+  ...WEEK2_CLASSWORK.map((c) => ({ ...c, block: 1, week: 2 })),
 ];
 
 // -------------------------------------------------------------
@@ -1689,6 +1690,6 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
 ];
 
 export const INITIAL_HOMEWORK: HomeworkEntry[] = [
-  ...WEEK1_BASE_HOMEWORK.map((h) => ({ ...h, week: 1 })),
-  ...ALL_LINK_AND_WEEK2_HOMEWORK,
+  ...WEEK1_BASE_HOMEWORK.map((h) => ({ ...h, block: 1, week: 1 })),
+  ...ALL_LINK_AND_WEEK2_HOMEWORK.map((h) => ({ ...h, block: 1, week: 2 })),
 ];

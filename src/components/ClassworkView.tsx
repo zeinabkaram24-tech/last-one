@@ -18,6 +18,7 @@ interface ClassworkViewProps {
   currentClass: ClassId;
   selectedDay: SchoolDay;
   classworkList: ClassworkEntry[];
+  currentBlock?: number;
   currentWeek?: number;
   onToggleClasswork: (id: string) => void;
   onSaveClasswork: (entry: ClassworkEntry) => void;
@@ -27,10 +28,19 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   currentClass,
   selectedDay,
   classworkList,
+  currentBlock = 1,
   currentWeek = 2,
   onToggleClasswork,
   onSaveClasswork,
 }) => {
+  // Check if current class has ANY weekly plan entered for this Block and Week
+  const hasPlanForWeek = classworkList.some(
+    (c) =>
+      c.classId === currentClass &&
+      (c.block || 1) === currentBlock &&
+      (c.week || 1) === currentWeek
+  );
+
   // Filter to subjects with weekly plans (Arabic, French, Mathematics, Social Studies, English, ICT)
   const rawTimetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
     (s) =>
@@ -97,7 +107,12 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     const targetPeriods = currentGroup ? currentGroup.periods : [editingPeriod];
 
     const existing = classworkList.find(
-      (c) => c.classId === currentClass && c.day === selectedDay && targetPeriods.includes(c.period) && (c.week === currentWeek || !c.week)
+      (c) =>
+        c.classId === currentClass &&
+        c.day === selectedDay &&
+        targetPeriods.includes(c.period) &&
+        (c.block || 1) === currentBlock &&
+        (c.week || 1) === currentWeek
     );
 
     const newEntry: ClassworkEntry = {
@@ -110,6 +125,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       details: editDetails.trim() || undefined,
       pages: editPages.trim() || undefined,
       completed: existing ? existing.completed : false,
+      block: currentBlock,
       week: currentWeek,
     };
 
@@ -120,12 +136,34 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   // Stats for the day based on grouped cards
   const dayStats = timetablePeriods.map((slot) => {
     return classworkList.find(
-      (c) => c.classId === currentClass && c.day === selectedDay && slot.periods.includes(c.period) && (c.week === currentWeek || (!c.week && currentWeek === 1))
+      (c) =>
+        c.classId === currentClass &&
+        c.day === selectedDay &&
+        slot.periods.includes(c.period) &&
+        (c.block || 1) === currentBlock &&
+        (c.week || 1) === currentWeek
     );
   });
   const completedCount = dayStats.filter((c) => c && c.completed).length;
   const totalCount = timetablePeriods.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  // If this entire week has no plan entered, render clean empty state
+  if (!hasPlanForWeek) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-xs space-y-3">
+        <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+          <BookOpen className="w-7 h-7" />
+        </div>
+        <h3 className="text-base sm:text-lg font-black text-slate-800">
+          لا توجد خطة أسبوعية مسجلة لهذا الأسبوع
+        </h3>
+        <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+          الأسبوع المحدد (Block {currentBlock} - Week {currentWeek}) فارغ حالياً ولم يتم إدخال أو رفع أي خطة دراسية له بعد.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -162,13 +200,16 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             const meta = SUBJECT_METADATA[slot.subject];
             const theme = getSubjectTheme(slot.subject);
             const cwEntry = classworkList.find(
-              (c) => c.classId === currentClass && c.day === selectedDay && slot.periods.includes(c.period) && c.week === currentWeek
-            ) || classworkList.find(
-              (c) => c.classId === currentClass && c.day === selectedDay && slot.periods.includes(c.period) && (!c.week || c.week === 1)
+              (c) =>
+                c.classId === currentClass &&
+                c.day === selectedDay &&
+                slot.periods.includes(c.period) &&
+                (c.block || 1) === currentBlock &&
+                (c.week || 1) === currentWeek
             );
 
-            const activeLinkUrl = cwEntry?.linkUrl || (isFrench ? 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900' : undefined);
-            const activeLinkTitle = isFrench ? 'Compétition de français' : (cwEntry?.linkTitle || 'رابط الدرس 🔗');
+            const activeLinkUrl = cwEntry?.linkUrl;
+            const activeLinkTitle = cwEntry?.linkTitle || 'رابط الدرس 🔗';
 
             const handleToggleLesson = () => {
               if (cwEntry) {
@@ -186,6 +227,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                   subject: slot.subject,
                   title: `${slot.subject} Lesson`,
                   completed: true,
+                  block: currentBlock,
                   week: currentWeek,
                 });
               }
@@ -300,33 +342,19 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                         )}
                       </div>
                     ) : (
-                      <div className="space-y-2 py-0.5">
-                        <div className="flex items-center justify-between text-xs text-slate-500">
-                          <span className="italic font-medium">
-                            {isFrench ? 'Plan de cours de français.' : 'خطة الحصة لمادة اللغة العربية.'}
+                      <div className="space-y-1.5 py-0.5">
+                        <div className="flex items-center justify-between text-xs text-slate-400">
+                          <span className="italic font-normal">
+                            لا توجد تفاصيل مسجلة لهذه الحصة في الخطة
                           </span>
                           <button
                             onClick={() => openEdit(slot.periods, slot.subject)}
                             className="text-indigo-700 hover:text-indigo-900 font-bold inline-flex items-center gap-1"
                           >
                             <Plus className="w-3.5 h-3.5" />
-                            Add Lesson Note
+                            إضافة ملاحظة
                           </button>
                         </div>
-                        {isFrench && activeLinkUrl && (
-                          <div>
-                            <a
-                              href={activeLinkUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-black bg-purple-600 hover:bg-purple-700 text-white border border-purple-700 shadow-2xs"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5 text-white" />
-                              <span>{activeLinkTitle}</span>
-                              <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Kahoot 🎯</span>
-                            </a>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>

@@ -8,12 +8,15 @@ import {
   SCHOOL_BRANCH,
 } from '../data/timetables';
 import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
+import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 
 interface PrintSheetProps {
   currentClass: ClassId;
   selectedDay: SchoolDay;
   classworkList: ClassworkEntry[];
   homeworkList: HomeworkEntry[];
+  currentBlock?: number;
+  currentWeek?: number;
 }
 
 export const PrintSheet: React.FC<PrintSheetProps> = ({
@@ -21,22 +24,42 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
   selectedDay,
   classworkList,
   homeworkList,
+  currentBlock = 1,
+  currentWeek = 2,
 }) => {
   const tomorrowDay = NEXT_SCHOOL_DAY[selectedDay];
   const tomorrowPeriods = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
   const todayPeriods = CLASS_TIMETABLES[currentClass][selectedDay] || [];
 
   const dayClasswork = classworkList.filter(
-    (c) => c.classId === currentClass && c.day === selectedDay
+    (c) =>
+      c.classId === currentClass &&
+      c.day === selectedDay &&
+      (c.block || 1) === currentBlock &&
+      (c.week || 1) === currentWeek
   );
 
   const dueTomorrowHomework = homeworkList.filter(
-    (h) => h.classId === currentClass && h.dueDay === tomorrowDay
+    (h) =>
+      h.classId === currentClass &&
+      h.dueDay === tomorrowDay &&
+      (h.block || 1) === currentBlock &&
+      (h.week || 1) === currentWeek
   );
 
-  const tomorrowSpecial = SPECIAL_TEACHER_NOTES.filter(
-    (n) => n.classId === currentClass && n.targetDay === tomorrowDay
-  );
+  const tomorrowSpecial =
+    currentBlock === 1 && currentWeek === 2
+      ? WEEK2_SPECIAL_NOTES.filter(
+          (n) => n.classId === currentClass && n.targetDay === tomorrowDay
+        )
+      : currentBlock === 1 && currentWeek === 1
+      ? SPECIAL_TEACHER_NOTES.filter(
+          (n) =>
+            n.classId === currentClass &&
+            n.targetDay === tomorrowDay &&
+            (n.week === 1 || !n.week)
+        )
+      : [];
 
   // Bag items for tomorrow
   const tomorrowBagItems = new Set<string>();
