@@ -246,6 +246,13 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                           تنبيه اختبار / كويز
                         </span>
                       )}
+
+                      {hw.pages && (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-black bg-slate-100 text-slate-800 border border-slate-300 shadow-2xs">
+                          <BookOpen className="w-3.5 h-3.5 text-slate-500" />
+                          <span>{hw.pages}</span>
+                        </span>
+                      )}
                     </div>
 
                     {/* Task Description */}

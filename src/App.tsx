@@ -358,11 +358,8 @@ export default function App() {
             <TomorrowView
               currentClass={currentClass}
               selectedDay={selectedDay}
-              homeworkList={homeworkList}
               currentBlock={currentBlock}
               currentWeek={currentWeek}
-              onToggleHomework={handleToggleHomework}
-              onPrint={handlePrint}
             />
           )}
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles, BookOpen } from 'lucide-react';
-import { ClassId, SchoolDay, PeriodSlot, HomeworkEntry } from '../types';
+import { ClassId, SchoolDay, PeriodSlot } from '../types';
 import {
   CLASS_TIMETABLES,
   NEXT_SCHOOL_DAY,
@@ -13,11 +13,8 @@ import { SubjectIcon } from './SubjectIcon';
 interface TomorrowViewProps {
   currentClass: ClassId;
   selectedDay: SchoolDay;
-  homeworkList?: HomeworkEntry[];
   currentBlock?: number;
   currentWeek?: number;
-  onToggleHomework?: (id: string) => void;
-  onPrint?: () => void;
 }
 
 const ARABIC_DAY_NAMES: Record<SchoolDay, string> = {
@@ -41,8 +38,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Tomorrow's timetable periods (the 8 periods)
   const targetPeriods: PeriodSlot[] = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
 
-  // Notes from weekly plan for tomorrow (only for Block 1 Week 1 and Block 1 Week 2)
-  const tomorrowNotes =
+  // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items, strictly excluding homework)
+  const isHomeworkNote = (noteText: string, arabicText?: string) => {
+    const lower = (noteText + ' ' + (arabicText || '')).toLowerCase();
+    return lower.includes('واجب') || lower.includes('homework') || lower.includes('devoir');
+  };
+
+  const rawTomorrowNotes =
     currentBlock === 1 && currentWeek === 2
       ? WEEK2_SPECIAL_NOTES.filter(
           (n) => n.classId === currentClass && n.targetDay === tomorrowDay
@@ -55,6 +57,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             (n.week === 1 || !n.week)
         )
       : [];
+
+  const tomorrowNotes = rawTomorrowNotes.filter(
+    (n) => !isHomeworkNote(n.note, n.arabicNote)
+  );
 
   return (
     <div className="space-y-4">

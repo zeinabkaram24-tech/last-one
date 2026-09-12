@@ -29,35 +29,6 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
 
-  // Prep for Monday (Sunday night) - Arabic HW submission
-  {
-    classId: 'G2A',
-    targetDay: 'Monday',
-    subject: 'Arabic',
-    note: 'تسليم واجب كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل.',
-    arabicNote: 'تسليم واجب كتابة الفقرة الأولى من درس يوم جديد بخط جميل.',
-    bagItem: 'كشكول اللغة العربية (مكتوب فيه الفقرة الأولى من درس يوم جديد)',
-    week: 2,
-  },
-  {
-    classId: 'G2B',
-    targetDay: 'Monday',
-    subject: 'Arabic',
-    note: 'تسليم واجب كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل.',
-    arabicNote: 'تسليم واجب كتابة الفقرة الأولى من درس يوم جديد بخط جميل.',
-    bagItem: 'كشكول اللغة العربية (مكتوب فيه الفقرة الأولى من درس يوم جديد)',
-    week: 2,
-  },
-  {
-    classId: 'G2C',
-    targetDay: 'Monday',
-    subject: 'Arabic',
-    note: 'تسليم واجب كتابة الفقرة الأولى من درس (يوم جديد) بخط جميل.',
-    arabicNote: 'تسليم واجب كتابة الفقرة الأولى من درس يوم جديد بخط جميل.',
-    bagItem: 'كشكول اللغة العربية (مكتوب فيه الفقرة الأولى من درس يوم جديد)',
-    week: 2,
-  },
-
   // Prep for Tuesday (Monday night) - G2A French Lesson 1
   {
     classId: 'G2A',
@@ -69,32 +40,32 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
 
-  // Prep for Wednesday (Tuesday night) - Arabic HW & Dictation Notebook
+  // Prep for Wednesday (Tuesday night) - Dictation Notebook
   {
     classId: 'G2A',
     targetDay: 'Wednesday',
     subject: 'Arabic',
-    note: 'تسليم كراسة الواجب المنزلي صفحة 46 + إحضار كراسة الطالب لحصة الإملاء.',
-    arabicNote: 'تسليم كراسة الواجب صفحة 46 وإحضار كراسة الطالب للإملاء.',
-    bagItem: 'كراسة الواجب المنزلي (محلول ص 46) + كراسة الطالب للإملاء',
+    note: 'إملاء - كراسة الطالب. يرجى إحضار كراسة الطالب لحصة الإملاء.',
+    arabicNote: 'إملاء - يرجى إحضار كراسة الطالب لحصة الإملاء.',
+    bagItem: 'كراسة الطالب لإملاء اللغة العربية',
     week: 2,
   },
   {
     classId: 'G2B',
     targetDay: 'Wednesday',
     subject: 'Arabic',
-    note: 'تسليم كراسة الواجب المنزلي صفحة 46 + إحضار كراسة الطالب لحصة الإملاء.',
-    arabicNote: 'تسليم كراسة الواجب صفحة 46 وإحضار كراسة الطالب للإملاء.',
-    bagItem: 'كراسة الواجب المنزلي (محلول ص 46) + كراسة الطالب للإملاء',
+    note: 'إملاء - كراسة الطالب. يرجى إحضار كراسة الطالب لحصة الإملاء.',
+    arabicNote: 'إملاء - يرجى إحضار كراسة الطالب لحصة الإملاء.',
+    bagItem: 'كراسة الطالب لإملاء اللغة العربية',
     week: 2,
   },
   {
     classId: 'G2C',
     targetDay: 'Wednesday',
     subject: 'Arabic',
-    note: 'تسليم كراسة الواجب المنزلي صفحة 46 + إحضار كراسة الطالب لحصة الإملاء.',
-    arabicNote: 'تسليم كراسة الواجب صفحة 46 وإحضار كراسة الطالب للإملاء.',
-    bagItem: 'كراسة الواجب المنزلي (محلول ص 46) + كراسة الطالب للإملاء',
+    note: 'إملاء - كراسة الطالب. يرجى إحضار كراسة الطالب لحصة الإملاء.',
+    arabicNote: 'إملاء - يرجى إحضار كراسة الطالب لحصة الإملاء.',
+    bagItem: 'كراسة الطالب لإملاء اللغة العربية',
     week: 2,
   },
 
