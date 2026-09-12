@@ -200,7 +200,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                   </button>
 
                   <div className="space-y-1.5 flex-1 min-w-0">
-                    {/* Badges: Subject with colorful icon + الواجب المنزلي + Due date */}
+                    {/* Badges: Subject with colorful icon & Test Alert (if applicable) */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black border transition-colors ${
@@ -211,24 +211,10 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         <span>{hw.subject}</span>
                       </span>
 
-                      {isTestOrQuiz ? (
+                      {isTestOrQuiz && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs">
                           <AlertCircle className="w-3 h-3 text-amber-700" />
                           تنبيه اختبار / كويز
-                        </span>
-                      ) : (
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black border transition-colors ${
-                            theme.hwTag
-                          }`}
-                        >
-                          الواجب المنزلي
-                        </span>
-                      )}
-
-                      {hw.dueDay && (
-                        <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white/95 text-slate-800 border border-slate-200 shadow-2xs">
-                          موعد التسليم: يوم {ARABIC_DAY_NAMES[hw.dueDay] || hw.dueDay}
                         </span>
                       )}
                     </div>

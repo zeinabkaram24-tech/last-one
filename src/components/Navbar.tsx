@@ -38,8 +38,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectDay,
   pendingHomeworkCount,
 }) => {
-  const dateRange = BLOCK_WEEK_DATES[currentBlock]?.[currentWeek];
-
   const tabs = [
     {
       id: 'classwork',
@@ -112,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </div>
 
-            {/* Block & Week Dropdowns + Date Range Group */}
+            {/* Block & Week Dropdowns Group */}
             <div className="inline-flex items-center gap-1.5 bg-slate-50 sm:bg-transparent p-1 sm:p-0 rounded-xl border border-slate-200/60 sm:border-0 shrink-0">
               {/* Compact Block Dropdown */}
               <div className="relative">
@@ -140,21 +138,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="appearance-none bg-purple-50 hover:bg-purple-100/80 border border-purple-200 text-purple-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-purple-500"
                   title="Week"
                 >
-                  <option value={1}>Week 1 (6/9 - 10/9)</option>
-                  <option value={2}>Week 2 (13/9 - 17/9)</option>
-                  <option value={3}>Week 3 (20/9 - 24/9)</option>
-                  <option value={4}>Week 4 (27/9 - 1/10)</option>
+                  {[1, 2, 3, 4].map((w) => {
+                    const range = BLOCK_WEEK_DATES[currentBlock]?.[w];
+                    return (
+                      <option key={w} value={w}>
+                        Week {w} {range ? `(${range})` : ''}
+                      </option>
+                    );
+                  })}
                 </select>
                 <ChevronDown className="w-3.5 h-3.5 text-purple-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-
-              {/* Date Range Badge for selected Block & Week (placed beside Block and Week) */}
-              {dateRange && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-950 border border-amber-200 rounded-xl text-xs font-black shadow-2xs tracking-tight shrink-0">
-                  <CalendarDays className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                  <span className="font-black text-[11px] sm:text-xs dir-ltr">{dateRange}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
