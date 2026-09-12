@@ -12,6 +12,7 @@ import { WeeklyPlanModal } from './components/WeeklyPlanModal';
 import { StudentAuthModal } from './components/StudentAuthModal';
 import { AdminAuthModal } from './components/AdminAuthModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
+import { MaterialsModal } from './components/MaterialsModal';
 import {
   getActiveUserProfile,
   setActiveUserProfile,
@@ -122,6 +123,7 @@ export default function App() {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
+  const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
 
   // Persistence effects for class, week, day
   useEffect(() => {
@@ -306,6 +308,7 @@ export default function App() {
         userProfile={userProfile}
         onOpenProfileModal={() => setIsAuthModalOpen(true)}
         onOpenAdminAuth={() => setIsAdminAuthOpen(true)}
+        onOpenMaterials={() => setIsMaterialsModalOpen(true)}
       />
 
       {/* Main Container */}
@@ -445,6 +448,15 @@ export default function App() {
       <AdminDashboardModal
         isOpen={isAdminDashboardOpen}
         onClose={() => setIsAdminDashboardOpen(false)}
+      />
+
+      {/* Materials Modal */}
+      <MaterialsModal
+        isOpen={isMaterialsModalOpen}
+        onClose={() => setIsMaterialsModalOpen(false)}
+        currentClass={currentClass}
+        currentBlock={currentBlock}
+        currentWeek={currentWeek}
       />
     </div>
   );

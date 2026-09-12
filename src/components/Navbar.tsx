@@ -10,6 +10,7 @@ import {
   Eye,
   Shield,
   GraduationCap,
+  FolderOpen,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
 import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
@@ -30,6 +31,7 @@ interface NavbarProps {
   userProfile?: UserProfile | null;
   onOpenProfileModal?: () => void;
   onOpenAdminAuth?: () => void;
+  onOpenMaterials?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -47,6 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   userProfile,
   onOpenProfileModal,
   onOpenAdminAuth,
+  onOpenMaterials,
 }) => {
   const tabs = [
     {
@@ -213,6 +216,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-purple-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
+
+            {/* Materials Button */}
+            <button
+              id="materials-btn"
+              type="button"
+              onClick={onOpenMaterials}
+              className="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100/80 border border-amber-200 text-amber-950 font-black text-xs rounded-xl px-2.5 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+              title="Materials"
+            >
+              <FolderOpen className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+              <span>Materials</span>
+            </button>
           </div>
         </div>
 
