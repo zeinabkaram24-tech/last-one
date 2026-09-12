@@ -169,30 +169,53 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     <div className="space-y-4">
       {/* Timetable Period Cards or Weekend / Empty Day Message */}
       {timetablePeriods.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-xs">
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center mx-auto mb-3">
-            <BookOpen className="w-6 h-6" />
+        selectedDay === 'Saturday' ? (
+          <div
+            id="saturday-prep-card"
+            className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 max-w-xl mx-auto shadow-sm text-right"
+            dir="rtl"
+          >
+            <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center justify-start gap-2">
+              <span className="text-xl">📌</span>
+              <span>يُخصص يوم السبت للتجهيز والتحضير الأسبوعي:</span>
+            </h3>
+
+            {/* Blue accent divider */}
+            <div className="h-[2.5px] bg-blue-600 rounded-full my-4 sm:my-5" />
+
+            <div className="space-y-3 sm:space-y-3.5">
+              {/* Item 1: Tomorrow */}
+              <div className="bg-indigo-50/60 border-e-4 border-e-blue-600 rounded-xl p-3.5 sm:p-4 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2">
+                <span className="text-slate-900 text-base leading-none">•</span>
+                <span className="text-blue-600 font-extrabold" dir="ltr">
+                  (Tomorrow):
+                </span>
+                <span>لتجهيز حقيبة يوم الأحد.</span>
+              </div>
+
+              {/* Item 2: Homework */}
+              <div className="bg-indigo-50/60 border-e-4 border-e-blue-600 rounded-xl p-3.5 sm:p-4 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2">
+                <span className="text-slate-900 text-base leading-none">•</span>
+                <span className="text-blue-600 font-extrabold" dir="ltr">
+                  (Homework):
+                </span>
+                <span>لتجهيز الاختبارات والكويزات.</span>
+              </div>
+            </div>
           </div>
-          {selectedDay === 'Saturday' ? (
-            <>
-              <h3 className="text-base font-black text-slate-900">
-                يوم السبت مخصص للتجهيز والتحضير (Weekend Prep)
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
-                لا توجد حصص مدرسية يوم السبت. يمكنك الانتقال إلى تبويب <strong>Tomorrow Prep</strong> لتجهيز جدول وحقيبة يوم الأحد.
-              </p>
-            </>
-          ) : (
-            <>
-              <h3 className="text-base font-black text-slate-900">
-                لا توجد حصص مقررة ليوم {selectedDay} ({currentClass})
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
-                يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (إنجليزي وعربي وفرنش وماث ودراسات اجتماعية وتكنولوجيا المعلومات ICT).
-              </p>
-            </>
-          )}
-        </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-xs">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center mx-auto mb-3">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-black text-slate-900">
+              لا توجد حصص مقررة ليوم {selectedDay} ({currentClass})
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
+              يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (إنجليزي وعربي وفرنش وماث ودراسات اجتماعية وتكنولوجيا المعلومات ICT).
+            </p>
+          </div>
+        )
       ) : (
         <div className="space-y-2.5">
           {timetablePeriods.map((slot) => {
