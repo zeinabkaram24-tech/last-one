@@ -31,14 +31,49 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   onToggleClasswork,
   onSaveClasswork,
 }) => {
-  // Filter to subjects with weekly plans (Arabic, French, Mathematics, Social Studies)
-  const timetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
+  // Filter to subjects with weekly plans (Arabic, French, Mathematics, Social Studies, English)
+  const rawTimetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
     (s) =>
       s.subject === 'Arabic' ||
       s.subject === 'French' ||
       s.subject === 'Mathematics' ||
-      s.subject === 'Social Studies'
+      s.subject === 'Social Studies' ||
+      s.subject === 'English'
   );
+
+  // Group repeated periods (especially English or Mathematics) so they appear once only
+  interface GroupedPeriodSlot {
+    periods: number[];
+    periodLabel: string;
+    arabicPeriodLabel: string;
+    time: string;
+    subject: SubjectName;
+    teacher: string;
+    notes?: string;
+  }
+
+  const timetablePeriods: GroupedPeriodSlot[] = [];
+  for (const slot of rawTimetablePeriods) {
+    const last = timetablePeriods[timetablePeriods.length - 1];
+    if (last && last.subject === slot.subject && (slot.subject === 'English' || slot.subject === 'Mathematics')) {
+      last.periods.push(slot.period);
+      const startTime = last.time.split(' - ')[0];
+      const endTime = slot.time.split(' - ')[1] || slot.time;
+      last.time = `${startTime} - ${endTime}`;
+      last.periodLabel = last.periods.map((p) => `P${p}`).join(' & ');
+      last.arabicPeriodLabel = last.periods.map((p) => `ب${p}`).join(' وب');
+    } else {
+      timetablePeriods.push({
+        periods: [slot.period],
+        periodLabel: `P${slot.period}`,
+        arabicPeriodLabel: `ب${slot.period}`,
+        time: slot.time,
+        subject: slot.subject,
+        teacher: slot.teacher,
+        notes: slot.notes,
+      });
+    }
+  }
 
   // Edit modal state
   const [editingPeriod, setEditingPeriod] = useState<number | null>(null);
@@ -47,8 +82,8 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   const [editPages, setEditPages] = useState('');
   const [editSubject, setEditSubject] = useState<SubjectName>('English');
 
-  const openEdit = (period: number, subject: SubjectName, existing?: ClassworkEntry) => {
-    setEditingPeriod(period);
+  const openEdit = (slotPeriods: number[], subject: SubjectName, existing?: ClassworkEntry) => {
+    setEditingPeriod(slotPeriods[0]);
     setEditSubject(subject);
     setEditTitle(existing ? existing.title : '');
     setEditDetails(existing?.details || '');
@@ -57,8 +92,11 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   const handleSave = () => {
     if (editingPeriod === null) return;
+    const currentGroup = timetablePeriods.find((slot) => slot.periods.includes(editingPeriod));
+    const targetPeriods = currentGroup ? currentGroup.periods : [editingPeriod];
+
     const existing = classworkList.find(
-      (c) => c.classId === currentClass && c.day === selectedDay && c.period === editingPeriod && (c.week === currentWeek || !c.week)
+      (c) => c.classId === currentClass && c.day === selectedDay && targetPeriods.includes(c.period) && (c.week === currentWeek || !c.week)
     );
 
     const newEntry: ClassworkEntry = {
@@ -78,12 +116,15 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     setEditingPeriod(null);
   };
 
-  // Stats for the day
-  const dayClassworks = classworkList.filter(
-    (c) => c.classId === currentClass && c.day === selectedDay && (c.week === currentWeek || (!c.week && currentWeek === 1))
-  );
-  const completedCount = dayClassworks.filter((c) => c.completed).length;
-  const progressPercent = dayClassworks.length > 0 ? Math.round((completedCount / dayClassworks.length) * 100) : 0;
+  // Stats for the day based on grouped cards
+  const dayStats = timetablePeriods.map((slot) => {
+    return classworkList.find(
+      (c) => c.classId === currentClass && c.day === selectedDay && slot.periods.includes(c.period) && (c.week === currentWeek || (!c.week && currentWeek === 1))
+    );
+  });
+  const completedCount = dayStats.filter((c) => c && c.completed).length;
+  const totalCount = timetablePeriods.length;
+  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
     <div className="space-y-4">
@@ -108,7 +149,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                 لا توجد حصص مقررة ليوم {selectedDay} ({currentClass})
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
-                يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (عربي وفرنش وماث ودراسات اجتماعية).
+                يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (إنجليزي وعربي وفرنش وماث ودراسات اجتماعية).
               </p>
             </>
           )}
@@ -120,9 +161,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             const meta = SUBJECT_METADATA[slot.subject];
             const theme = getSubjectTheme(slot.subject);
             const cwEntry = classworkList.find(
-              (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && c.week === currentWeek
+              (c) => c.classId === currentClass && c.day === selectedDay && slot.periods.includes(c.period) && c.week === currentWeek
             ) || classworkList.find(
-              (c) => c.classId === currentClass && c.day === selectedDay && c.period === slot.period && (!c.week || c.week === 1)
+              (c) => c.classId === currentClass && c.day === selectedDay && slot.periods.includes(c.period) && (!c.week || c.week === 1)
             );
 
             const activeLinkUrl = cwEntry?.linkUrl || (isFrench ? 'https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900' : undefined);
@@ -137,10 +178,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
               } else {
                 triggerDoneCelebration();
                 onSaveClasswork({
-                  id: `cw-${currentClass}-${selectedDay}-${slot.period}-${Date.now()}`,
+                  id: `cw-${currentClass}-${selectedDay}-${slot.periods[0]}-${Date.now()}`,
                   classId: currentClass,
                   day: selectedDay,
-                  period: slot.period,
+                  period: slot.periods[0],
                   subject: slot.subject,
                   title: `${slot.subject} Lesson`,
                   completed: true,
@@ -150,7 +191,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             };
 
           return (
-            <React.Fragment key={slot.period}>
+            <React.Fragment key={slot.periodLabel}>
               {/* Period Card */}
               <div
                 className={`group rounded-2xl border transition-all p-3 sm:p-3.5 space-y-3 shadow-2xs ${
@@ -165,9 +206,16 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                   <div
                     className={`${
                       cwEntry?.completed ? 'bg-emerald-700 text-white' : theme.cwPeriodBox
-                    } font-black text-xs sm:text-sm py-2 px-2 rounded-xl flex items-center justify-center text-center shadow-2xs transition-colors`}
+                    } font-black py-2 px-2 rounded-xl flex items-center justify-center text-center shadow-2xs transition-colors`}
                   >
-                    P{slot.period}
+                    {slot.periods.length > 1 ? (
+                      <div className="flex flex-col items-center justify-center leading-tight">
+                        <span className="text-xs sm:text-sm font-black tracking-tight">{slot.periodLabel}</span>
+                        <span className="text-[10px] opacity-85 font-bold">{slot.arabicPeriodLabel}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs sm:text-sm font-black">{slot.periodLabel}</span>
+                    )}
                   </div>
 
                   {/* Box 2: اسم المادة */}
@@ -257,7 +305,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                             {isFrench ? 'Plan de cours de français.' : 'خطة الحصة لمادة اللغة العربية.'}
                           </span>
                           <button
-                            onClick={() => openEdit(slot.period, slot.subject)}
+                            onClick={() => openEdit(slot.periods, slot.subject)}
                             className="text-indigo-700 hover:text-indigo-900 font-bold inline-flex items-center gap-1"
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -306,7 +354,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                     </button>
 
                     <button
-                      onClick={() => openEdit(slot.period, slot.subject, cwEntry)}
+                      onClick={() => openEdit(slot.periods, slot.subject, cwEntry)}
                       className="p-2 text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-200"
                       title="Edit Classwork"
                     >
