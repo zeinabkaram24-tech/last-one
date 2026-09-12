@@ -77,9 +77,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm print:hidden">
-      {/* Top Bar: Brand, Class buttons (2A, 2B, 2C), and compact Block & Week */}
+      {/* Top Bar: Brand, Admin button at the very top row */}
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-2.5 gap-2">
+        {/* Row 1: Very top row - School info on left, Admin button on right */}
+        <div className="flex items-center justify-between py-2 sm:py-2.5 border-b border-slate-100 gap-2">
           {/* Logo & School info: Nile Egyptian International School / Grade 2 */}
           <div className="flex items-center gap-2.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white px-3 py-1.5 rounded-xl shadow-xs border border-indigo-900/60 shrink-0">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-md border border-white/20 shrink-0 relative">
@@ -88,11 +89,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <GraduationCap className="w-2.5 h-2.5 text-slate-900 stroke-[2.5]" />
               </div>
             </div>
-            <div className="flex flex-col items-center justify-center text-center">
-              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none text-center flex items-center gap-1.5">
+            <div className="flex flex-col items-start justify-center text-start">
+              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none flex items-center gap-1.5">
                 <span>Nile Egyptian International School</span>
               </h1>
-              <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-1 leading-none flex items-center justify-center gap-1.5">
+              <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-1 leading-none flex items-center gap-1.5">
                 <span>Grade 2</span>
                 <span className="text-slate-400">•</span>
                 <span className="text-amber-300 font-black">خطة المذاكرة الأسبوعية</span>
@@ -100,8 +101,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Classes side-by-side (2A, 2B, 2C) & Student Name & Separate Block/Week/Date Section */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end w-full sm:w-auto">
+          {/* Admin Button at the very top row */}
+          <button
+            type="button"
+            onClick={onOpenAdminAuth}
+            className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white hover:text-indigo-200 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-slate-700 active:scale-95 shrink-0"
+            title="لوحة الأدمن"
+          >
+            <Shield className="w-3.5 h-3.5 text-indigo-400" />
+            <span>أدمن</span>
+          </button>
+        </div>
+
+        {/* Row 2: Classes (2A, 2B, 2C), Student Profile, and Block & Week */}
+        <div className="flex items-center justify-between py-2 gap-2 flex-wrap sm:flex-nowrap">
+          {/* Left: Student Profile & Classes */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Student Name / Profile Badge directly next to 2A, 2B, 2C */}
             {userProfile?.mode === 'student' && userProfile.studentName ? (
               <button
@@ -154,57 +169,46 @@ export const Navbar: React.FC<NavbarProps> = ({
                 );
               })}
             </div>
+          </div>
 
-            {/* Block & Week Dropdowns Group */}
-            <div className="inline-flex items-center gap-1.5 bg-slate-50 sm:bg-transparent p-1 sm:p-0 rounded-xl border border-slate-200/60 sm:border-0 shrink-0">
-              {/* Compact Block Dropdown */}
-              <div className="relative">
-                <select
-                  id="block-select"
-                  value={currentBlock}
-                  onChange={(e) => onSelectBlock(Number(e.target.value))}
-                  className="appearance-none bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200 text-indigo-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  title="Block"
-                >
-                  <option value={1}>Block 1</option>
-                  <option value={2}>Block 2</option>
-                  <option value={3}>Block 3</option>
-                  <option value={4}>Block 4</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-indigo-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-
-              {/* Compact Week Dropdown */}
-              <div className="relative">
-                <select
-                  id="week-select"
-                  value={currentWeek}
-                  onChange={(e) => onSelectWeek(Number(e.target.value))}
-                  className="appearance-none bg-purple-50 hover:bg-purple-100/80 border border-purple-200 text-purple-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  title="Week"
-                >
-                  {[1, 2, 3, 4].map((w) => {
-                    const range = BLOCK_WEEK_DATES[currentBlock]?.[w];
-                    return (
-                      <option key={w} value={w}>
-                        Week {w} {range ? `(${range})` : ''}
-                      </option>
-                    );
-                  })}
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-purple-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-
-              {/* Admin Button */}
-              <button
-                type="button"
-                onClick={onOpenAdminAuth}
-                className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white hover:text-indigo-200 px-2.5 py-1 rounded-xl text-xs font-black shadow-2xs cursor-pointer transition-all border border-slate-700 active:scale-95"
-                title="لوحة الأدمن"
+          {/* Right: Block & Week Dropdowns Group */}
+          <div className="inline-flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200/60 shrink-0">
+            {/* Compact Block Dropdown */}
+            <div className="relative">
+              <select
+                id="block-select"
+                value={currentBlock}
+                onChange={(e) => onSelectBlock(Number(e.target.value))}
+                className="appearance-none bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200 text-indigo-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                title="Block"
               >
-                <Shield className="w-3.5 h-3.5 text-indigo-400" />
-                <span>أدمن</span>
-              </button>
+                <option value={1}>Block 1</option>
+                <option value={2}>Block 2</option>
+                <option value={3}>Block 3</option>
+                <option value={4}>Block 4</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-indigo-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            {/* Compact Week Dropdown */}
+            <div className="relative">
+              <select
+                id="week-select"
+                value={currentWeek}
+                onChange={(e) => onSelectWeek(Number(e.target.value))}
+                className="appearance-none bg-purple-50 hover:bg-purple-100/80 border border-purple-200 text-purple-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-purple-500"
+                title="Week"
+              >
+                {[1, 2, 3, 4].map((w) => {
+                  const range = BLOCK_WEEK_DATES[currentBlock]?.[w];
+                  return (
+                    <option key={w} value={w}>
+                      Week {w} {range ? `(${range})` : ''}
+                    </option>
+                  );
+                })}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-purple-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
         </div>
