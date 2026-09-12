@@ -77,43 +77,46 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm print:hidden">
-      {/* Top Bar: Brand, Admin button at the very top row */}
-      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
-        {/* Row 1: Very top row - School info on left, Admin button on right */}
-        <div className="flex items-center justify-between py-2 sm:py-2.5 border-b border-slate-100 gap-2">
-          {/* Logo & School info: Nile Egyptian International School / Grade 2 */}
-          <div className="flex items-center gap-2.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white px-3 py-1.5 rounded-xl shadow-xs border border-indigo-900/60 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-md border border-white/20 shrink-0 relative">
-              <School className="w-4 h-4 text-white" />
-              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
-                <GraduationCap className="w-2.5 h-2.5 text-slate-900 stroke-[2.5]" />
+      {/* Top Banner: Full-width unified blue row containing title & admin button without separation */}
+      <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-blue-900 text-white border-b border-indigo-950 shadow-xs">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-2 sm:py-2.5 gap-2">
+            {/* Logo & School info: Nile Egyptian International School / Grade 2 */}
+            <div className="flex items-center gap-2.5 shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-md border border-white/20 shrink-0 relative">
+                <School className="w-4 h-4 text-white" />
+                <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
+                  <GraduationCap className="w-2.5 h-2.5 text-slate-900 stroke-[2.5]" />
+                </div>
+              </div>
+              <div className="flex flex-col items-start justify-center text-start">
+                <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none flex items-center gap-1.5">
+                  <span>Nile Egyptian International School</span>
+                </h1>
+                <p className="text-[10px] sm:text-[11px] text-blue-200 font-bold mt-1 leading-none flex items-center gap-1.5">
+                  <span>Grade 2</span>
+                  <span className="text-indigo-300">•</span>
+                  <span className="text-amber-300 font-black">خطة المذاكرة الأسبوعية</span>
+                </p>
               </div>
             </div>
-            <div className="flex flex-col items-start justify-center text-start">
-              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none flex items-center gap-1.5">
-                <span>Nile Egyptian International School</span>
-              </h1>
-              <p className="text-[10px] sm:text-[11px] text-slate-300 font-bold mt-1 leading-none flex items-center gap-1.5">
-                <span>Grade 2</span>
-                <span className="text-slate-400">•</span>
-                <span className="text-amber-300 font-black">خطة المذاكرة الأسبوعية</span>
-              </p>
-            </div>
+
+            {/* Admin Button directly inside the top blue bar without any separation */}
+            <button
+              type="button"
+              onClick={onOpenAdminAuth}
+              className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white hover:text-amber-300 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-white/25 active:scale-95 shrink-0"
+              title="لوحة الأدمن / Admin Mode"
+            >
+              <Shield className="w-3.5 h-3.5 text-amber-300" />
+              <span>أدمن</span>
+            </button>
           </div>
-
-          {/* Admin Button at the very top row */}
-          <button
-            type="button"
-            onClick={onOpenAdminAuth}
-            className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white hover:text-indigo-200 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-slate-700 active:scale-95 shrink-0"
-            title="لوحة الأدمن"
-          >
-            <Shield className="w-3.5 h-3.5 text-indigo-400" />
-            <span>أدمن</span>
-          </button>
         </div>
+      </div>
 
-        {/* Row 2: Classes (2A, 2B, 2C), Student Profile, and Block & Week */}
+      {/* Row 2: Classes (2A, 2B, 2C), Student Profile, and Block & Week */}
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-2 gap-2 flex-wrap sm:flex-nowrap">
           {/* Left: Student Profile & Classes */}
           <div className="flex items-center gap-1.5 sm:gap-2">
