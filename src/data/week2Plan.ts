@@ -1171,6 +1171,127 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
+
+  // ===========================================================
+  // WEEK 2: OFFICIAL SCIENCE CLASSWORK
+  // Unit 1: Sound Sources
+  // Teacher: Mrs. Salma Ahmed
+  // Dates: 13/9/2026 - 17/9/2026
+  // ===========================================================
+
+  // --- G2A Science (Sun P5, Wed P2, Thu P8) ---
+  {
+    id: 'cw-w2-g2a-sun-5-sci',
+    classId: 'G2A',
+    day: 'Sunday',
+    period: 5,
+    subject: 'Science',
+    title: 'Unit 1: Sound Sources - Sound travels through materials',
+    details: 'Exploring how sound travels through different materials.',
+    pages: 'Page 17 -18-19',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2a-wed-2-sci',
+    classId: 'G2A',
+    day: 'Wednesday',
+    period: 2,
+    subject: 'Science',
+    title: 'Unit 1: Sound Sources - Quiet and loud',
+    details: 'Investigating quiet and loud sounds and sound volume.',
+    pages: 'Page 23 - 24 / Workbook p. 25',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2a-thu-8-sci',
+    classId: 'G2A',
+    day: 'Thursday',
+    period: 8,
+    subject: 'Science',
+    title: 'Unit 1: Sound Sources - QUIZ on unit 1',
+    details: 'Assessment / Quiz covering Unit 1: Sound Sources (sound traveling through materials, quiet and loud sounds).',
+    pages: 'QUIZ on unit 1',
+    completed: false,
+    week: 2,
+  },
+
+  // --- G2B Science (Sun P4, Wed P7, Thu P7) ---
+  {
+    id: 'cw-w2-g2b-sun-4-sci',
+    classId: 'G2B',
+    day: 'Sunday',
+    period: 4,
+    subject: 'Science',
+    title: 'Unit 1: Sound Sources - Sound travels through materials',
+    details: 'Exploring how sound travels through different materials.',
+    pages: 'Page 17 -18-19',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2b-wed-7-sci',
+    classId: 'G2B',
+    day: 'Wednesday',
+    period: 7,
+    subject: 'Science',
+    title: 'Unit 1: Sound Sources - Quiet and loud',
+    details: 'Investigating quiet and loud sounds and sound volume.',
+    pages: 'Page 23 - 24 / Workbook p. 25',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2b-thu-7-sci',
+    classId: 'G2B',
+    day: 'Thursday',
+    period: 7,
+    subject: 'Science',
+    title: 'Unit 1: Sound Sources - QUIZ on unit 1',
+    details: 'Assessment / Quiz covering Unit 1: Sound Sources (sound traveling through materials, quiet and loud sounds).',
+    pages: 'QUIZ on unit 1',
+    completed: false,
+    week: 2,
+  },
+
+  // --- G2C Science (Mon P5, Tue P3, Thu P2) ---
+  {
+    id: 'cw-w2-g2c-mon-5-sci',
+    classId: 'G2C',
+    day: 'Monday',
+    period: 5,
+    subject: 'Science',
+    title: 'Unit 1: Sound Sources - Sound travels through materials',
+    details: 'Exploring how sound travels through different materials.',
+    pages: 'Learner’s Book p. 17-19 / Workbook p. 20-22',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2c-tue-3-sci',
+    classId: 'G2C',
+    day: 'Tuesday',
+    period: 3,
+    subject: 'Science',
+    title: 'Unit 1: Sound Sources - Quiet and loud',
+    details: 'Investigating quiet and loud sounds and sound volume.',
+    pages: 'Page : 23 -24',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2c-thu-2-sci',
+    classId: 'G2C',
+    day: 'Thursday',
+    period: 2,
+    subject: 'Science',
+    title: 'Unit 1: Sound Sources - QUIZ on unit 1',
+    details: 'Assessment / Quiz covering Unit 1: Sound Sources (sound traveling through materials, quiet and loud sounds).',
+    pages: 'QUIZ on unit 1',
+    completed: false,
+    week: 2,
+  },
 ];
 
 // -------------------------------------------------------------
@@ -1646,6 +1767,96 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     subject: 'ICT',
     task: '🔔 تنبيه كويز تكنولوجيا المعلومات (ICT Quiz): مراجعة محتوى الأسبوع الأول استعداداً لكويز الحصة القادمة يوم الأحد',
     details: 'Quiz on week one content in Session 1 on Sunday. Review keyboard basics and text concepts.',
+    completed: false,
+    priority: 'urgent',
+    week: 2,
+  },
+
+  // ===========================================================
+  // WEEK 2: OFFICIAL SCIENCE HOMEWORK
+  // Teacher: Mrs. Salma Ahmed
+  // Unit 1: Sound Sources
+  // ===========================================================
+
+  // --- Monday Science HW: G2C (Due Tuesday next science session) ---
+  {
+    id: 'hw-w2-sci-mon-g2c',
+    classId: 'G2C',
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
+    subject: 'Science',
+    task: 'Science Homework: Workbook Page 20-21-22 (Sound travels through materials)',
+    pages: 'Page : 20-21-22',
+    details: 'Unit 1: Sound Sources - Complete workbook exercises on pages 20, 21, and 22 about sound traveling through materials.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+
+  // --- Wednesday Science HW: G2A & G2B (Due Thursday next science session) ---
+  {
+    id: 'hw-w2-sci-wed-g2a',
+    classId: 'G2A',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'Science',
+    task: 'Science Homework: Workbook Page 25 (Quiet and loud)',
+    pages: 'Page : 25',
+    details: 'Unit 1: Sound Sources - Complete workbook exercises on page 25 about quiet and loud sounds.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+  {
+    id: 'hw-w2-sci-wed-g2b',
+    classId: 'G2B',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'Science',
+    task: 'Science Homework: Workbook Page 25 (Quiet and loud)',
+    pages: 'Page : 25',
+    details: 'Unit 1: Sound Sources - Complete workbook exercises on page 25 about quiet and loud sounds.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+
+  // --- Science Quiz Hints: Assigned Wednesday (Due Thursday for Quiz on Unit 1) ---
+  {
+    id: 'hw-w2-hint-sci-quiz-g2a',
+    classId: 'G2A',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'Science',
+    task: '🔔 تنبيه كويز علوم (Science Quiz - Unit 1): مراجعة دروس الوحدة الأولى والاستعداد للكويز غداً يوم الخميس',
+    details: 'Unit 1: Sound Sources - QUIZ on unit 1 tomorrow (Thursday). Review sound traveling through materials and quiet and loud sounds (Pages 17-25).',
+    pages: 'Unit 1: Pages 17 - 25',
+    completed: false,
+    priority: 'urgent',
+    week: 2,
+  },
+  {
+    id: 'hw-w2-hint-sci-quiz-g2b',
+    classId: 'G2B',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'Science',
+    task: '🔔 تنبيه كويز علوم (Science Quiz - Unit 1): مراجعة دروس الوحدة الأولى والاستعداد للكويز غداً يوم الخميس',
+    details: 'Unit 1: Sound Sources - QUIZ on unit 1 tomorrow (Thursday). Review sound traveling through materials and quiet and loud sounds (Pages 17-25).',
+    pages: 'Unit 1: Pages 17 - 25',
+    completed: false,
+    priority: 'urgent',
+    week: 2,
+  },
+  {
+    id: 'hw-w2-hint-sci-quiz-g2c',
+    classId: 'G2C',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'Science',
+    task: '🔔 تنبيه كويز علوم (Science Quiz - Unit 1): مراجعة دروس الوحدة الأولى والاستعداد للكويز غداً يوم الخميس',
+    details: 'Unit 1: Sound Sources - QUIZ on unit 1 tomorrow (Thursday). Review sound traveling through materials and quiet and loud sounds (Pages 17-25).',
+    pages: 'Unit 1: Pages 17 - 25',
     completed: false,
     priority: 'urgent',
     week: 2,

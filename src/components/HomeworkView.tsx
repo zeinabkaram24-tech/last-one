@@ -59,7 +59,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       (h.week || 1) === currentWeek
   );
 
-  // Only homework assigned for the selected day (Arabic, French, Mathematics, Social Studies, English, ICT)
+  // Only homework assigned for the selected day (Arabic, French, Mathematics, Social Studies, English, ICT, Science)
   const dayHomework = homeworkList.filter(
     (h) =>
       h.classId === currentClass &&
@@ -68,7 +68,8 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         h.subject === 'Mathematics' ||
         h.subject === 'Social Studies' ||
         h.subject === 'English' ||
-        h.subject === 'ICT') &&
+        h.subject === 'ICT' ||
+        h.subject === 'Science') &&
       h.assignedDay === selectedDay &&
       (h.block || 1) === currentBlock &&
       (h.week || 1) === currentWeek
