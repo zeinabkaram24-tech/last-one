@@ -1089,6 +1089,117 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
+
+  // ===========================================================
+  // WEEK 2: OFFICIAL ICT (INFORMATION TECHNOLOGY) CLASSWORK
+  // Unit one: Working with text
+  // Teachers: Ms. Mariam Ahmed / Mrs. Rana Ali
+  // Note: Pages omitted as per instruction.
+  // ===========================================================
+  // --- G2A ICT (Sun P3, Mon P7, Wed P3) ---
+  {
+    id: 'cw-w2-g2a-sun-3-ict',
+    classId: 'G2A',
+    day: 'Sunday',
+    period: 3,
+    subject: 'ICT',
+    title: 'Introducing the keyboard & Quiz (Session 1)',
+    details: 'Quiz on week one content. Describe the use of special keys including enter, space bar, Windows, control, shift, and backspace.',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2a-mon-7-ict',
+    classId: 'G2A',
+    day: 'Monday',
+    period: 7,
+    subject: 'ICT',
+    title: 'Special Keys & Word Shortcuts (Session 2)',
+    details: 'Describe the use of special keys including enter, space bar, Windows, control, shift, backspace, delete, and caps lock. Use common keyboard shortcuts in Word including CTRL S and CTRL C.',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2a-wed-3-ict',
+    classId: 'G2A',
+    day: 'Wednesday',
+    period: 3,
+    subject: 'ICT',
+    title: 'Working with Text in Microsoft Word (Session 3)',
+    details: 'Launch Microsoft Word. Use keyboard to write your name in Arabic and English. Save the document with a specific name and location. Switch between Arabic and English keyboard layouts.',
+    completed: false,
+    week: 2,
+  },
+
+  // --- G2B ICT (Sun P7, Tue P3, Thu P8) ---
+  {
+    id: 'cw-w2-g2b-sun-7-ict',
+    classId: 'G2B',
+    day: 'Sunday',
+    period: 7,
+    subject: 'ICT',
+    title: 'Introducing the keyboard & Quiz (Session 1)',
+    details: 'Quiz on week one content. Describe the use of special keys including enter, space bar, Windows, control, shift, and backspace.',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2b-tue-3-ict',
+    classId: 'G2B',
+    day: 'Tuesday',
+    period: 3,
+    subject: 'ICT',
+    title: 'Special Keys & Word Shortcuts (Session 2)',
+    details: 'Describe the use of special keys including enter, space bar, Windows, control, shift, backspace, delete, and caps lock. Use common keyboard shortcuts in Word including CTRL S and CTRL C.',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2b-thu-8-ict',
+    classId: 'G2B',
+    day: 'Thursday',
+    period: 8,
+    subject: 'ICT',
+    title: 'Working with Text in Microsoft Word (Session 3)',
+    details: 'Launch Microsoft Word. Use keyboard to write your name in Arabic and English. Save the document with a specific name and location. Switch between Arabic and English keyboard layouts.',
+    completed: false,
+    week: 2,
+  },
+
+  // --- G2C ICT (Sun P5, Tue P6, Thu P1) ---
+  {
+    id: 'cw-w2-g2c-sun-5-ict',
+    classId: 'G2C',
+    day: 'Sunday',
+    period: 5,
+    subject: 'ICT',
+    title: 'Introducing the keyboard & Quiz (Session 1)',
+    details: 'Quiz on week one content. Describe the use of special keys including enter, space bar, Windows, control, shift, and backspace.',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2c-tue-6-ict',
+    classId: 'G2C',
+    day: 'Tuesday',
+    period: 6,
+    subject: 'ICT',
+    title: 'Special Keys & Word Shortcuts (Session 2)',
+    details: 'Describe the use of special keys including enter, space bar, Windows, control, shift, backspace, delete, and caps lock. Use common keyboard shortcuts in Word including CTRL S and CTRL C.',
+    completed: false,
+    week: 2,
+  },
+  {
+    id: 'cw-w2-g2c-thu-1-ict',
+    classId: 'G2C',
+    day: 'Thursday',
+    period: 1,
+    subject: 'ICT',
+    title: 'Working with Text in Microsoft Word (Session 3)',
+    details: 'Launch Microsoft Word. Use keyboard to write your name in Arabic and English. Save the document with a specific name and location. Switch between Arabic and English keyboard layouts.',
+    completed: false,
+    week: 2,
+  },
 ];
 
 // -------------------------------------------------------------
@@ -1439,6 +1550,52 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     task: 'English Homework: Activity Book pages 60 and 63',
     pages: 'Pages 60 & 63',
     details: 'Complete homework exercises on pages 60 and 63.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+
+  // ===========================================================
+  // WEEK 2: OFFICIAL ICT HOMEWORK (3rd Session per Class)
+  // G2A: 3rd session is Wednesday P3 -> Assigned Wednesday
+  // G2B: 3rd session is Thursday P8 -> Assigned Thursday
+  // G2C: 3rd session is Thursday P1 -> Assigned Thursday
+  // ===========================================================
+  {
+    id: 'hw-w2-ict-wed-g2a',
+    classId: 'G2A',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'ICT',
+    task: 'واجب تكنولوجيا المعلومات (ICT): حل أنشطة وتدريبات صفحة 25',
+    pages: 'Page 25',
+    details: 'Unit one: Working with text - Complete ICT activities on Page 25.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+  {
+    id: 'hw-w2-ict-thu-g2b',
+    classId: 'G2B',
+    assignedDay: 'Thursday',
+    dueDay: 'Sunday',
+    subject: 'ICT',
+    task: 'واجب تكنولوجيا المعلومات (ICT): حل أنشطة وتدريبات صفحة 25',
+    pages: 'Page 25',
+    details: 'Unit one: Working with text - Complete ICT activities on Page 25.',
+    completed: false,
+    priority: 'normal',
+    week: 2,
+  },
+  {
+    id: 'hw-w2-ict-thu-g2c',
+    classId: 'G2C',
+    assignedDay: 'Thursday',
+    dueDay: 'Sunday',
+    subject: 'ICT',
+    task: 'واجب تكنولوجيا المعلومات (ICT): حل أنشطة وتدريبات صفحة 25',
+    pages: 'Page 25',
+    details: 'Unit one: Working with text - Complete ICT activities on Page 25.',
     completed: false,
     priority: 'normal',
     week: 2,

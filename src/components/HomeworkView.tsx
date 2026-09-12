@@ -36,7 +36,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   currentWeek = 2,
   onToggleHomework,
 }) => {
-  // Only homework assigned for the selected day (Arabic, French, Mathematics, Social Studies, English)
+  // Only homework assigned for the selected day (Arabic, French, Mathematics, Social Studies, English, ICT)
   const dayHomework = homeworkList.filter(
     (h) =>
       h.classId === currentClass &&
@@ -44,7 +44,8 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         h.subject === 'French' ||
         h.subject === 'Mathematics' ||
         h.subject === 'Social Studies' ||
-        h.subject === 'English') &&
+        h.subject === 'English' ||
+        h.subject === 'ICT') &&
       h.assignedDay === selectedDay &&
       (h.week === currentWeek || (!h.week && currentWeek === 1))
   );
@@ -161,13 +162,6 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                     >
                       {hw.task}
                     </p>
-
-                    {/* Required Tools / Pages */}
-                    {hw.pages && (
-                      <div className={`text-xs font-bold px-2.5 py-1 rounded-md border inline-block transition-colors ${theme.hwPagesBadge}`}>
-                        المطلوب / الكراسة: {hw.pages}
-                      </div>
-                    )}
 
                     {/* Link if available */}
                     {hw.linkUrl && (

@@ -31,14 +31,15 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   onToggleClasswork,
   onSaveClasswork,
 }) => {
-  // Filter to subjects with weekly plans (Arabic, French, Mathematics, Social Studies, English)
+  // Filter to subjects with weekly plans (Arabic, French, Mathematics, Social Studies, English, ICT)
   const rawTimetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
     (s) =>
       s.subject === 'Arabic' ||
       s.subject === 'French' ||
       s.subject === 'Mathematics' ||
       s.subject === 'Social Studies' ||
-      s.subject === 'English'
+      s.subject === 'English' ||
+      s.subject === 'ICT'
   );
 
   // Group repeated periods (especially English or Mathematics) so they appear once only
@@ -149,7 +150,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                 لا توجد حصص مقررة ليوم {selectedDay} ({currentClass})
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
-                يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (إنجليزي وعربي وفرنش وماث ودراسات اجتماعية).
+                يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (إنجليزي وعربي وفرنش وماث ودراسات اجتماعية وتكنولوجيا المعلومات ICT).
               </p>
             </>
           )}

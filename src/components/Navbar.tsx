@@ -8,7 +8,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { ClassId, SchoolDay } from '../types';
-import { SCHOOL_DAYS } from '../data/timetables';
+import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
 
 interface NavbarProps {
   currentClass: ClassId;
@@ -38,6 +38,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectDay,
   pendingHomeworkCount,
 }) => {
+  const dateRange = BLOCK_WEEK_DATES[currentBlock]?.[currentWeek];
+
   const tabs = [
     {
       id: 'classwork',
@@ -87,10 +89,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Classes side-by-side (2A, 2B, 2C) + Compact Block & Week Dropdowns */}
-          <div className="flex items-center gap-1.5 sm:gap-2 justify-between sm:justify-end w-full sm:w-auto">
+          {/* Classes side-by-side (2A, 2B, 2C) + Date Range + Compact Block & Week Dropdowns */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap justify-between sm:justify-end w-full sm:w-auto">
             {/* Class Buttons Side-by-Side (2A, 2B, 2C) */}
-            <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs">
+            <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs shrink-0">
               {(['G2A', 'G2B', 'G2C'] as const).map((cls) => {
                 const isSelected = currentClass === cls;
                 const label = cls.replace('G', ''); // '2A', '2B', '2C'
@@ -110,38 +112,50 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </div>
 
-            {/* Compact Block Dropdown */}
-            <div className="relative">
-              <select
-                id="block-select"
-                value={currentBlock}
-                onChange={(e) => onSelectBlock(Number(e.target.value))}
-                className="appearance-none bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200 text-indigo-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                title="Block"
-              >
-                <option value={1}>Block 1</option>
-                <option value={2}>Block 2</option>
-                <option value={3}>Block 3</option>
-                <option value={4}>Block 4</option>
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-indigo-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+            {/* Date Range Badge for selected Block & Week */}
+            {dateRange && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-950 border border-amber-200/80 rounded-xl text-xs font-black shadow-2xs tracking-tight mx-0.5 sm:mx-1 shrink-0">
+                <CalendarDays className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                <span className="text-amber-800/80 font-bold hidden md:inline">الفترة:</span>
+                <span className="font-black text-[11px] sm:text-xs dir-ltr">{dateRange}</span>
+              </div>
+            )}
 
-            {/* Compact Week Dropdown */}
-            <div className="relative">
-              <select
-                id="week-select"
-                value={currentWeek}
-                onChange={(e) => onSelectWeek(Number(e.target.value))}
-                className="appearance-none bg-purple-50 hover:bg-purple-100/80 border border-purple-200 text-purple-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-purple-500"
-                title="Week"
-              >
-                <option value={1}>Week 1</option>
-                <option value={2}>Week 2</option>
-                <option value={3}>Week 3</option>
-                <option value={4}>Week 4</option>
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-purple-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            {/* Compact Block & Week Dropdowns */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {/* Compact Block Dropdown */}
+              <div className="relative">
+                <select
+                  id="block-select"
+                  value={currentBlock}
+                  onChange={(e) => onSelectBlock(Number(e.target.value))}
+                  className="appearance-none bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200 text-indigo-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  title="Block"
+                >
+                  <option value={1}>Block 1</option>
+                  <option value={2}>Block 2</option>
+                  <option value={3}>Block 3</option>
+                  <option value={4}>Block 4</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-indigo-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+
+              {/* Compact Week Dropdown */}
+              <div className="relative">
+                <select
+                  id="week-select"
+                  value={currentWeek}
+                  onChange={(e) => onSelectWeek(Number(e.target.value))}
+                  className="appearance-none bg-purple-50 hover:bg-purple-100/80 border border-purple-200 text-purple-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  title="Week"
+                >
+                  <option value={1}>Week 1</option>
+                  <option value={2}>Week 2</option>
+                  <option value={3}>Week 3</option>
+                  <option value={4}>Week 4</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-purple-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
           </div>
         </div>
