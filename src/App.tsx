@@ -444,10 +444,11 @@ export default function App() {
         }}
       />
 
-      {/* Admin Dashboard / Settings Panel (Placeholder for custom settings) */}
+      {/* Admin Dashboard / Settings Panel */}
       <AdminDashboardModal
         isOpen={isAdminDashboardOpen}
         onClose={() => setIsAdminDashboardOpen(false)}
+        onOpenMaterials={() => setIsMaterialsModalOpen(true)}
       />
 
       {/* Materials Modal */}
