@@ -88,6 +88,17 @@ export interface ParsedWeeklyPlanResponse {
 
 export type UserMode = 'guest' | 'student';
 
+export interface MaterialItem {
+  id: string;
+  fileName: string;
+  fileSize: number; // bytes
+  fileData: string; // Base64 data URL
+  block: number; // 1, 2, 3, 4
+  section: string; // 'Main sheet' | 'Week 1' | 'Week 2' | 'Week 3' | 'Week 4'
+  classId?: ClassId | 'ALL';
+  uploadedAt: string;
+}
+
 export interface UserProfile {
   mode: UserMode;
   studentName?: string;
