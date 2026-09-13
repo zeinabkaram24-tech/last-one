@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
@@ -10,41 +9,7 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '50mb' }));
-
-// Directories for uploaded materials persistence
-const UPLOADS_DIR = path.join(process.cwd(), 'uploads', 'materials');
-const DATA_DIR = path.join(process.cwd(), 'data');
-const MATERIALS_FILE = path.join(DATA_DIR, 'materials.json');
-
-try {
-  if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(MATERIALS_FILE)) {
-    fs.writeFileSync(MATERIALS_FILE, JSON.stringify([]));
-  }
-} catch (e) {
-  console.warn('Could not initialize uploads directory:', e);
-}
-
-// Serve public assets statically (e.g. pdf.worker.min.mjs)
-app.use(express.static(path.join(process.cwd(), 'public')));
-
-// Serve uploaded materials statically
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
-  setHeaders: (res, filePath) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    if (filePath.endsWith('.pdf')) {
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'inline');
-      res.setHeader('Accept-Ranges', 'bytes');
-    }
-  }
-}));
+app.use(express.json({ limit: '10mb' }));
 
 // Helper to get GoogleGenAI client safely (lazy initialization)
 function getGenAI(): GoogleGenAI | null {
@@ -246,136 +211,6 @@ ${planText}
     // Fall back gracefully instead of crashing
     const fallback = heuristicParser(req.body?.planText || '', req.body?.classId || 'G2B');
     return res.json(fallback);
-  }
-});
-
-// Helper to read materials from JSON
-function readStoredMaterials(): any[] {
-  try {
-    if (fs.existsSync(MATERIALS_FILE)) {
-      const raw = fs.readFileSync(MATERIALS_FILE, 'utf-8');
-      const list = JSON.parse(raw);
-      if (Array.isArray(list)) {
-        return list.map(({ fileData, ...item }: any) => item);
-      }
-    }
-  } catch (err) {
-    console.error('Error reading materials file:', err);
-  }
-  return [];
-}
-
-// Helper to write materials to JSON
-function writeStoredMaterials(materials: any[]): void {
-  try {
-    fs.writeFileSync(MATERIALS_FILE, JSON.stringify(materials, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error writing materials file:', err);
-  }
-}
-
-// GET /api/materials - List all uploaded materials
-app.get('/api/materials', (req, res) => {
-  try {
-    const materials = readStoredMaterials();
-    res.json(materials);
-  } catch (error: any) {
-    console.error('Error fetching materials:', error);
-    res.status(500).json({ error: 'Failed to fetch materials' });
-  }
-});
-
-// POST /api/materials - Upload a new PDF material
-app.post('/api/materials', (req, res) => {
-  try {
-    const {
-      title,
-      subtitle,
-      subject,
-      blockNumber,
-      section,
-      fileName,
-      fileSize,
-      base64Data,
-      pages,
-    } = req.body;
-
-    if (!title || !base64Data) {
-      return res.status(400).json({ error: 'Title and PDF file data are required' });
-    }
-
-    const id = 'mat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-    const cleanFileName = (fileName || `${title}.pdf`).replace(/[^a-zA-Z0-9_\u0600-\u06FF.-]/g, '_');
-    const diskFileName = `${id}-${cleanFileName.endsWith('.pdf') ? cleanFileName : cleanFileName + '.pdf'}`;
-    const filePath = path.join(UPLOADS_DIR, diskFileName);
-
-    // Clean base64 string
-    const base64PrefixMatch = base64Data.match(/^data:application\/pdf;base64,/);
-    const pureBase64 = base64PrefixMatch ? base64Data.replace(/^data:application\/pdf;base64,/, '') : base64Data;
-
-    try {
-      const buffer = Buffer.from(pureBase64, 'base64');
-      fs.writeFileSync(filePath, buffer);
-    } catch (writeErr) {
-      console.error('Error writing PDF file to disk:', writeErr);
-    }
-
-    const newMaterial = {
-      id,
-      title: title.trim(),
-      subtitle: (subtitle || '').trim(),
-      subject: subject || 'General',
-      blockNumber: Number(blockNumber) || 1,
-      section: section || 'main-sheet',
-      fileName: cleanFileName.endsWith('.pdf') ? cleanFileName : `${cleanFileName}.pdf`,
-      fileSize: fileSize || 'PDF',
-      fileUrl: `/uploads/materials/${diskFileName}`,
-      uploadedAt: new Date().toISOString(),
-      pages: pages || 'PDF Document',
-    };
-
-    const currentList = readStoredMaterials();
-    currentList.unshift(newMaterial);
-    writeStoredMaterials(currentList);
-
-    res.status(201).json(newMaterial);
-  } catch (error: any) {
-    console.error('Error in /api/materials upload:', error);
-    res.status(500).json({ error: error?.message || 'Failed to upload material' });
-  }
-});
-
-// DELETE /api/materials/:id - Delete an uploaded PDF material
-app.delete('/api/materials/:id', (req, res) => {
-  try {
-    const { id } = req.params;
-    const currentList = readStoredMaterials();
-    const itemToDelete = currentList.find((m) => m.id === id);
-
-    if (!itemToDelete) {
-      return res.status(404).json({ error: 'Material not found' });
-    }
-
-    // Try deleting the file from disk
-    if (itemToDelete.fileUrl && itemToDelete.fileUrl.startsWith('/uploads/materials/')) {
-      const diskFileName = path.basename(itemToDelete.fileUrl);
-      const filePath = path.join(UPLOADS_DIR, diskFileName);
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath);
-        } catch (unlinkErr) {
-          console.warn('Could not delete physical file:', unlinkErr);
-        }
-      }
-    }
-
-    const updatedList = currentList.filter((m) => m.id !== id);
-    writeStoredMaterials(updatedList);
-
-    res.json({ success: true, id });
-  } catch (error: any) {
-    console.error('Error deleting material:', error);
-    res.status(500).json({ error: 'Failed to delete material' });
   }
 });
 

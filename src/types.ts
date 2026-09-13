@@ -93,20 +93,3 @@ export interface UserProfile {
   studentName?: string;
   classId?: ClassId;
 }
-
-export type MaterialSection = 'main-sheet' | 'week-1' | 'week-2' | 'week-3' | 'week-4' | string;
-
-export interface UploadedMaterial {
-  id: string;
-  title: string;
-  subtitle?: string;
-  subject: string;
-  blockNumber: number; // 1 | 2 | 3 | 4
-  section: MaterialSection; // 'main-sheet' | 'week-1' | 'week-2' | etc.
-  fileName: string;
-  fileSize: string;
-  fileUrl: string;
-  fileData?: string; // base64 data for fallback / offline preview
-  uploadedAt: string;
-  pages?: string;
-}
