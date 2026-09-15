@@ -3,15 +3,43 @@ import { ClassId, ClassworkEntry, HomeworkEntry, SchoolDay, SubjectName } from '
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from '../data/defaultWeeklyPlan';
 import initialData from '../data/initialData.json';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+export function cleanSupabaseUrl(rawUrl: string): string {
+  let cleaned = (rawUrl || '').trim().replace(/^["']|["']$/g, '');
+  if (!cleaned) return '';
+
+  try {
+    if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+      cleaned = 'https://' + cleaned;
+    }
+    const parsed = new URL(cleaned);
+    // If it is a Supabase project domain (e.g. xyz.supabase.co/rest/v1 or xyz.supabase.co/)
+    if (parsed.hostname.endsWith('.supabase.co')) {
+      return parsed.origin;
+    }
+    // For custom or self-hosted domains, strip /rest/v1 or trailing slashes
+    return cleaned.replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
+  } catch {
+    return cleaned.replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
+  }
+}
+
+export function cleanSupabaseKey(rawKey: string): string {
+  return (rawKey || '').trim().replace(/^["']|["']$/g, '');
+}
+
+const rawSupabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const rawSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+export const supabaseUrl = cleanSupabaseUrl(rawSupabaseUrl);
+export const supabaseAnonKey = cleanSupabaseKey(rawSupabaseAnonKey);
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl &&
     supabaseAnonKey &&
     supabaseUrl.trim() !== '' &&
     supabaseAnonKey.trim() !== '' &&
-    supabaseUrl !== 'https://your-project.supabase.co'
+    supabaseUrl !== 'https://your-project.supabase.co' &&
+    !supabaseUrl.includes('placeholder')
 );
 
 export const supabase: SupabaseClient = createClient(
@@ -147,21 +175,29 @@ export function homeworkToRow(entry: HomeworkEntry): Omit<HomeworkRow, 'created_
 
 export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   if (!isSupabaseConfigured) {
-    console.warn('Supabase is not configured. Falling back to local/initial data.');
     return INITIAL_CLASSWORK;
   }
 
-  const { data, error } = await supabase
-    .from('classwork')
-    .select('*')
-    .order('period', { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from('classwork')
+      .select('*')
+      .order('period', { ascending: true });
 
-  if (error) {
-    console.error('Error fetching classwork from Supabase:', error);
-    throw error;
+    if (error) {
+      console.warn('Supabase fetch classwork notice (using local baseline):', error.message || error);
+      return INITIAL_CLASSWORK;
+    }
+
+    if (!data || data.length === 0) {
+      return INITIAL_CLASSWORK;
+    }
+
+    return (data as ClassworkRow[]).map(rowToClasswork);
+  } catch (err) {
+    console.warn('Network exception fetching classwork from Supabase (using local baseline):', err);
+    return INITIAL_CLASSWORK;
   }
-
-  return (data as ClassworkRow[]).map(rowToClasswork);
 }
 
 export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkEntry> {
@@ -169,43 +205,53 @@ export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkE
     return entry;
   }
 
-  const row = classworkToRow(entry);
-  const { data, error } = await supabase
-    .from('classwork')
-    .upsert(row, { onConflict: 'id' })
-    .select()
-    .single();
+  try {
+    const row = classworkToRow(entry);
+    const { data, error } = await supabase
+      .from('classwork')
+      .upsert(row, { onConflict: 'id' })
+      .select()
+      .single();
 
-  if (error) {
-    console.error('Error upserting classwork to Supabase:', error);
-    throw error;
+    if (error) {
+      console.warn('Warning upserting classwork to Supabase:', error.message || error);
+      return entry;
+    }
+
+    return rowToClasswork(data as ClassworkRow);
+  } catch (e) {
+    console.warn('Network exception upserting classwork:', e);
+    return entry;
   }
-
-  return rowToClasswork(data as ClassworkRow);
 }
 
 export async function updateClassworkCompletion(id: string, completed: boolean): Promise<void> {
   if (!isSupabaseConfigured) return;
 
-  const { error } = await supabase
-    .from('classwork')
-    .update({ completed })
-    .eq('id', id);
+  try {
+    const { error } = await supabase
+      .from('classwork')
+      .update({ completed })
+      .eq('id', id);
 
-  if (error) {
-    console.error(`Error updating classwork ${id} completion:`, error);
-    throw error;
+    if (error) {
+      console.warn(`Warning updating classwork ${id} completion:`, error.message || error);
+    }
+  } catch (e) {
+    console.warn(`Network error updating classwork ${id} completion:`, e);
   }
 }
 
 export async function deleteClasswork(id: string): Promise<void> {
   if (!isSupabaseConfigured) return;
 
-  const { error } = await supabase.from('classwork').delete().eq('id', id);
-
-  if (error) {
-    console.error(`Error deleting classwork ${id}:`, error);
-    throw error;
+  try {
+    const { error } = await supabase.from('classwork').delete().eq('id', id);
+    if (error) {
+      console.warn(`Warning deleting classwork ${id}:`, error.message || error);
+    }
+  } catch (e) {
+    console.warn(`Network error deleting classwork ${id}:`, e);
   }
 }
 
@@ -213,11 +259,16 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[]): Promise<vo
   if (!isSupabaseConfigured || entries.length === 0) return;
 
   const rows = entries.map(classworkToRow);
-  const { error } = await supabase.from('classwork').upsert(rows, { onConflict: 'id' });
-
-  if (error) {
-    console.error('Error bulk inserting classwork:', error);
-    throw error;
+  for (let i = 0; i < rows.length; i += 50) {
+    const chunk = rows.slice(i, i + 50);
+    try {
+      const { error } = await supabase.from('classwork').upsert(chunk, { onConflict: 'id' });
+      if (error) {
+        console.warn('Warning bulk inserting classwork chunk:', error.message || error);
+      }
+    } catch (e) {
+      console.warn('Network exception bulk inserting classwork chunk:', e);
+    }
   }
 }
 
@@ -227,21 +278,29 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[]): Promise<vo
 
 export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   if (!isSupabaseConfigured) {
-    console.warn('Supabase is not configured. Falling back to local/initial data.');
     return INITIAL_HOMEWORK;
   }
 
-  const { data, error } = await supabase
-    .from('homework')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('homework')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching homework from Supabase:', error);
-    throw error;
+    if (error) {
+      console.warn('Supabase fetch homework notice (using local baseline):', error.message || error);
+      return INITIAL_HOMEWORK;
+    }
+
+    if (!data || data.length === 0) {
+      return INITIAL_HOMEWORK;
+    }
+
+    return (data as HomeworkRow[]).map(rowToHomework);
+  } catch (err) {
+    console.warn('Network exception fetching homework from Supabase (using local baseline):', err);
+    return INITIAL_HOMEWORK;
   }
-
-  return (data as HomeworkRow[]).map(rowToHomework);
 }
 
 export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntry> {
@@ -249,43 +308,53 @@ export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntr
     return entry;
   }
 
-  const row = homeworkToRow(entry);
-  const { data, error } = await supabase
-    .from('homework')
-    .upsert(row, { onConflict: 'id' })
-    .select()
-    .single();
+  try {
+    const row = homeworkToRow(entry);
+    const { data, error } = await supabase
+      .from('homework')
+      .upsert(row, { onConflict: 'id' })
+      .select()
+      .single();
 
-  if (error) {
-    console.error('Error upserting homework to Supabase:', error);
-    throw error;
+    if (error) {
+      console.warn('Warning upserting homework to Supabase:', error.message || error);
+      return entry;
+    }
+
+    return rowToHomework(data as HomeworkRow);
+  } catch (e) {
+    console.warn('Network exception upserting homework:', e);
+    return entry;
   }
-
-  return rowToHomework(data as HomeworkRow);
 }
 
 export async function updateHomeworkCompletion(id: string, completed: boolean): Promise<void> {
   if (!isSupabaseConfigured) return;
 
-  const { error } = await supabase
-    .from('homework')
-    .update({ completed })
-    .eq('id', id);
+  try {
+    const { error } = await supabase
+      .from('homework')
+      .update({ completed })
+      .eq('id', id);
 
-  if (error) {
-    console.error(`Error updating homework ${id} completion:`, error);
-    throw error;
+    if (error) {
+      console.warn(`Warning updating homework ${id} completion:`, error.message || error);
+    }
+  } catch (e) {
+    console.warn(`Network error updating homework ${id} completion:`, e);
   }
 }
 
 export async function deleteHomework(id: string): Promise<void> {
   if (!isSupabaseConfigured) return;
 
-  const { error } = await supabase.from('homework').delete().eq('id', id);
-
-  if (error) {
-    console.error(`Error deleting homework ${id}:`, error);
-    throw error;
+  try {
+    const { error } = await supabase.from('homework').delete().eq('id', id);
+    if (error) {
+      console.warn(`Warning deleting homework ${id}:`, error.message || error);
+    }
+  } catch (e) {
+    console.warn(`Network error deleting homework ${id}:`, e);
   }
 }
 
@@ -293,11 +362,16 @@ export async function bulkInsertHomework(entries: HomeworkEntry[]): Promise<void
   if (!isSupabaseConfigured || entries.length === 0) return;
 
   const rows = entries.map(homeworkToRow);
-  const { error } = await supabase.from('homework').upsert(rows, { onConflict: 'id' });
-
-  if (error) {
-    console.error('Error bulk inserting homework:', error);
-    throw error;
+  for (let i = 0; i < rows.length; i += 50) {
+    const chunk = rows.slice(i, i + 50);
+    try {
+      const { error } = await supabase.from('homework').upsert(chunk, { onConflict: 'id' });
+      if (error) {
+        console.warn('Warning bulk inserting homework chunk:', error.message || error);
+      }
+    } catch (e) {
+      console.warn('Network error bulk inserting homework chunk:', e);
+    }
   }
 }
 
@@ -449,11 +523,18 @@ export async function seedInitialDataIfEmpty(): Promise<{
       if (cwInitial && cwInitial.length > 0) {
         console.log(`🌱 Seeding ${cwInitial.length} classwork entries into Supabase...`);
         const rows = cwInitial.map(classworkToRow);
-        const { error: seedCwErr } = await supabase.from('classwork').insert(rows);
-        if (seedCwErr) {
-          console.error('Failed to seed classwork:', seedCwErr);
-        } else {
-          seeded = true;
+        for (let i = 0; i < rows.length; i += 50) {
+          const chunk = rows.slice(i, i + 50);
+          try {
+            const { error: seedCwErr } = await supabase.from('classwork').upsert(chunk, { onConflict: 'id' });
+            if (seedCwErr) {
+              console.warn('Notice seeding classwork chunk:', seedCwErr.message || seedCwErr);
+            } else {
+              seeded = true;
+            }
+          } catch (e) {
+            console.warn('Network exception during classwork seed chunk:', e);
+          }
         }
       }
     }
@@ -464,28 +545,39 @@ export async function seedInitialDataIfEmpty(): Promise<{
       if (hwInitial && hwInitial.length > 0) {
         console.log(`🌱 Seeding ${hwInitial.length} homework entries into Supabase...`);
         const rows = hwInitial.map(homeworkToRow);
-        const { error: seedHwErr } = await supabase.from('homework').insert(rows);
-        if (seedHwErr) {
-          console.error('Failed to seed homework:', seedHwErr);
-        } else {
-          seeded = true;
+        for (let i = 0; i < rows.length; i += 50) {
+          const chunk = rows.slice(i, i + 50);
+          try {
+            const { error: seedHwErr } = await supabase.from('homework').upsert(chunk, { onConflict: 'id' });
+            if (seedHwErr) {
+              console.warn('Notice seeding homework chunk:', seedHwErr.message || seedHwErr);
+            } else {
+              seeded = true;
+            }
+          } catch (e) {
+            console.warn('Network exception during homework seed chunk:', e);
+          }
         }
       }
     }
 
     // Seed initial settings if empty
-    const { count: settiingsCount } = await supabase
-      .from('planner_settings')
-      .select('*', { count: 'exact', head: true });
+    try {
+      const { count: settiingsCount } = await supabase
+        .from('planner_settings')
+        .select('*', { count: 'exact', head: true });
 
-    if ((settiingsCount ?? 0) === 0) {
-      const settingsToSeed = [
-        { key: 'current_class', value: initialData.nile_planner_current_class_v3 || 'G2B' },
-        { key: 'current_week', value: initialData.nile_planner_current_week_v3 || '2' },
-        { key: 'selected_day', value: initialData.nile_planner_selected_day_v3 || 'Sunday' },
-        { key: 'current_block', value: '1' },
-      ];
-      await supabase.from('planner_settings').insert(settingsToSeed);
+      if ((settiingsCount ?? 0) === 0) {
+        const settingsToSeed = [
+          { key: 'current_class', value: initialData.nile_planner_current_class_v3 || 'G2B' },
+          { key: 'current_week', value: initialData.nile_planner_current_week_v3 || '2' },
+          { key: 'selected_day', value: initialData.nile_planner_selected_day_v3 || 'Sunday' },
+          { key: 'current_block', value: '1' },
+        ];
+        await supabase.from('planner_settings').upsert(settingsToSeed, { onConflict: 'key' });
+      }
+    } catch {
+      // Ignore if table not yet created
     }
 
     return {
@@ -494,7 +586,7 @@ export async function seedInitialDataIfEmpty(): Promise<{
       homeworkCount: hwCount ?? 0,
     };
   } catch (err) {
-    console.error('Error during auto-seeding:', err);
+    console.warn('Notice during auto-seeding:', err);
     return { seeded: false, classworkCount: 0, homeworkCount: 0 };
   }
 }
