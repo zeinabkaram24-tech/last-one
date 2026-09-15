@@ -163,3 +163,39 @@ export async function syncStudentProgressFromDb(studentName: string): Promise<St
   }
   return local;
 }
+
+const GUEST_PROGRESS_KEY = 'nile_planner_guest_progress_v2';
+
+export function getGuestProgress(): { completedClassworkIds: string[]; completedHomeworkIds: string[] } {
+  try {
+    const raw = localStorage.getItem(GUEST_PROGRESS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        completedClassworkIds: Array.isArray(parsed.completedClassworkIds) ? parsed.completedClassworkIds : [],
+        completedHomeworkIds: Array.isArray(parsed.completedHomeworkIds) ? parsed.completedHomeworkIds : [],
+      };
+    }
+  } catch (e) {
+    console.error('Error reading guest progress', e);
+  }
+  return { completedClassworkIds: [], completedHomeworkIds: [] };
+}
+
+export function saveGuestProgress(
+  completedClassworkIds: string[],
+  completedHomeworkIds: string[]
+): void {
+  try {
+    localStorage.setItem(
+      GUEST_PROGRESS_KEY,
+      JSON.stringify({
+        completedClassworkIds,
+        completedHomeworkIds,
+        updatedAt: Date.now(),
+      })
+    );
+  } catch (e) {
+    console.error('Error saving guest progress', e);
+  }
+}

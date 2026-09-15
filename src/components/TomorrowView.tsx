@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sparkles, BookOpen } from 'lucide-react';
 import { ClassId, SchoolDay, PeriodSlot } from '../types';
 import {
@@ -6,9 +6,10 @@ import {
   NEXT_SCHOOL_DAY,
   SUBJECT_METADATA,
 } from '../data/timetables';
-import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
+import { SPECIAL_TEACHER_NOTES, TomorrowSpecialNote } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
+import { getTomorrowNotesForDay, subscribeToTomorrowNotes } from '../utils/tomorrowNotesStorage';
 
 interface TomorrowViewProps {
   currentClass: ClassId;
@@ -44,23 +45,48 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     return lower.includes('واجب') || lower.includes('homework') || lower.includes('devoir');
   };
 
-  const rawTomorrowNotes =
-    currentBlock === 1 && currentWeek === 2
-      ? WEEK2_SPECIAL_NOTES.filter(
-          (n) => n.classId === currentClass && n.targetDay === tomorrowDay
-        )
-      : currentBlock === 1 && currentWeek === 1
-      ? SPECIAL_TEACHER_NOTES.filter(
-          (n) =>
-            n.classId === currentClass &&
-            n.targetDay === tomorrowDay &&
-            (n.week === 1 || !n.week)
-        )
-      : [];
+  const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
+    const raw =
+      currentBlock === 1 && currentWeek === 2
+        ? WEEK2_SPECIAL_NOTES.filter(
+            (n) => n.classId === currentClass && n.targetDay === tomorrowDay
+          )
+        : currentBlock === 1 && currentWeek === 1
+        ? SPECIAL_TEACHER_NOTES.filter(
+            (n) =>
+              n.classId === currentClass &&
+              n.targetDay === tomorrowDay &&
+              (n.week === 1 || !n.week)
+          )
+        : [];
+    return raw.filter((n) => !isHomeworkNote(n.note, n.arabicNote));
+  });
 
-  const tomorrowNotes = rawTomorrowNotes.filter(
-    (n) => !isHomeworkNote(n.note, n.arabicNote)
-  );
+  useEffect(() => {
+    let isMounted = true;
+    const loadNotes = async () => {
+      try {
+        const notes = await getTomorrowNotesForDay(
+          currentBlock,
+          currentWeek,
+          currentClass,
+          tomorrowDay
+        );
+        if (isMounted) {
+          setTomorrowNotes(notes.filter((n) => !isHomeworkNote(n.note, n.arabicNote)));
+        }
+      } catch (err) {
+        console.warn('Error loading tomorrow notes:', err);
+      }
+    };
+
+    loadNotes();
+    const unsubscribe = subscribeToTomorrowNotes(loadNotes);
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [currentBlock, currentWeek, currentClass, tomorrowDay]);
 
   return (
     <div className="space-y-4">

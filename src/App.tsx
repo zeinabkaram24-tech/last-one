@@ -18,6 +18,8 @@ import {
   setActiveUserProfile,
   getStudentProgress,
   saveStudentProgress,
+  getGuestProgress,
+  saveGuestProgress,
 } from './utils/studentStorage';
 import {
   isSupabaseConfigured,
@@ -58,9 +60,11 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
       completed: set.has(c.id),
     }));
   }
+  const guestProgress = getGuestProgress();
+  const guestSet = new Set(guestProgress.completedClassworkIds);
   return INITIAL_CLASSWORK.map((c) => ({
     ...c,
-    completed: false,
+    completed: guestSet.has(c.id),
   }));
 }
 
@@ -73,9 +77,11 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
       completed: set.has(h.id),
     }));
   }
+  const guestProgress = getGuestProgress();
+  const guestSet = new Set(guestProgress.completedHomeworkIds);
   return INITIAL_HOMEWORK.map((h) => ({
     ...h,
-    completed: false,
+    completed: guestSet.has(h.id),
   }));
 }
 
@@ -202,7 +208,7 @@ export default function App() {
 
         if (!isMounted) return;
 
-        // Apply classwork with student completion checks
+        // Apply classwork with student or guest completion checks
         if (cwData && cwData.length > 0) {
           const profile = getActiveUserProfile();
           if (profile?.mode === 'student' && profile.studentName) {
@@ -210,11 +216,13 @@ export default function App() {
             const cwSet = new Set(progress.completedClassworkIds);
             setClassworkList(cwData.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
           } else {
-            setClassworkList(cwData);
+            const guestProgress = getGuestProgress();
+            const cwSet = new Set(guestProgress.completedClassworkIds);
+            setClassworkList(cwData.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
           }
         }
 
-        // Apply homework with student completion checks
+        // Apply homework with student or guest completion checks
         if (hwData && hwData.length > 0) {
           const profile = getActiveUserProfile();
           const normalizedHw = hwData.map((h) => {
@@ -240,7 +248,9 @@ export default function App() {
             const hwSet = new Set(progress.completedHomeworkIds);
             setHomeworkList(normalizedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
           } else {
-            setHomeworkList(normalizedHw);
+            const guestProgress = getGuestProgress();
+            const hwSet = new Set(guestProgress.completedHomeworkIds);
+            setHomeworkList(normalizedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
           }
         }
 
@@ -274,7 +284,7 @@ export default function App() {
         } else if (payload.eventType === 'UPDATE') {
           const updatedCw = rowToClasswork(payload.new as ClassworkRow);
           setClassworkList((prev) =>
-            prev.map((c) => (c.id === updatedCw.id ? { ...c, ...updatedCw } : c))
+            prev.map((c) => (c.id === updatedCw.id ? { ...c, ...updatedCw, completed: c.completed } : c))
           );
         } else if (payload.eventType === 'DELETE') {
           const oldId = payload.old.id;
@@ -288,7 +298,7 @@ export default function App() {
         } else if (payload.eventType === 'UPDATE') {
           const updatedHw = rowToHomework(payload.new as HomeworkRow);
           setHomeworkList((prev) =>
-            prev.map((h) => (h.id === updatedHw.id ? { ...h, ...updatedHw } : h))
+            prev.map((h) => (h.id === updatedHw.id ? { ...h, ...updatedHw, completed: h.completed } : h))
           );
         } else if (payload.eventType === 'DELETE') {
           const oldId = payload.old.id;
@@ -336,33 +346,51 @@ export default function App() {
       );
       showToast(`مرحباً يا ${newProfile.studentName}! تم تحميل إنجازاتك وواجباتك المحفوظة.`);
     } else {
-      // Guest mode: Reset all checkmarks
-      setClassworkList((prev) => prev.map((c) => ({ ...c, completed: false })));
-      setHomeworkList((prev) => prev.map((h) => ({ ...h, completed: false })));
-      showToast('تم الدخول كزائر (تصفح فقط - لن يتم حفظ علامات الإنجاز بعد إغلاق المتصفح).');
+      // Guest mode: Restore guest progress
+      const guestProgress = getGuestProgress();
+      const cwSet = new Set(guestProgress.completedClassworkIds);
+      const hwSet = new Set(guestProgress.completedHomeworkIds);
+      setClassworkList((prev) => prev.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+      setHomeworkList((prev) => prev.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+      showToast('تم التبديل لوضع الزائر (تُحفظ علامات الإنجاز على هذا الجهاز).');
     }
   };
 
   // Classwork handlers with Supabase CRUD
   const handleToggleClasswork = async (id: string) => {
-    let nextCompleted = false;
-    setClassworkList((prev) => {
-      const updated = prev.map((c) => {
-        if (c.id === id) {
-          nextCompleted = !c.completed;
-          return { ...c, completed: nextCompleted };
-        }
-        return c;
-      });
-      if (userProfile?.mode === 'student' && userProfile.studentName) {
-        const completedCwIds = updated.filter((c) => c.completed).map((c) => c.id);
-        const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
-        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+    const currentItem = classworkList.find((c) => c.id === id);
+    const nextCompleted = currentItem ? !currentItem.completed : true;
+
+    // 1. Synchronous state update for immediate UI feedback
+    setClassworkList((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, completed: nextCompleted } : c))
+    );
+
+    // 2. Persist progress in student or guest storage
+    if (userProfile?.mode === 'student' && userProfile.studentName) {
+      const currentProgress = getStudentProgress(userProfile.studentName);
+      const cwSet = new Set(currentProgress.completedClassworkIds);
+      if (nextCompleted) {
+        cwSet.add(id);
       } else {
-        showToast('تنبيه: أنت تتصفح كزائر، لن يتم حفظ علامة الإنجاز بعد إغلاق المتصفح.');
+        cwSet.delete(id);
       }
-      return updated;
-    });
+      const newCwIds = Array.from(cwSet);
+      const hwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
+      saveStudentProgress(userProfile.studentName, newCwIds, hwIds, currentClass);
+    } else {
+      const guestProgress = getGuestProgress();
+      const cwSet = new Set(guestProgress.completedClassworkIds);
+      if (nextCompleted) {
+        cwSet.add(id);
+      } else {
+        cwSet.delete(id);
+      }
+      saveGuestProgress(
+        Array.from(cwSet),
+        homeworkList.filter((h) => h.completed).map((h) => h.id)
+      );
+    }
 
     if (isSupabaseConfigured) {
       try {
@@ -403,24 +431,39 @@ export default function App() {
 
   // Homework handlers with Supabase CRUD
   const handleToggleHomework = async (id: string) => {
-    let nextCompleted = false;
-    setHomeworkList((prev) => {
-      const updated = prev.map((h) => {
-        if (h.id === id) {
-          nextCompleted = !h.completed;
-          return { ...h, completed: nextCompleted };
-        }
-        return h;
-      });
-      if (userProfile?.mode === 'student' && userProfile.studentName) {
-        const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
-        const completedHwIds = updated.filter((h) => h.completed).map((h) => h.id);
-        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+    const currentItem = homeworkList.find((h) => h.id === id);
+    const nextCompleted = currentItem ? !currentItem.completed : true;
+
+    // 1. Synchronous state update for immediate UI feedback
+    setHomeworkList((prev) =>
+      prev.map((h) => (h.id === id ? { ...h, completed: nextCompleted } : h))
+    );
+
+    // 2. Persist progress in student or guest storage
+    if (userProfile?.mode === 'student' && userProfile.studentName) {
+      const currentProgress = getStudentProgress(userProfile.studentName);
+      const hwSet = new Set(currentProgress.completedHomeworkIds);
+      if (nextCompleted) {
+        hwSet.add(id);
       } else {
-        showToast('تنبيه: أنت تتصفح كزائر، لن يتم حفظ علامة الإنجاز بعد إغلاق المتصفح.');
+        hwSet.delete(id);
       }
-      return updated;
-    });
+      const newHwIds = Array.from(hwSet);
+      const cwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
+      saveStudentProgress(userProfile.studentName, cwIds, newHwIds, currentClass);
+    } else {
+      const guestProgress = getGuestProgress();
+      const hwSet = new Set(guestProgress.completedHomeworkIds);
+      if (nextCompleted) {
+        hwSet.add(id);
+      } else {
+        hwSet.delete(id);
+      }
+      saveGuestProgress(
+        classworkList.filter((c) => c.completed).map((c) => c.id),
+        Array.from(hwSet)
+      );
+    }
 
     if (isSupabaseConfigured) {
       try {
@@ -456,9 +499,16 @@ export default function App() {
     setHomeworkList((prev) => {
       const next = prev.filter((h) => h.id !== id);
       if (userProfile?.mode === 'student' && userProfile.studentName) {
-        const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
-        const completedHwIds = next.filter((h) => h.completed).map((h) => h.id);
-        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+        const currentProgress = getStudentProgress(userProfile.studentName);
+        const hwSet = new Set(currentProgress.completedHomeworkIds);
+        hwSet.delete(id);
+        const cwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
+        saveStudentProgress(userProfile.studentName, cwIds, Array.from(hwSet), currentClass);
+      } else {
+        const guestProgress = getGuestProgress();
+        const hwSet = new Set(guestProgress.completedHomeworkIds);
+        hwSet.delete(id);
+        saveGuestProgress(guestProgress.completedClassworkIds, Array.from(hwSet));
       }
       return next;
     });
@@ -720,6 +770,24 @@ export default function App() {
       <AdminDashboardModal
         isOpen={isAdminDashboardOpen}
         onClose={() => setIsAdminDashboardOpen(false)}
+        onPlanUpdated={async () => {
+          try {
+            const [cwData, hwData] = await Promise.all([
+              fetchAllClasswork(),
+              fetchAllHomework(),
+            ]);
+            if (cwData && cwData.length > 0) {
+              setClassworkList(cwData);
+            }
+            if (hwData && hwData.length > 0) {
+              setHomeworkList(hwData);
+            }
+            setToastMsg('تم تحديث الخطة الأسبوعية والحصص والواجبات بنجاح!');
+            setTimeout(() => setToastMsg(null), 4000);
+          } catch (err) {
+            console.error('Failed to reload after plan update:', err);
+          }
+        }}
       />
 
       {/* Materials Modal */}
