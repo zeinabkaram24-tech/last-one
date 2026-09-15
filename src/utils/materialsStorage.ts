@@ -1,4 +1,10 @@
 import { MaterialItem } from '../types';
+import {
+  isSupabaseConfigured,
+  fetchAllMaterialsFromSupabase,
+  saveMaterialToSupabase,
+  deleteMaterialFromSupabase,
+} from '../lib/supabase';
 
 const DB_NAME = 'SchoolMaterialsDB';
 const STORE_NAME = 'materials';
@@ -52,11 +58,13 @@ function saveFallbackMaterials(items: MaterialItem[]) {
   }
 }
 
-// Retrieve all materials
+// Retrieve all materials (from Supabase Cloud + Local IndexedDB merged seamlessly)
 export async function getAllMaterials(): Promise<MaterialItem[]> {
+  // 1. Fetch local items first
+  let localItems: MaterialItem[] = [];
   try {
     const db = await openDB();
-    return new Promise((resolve) => {
+    localItems = await new Promise((resolve) => {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
       const req = store.getAll();
@@ -71,12 +79,38 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
     });
   } catch (e) {
     console.warn('IndexedDB failed, using fallback', e);
-    return getFallbackMaterials();
+    localItems = getFallbackMaterials();
   }
+
+  // 2. Fetch from Supabase Cloud if configured
+  if (isSupabaseConfigured) {
+    try {
+      const cloudItems = await fetchAllMaterialsFromSupabase();
+      if (cloudItems && cloudItems.length > 0) {
+        // Merge cloud items with local items, prioritizing cloud items with storageUrl
+        const map = new Map<string, MaterialItem>();
+        localItems.forEach((item) => map.set(item.id, item));
+        cloudItems.forEach((cloudItem) => {
+          const existing = map.get(cloudItem.id);
+          if (existing && existing.fileData && !cloudItem.fileData) {
+            map.set(cloudItem.id, { ...cloudItem, fileData: existing.fileData });
+          } else {
+            map.set(cloudItem.id, cloudItem);
+          }
+        });
+        return Array.from(map.values());
+      }
+    } catch (err) {
+      console.warn('Could not fetch cloud materials:', err);
+    }
+  }
+
+  return localItems;
 }
 
-// Save or add a material
+// Save or add a material (saves both locally and to Supabase Cloud)
 export async function saveMaterial(item: MaterialItem): Promise<void> {
+  // 1. Save to local IndexedDB
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -94,12 +128,22 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
     saveFallbackMaterials(existing);
   }
 
+  // 2. Sync to Supabase Cloud Database if configured
+  if (isSupabaseConfigured) {
+    try {
+      await saveMaterialToSupabase(item);
+    } catch (err) {
+      console.warn('Failed to sync material to Supabase cloud:', err);
+    }
+  }
+
   // Notify components
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
 }
 
-// Delete a material
-export async function deleteMaterial(id: string): Promise<void> {
+// Delete a material (deletes locally and from Supabase Cloud)
+export async function deleteMaterial(id: string, storageUrl?: string): Promise<void> {
+  // 1. Delete from local IndexedDB
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -114,6 +158,15 @@ export async function deleteMaterial(id: string): Promise<void> {
     console.warn('Failed to delete from IndexedDB, deleting from fallback', e);
     const existing = getFallbackMaterials().filter((m) => m.id !== id);
     saveFallbackMaterials(existing);
+  }
+
+  // 2. Delete from Supabase Cloud
+  if (isSupabaseConfigured) {
+    try {
+      await deleteMaterialFromSupabase(id, storageUrl);
+    } catch (err) {
+      console.warn('Failed to delete material from Supabase cloud:', err);
+    }
   }
 
   // Notify components
@@ -153,9 +206,16 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
-// Open PDF Directly in a new browser tab (No modal, opens natively)
+// Open PDF Directly in a new browser tab (supports storageUrl and dataUrl)
 export function openPdfItem(item: MaterialItem): void {
   try {
+    if (item.storageUrl) {
+      window.open(item.storageUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (!item.fileData) return;
+
     const blob = dataUrlToBlob(item.fileData);
     const blobUrl = URL.createObjectURL(blob);
 
@@ -176,13 +236,18 @@ export function openPdfItem(item: MaterialItem): void {
   }
 }
 
-// Universal Print Function for PDF item
+// Universal Print Function for PDF item (supports storageUrl and dataUrl)
 export function printPdfItem(item: MaterialItem): void {
   try {
-    const blob = dataUrlToBlob(item.fileData);
-    const blobUrl = URL.createObjectURL(blob);
+    const targetUrl = item.storageUrl
+      ? item.storageUrl
+      : item.fileData
+      ? URL.createObjectURL(dataUrlToBlob(item.fileData))
+      : null;
 
-    // Create a hidden iframe with the blob URL to trigger browser print dialog
+    if (!targetUrl) return;
+
+    // Create a hidden iframe with the URL to trigger browser print dialog
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -191,7 +256,7 @@ export function printPdfItem(item: MaterialItem): void {
     iframe.style.height = '0';
     iframe.style.border = '0';
     iframe.style.opacity = '0';
-    iframe.src = blobUrl;
+    iframe.src = targetUrl;
 
     document.body.appendChild(iframe);
 
@@ -204,7 +269,7 @@ export function printPdfItem(item: MaterialItem): void {
         iframe.contentWindow?.print();
       } catch {
         // If iframe printing is blocked, open in new tab for direct printing
-        const newTab = window.open(blobUrl, '_blank');
+        const newTab = window.open(targetUrl, '_blank');
         if (newTab) {
           newTab.focus();
         }
@@ -212,20 +277,33 @@ export function printPdfItem(item: MaterialItem): void {
     };
 
     iframe.onload = () => {
-      setTimeout(executePrint, 300);
+      setTimeout(executePrint, 400);
     };
 
     setTimeout(() => {
       if (!printed) executePrint();
-    }, 800);
+    }, 1000);
   } catch (e) {
     console.error('Print error:', e);
   }
 }
 
-// Universal Download Function
+// Universal Download Function (supports storageUrl and dataUrl)
 export function downloadPdfItem(item: MaterialItem): void {
   try {
+    if (item.storageUrl) {
+      const a = document.createElement('a');
+      a.href = item.storageUrl;
+      a.download = item.fileName.endsWith('.pdf') ? item.fileName : `${item.fileName}.pdf`;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    if (!item.fileData) return;
+
     const blob = dataUrlToBlob(item.fileData);
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -239,3 +317,4 @@ export function downloadPdfItem(item: MaterialItem): void {
     console.error('Download error:', e);
   }
 }
+

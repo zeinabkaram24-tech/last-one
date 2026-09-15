@@ -217,12 +217,30 @@ export default function App() {
         // Apply homework with student completion checks
         if (hwData && hwData.length > 0) {
           const profile = getActiveUserProfile();
+          const normalizedHw = hwData.map((h) => {
+            if (
+              (h.id === 'hw-w2-ar-tue-g2a-wb' ||
+                h.id === 'hw-w2-ar-tue-g2b-wb' ||
+                h.id === 'hw-w2-ar-tue-g2c-wb' ||
+                (h.subject === 'Arabic' && h.assignedDay === 'Tuesday' && h.week === 2)) &&
+              (h.task.includes('46') || h.pages.includes('46') || h.details.includes('46'))
+            ) {
+              return {
+                ...h,
+                task: h.task.replace(/46/g, '47'),
+                pages: h.pages.replace(/46/g, '47'),
+                details: h.details.replace(/46/g, '47'),
+              };
+            }
+            return h;
+          });
+
           if (profile?.mode === 'student' && profile.studentName) {
             const progress = getStudentProgress(profile.studentName);
             const hwSet = new Set(progress.completedHomeworkIds);
-            setHomeworkList(hwData.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+            setHomeworkList(normalizedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
           } else {
-            setHomeworkList(hwData);
+            setHomeworkList(normalizedHw);
           }
         }
 

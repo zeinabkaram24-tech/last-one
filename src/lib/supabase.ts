@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { ClassId, ClassworkEntry, HomeworkEntry, SchoolDay, SubjectName } from '../types';
+import { ClassId, ClassworkEntry, HomeworkEntry, SchoolDay, SubjectName, MaterialItem } from '../types';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from '../data/defaultWeeklyPlan';
 import initialData from '../data/initialData.json';
 
@@ -296,7 +296,47 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
       return INITIAL_HOMEWORK;
     }
 
-    return (data as HomeworkRow[]).map(rowToHomework);
+    const rawItems = (data as HomeworkRow[]).map(rowToHomework);
+
+    // Ensure Tuesday Week 2 Arabic homework is page 47 and sync to Supabase if outdated
+    return rawItems.map((item) => {
+      const isTargetArabicHw =
+        item.id === 'hw-w2-ar-tue-g2a-wb' ||
+        item.id === 'hw-w2-ar-tue-g2b-wb' ||
+        item.id === 'hw-w2-ar-tue-g2c-wb' ||
+        (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
+
+      if (
+        isTargetArabicHw &&
+        (item.task.includes('46') || item.pages.includes('46') || item.details.includes('46'))
+      ) {
+        const corrected: HomeworkEntry = {
+          ...item,
+          task: item.task.replace(/46/g, '47'),
+          pages: item.pages.replace(/46/g, '47'),
+          details: item.details.replace(/46/g, '47'),
+        };
+
+        // Persist correction to Supabase in the background
+        supabase
+          .from('homework')
+          .update({
+            task: corrected.task,
+            pages: corrected.pages,
+            details: corrected.details,
+          })
+          .eq('id', item.id)
+          .then(({ error: syncErr }) => {
+            if (syncErr) {
+              console.warn('Notice syncing page 47 to Supabase:', syncErr.message);
+            }
+          });
+
+        return corrected;
+      }
+
+      return item;
+    });
   } catch (err) {
     console.warn('Network exception fetching homework from Supabase (using local baseline):', err);
     return INITIAL_HOMEWORK;
@@ -559,6 +599,21 @@ export async function seedInitialDataIfEmpty(): Promise<{
           }
         }
       }
+    } else {
+      // If homework was already seeded earlier, ensure Tuesday Arabic homework is updated to page 47
+      try {
+        const arabicUpdates = INITIAL_HOMEWORK.filter((h) =>
+          h.id === 'hw-w2-ar-tue-g2a-wb' ||
+          h.id === 'hw-w2-ar-tue-g2b-wb' ||
+          h.id === 'hw-w2-ar-tue-g2c-wb'
+        ).map(homeworkToRow);
+
+        if (arabicUpdates.length > 0) {
+          await supabase.from('homework').upsert(arabicUpdates, { onConflict: 'id' });
+        }
+      } catch (err) {
+        console.warn('Notice updating Arabic homework p. 47 in Supabase:', err);
+      }
     }
 
     // Seed initial settings if empty
@@ -590,3 +645,154 @@ export async function seedInitialDataIfEmpty(): Promise<{
     return { seeded: false, classworkCount: 0, homeworkCount: 0 };
   }
 }
+
+// =============================================================================
+// Materials & PDF Cloud Storage Functions (Supabase Storage + Database)
+// =============================================================================
+
+export interface MaterialRow {
+  id: string;
+  file_name: string;
+  file_size: number;
+  block: number;
+  section: string;
+  class_id: string | null;
+  storage_url: string | null;
+  file_data: string | null;
+  uploaded_at: string;
+}
+
+export function materialToRow(item: MaterialItem): MaterialRow {
+  return {
+    id: item.id,
+    file_name: item.fileName,
+    file_size: item.fileSize,
+    block: item.block,
+    section: item.section,
+    class_id: item.classId || 'ALL',
+    storage_url: item.storageUrl || null,
+    // Only save file_data if small (< 1.5MB) to prevent large DB payloads
+    file_data: item.fileSize < 1500000 ? (item.fileData || null) : null,
+    uploaded_at: item.uploadedAt || new Date().toISOString(),
+  };
+}
+
+export function rowToMaterial(row: MaterialRow): MaterialItem {
+  return {
+    id: row.id,
+    fileName: row.file_name,
+    fileSize: row.file_size,
+    block: row.block,
+    section: row.section,
+    classId: (row.class_id as ClassId | 'ALL') || 'ALL',
+    storageUrl: row.storage_url || undefined,
+    fileData: row.file_data || undefined,
+    uploadedAt: row.uploaded_at,
+  };
+}
+
+/**
+ * Upload a PDF file directly to Supabase Storage ('school_materials' bucket)
+ * Returns the public URL if successful.
+ */
+export async function uploadPdfToSupabaseStorage(
+  file: File | Blob,
+  fileName: string
+): Promise<string | null> {
+  if (!isSupabaseConfigured) return null;
+
+  try {
+    const bucketName = 'school_materials';
+    const cleanName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${Date.now()}_${cleanName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: true,
+        contentType: 'application/pdf',
+      });
+
+    if (uploadError) {
+      console.warn('Storage upload notice (falling back to database or local):', uploadError.message);
+      return null;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(path);
+
+    return publicUrlData.publicUrl || null;
+  } catch (e) {
+    console.warn('Network exception during Supabase Storage upload:', e);
+    return null;
+  }
+}
+
+/**
+ * Fetch all materials metadata from Supabase 'materials' table
+ */
+export async function fetchAllMaterialsFromSupabase(): Promise<MaterialItem[]> {
+  if (!isSupabaseConfigured) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('materials')
+      .select('*')
+      .order('uploaded_at', { ascending: false });
+
+    if (error) {
+      console.warn('Supabase fetch materials notice:', error.message);
+      return [];
+    }
+
+    return (data as MaterialRow[]).map(rowToMaterial);
+  } catch (err) {
+    console.warn('Network exception fetching materials:', err);
+    return [];
+  }
+}
+
+/**
+ * Upsert material metadata record to Supabase
+ */
+export async function saveMaterialToSupabase(item: MaterialItem): Promise<void> {
+  if (!isSupabaseConfigured) return;
+
+  try {
+    const row = materialToRow(item);
+    const { error } = await supabase
+      .from('materials')
+      .upsert(row, { onConflict: 'id' });
+
+    if (error) {
+      console.warn('Supabase save material notice:', error.message);
+    }
+  } catch (err) {
+    console.warn('Network exception saving material:', err);
+  }
+}
+
+/**
+ * Delete material from Supabase table and Storage if present
+ */
+export async function deleteMaterialFromSupabase(id: string, storageUrl?: string): Promise<void> {
+  if (!isSupabaseConfigured) return;
+
+  try {
+    // 1. Delete from database
+    await supabase.from('materials').delete().eq('id', id);
+
+    // 2. If storageUrl points to school_materials, attempt file deletion
+    if (storageUrl && storageUrl.includes('school_materials')) {
+      const parts = storageUrl.split('/school_materials/');
+      if (parts[1]) {
+        await supabase.storage.from('school_materials').remove([parts[1]]);
+      }
+    }
+  } catch (err) {
+    console.warn('Network exception deleting material from Supabase:', err);
+  }
+}
+

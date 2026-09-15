@@ -56,6 +56,19 @@ CREATE TABLE IF NOT EXISTS public.student_progress (
     last_active BIGINT DEFAULT (extract(epoch from now()) * 1000)::bigint NOT NULL
 );
 
+-- 5. Create Materials Table (for storing uploaded PDFs, metadata & storage URLs)
+CREATE TABLE IF NOT EXISTS public.materials (
+    id TEXT PRIMARY KEY,
+    file_name TEXT NOT NULL,
+    file_size BIGINT NOT NULL,
+    block INTEGER NOT NULL,
+    section TEXT NOT NULL,
+    class_id TEXT DEFAULT 'ALL',
+    storage_url TEXT,
+    file_data TEXT,
+    uploaded_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- =============================================================================
 -- Indexes for High Performance Queries
 -- =============================================================================
@@ -63,6 +76,7 @@ CREATE INDEX IF NOT EXISTS idx_classwork_class_week_block ON public.classwork (c
 CREATE INDEX IF NOT EXISTS idx_classwork_day_period ON public.classwork (day, period);
 CREATE INDEX IF NOT EXISTS idx_homework_class_week_block ON public.homework (class_id, week, block);
 CREATE INDEX IF NOT EXISTS idx_homework_assigned_due ON public.homework (assigned_day, due_day);
+CREATE INDEX IF NOT EXISTS idx_materials_block_section ON public.materials (block, section);
 
 -- =============================================================================
 -- Enable Row Level Security (RLS) & Add Public Policies
@@ -71,6 +85,7 @@ ALTER TABLE public.classwork ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.homework ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.planner_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.student_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.materials ENABLE ROW LEVEL SECURITY;
 
 -- Allow Public (anon) and Authenticated full CRUD access
 DROP POLICY IF EXISTS "Public classwork access" ON public.classwork;
@@ -101,8 +116,32 @@ CREATE POLICY "Public student_progress access" ON public.student_progress
     USING (true)
     WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Public materials access" ON public.materials;
+CREATE POLICY "Public materials access" ON public.materials
+    FOR ALL
+    TO anon, authenticated
+    USING (true)
+    WITH CHECK (true);
+
+-- =============================================================================
+-- Supabase Storage Bucket for Materials ('school_materials')
+-- =============================================================================
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('school_materials', 'school_materials', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Storage RLS Policies
+DROP POLICY IF EXISTS "Public Access to school_materials" ON storage.objects;
+CREATE POLICY "Public Access to school_materials" ON storage.objects
+    FOR ALL
+    TO anon, authenticated
+    USING (bucket_id = 'school_materials')
+    WITH CHECK (bucket_id = 'school_materials');
+
 -- Enable Realtime subscriptions for live updates across devices
 ALTER PUBLICATION supabase_realtime ADD TABLE public.classwork;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.homework;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.planner_settings;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.student_progress;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.materials;
+

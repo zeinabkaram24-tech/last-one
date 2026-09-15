@@ -25,6 +25,7 @@ import {
   printPdfItem,
   downloadPdfItem,
 } from '../utils/materialsStorage';
+import { uploadPdfToSupabaseStorage } from '../lib/supabase';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -102,7 +103,15 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       setIsUploading(true);
       setErrorMessage(null);
 
-      // Read file exact binary as Base64 Data URL to preserve 100% layout and colors
+      // 1. Try uploading to Supabase Storage bucket first
+      let cloudUrl: string | null = null;
+      try {
+        cloudUrl = await uploadPdfToSupabaseStorage(selectedFile, selectedFile.name);
+      } catch (uploadErr) {
+        console.warn('Direct bucket upload failed, using local/DB fallback:', uploadErr);
+      }
+
+      // 2. Read file binary as Base64 Data URL for local offline cache and fallback
       const reader = new FileReader();
       reader.onload = async () => {
         try {
@@ -113,6 +122,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             fileName: selectedFile.name,
             fileSize: selectedFile.size,
             fileData: fileData,
+            storageUrl: cloudUrl || undefined,
             block: targetBlock,
             section: targetSection,
             classId: targetClass,
@@ -123,7 +133,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           await refreshMaterials();
 
           setSuccessMessage(
-            `تم رفع الملف "${selectedFile.name}" بنجاح في Block ${targetBlock} — ${targetSection}!`
+            cloudUrl
+              ? `تم رفع الملف سحابياً بنجاح وتوفيره لجميع الأجهزة واللابتوب!`
+              : `تم حفظ الملف بنجاح في Block ${targetBlock} — ${targetSection}!`
           );
           setSelectedFile(null);
           if (fileInputRef.current) fileInputRef.current.value = '';
@@ -161,7 +173,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     if (!confirmed) return;
 
     try {
-      await deleteMaterial(item.id);
+      await deleteMaterial(item.id, item.storageUrl);
       await refreshMaterials();
       setSuccessMessage(`تم مسح الملف "${item.fileName}" بنجاح.`);
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -455,6 +467,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                             <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded-md">
                               {item.classId === 'ALL' ? 'كل الفصول' : item.classId}
                             </span>
+                            {item.storageUrl && (
+                              <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300 px-1.5 py-0.5 rounded-md">
+                                سحابي ☁️
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-3 text-[11px] text-slate-400 font-medium mt-1">
                             <span>الحجم: {formatBytes(item.fileSize)}</span>

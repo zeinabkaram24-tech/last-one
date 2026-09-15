@@ -1346,7 +1346,7 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
 
-  // --- Arabic HW: Tuesday Workbook p. 46 (Assigned Tuesday 15/9, Due Wednesday 16/9) ---
+  // --- Arabic HW: Tuesday Workbook p. 47 (Assigned Tuesday 15/9, Due Wednesday 16/9) ---
   {
     id: 'hw-w2-ar-tue-g2a-wb',
     classId: 'G2A',

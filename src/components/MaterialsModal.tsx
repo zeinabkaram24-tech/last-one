@@ -284,6 +284,14 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                               <span>{formatBytes(file.fileSize)}</span>
                               <span>•</span>
                               <span>PDF</span>
+                              {file.storageUrl && (
+                                <>
+                                  <span>•</span>
+                                  <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
+                                    سحابي Cloud ☁️
+                                  </span>
+                                </>
+                              )}
                               {file.classId && file.classId !== 'ALL' && (
                                 <>
                                   <span>•</span>
