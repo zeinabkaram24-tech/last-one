@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ClassId, ClassworkEntry, HomeworkEntry, SchoolDay, SubjectName } from '../types';
+import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from '../data/defaultWeeklyPlan';
 import initialData from '../data/initialData.json';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -147,7 +148,7 @@ export function homeworkToRow(entry: HomeworkEntry): Omit<HomeworkRow, 'created_
 export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   if (!isSupabaseConfigured) {
     console.warn('Supabase is not configured. Falling back to local/initial data.');
-    return (initialData.nile_planner_classwork_b1_w1_w2_v9 as unknown) as ClassworkEntry[];
+    return INITIAL_CLASSWORK;
   }
 
   const { data, error } = await supabase
@@ -227,7 +228,7 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[]): Promise<vo
 export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   if (!isSupabaseConfigured) {
     console.warn('Supabase is not configured. Falling back to local/initial data.');
-    return (initialData.nile_planner_homework_b1_w1_w2_v10 as unknown) as HomeworkEntry[];
+    return INITIAL_HOMEWORK;
   }
 
   const { data, error } = await supabase
@@ -444,7 +445,7 @@ export async function seedInitialDataIfEmpty(): Promise<{
 
     // Seed classwork if empty
     if ((cwCount ?? 0) === 0) {
-      const cwInitial = (initialData.nile_planner_classwork_b1_w1_w2_v9 as unknown) as ClassworkEntry[];
+      const cwInitial = INITIAL_CLASSWORK;
       if (cwInitial && cwInitial.length > 0) {
         console.log(`🌱 Seeding ${cwInitial.length} classwork entries into Supabase...`);
         const rows = cwInitial.map(classworkToRow);
@@ -459,7 +460,7 @@ export async function seedInitialDataIfEmpty(): Promise<{
 
     // Seed homework if empty
     if ((hwCount ?? 0) === 0) {
-      const hwInitial = (initialData.nile_planner_homework_b1_w1_w2_v10 as unknown) as HomeworkEntry[];
+      const hwInitial = INITIAL_HOMEWORK;
       if (hwInitial && hwInitial.length > 0) {
         console.log(`🌱 Seeding ${hwInitial.length} homework entries into Supabase...`);
         const rows = hwInitial.map(homeworkToRow);

@@ -50,32 +50,30 @@ const STORAGE_KEYS = {
 };
 
 function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
-  const baseList = (initialData.nile_planner_classwork_b1_w1_w2_v9 as unknown) as ClassworkEntry[];
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
-    return baseList.map((c) => ({
+    return INITIAL_CLASSWORK.map((c) => ({
       ...c,
       completed: set.has(c.id),
     }));
   }
-  return baseList.map((c) => ({
+  return INITIAL_CLASSWORK.map((c) => ({
     ...c,
     completed: false,
   }));
 }
 
 function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
-  const baseList = (initialData.nile_planner_homework_b1_w1_w2_v10 as unknown) as HomeworkEntry[];
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedHomeworkIds);
-    return baseList.map((h) => ({
+    return INITIAL_HOMEWORK.map((h) => ({
       ...h,
       completed: set.has(h.id),
     }));
   }
-  return baseList.map((h) => ({
+  return INITIAL_HOMEWORK.map((h) => ({
     ...h,
     completed: false,
   }));
@@ -477,11 +475,8 @@ export default function App() {
   // Reset to sample plan
   const handleResetToDefaults = async () => {
     if (confirm('هل تريد استعادة الخطة الأصلية ومزامنتها مباشرة مع Supabase؟')) {
-      const initialCw = (initialData.nile_planner_classwork_b1_w1_w2_v9 as unknown) as ClassworkEntry[];
-      const initialHw = (initialData.nile_planner_homework_b1_w1_w2_v10 as unknown) as HomeworkEntry[];
-
-      setClassworkList(initialCw.map((c) => ({ ...c, completed: false })));
-      setHomeworkList(initialHw.map((h) => ({ ...h, completed: false })));
+      setClassworkList(INITIAL_CLASSWORK.map((c) => ({ ...c, completed: false })));
+      setHomeworkList(INITIAL_HOMEWORK.map((h) => ({ ...h, completed: false })));
 
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         saveStudentProgress(userProfile.studentName, [], [], currentClass);
@@ -490,8 +485,8 @@ export default function App() {
       if (isSupabaseConfigured) {
         try {
           await Promise.all([
-            bulkInsertClasswork(initialCw),
-            bulkInsertHomework(initialHw),
+            bulkInsertClasswork(INITIAL_CLASSWORK),
+            bulkInsertHomework(INITIAL_HOMEWORK),
           ]);
         } catch (e) {
           console.error('Failed to sync default data to Supabase:', e);

@@ -13,6 +13,7 @@
       "title": "Welcome & Physical Fitness Warmup",
       "details": "Orientation, sportsmanship, and agility warmup exercises with Coach Kareem.",
       "completed": true,
+      "block": 1,
       "week": 1
     },
     {
@@ -24,6 +25,7 @@
       "title": "ترحيب بالطلاب واستراتيجيات التعلم النشط",
       "details": "ترحيب بالطلاب واستخدام استراتيجيات التعلم النشط ووضع قواعد العمل والتعريف بمنهج الصف الثاني (مجتمع الصف الثاني).",
       "completed": true,
+      "block": 1,
       "week": 1
     },
     {
@@ -35,7 +37,10 @@
       "title": "Unit 1: Working with Text - Lesson 1: Introducing the Keyboard",
       "details": "Identify keyboard parts and special keys: Enter, Space bar, Shift, Control, Backspace, Caps lock, Delete.",
       "pages": "Week 1 page 10 & 12",
+      "linkUrl": "https://www.youtube.com/watch?v=6unZgmlAavQ",
+      "linkTitle": "فيديو: Introducing the Keyboard",
       "completed": true,
+      "block": 1,
       "week": 1
     },
     {
@@ -47,6 +52,7 @@
       "title": "Welcome to Art Studio & Color Exploration",
       "details": "Setting art studio safety rules and exploring primary colors.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -58,6 +64,7 @@
       "title": "Unit 1: Sound Sources - Lab Safety",
       "details": "Science lab orientation, safety rules, listening to environmental sounds.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -69,6 +76,7 @@
       "title": "Welcome Day & Orientation",
       "details": "Welcoming Grade 2 students, classroom language, greeting songs and getting to know each other.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -82,6 +90,7 @@
       "pages": "فيديو وأنشطة ترحيبية",
       "completed": false,
       "linkUrl": "https://www.youtube.com/results?search_query=فيديو+ترحيبي+الصف+الثاني+العودة+إلى+المدرسة",
+      "block": 1,
       "week": 1
     },
     {
@@ -93,6 +102,7 @@
       "title": "Welcome Day & Math Exploration",
       "details": "Welcoming Grade 2 learners to Mathematics, introducing classroom routines and math kits.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -104,6 +114,7 @@
       "title": "Introduction to Rhythm & School Song",
       "details": "Orientation and rhythm clapping exercises.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -116,6 +127,7 @@
       "details": "Counting forward and backward up to 100 using the 100-chart. (Bring small whiteboard, marker & 100 chart).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -127,6 +139,7 @@
       "title": "English Diagnostic Test",
       "details": "Assessing phonics, basic vocabulary, reading comprehension, and handwriting skills.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -138,6 +151,7 @@
       "title": "English Diagnostic Test (Part 2) & Class Discussion",
       "details": "Reviewing common words and oral question-and-answer interactions.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -150,6 +164,7 @@
       "details": "مراجعة الحروف بأشكالها وحركاتها القصيرة في كراسة النشاط.",
       "pages": "كراسة نشاط الوحدة الأولى ص 2-3",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -162,6 +177,7 @@
       "details": "حل تدريبات ص 3 في كراسة نشاط الوحدة الأولى مع المعلمة.",
       "pages": "كراسة نشاط الوحدة الأولى ص 3",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -173,6 +189,7 @@
       "title": "Unit 1: Lesson 2 - The QWERTY Keyboard",
       "details": "Explain the meaning of QWERTY keyboard. Learn and place fingers on keyboard home row keys to type fast.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -184,6 +201,7 @@
       "title": "Fitness Drills & Team Sports",
       "details": "Endurance and agility drills with Coach Kareem.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -196,6 +214,7 @@
       "details": "Consolidating grade 1 essentials: Sight words, simple sentence structures, and phonics short vowels.",
       "pages": "From p. 1 to p. 5",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -208,6 +227,7 @@
       "details": "Guided writing and reading sentences together on pages 4-5. (No homework assigned).",
       "pages": "From p. 4 to p. 5",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -220,6 +240,7 @@
       "details": "Understanding tens and ones. Partitioning 2-digit numbers (e.g., 47 = 40 + 7). (Bring whiteboard, marker & 100 chart).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -232,6 +253,7 @@
       "details": "Practicing value vs place value drills on Sheet 1. (Homework: Page 81).",
       "pages": "Sheet 1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -243,6 +265,7 @@
       "title": "التربية الدينية: قيم التسامح وآداب الاستئذان",
       "details": "مراجعة الآداب الإسلامية / المسيحية وأهمية الصدق والمحبة.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -251,11 +274,10 @@
       "day": "Tuesday",
       "period": 6,
       "subject": "French",
-      "title": "Salutations et règles de politesse",
-      "details": "Bonjour, Au revoir, Merci, et les salutations en français.",
+      "title": "Unité: Brise glace — Des activités pour briser la glace",
+      "details": "Le premier cours: أنشطة تفاعلية لكسر الجليد والتعارف باللغة الفرنسية (Des activités pour briser la glace) مع ميس دعاء فكري.",
       "completed": false,
-      "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français",
+      "block": 1,
       "week": 1
     },
     {
@@ -267,6 +289,7 @@
       "title": "Line Art & Geometric Composition",
       "details": "Drawing straight, wavy, and zigzag lines in art sketchbooks.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -276,10 +299,11 @@
       "period": 8,
       "subject": "Arabic",
       "title": "مراجعة التحليل الصوتي للكلمات",
-      "details": "فيديو تعليمي وكراسة نشاط الوحدة الأولى ص 4 (المدود والمقاطع الساكنة). (الواجب: كراسة الواجب ص 45).",
+      "details": "فيديو تعليمي وكراسة نشاط الوحدة الأولى ص 4 (المدود والمقاطع الساكنة).",
       "pages": "فيديو وكراسة نشاط ص 4",
       "completed": false,
       "linkUrl": "https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني",
+      "block": 1,
       "week": 1
     },
     {
@@ -292,6 +316,7 @@
       "details": "Comparing numbers using greater than (>), less than (<), and equal to (=). (Bring whiteboard, marker & 100 chart).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -304,6 +329,7 @@
       "details": "Investigating how vibrating materials produce sound. Experiments with tuning fork and rubber bands.",
       "pages": "Page 14",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -315,6 +341,7 @@
       "title": "Unit 1: Lesson 3 - Arabic and English Keyboard Layouts",
       "details": "Differentiate between Arabic and English layouts. Learn to switch languages (Alt+Shift) and ergonomic safety.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -326,6 +353,7 @@
       "title": "الدراسات الاجتماعية: الاختبار القبلي",
       "details": "أداء الاختبار القبلي للوحدة الأولى (مجتمع الصف الثاني).",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -334,11 +362,11 @@
       "day": "Wednesday",
       "period": 5,
       "subject": "French",
-      "title": "Vocabulaire de base et l'alphabet",
-      "details": "Pratique des lettres et des mots de bienvenue.",
+      "title": "Unité: Saluer et se présenter — Révision générale",
+      "details": "Le deuxième cours: مراجعة عامة على التحية والتعريف بالنفس وحل تدريبات شيت الصف من صفحة 3 إلى 7 مع ميس دعاء فكري.",
+      "pages": "Fiche de classe: De page 3 à page 7",
       "completed": false,
-      "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français",
+      "block": 1,
       "week": 1
     },
     {
@@ -352,6 +380,7 @@
       "pages": "فيديو - كراسة نشاط ص 5-6",
       "completed": false,
       "linkUrl": "https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني",
+      "block": 1,
       "week": 1
     },
     {
@@ -364,6 +393,7 @@
       "details": "Reviewing phonics blends, digraphs, and vocabulary.",
       "pages": "From p. 6 to p. 10",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -376,6 +406,7 @@
       "details": "Reading short decodable texts and answering questions together.",
       "pages": "From p. 6 to p. 10",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -388,6 +419,7 @@
       "details": "Consolidating week 1 review pages 10 to 12. Oral dictation and spelling verification.",
       "pages": "From p. 10 to p. 12",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -396,11 +428,11 @@
       "day": "Thursday",
       "period": 2,
       "subject": "French",
-      "title": "Chansons françaises et jeux éducatifs",
-      "details": "Révision de la semaine et écoute active.",
+      "title": "Unité: Les fournitures scolaires — Révision générale",
+      "details": "Le troisième cours: مراجعة عامة على الأدوات المدرسية وحل تدريبات شيت الصف من صفحة 8 إلى 9 مع ميس دعاء فكري.",
+      "pages": "Fiche de classe: De page 8 à page 9",
       "completed": false,
-      "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français",
+      "block": 1,
       "week": 1
     },
     {
@@ -412,6 +444,7 @@
       "title": "قصص دينية وسلوكيات التعامل في المدرسة",
       "details": "التحلي بالصدق والتعاون ومساعدة الزملاء.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -424,6 +457,7 @@
       "details": "تطبيق إملائي على الكلمات التي تم مراجعتها خلال الأسبوع.",
       "pages": "كراسة الطالب",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -436,6 +470,7 @@
       "details": "Finding 1 more and 1 less of given numbers and estimating quantities. (HW: p. 80 and p. 84 Q.1).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -447,6 +482,7 @@
       "title": "School Anthem & Musical Instrument Appreciation",
       "details": "Practicing singing rhythmically in tune.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -459,6 +495,7 @@
       "details": "حل وشرح ص 7. (ملاحظة: يرجى إحضار ألوان خشبية للتلوين والرسم).",
       "pages": "صفحة 7",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -470,6 +507,7 @@
       "title": "Sound Vibrations & Hands-on Exploration",
       "details": "Observing pitch and volume variations in different vibrating sources.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -478,11 +516,10 @@
       "day": "Sunday",
       "period": 1,
       "subject": "French",
-      "title": "Bienvenue et Salutations en Français",
-      "details": "Dialogues simples: Bonjour, Au revoir, Je m’appelle...",
+      "title": "Unité: Brise glace — Des activités pour briser la glace",
+      "details": "Le premier cours: أنشطة تفاعلية لكسر الجليد والتعارف باللغة الفرنسية (Des activités pour briser la glace) مع ميس دعاء فكري.",
       "completed": true,
-      "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français",
+      "block": 1,
       "week": 1
     },
     {
@@ -494,6 +531,7 @@
       "title": "Welcome Day & Math Classroom Rules",
       "details": "Welcoming students, introducing math materials and learning routines.",
       "completed": true,
+      "block": 1,
       "week": 1
     },
     {
@@ -507,6 +545,7 @@
       "pages": "فيديو وأنشطة ترحيبية",
       "completed": true,
       "linkUrl": "https://www.youtube.com/results?search_query=فيديو+ترحيبي+الصف+الثاني+العودة+إلى+المدرسة",
+      "block": 1,
       "week": 1
     },
     {
@@ -518,6 +557,7 @@
       "title": "Unit 1: Sound Sources - Lab Safety",
       "details": "Lab rules, listening walk to explore different sound sources in the school environment.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -529,6 +569,7 @@
       "title": "Welcome Day & Orientation",
       "details": "Welcome back to school, introducing teachers and building classroom expectations.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -540,6 +581,7 @@
       "title": "English Classroom Language & Warmup Songs",
       "details": "Oral practice, greetings, and active listening.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -551,7 +593,10 @@
       "title": "Unit 1: Working with Text - Lesson 1: Introducing the Keyboard",
       "details": "Identify keyboard parts and special keys: Enter, Space bar, Shift, Control, Backspace, Caps lock, Delete.",
       "pages": "Week 1 page 10 & 12",
+      "linkUrl": "https://www.youtube.com/watch?v=6unZgmlAavQ",
+      "linkTitle": "فيديو: Introducing the Keyboard",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -563,6 +608,7 @@
       "title": "Welcome to Music Class & Sound Exploration",
       "details": "Differentiating between musical sounds and environmental noise.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -574,6 +620,7 @@
       "title": "ترحيب بالطلاب واستراتيجيات التعلم النشط",
       "details": "ترحيب بالطلاب واستخدام استراتيجيات التعلم النشط ووضع قواعد العمل والتعريف بمنهج الصف الثاني.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -585,6 +632,7 @@
       "title": "Agility & Active Relay Games",
       "details": "Fun physical drills and teamwork games.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -597,6 +645,7 @@
       "details": "Diagnostic evaluation followed by review of grade 1 phonics and sight words.",
       "pages": "From p. 1 to p. 3",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -609,6 +658,7 @@
       "details": "Review exercises and oral sentence formation (pages 1-3).",
       "pages": "From p. 1 to p. 3",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -621,6 +671,7 @@
       "details": "Counting up to 100 on the 100-chart. (Bring small whiteboard, marker & 100 chart).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -633,6 +684,7 @@
       "details": "Filling missing numbers on Sheet 1 using the 100-chart.",
       "pages": "Sheet 1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -641,11 +693,11 @@
       "day": "Monday",
       "period": 7,
       "subject": "French",
-      "title": "Les Salutations et Activités Orales",
-      "details": "Pratique des salutations avec des chansons.",
+      "title": "Unité: Saluer et se présenter — Révision générale",
+      "details": "Le deuxième cours: مراجعة عامة على التحية والتعريف بالنفس وحل تدريبات شيت الصف من صفحة 3 إلى 7 مع ميس دعاء فكري.",
+      "pages": "Fiche de classe: De page 3 à page 7",
       "completed": false,
-      "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français",
+      "block": 1,
       "week": 1
     },
     {
@@ -658,6 +710,7 @@
       "details": "مراجعة الحروف وأصواتها وكتابتها.",
       "pages": "كراسة نشاط الوحدة الأولى ص 2-3",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -670,6 +723,7 @@
       "details": "Tens and ones. Partitioning numbers up to 100 into tens and ones. (HW: Page 81).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -681,6 +735,7 @@
       "title": "Art Principles: Primary Colors & Shapes",
       "details": "Using crayons and pencils to draw geometric patterns.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -692,6 +747,7 @@
       "title": "Unit 1: Lesson 2 - The QWERTY Keyboard",
       "details": "Explain meaning of QWERTY keyboard. Practice home row keys (ASDF JKL;).",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -700,11 +756,11 @@
       "day": "Tuesday",
       "period": 4,
       "subject": "French",
-      "title": "Vocabulaire et l'alphabet",
-      "details": "Apprendre les premières lettres de l’alphabet.",
+      "title": "Unité: Les fournitures scolaires — Révision générale",
+      "details": "Le troisième cours: مراجعة عامة على الأدوات المدرسية وحل تدريبات شيت الصف من صفحة 8 إلى 9 مع ميس دعاء فكري.",
+      "pages": "Fiche de classe: De page 8 à page 9",
       "completed": false,
-      "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français",
+      "block": 1,
       "week": 1
     },
     {
@@ -716,6 +772,7 @@
       "title": "التربية الدينية: قيم المحبة والتعاون",
       "details": "مبادئ وأخلاق المعاملة الطيبة في المدرسة.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -725,10 +782,11 @@
       "period": 6,
       "subject": "Arabic",
       "title": "مراجعة التحليل الصوتي للكلمات",
-      "details": "فيديو وكراسة نشاط ص 4 (تحليل الكلمات إلى مقاطع وحروف). (الواجب: كراسة الواجب ص 45).",
+      "details": "فيديو وكراسة نشاط ص 4 (تحليل الكلمات إلى مقاطع وحروف).",
       "pages": "فيديو وكراسة نشاط ص 4",
       "completed": false,
       "linkUrl": "https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني",
+      "block": 1,
       "week": 1
     },
     {
@@ -740,6 +798,7 @@
       "title": "Clapping to Rhythm & Tempo",
       "details": "Music tempo exercises.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -752,6 +811,7 @@
       "details": "Reviewing short vowel sounds and high frequency words. (No homework assigned).",
       "pages": "From p. 4 to p. 5",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -764,6 +824,7 @@
       "details": "Phonics blends, reading decodable sentences and vocabulary building.",
       "pages": "From p. 6 to p. 10",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -775,6 +836,7 @@
       "title": "الدراسات الاجتماعية: الاختبار القبلي",
       "details": "أداء الاختبار القبلي للوحدة الأولى (مجتمع الصف الثاني).",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -788,6 +850,7 @@
       "pages": "فيديو - كراسة نشاط ص 5-6",
       "completed": false,
       "linkUrl": "https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني",
+      "block": 1,
       "week": 1
     },
     {
@@ -800,6 +863,7 @@
       "details": "إكمال الكلمات بحرف التاء المربوطة والمفتوحة والهاء ص 6.",
       "pages": "كراسة نشاط الوحدة الأولى ص 6",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -812,6 +876,7 @@
       "details": "Comparing numbers using >, <, =. (Bring whiteboard, marker & 100 chart).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -823,6 +888,7 @@
       "title": "Sportsmanship & Ball Passing Games",
       "details": "Coordination drills with Coach Rana.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -835,6 +901,7 @@
       "details": "Sound as vibration: Investigating musical instruments and vocal cords. (HW: Page 16).",
       "pages": "Page 14",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -846,6 +913,7 @@
       "title": "Creative Sketching & Colors",
       "details": "Drawing and coloring in sketchbooks with Mr. Walid.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -858,6 +926,7 @@
       "details": "إملاء الكلمات التي تمت مراجعتها.",
       "pages": "كراسة الطالب",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -870,6 +939,7 @@
       "details": "حل وشرح ص 7. (ملاحظة: يرجى إحضار ألوان خشبية للتلوين والرسم).",
       "pages": "صفحة 7",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -881,6 +951,7 @@
       "title": "التربية الدينية: قصص وعبر",
       "details": "التحلي بالصدق والوفاء بالعهد.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -893,6 +964,7 @@
       "details": "Finding 1 more and 1 less and estimating amounts. (HW: Page 80, 84 Q.1 only).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -905,6 +977,7 @@
       "details": "Weekly review check pages 10 to 12. (HW: Pages 56 and 58).",
       "pages": "From p. 10 to p. 12",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -917,6 +990,7 @@
       "details": "Interactive sentence writing and vocabulary wrap-up.",
       "pages": "From p. 10 to p. 12",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -928,6 +1002,7 @@
       "title": "Sound Vibrations & Science Reflections",
       "details": "Reviewing key concepts: Vibrations create sounds; when vibrations stop, sound stops.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -939,6 +1014,7 @@
       "title": "Unit 1: Lesson 3 - Keyboard Layouts & Ergonomics",
       "details": "Switching Arabic/English keyboard layouts and sitting properly.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -950,6 +1026,7 @@
       "title": "Welcome Day & Orientation",
       "details": "Welcome to Grade 2, getting acquainted, and classroom language with Mr. Mostafa.",
       "completed": true,
+      "block": 1,
       "week": 1
     },
     {
@@ -958,11 +1035,10 @@
       "day": "Sunday",
       "period": 2,
       "subject": "French",
-      "title": "Bienvenue en classe de français",
-      "details": "Les salutations et les règles de base.",
+      "title": "Unité: Brise glace — Des activités pour briser la glace",
+      "details": "Le premier cours: أنشطة تفاعلية لكسر الجليد والتعارف باللغة الفرنسية مع ميس لمياء محمد (Des activités pour briser la glace).",
       "completed": true,
-      "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français",
+      "block": 1,
       "week": 1
     },
     {
@@ -974,6 +1050,7 @@
       "title": "Welcome Day & Math Class Introduction",
       "details": "Welcome to Grade 2 Mathematics with Mrs. Sandy Samir.",
       "completed": true,
+      "block": 1,
       "week": 1
     },
     {
@@ -985,6 +1062,7 @@
       "title": "Math Kits & 100-Chart Familiarization",
       "details": "Exploring math kits, base ten manipulatives, and 100-chart.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -996,7 +1074,10 @@
       "title": "Unit 1: Working with Text - Lesson 1: Introducing the Keyboard",
       "details": "Keyboard parts and special keys: Enter, Space bar, Shift, Control, Backspace, Caps lock, Delete.",
       "pages": "Week 1 page 10 & 12",
+      "linkUrl": "https://www.youtube.com/watch?v=6unZgmlAavQ",
+      "linkTitle": "فيديو: Introducing the Keyboard",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1010,6 +1091,7 @@
       "pages": "فيديو وأنشطة ترحيبية",
       "completed": false,
       "linkUrl": "https://www.youtube.com/results?search_query=فيديو+ترحيبي+الصف+الثاني+العودة+إلى+المدرسة",
+      "block": 1,
       "week": 1
     },
     {
@@ -1021,6 +1103,7 @@
       "title": "ترحيب بالطلاب واستراتيجيات التعلم النشط",
       "details": "ترحيب بالطلاب واستخدام استراتيجيات التعلم النشط ووضع قواعد العمل والتعريف بمنهج الصف الثاني.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1032,6 +1115,7 @@
       "title": "Team Warmup & Movement Drills",
       "details": "Warmup and agility with Coach Ahmed Hasanin.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1044,6 +1128,7 @@
       "details": "مراجعة الحروف وأصواتها وكتابتها ص 2-3.",
       "pages": "كراسة نشاط الوحدة الأولى ص 2-3",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1056,6 +1141,7 @@
       "details": "قراءة وكتابة الحروف بحركاتها القصيرة.",
       "pages": "كراسة نشاط ص 3",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1064,11 +1150,11 @@
       "day": "Monday",
       "period": 3,
       "subject": "French",
-      "title": "Activités de bienvenue et dialogue",
-      "details": "Pratique orale des salutations.",
+      "title": "Unité: Saluer et se présenter — Révision générale",
+      "details": "Le deuxième cours: مراجعة عامة على التحية والتعريف بالنفس وحل تدريبات شيت الصف من صفحة 3 إلى 7 مع ميس لمياء محمد.",
+      "pages": "Fiche de classe: De page 3 à page 7",
       "completed": false,
-      "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français",
+      "block": 1,
       "week": 1
     },
     {
@@ -1080,6 +1166,7 @@
       "title": "Orientation & English Diagnostic Test",
       "details": "Orientation and diagnostic evaluation of English foundations with Mr. Mostafa.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1091,6 +1178,7 @@
       "title": "Unit 1: Sound Sources - Lab Safety",
       "details": "Science lab orientation and sound observation.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1102,6 +1190,7 @@
       "title": "قواعد العمل المشترك والتعريف بالمنهج",
       "details": "نشاط صفي تفاعلي في مجتمع الصف الثاني.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1113,6 +1202,7 @@
       "title": "Musical Notes & Singing",
       "details": "Rhythm and singing basics.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1125,6 +1215,7 @@
       "details": "Counting forward and backward up to 100. (Bring small whiteboard, marker & 100 chart).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1136,6 +1227,7 @@
       "title": "Gymnastic Fitness & Running",
       "details": "Physical conditioning with Coach Ahmed Hasanin.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1145,10 +1237,11 @@
       "period": 2,
       "subject": "Arabic",
       "title": "مراجعة التحليل الصوتي للكلمات",
-      "details": "فيديو وكراسة نشاط ص 4 (التحليل إلى مقاطع صوتية). (الواجب: كراسة الواجب ص 45).",
+      "details": "فيديو وكراسة نشاط ص 4 (التحليل إلى مقاطع صوتية).",
       "pages": "فيديو وكراسة نشاط ص 4",
       "completed": false,
       "linkUrl": "https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني",
+      "block": 1,
       "week": 1
     },
     {
@@ -1161,6 +1254,7 @@
       "details": "Investigating sound vibrations and sound production on Page 14.",
       "pages": "Page 14",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1173,6 +1267,7 @@
       "details": "Partition and recombine numbers into tens and ones. (HW: Page 81).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1184,6 +1279,7 @@
       "title": "التربية الدينية: القيم الأخلاقية",
       "details": "تعزيز الأخلاق الحميدة والاحترام المتبادل.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1195,6 +1291,7 @@
       "title": "Unit 1: Lesson 2 - The QWERTY Keyboard",
       "details": "QWERTY keyboard layout and home row key positions.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1207,6 +1304,7 @@
       "details": "Reviewing short vowel sounds and sight words. (No homework assigned).",
       "pages": "From p. 1 to p. 3",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1219,6 +1317,7 @@
       "details": "Reading practice on pages 2-3.",
       "pages": "From p. 1 to p. 3",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1227,10 +1326,10 @@
       "day": "Wednesday",
       "period": 1,
       "subject": "Social Studies",
-      "title": "عنوان الدرس الأول \"العودة إلى المدرسة\"",
-      "details": "حل وشرح ص 7. (ملاحظة: يرجى إحضار ألوان خشبية للتلوين والرسم).",
-      "pages": "صفحة 7",
+      "title": "الدراسات الاجتماعية: الاختبار القبلي",
+      "details": "أداء الاختبار القبلي للوحدة الأولى (مجتمع الصف الثاني).",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1239,11 +1338,11 @@
       "day": "Wednesday",
       "period": 2,
       "subject": "French",
-      "title": "Vocabulaire et pratique orale",
-      "details": "Apprentissage des mots courants.",
+      "title": "Unité: Les fournitures scolaires — Révision générale",
+      "details": "Le troisième cours: مراجعة عامة على الأدوات المدرسية وحل تدريبات شيت الصف من صفحة 8 إلى 9 مع ميس لمياء محمد.",
+      "pages": "Fiche de classe: De page 8 à page 9",
       "completed": false,
-      "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français",
+      "block": 1,
       "week": 1
     },
     {
@@ -1256,6 +1355,7 @@
       "details": "Phonics, vocabulary, and sentence decoding.",
       "pages": "From p. 6 to p. 10",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1268,6 +1368,7 @@
       "details": "Writing short phrases and matching picture prompts.",
       "pages": "From p. 6 to p. 10",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1279,6 +1380,7 @@
       "title": "Art Studio Activities",
       "details": "Exploring lines and colors with Mr. Walid.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1292,6 +1394,7 @@
       "pages": "فيديو - كراسة نشاط ص 5-6",
       "completed": false,
       "linkUrl": "https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني",
+      "block": 1,
       "week": 1
     },
     {
@@ -1304,6 +1407,7 @@
       "details": "Comparing numbers using >, <, =. (Bring whiteboard, marker & 100 chart).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1315,6 +1419,7 @@
       "title": "School Anthems & Rhythm",
       "details": "Singing practice with Mrs. Afronia.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1326,6 +1431,7 @@
       "title": "Unit 1: Lesson 3 - Keyboard Layouts & Ergonomics",
       "details": "Switching Arabic and English layouts and keyboard health and safety rules.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1337,6 +1443,7 @@
       "title": "Sound Vibrations & Hands-on Exploration",
       "details": "Hands-on sound vibration experiments in the science room.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1348,6 +1455,7 @@
       "title": "التربية الدينية: مبادئ التعامل الإنساني",
       "details": "مراجعة المبادئ والأخلاق الكريمة.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1360,6 +1468,7 @@
       "details": "Review of week 1 lessons (pages 10 to 12). Spelling checks and phonics wrap-up.",
       "pages": "From p. 10 to p. 12",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1372,6 +1481,7 @@
       "details": "Summarizing key sounds and vocabulary of the week.",
       "pages": "From p. 10 to p. 12",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1384,6 +1494,7 @@
       "details": "1 more, 1 less, and estimation. (HW: Page 80, 84 Q.1 only).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1396,6 +1507,7 @@
       "details": "تطبيق إملائي على الكلمات التي تمت مراجعتها.",
       "pages": "كراسة الطالب",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1407,6 +1519,7 @@
       "title": "Coloring & Art Crafts",
       "details": "Crafting and drawing in the art studio.",
       "completed": false,
+      "block": 1,
       "week": 1
     },
     {
@@ -1419,7 +1532,8 @@
       "details": "قراءة جهرية معبرة لدرس (يوم جديد) ومناقشة أسئلة الفهم القرائي واستخراج المفردات والتراكيب.",
       "pages": "كراسة نشاط الوحدة الأولى ص 9 - 10",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-mon-5",
@@ -1431,7 +1545,8 @@
       "details": "مراجعة وتدريبات على حروف الجر المتصلة (بـ، كـ، لـ) والمنفصلة (من، إلى، عن، على، في).",
       "pages": "كراسة نشاط الوحدة الأولى ص 11 - 12",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-mon-6",
@@ -1443,7 +1558,8 @@
       "details": "استكمال تدريبات كراسة النشاط والتركيب في جمل مفيدة.",
       "pages": "كراسة نشاط الوحدة الأولى ص 11 - 12",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-tue-6",
@@ -1457,7 +1573,8 @@
       "completed": false,
       "week": 2,
       "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français"
+      "linkTitle": "Compétition de français",
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-tue-8",
@@ -1470,7 +1587,8 @@
       "pages": "فيديو + كراسة نشاط الوحدة الأولى ص 12",
       "completed": false,
       "week": 2,
-      "linkUrl": "https://www.youtube.com/results?search_query=نشيد+مدرستي+بيتي+الثاني+الصف+الثاني"
+      "linkUrl": "https://www.youtube.com/results?search_query=نشيد+مدرستي+بيتي+الثاني+الصف+الثاني",
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-wed-5",
@@ -1484,7 +1602,8 @@
       "completed": false,
       "week": 2,
       "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français"
+      "linkTitle": "Compétition de français",
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-wed-6",
@@ -1496,7 +1615,8 @@
       "details": "تطبيق إملائي لتقييم المهارات الإملائية وحروف المد والظواهر اللغوية المدروسة.",
       "pages": "كراسة الطالب",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-thu-2",
@@ -1510,7 +1630,8 @@
       "completed": false,
       "week": 2,
       "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français"
+      "linkTitle": "Compétition de français",
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-thu-4",
@@ -1522,7 +1643,8 @@
       "details": "حل أوراق العمل الشاملة وتطبيقات المفاهيم المكتسبة خلال الأسبوع.",
       "pages": "أوراق العمل",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-sun-8-math",
@@ -1534,7 +1656,8 @@
       "details": "10 more\\less, Represent 3 digit number. (Maths-Grade2-B1-All-Sheet1 - Main).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-mon-2-math",
@@ -1546,7 +1669,8 @@
       "details": "Finding pairs of numbers that make 20 on Sheet 1.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-tue-3-math",
@@ -1554,23 +1678,12 @@
       "day": "Tuesday",
       "period": 3,
       "subject": "Mathematics",
-      "title": "Unit 1: Word problems (Part 1)",
+      "title": "Unit 1: Word problems",
       "details": "Solving addition and subtraction word problems.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
-    },
-    {
-      "id": "cw-w2-g2a-tue-4-math",
-      "classId": "G2A",
-      "day": "Tuesday",
-      "period": 4,
-      "subject": "Mathematics",
-      "title": "Unit 1: Word problems (Part 2)",
-      "details": "Word problems practice on Maths Sheet 1.",
-      "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-      "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-wed-1-math",
@@ -1582,7 +1695,8 @@
       "details": "Strategies for adding several numbers together.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-thu-5-math",
@@ -1594,7 +1708,8 @@
       "details": "Unit 1 Mathematics Test.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-sun-2-soc",
@@ -1606,7 +1721,8 @@
       "details": "الوحدة الأولى: مجتمع الصف الدراسي الثاني - الدرس الأول \"تابع: العودة إلى المدرسة\"",
       "pages": "من الصفحة 6 - 8",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-wed-4-soc",
@@ -1618,7 +1734,8 @@
       "details": "الوحدة الأولى: مجتمع الصف الدراسي الثاني - الدرس الثاني \"النظام سر النجاح\"",
       "pages": "من الصفحة 10 - 13",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2a-thu-7-soc",
@@ -1630,7 +1747,73 @@
       "details": "الوحدة الأولى: مجتمع الصف الدراسي الثاني - الدرس الثالث \"تابع: النظام سر النجاح\"",
       "pages": "من الصفحة 10 - 13",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-sun-6-eng",
+      "classId": "G2A",
+      "day": "Sunday",
+      "period": 6,
+      "subject": "English",
+      "title": "Phonics",
+      "details": "Phonics practice and phonemic awareness.",
+      "pages": "p 16",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-mon-3-eng",
+      "classId": "G2A",
+      "day": "Monday",
+      "period": 3,
+      "subject": "English",
+      "title": "Class Objects / Be verb & H.w check",
+      "details": "Class Objects, verb to Be practice, and homework check.",
+      "pages": "From p. 13 to 15",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-tue-1-eng",
+      "classId": "G2A",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "English",
+      "title": "Reading & Punctuation marks",
+      "details": "Reading comprehension and punctuation marks practice.",
+      "pages": "From p. 19 , 20 and 22",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-wed-7-eng",
+      "classId": "G2A",
+      "day": "Wednesday",
+      "period": 7,
+      "subject": "English",
+      "title": "Cross & story",
+      "details": "Cross-curricular activities and story reading.",
+      "pages": "P 16 and 17",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-thu-1-eng",
+      "classId": "G2A",
+      "day": "Thursday",
+      "period": 1,
+      "subject": "English",
+      "title": "library",
+      "details": "English reading and activities in the school library.",
+      "pages": "Library session",
+      "completed": false,
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-sun-1",
@@ -1644,7 +1827,8 @@
       "completed": false,
       "week": 2,
       "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français"
+      "linkTitle": "Compétition de français",
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-sun-3",
@@ -1656,7 +1840,8 @@
       "details": "قراءة جهرية معبرة لدرس (يوم جديد) ومناقشة الفهم القرائي واستخراج الظواهر اللغوية.",
       "pages": "كراسة نشاط الوحدة الأولى ص 9 - 10",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-mon-7",
@@ -1670,7 +1855,8 @@
       "completed": false,
       "week": 2,
       "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français"
+      "linkTitle": "Compétition de français",
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-mon-8",
@@ -1682,7 +1868,8 @@
       "details": "مراجعة حروف الجر المنفصلة والمتصلة وتدريبات كراسة النشاط.",
       "pages": "كراسة نشاط الوحدة الأولى ص 11 - 12",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-tue-4",
@@ -1696,7 +1883,8 @@
       "completed": false,
       "week": 2,
       "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français"
+      "linkTitle": "Compétition de français",
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-tue-6",
@@ -1709,7 +1897,8 @@
       "pages": "فيديو + كراسة نشاط الوحدة الأولى ص 12",
       "completed": false,
       "week": 2,
-      "linkUrl": "https://www.youtube.com/results?search_query=نشيد+مدرستي+بيتي+الثاني+الصف+الثاني"
+      "linkUrl": "https://www.youtube.com/results?search_query=نشيد+مدرستي+بيتي+الثاني+الصف+الثاني",
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-wed-3",
@@ -1721,7 +1910,8 @@
       "details": "إملاء تدريبي وتقييمي للمهارات الإملائية المقررة.",
       "pages": "كراسة الطالب",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-wed-4",
@@ -1733,7 +1923,8 @@
       "details": "تصويب الكلمات الإملائية وتحليل الأخطاء الشائعة.",
       "pages": "كراسة الطالب",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-thu-1",
@@ -1745,7 +1936,8 @@
       "details": "حل أوراق العمل الشاملة وتطبيق المفاهيم المدروسة.",
       "pages": "أوراق العمل",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-sun-2-math",
@@ -1757,7 +1949,8 @@
       "details": "10 more\\less, Represent 3 digit number. (Maths-Grade2-B1-All-Sheet1 - Main).",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-mon-5-math",
@@ -1765,23 +1958,12 @@
       "day": "Monday",
       "period": 5,
       "subject": "Mathematics",
-      "title": "Unit 1: Pair of 20 (Part 1)",
-      "details": "Pairs of 20 practice.",
-      "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-      "completed": false,
-      "week": 2
-    },
-    {
-      "id": "cw-w2-g2b-mon-6-math",
-      "classId": "G2B",
-      "day": "Monday",
-      "period": 6,
-      "subject": "Mathematics",
-      "title": "Unit 1: Pair of 20 (Part 2)",
+      "title": "Unit 1: Pair of 20",
       "details": "Pairs of 20 practice on Maths-Grade2-B1-All-Sheet1 - Main.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-tue-1-math",
@@ -1793,7 +1975,8 @@
       "details": "Solving addition and subtraction word problems.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-wed-5-math",
@@ -1805,7 +1988,8 @@
       "details": "Strategies for adding several numbers together.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-thu-4-math",
@@ -1817,7 +2001,8 @@
       "details": "Unit 1 Mathematics Test.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-mon-1-soc",
@@ -1829,7 +2014,8 @@
       "details": "الوحدة الأولى: مجتمع الصف الدراسي الثاني - الدرس الأول \"تابع: العودة إلى المدرسة\"",
       "pages": "من الصفحة 6 - 8",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-wed-2-soc",
@@ -1841,7 +2027,8 @@
       "details": "الوحدة الأولى: مجتمع الصف الدراسي الثاني - الدرس الثاني \"النظام سر النجاح\"",
       "pages": "من الصفحة 10 - 13",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2b-thu-2-soc",
@@ -1853,7 +2040,73 @@
       "details": "الوحدة الأولى: مجتمع الصف الدراسي الثاني - الدرس الثالث \"تابع: النظام سر النجاح\"",
       "pages": "من الصفحة 10 - 13",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-sun-5-eng",
+      "classId": "G2B",
+      "day": "Sunday",
+      "period": 5,
+      "subject": "English",
+      "title": "Class Objects / Be verb & H.w check",
+      "details": "Class Objects, verb to Be practice, and homework check.",
+      "pages": "From p. 13 to 15",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-mon-3-eng",
+      "classId": "G2B",
+      "day": "Monday",
+      "period": 3,
+      "subject": "English",
+      "title": "Phonics & cross",
+      "details": "Phonics and cross-curricular activities.",
+      "pages": "From p 16 to 18",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-tue-8-eng",
+      "classId": "G2B",
+      "day": "Tuesday",
+      "period": 8,
+      "subject": "English",
+      "title": "Cross",
+      "details": "Cross-curricular activities and exercises.",
+      "pages": "P 16 and 17",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-wed-1-eng",
+      "classId": "G2B",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "English",
+      "title": "Reading & Punctuation marks",
+      "details": "Reading comprehension and punctuation marks practice.",
+      "pages": "From p. 19 , 20 and 22",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-thu-5-eng",
+      "classId": "G2B",
+      "day": "Thursday",
+      "period": 5,
+      "subject": "English",
+      "title": "story & library",
+      "details": "Story reading and school library session.",
+      "pages": "Library & Story session",
+      "completed": false,
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-sun-2",
@@ -1867,7 +2120,8 @@
       "completed": false,
       "week": 2,
       "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français"
+      "linkTitle": "Compétition de français",
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-sun-6",
@@ -1879,7 +2133,8 @@
       "details": "قراءة جهرية معبرة لدرس (يوم جديد) ومناقشة الفهم القرائي.",
       "pages": "كراسة نشاط الوحدة الأولى ص 9 - 10",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-mon-1",
@@ -1891,7 +2146,8 @@
       "details": "مراجعة حروف الجر المنفصلة والمتصلة وتطبيقات عليها.",
       "pages": "كراسة نشاط الوحدة الأولى ص 11 - 12",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-mon-2",
@@ -1903,7 +2159,8 @@
       "details": "استكمال تدريبات ص 11-12 في كراسة النشاط.",
       "pages": "كراسة نشاط الوحدة الأولى ص 11 - 12",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-mon-3",
@@ -1917,7 +2174,8 @@
       "completed": false,
       "week": 2,
       "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français"
+      "linkTitle": "Compétition de français",
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-tue-2",
@@ -1930,7 +2188,8 @@
       "pages": "فيديو + كراسة نشاط الوحدة الأولى ص 12",
       "completed": false,
       "week": 2,
-      "linkUrl": "https://www.youtube.com/results?search_query=نشيد+مدرستي+بيتي+الثاني+الصف+الثاني"
+      "linkUrl": "https://www.youtube.com/results?search_query=نشيد+مدرستي+بيتي+الثاني+الصف+الثاني",
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-wed-2",
@@ -1944,7 +2203,8 @@
       "completed": false,
       "week": 2,
       "linkUrl": "https://kahoot.it/solo/02420827?challenge-id=7feb71cb-9cdf-43f6-888a-1a97039524af_1758279666900",
-      "linkTitle": "Compétition de français"
+      "linkTitle": "Compétition de français",
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-wed-6",
@@ -1956,7 +2216,8 @@
       "details": "تطبيق إملائي لتقييم المهارات الإملائية المقررة.",
       "pages": "كراسة الطالب",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-thu-7",
@@ -1968,7 +2229,8 @@
       "details": "حل أوراق العمل الشاملة وتثبيت المفاهيم المكتسبة.",
       "pages": "أوراق العمل",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-sun-3-math",
@@ -1976,23 +2238,12 @@
       "day": "Sunday",
       "period": 3,
       "subject": "Mathematics",
-      "title": "Unit 1: 10 more\\less & Represent 3 digit number (Part 1)",
+      "title": "Unit 1: 10 more\\less & Represent 3 digit number",
       "details": "10 more\\less, Represent 3 digit number.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
-    },
-    {
-      "id": "cw-w2-g2c-sun-4-math",
-      "classId": "G2C",
-      "day": "Sunday",
-      "period": 4,
-      "subject": "Mathematics",
-      "title": "Unit 1: 10 more\\less & Represent 3 digit number (Part 2)",
-      "details": "Representing 3 digit numbers using base-ten materials and 100 chart.",
-      "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-      "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-mon-8-math",
@@ -2004,7 +2255,8 @@
       "details": "Finding pairs of numbers that make 20 on Sheet 1.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-tue-4-math",
@@ -2016,7 +2268,8 @@
       "details": "Solving addition and subtraction word problems.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-wed-7-math",
@@ -2028,7 +2281,8 @@
       "details": "Strategies for adding several numbers together.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-thu-6-math",
@@ -2040,7 +2294,8 @@
       "details": "Unit 1 Mathematics Test.",
       "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-sun-7-soc",
@@ -2052,7 +2307,8 @@
       "details": "الوحدة الأولى: مجتمع الصف الدراسي الثاني - الدرس الأول \"تابع: العودة إلى المدرسة\"",
       "pages": "من الصفحة 6 - 8",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-mon-6-soc",
@@ -2064,7 +2320,8 @@
       "details": "الوحدة الأولى: مجتمع الصف الدراسي الثاني - الدرس الأول \"تابع: العودة إلى المدرسة\"",
       "pages": "من الصفحة 6 - 8",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "cw-w2-g2c-wed-1-soc",
@@ -2076,22 +2333,476 @@
       "details": "الوحدة الأولى: مجتمع الصف الدراسي الثاني - الدرس الثاني \"النظام سر النجاح\"",
       "pages": "من الصفحة 10 - 13",
       "completed": false,
-      "week": 2
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-sun-1-eng",
+      "classId": "G2C",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "English",
+      "title": "Phonics",
+      "details": "Phonics practice and phonemic awareness.",
+      "pages": "p 16",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-mon-4-eng",
+      "classId": "G2C",
+      "day": "Monday",
+      "period": 4,
+      "subject": "English",
+      "title": "Cross",
+      "details": "Cross-curricular activities and exercises.",
+      "pages": "P 16 and 17",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-tue-7-eng",
+      "classId": "G2C",
+      "day": "Tuesday",
+      "period": 7,
+      "subject": "English",
+      "title": "Class Objects / Be verb & H.w check",
+      "details": "Class Objects, verb to Be practice, and homework check.",
+      "pages": "From p. 13 to 15",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-wed-3-eng",
+      "classId": "G2C",
+      "day": "Wednesday",
+      "period": 3,
+      "subject": "English",
+      "title": "Reading & Punctuation marks",
+      "details": "Reading comprehension and punctuation marks practice.",
+      "pages": "From p. 19 , 20 and 22",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-thu-4-eng",
+      "classId": "G2C",
+      "day": "Thursday",
+      "period": 4,
+      "subject": "English",
+      "title": "story & Library",
+      "details": "Story reading and school library session.",
+      "pages": "Library & Story session",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-sun-3-ict",
+      "classId": "G2A",
+      "day": "Sunday",
+      "period": 3,
+      "subject": "ICT",
+      "title": "Introducing the keyboard & Quiz (Session 1)",
+      "details": "Quiz on week one content. Describe the use of special keys including enter, space bar, Windows, control, shift, and backspace.",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-mon-7-ict",
+      "classId": "G2A",
+      "day": "Monday",
+      "period": 7,
+      "subject": "ICT",
+      "title": "Special Keys & Word Shortcuts (Session 2)",
+      "details": "Describe the use of special keys including enter, space bar, Windows, control, shift, backspace, delete, and caps lock. Use common keyboard shortcuts in Word including CTRL S and CTRL C.",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-wed-3-ict",
+      "classId": "G2A",
+      "day": "Wednesday",
+      "period": 3,
+      "subject": "ICT",
+      "title": "Working with Text in Microsoft Word (Session 3)",
+      "details": "Launch Microsoft Word. Use keyboard to write your name in Arabic and English. Save the document with a specific name and location. Switch between Arabic and English keyboard layouts.",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-sun-7-ict",
+      "classId": "G2B",
+      "day": "Sunday",
+      "period": 7,
+      "subject": "ICT",
+      "title": "Introducing the keyboard & Quiz (Session 1)",
+      "details": "Quiz on week one content. Describe the use of special keys including enter, space bar, Windows, control, shift, and backspace.",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-tue-3-ict",
+      "classId": "G2B",
+      "day": "Tuesday",
+      "period": 3,
+      "subject": "ICT",
+      "title": "Special Keys & Word Shortcuts (Session 2)",
+      "details": "Describe the use of special keys including enter, space bar, Windows, control, shift, backspace, delete, and caps lock. Use common keyboard shortcuts in Word including CTRL S and CTRL C.",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-thu-8-ict",
+      "classId": "G2B",
+      "day": "Thursday",
+      "period": 8,
+      "subject": "ICT",
+      "title": "Working with Text in Microsoft Word (Session 3)",
+      "details": "Launch Microsoft Word. Use keyboard to write your name in Arabic and English. Save the document with a specific name and location. Switch between Arabic and English keyboard layouts.",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-sun-5-ict",
+      "classId": "G2C",
+      "day": "Sunday",
+      "period": 5,
+      "subject": "ICT",
+      "title": "Introducing the keyboard & Quiz (Session 1)",
+      "details": "Quiz on week one content. Describe the use of special keys including enter, space bar, Windows, control, shift, and backspace.",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-tue-6-ict",
+      "classId": "G2C",
+      "day": "Tuesday",
+      "period": 6,
+      "subject": "ICT",
+      "title": "Special Keys & Word Shortcuts (Session 2)",
+      "details": "Describe the use of special keys including enter, space bar, Windows, control, shift, backspace, delete, and caps lock. Use common keyboard shortcuts in Word including CTRL S and CTRL C.",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-thu-1-ict",
+      "classId": "G2C",
+      "day": "Thursday",
+      "period": 1,
+      "subject": "ICT",
+      "title": "Working with Text in Microsoft Word (Session 3)",
+      "details": "Launch Microsoft Word. Use keyboard to write your name in Arabic and English. Save the document with a specific name and location. Switch between Arabic and English keyboard layouts.",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-sun-5-sci",
+      "classId": "G2A",
+      "day": "Sunday",
+      "period": 5,
+      "subject": "Science",
+      "title": "Unit 1: Sound Sources - Sound travels through materials",
+      "details": "Exploring how sound travels through different materials.",
+      "pages": "Page 17 -18-19",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-wed-2-sci",
+      "classId": "G2A",
+      "day": "Wednesday",
+      "period": 2,
+      "subject": "Science",
+      "title": "Unit 1: Sound Sources - Quiet and loud",
+      "details": "Investigating quiet and loud sounds and sound volume.",
+      "pages": "Page 23 - 24 / Workbook p. 25",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2a-thu-8-sci",
+      "classId": "G2A",
+      "day": "Thursday",
+      "period": 8,
+      "subject": "Science",
+      "title": "Unit 1: Sound Sources - QUIZ on unit 1",
+      "details": "Assessment / Quiz covering Unit 1: Sound Sources (sound traveling through materials, quiet and loud sounds).",
+      "pages": "QUIZ on unit 1",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-sun-4-sci",
+      "classId": "G2B",
+      "day": "Sunday",
+      "period": 4,
+      "subject": "Science",
+      "title": "Unit 1: Sound Sources - Sound travels through materials",
+      "details": "Exploring how sound travels through different materials.",
+      "pages": "Page 17 -18-19",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-wed-7-sci",
+      "classId": "G2B",
+      "day": "Wednesday",
+      "period": 7,
+      "subject": "Science",
+      "title": "Unit 1: Sound Sources - Quiet and loud",
+      "details": "Investigating quiet and loud sounds and sound volume.",
+      "pages": "Page 23 - 24 / Workbook p. 25",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2b-thu-7-sci",
+      "classId": "G2B",
+      "day": "Thursday",
+      "period": 7,
+      "subject": "Science",
+      "title": "Unit 1: Sound Sources - QUIZ on unit 1",
+      "details": "Assessment / Quiz covering Unit 1: Sound Sources (sound traveling through materials, quiet and loud sounds).",
+      "pages": "QUIZ on unit 1",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-mon-5-sci",
+      "classId": "G2C",
+      "day": "Monday",
+      "period": 5,
+      "subject": "Science",
+      "title": "Unit 1: Sound Sources - Sound travels through materials",
+      "details": "Exploring how sound travels through different materials.",
+      "pages": "Learner’s Book p. 17-19 / Workbook p. 20-22",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-tue-3-sci",
+      "classId": "G2C",
+      "day": "Tuesday",
+      "period": 3,
+      "subject": "Science",
+      "title": "Unit 1: Sound Sources - Quiet and loud",
+      "details": "Investigating quiet and loud sounds and sound volume.",
+      "pages": "Page : 23 -24",
+      "completed": false,
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "cw-w2-g2c-thu-2-sci",
+      "classId": "G2C",
+      "day": "Thursday",
+      "period": 2,
+      "subject": "Science",
+      "title": "Unit 1: Sound Sources - QUIZ on unit 1",
+      "details": "Assessment / Quiz covering Unit 1: Sound Sources (sound traveling through materials, quiet and loud sounds).",
+      "pages": "QUIZ on unit 1",
+      "completed": false,
+      "week": 2,
+      "block": 1
     }
   ],
   "nile_planner_homework_b1_w1_w2_v10": [
+    {
+      "id": "hw-w1-hint-eng-diag-g2a",
+      "classId": "G2A",
+      "assignedDay": "Sunday",
+      "dueDay": "Monday",
+      "subject": "English",
+      "task": "🔔 تنبيه اختبار تشخيصي (English Diagnostic Test): الاستعداد لاختبار تحديد المستوى غداً الإثنين وتجهيز أقلام رصاص مبرية وممحاة",
+      "details": "English Diagnostic Test tomorrow (Monday). Assessing phonics, basic vocabulary, reading, and handwriting.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-hint-eng-diag-g2b",
+      "classId": "G2B",
+      "assignedDay": "Sunday",
+      "dueDay": "Monday",
+      "subject": "English",
+      "task": "🔔 تنبيه اختبار تشخيصي (English Diagnostic Test): الاستعداد لاختبار تحديد المستوى غداً الإثنين وتجهيز أقلام رصاص مبرية وممحاة",
+      "details": "English Diagnostic Test tomorrow (Monday). Assessing phonics, basic vocabulary, reading, and handwriting.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-hint-eng-diag-g2c",
+      "classId": "G2C",
+      "assignedDay": "Sunday",
+      "dueDay": "Monday",
+      "subject": "English",
+      "task": "🔔 تنبيه اختبار تشخيصي (English Diagnostic Test): الاستعداد لاختبار تحديد المستوى غداً الإثنين وتجهيز أقلام رصاص مبرية وممحاة",
+      "details": "English Diagnostic Test tomorrow (Monday). Assessing phonics, basic vocabulary, reading, and handwriting.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-hint-soc-test-g2a",
+      "classId": "G2A",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Social Studies",
+      "task": "🔔 تنبيه اختبار قبلي (دراسات اجتماعية): أداء الاختبار القبلي للوحدة الأولى (مجتمع الصف الثاني) غداً الأربعاء",
+      "details": "أداء الاختبار القبلي للوحدة الأولى في الحصة الرابعة يوم الأربعاء.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-hint-soc-test-g2b",
+      "classId": "G2B",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Social Studies",
+      "task": "🔔 تنبيه اختبار قبلي (دراسات اجتماعية): أداء الاختبار القبلي للوحدة الأولى (مجتمع الصف الثاني) غداً الأربعاء",
+      "details": "أداء الاختبار القبلي للوحدة الأولى في الحصة الثانية يوم الأربعاء.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-hint-soc-test-g2c",
+      "classId": "G2C",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Social Studies",
+      "task": "🔔 تنبيه اختبار قبلي (دراسات اجتماعية): أداء الاختبار القبلي للوحدة الأولى (مجتمع الصف الثاني) غداً الأربعاء",
+      "details": "أداء الاختبار القبلي للوحدة الأولى في الحصة الأولى يوم الأربعاء.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-hint-ar-dict-g2a",
+      "classId": "G2A",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Arabic",
+      "task": "🔔 تنبيه إملاء لغة عربية: الاستعداد لإملاء الكلمات التي تمت مراجعتها خلال الأسبوع وتجهيز كراسة الطالب لحصة الإملاء غداً الخميس",
+      "details": "إملاء في كراسة الطالب - مراجعة الحركات القصيرة والتحليل الصوتي والتاء المربوطة والمفتوحة والهاء.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-hint-ar-dict-g2b",
+      "classId": "G2B",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Arabic",
+      "task": "🔔 تنبيه إملاء لغة عربية: الاستعداد لإملاء الكلمات التي تمت مراجعتها خلال الأسبوع وتجهيز كراسة الطالب لحصة الإملاء غداً الخميس",
+      "details": "إملاء في كراسة الطالب - مراجعة الحركات القصيرة والتحليل الصوتي والتاء المربوطة والمفتوحة والهاء.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-hint-ar-dict-g2c",
+      "classId": "G2C",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Arabic",
+      "task": "🔔 تنبيه إملاء لغة عربية: الاستعداد لإملاء الكلمات التي تمت مراجعتها خلال الأسبوع وتجهيز كراسة الطالب لحصة الإملاء غداً الخميس",
+      "details": "إملاء في كراسة الطالب - مراجعة الحركات القصيرة والتحليل الصوتي والتاء المربوطة والمفتوحة والهاء.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-ict-g2a-wed",
+      "classId": "G2A",
+      "assignedDay": "Wednesday",
+      "dueDay": "Sunday",
+      "subject": "ICT",
+      "task": "واجب تكنولوجيا المعلومات (ICT): حل تدريبات صفحة 14 (أجزاء لوحة المفاتيح والمفاتيح الخاصة)",
+      "pages": "Page 14",
+      "details": "Identify keyboard parts and describe special keys (Enter, Space bar, Shift, Control, Backspace, Caps lock, Delete). Page 14.",
+      "linkUrl": "https://www.youtube.com/watch?v=6unZgmlAavQ",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-ict-g2b-thu",
+      "classId": "G2B",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "ICT",
+      "task": "واجب تكنولوجيا المعلومات (ICT): حل تدريبات صفحة 14 (أجزاء لوحة المفاتيح والمفاتيح الخاصة)",
+      "pages": "Page 14",
+      "details": "Identify keyboard parts and describe special keys (Enter, Space bar, Shift, Control, Backspace, Caps lock, Delete). Page 14.",
+      "linkUrl": "https://www.youtube.com/watch?v=6unZgmlAavQ",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-ict-g2c-thu",
+      "classId": "G2C",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "ICT",
+      "task": "واجب تكنولوجيا المعلومات (ICT): حل تدريبات صفحة 14 (أجزاء لوحة المفاتيح والمفاتيح الخاصة)",
+      "pages": "Page 14",
+      "details": "Identify keyboard parts and describe special keys (Enter, Space bar, Shift, Control, Backspace, Caps lock, Delete). Page 14.",
+      "linkUrl": "https://www.youtube.com/watch?v=6unZgmlAavQ",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
     {
       "id": "hw-ar-g2a-1",
       "classId": "G2A",
       "assignedDay": "Tuesday",
       "dueDay": "Wednesday",
       "subject": "Arabic",
-      "task": "مراجعة التحليل الصوتي للكلمات وحل تدريبات كراسة الواجب المنزلي",
-      "pages": "كراسة الواجب المنزلي صفحة 45",
-      "details": "حل تدريبات تحليل الكلمات إلى مقاطع صوتية وحروف في كراسة الواجب ص 45.",
+      "task": "واجب اللغة العربية: حل تدريبات كراسة الواجب المنزلي صفحة 45 (مراجعة التحليل الصوتي للكلمات)",
+      "pages": "كراسة الواجب ص 45",
+      "details": "حل تدريبات تحليل الكلمات إلى مقاطع صوتية وحروف في كراسة الواجب المنزلي ص 45.",
       "completed": false,
       "priority": "urgent",
-      "week": 1
+      "week": 1,
+      "block": 1
     },
     {
       "id": "hw-ar-g2b-1",
@@ -2099,12 +2810,13 @@
       "assignedDay": "Tuesday",
       "dueDay": "Wednesday",
       "subject": "Arabic",
-      "task": "مراجعة التحليل الصوتي للكلمات وحل تدريبات كراسة الواجب المنزلي",
-      "pages": "كراسة الواجب المنزلي صفحة 45",
-      "details": "حل تدريبات تحليل الكلمات إلى مقاطع صوتية وحروف في كراسة الواجب ص 45.",
+      "task": "واجب اللغة العربية: حل تدريبات كراسة الواجب المنزلي صفحة 45 (مراجعة التحليل الصوتي للكلمات)",
+      "pages": "كراسة الواجب ص 45",
+      "details": "حل تدريبات تحليل الكلمات إلى مقاطع صوتية وحروف في كراسة الواجب المنزلي ص 45.",
       "completed": false,
       "priority": "urgent",
-      "week": 1
+      "week": 1,
+      "block": 1
     },
     {
       "id": "hw-ar-g2c-1",
@@ -2112,12 +2824,181 @@
       "assignedDay": "Tuesday",
       "dueDay": "Wednesday",
       "subject": "Arabic",
-      "task": "مراجعة التحليل الصوتي للكلمات وحل تدريبات كراسة الواجب المنزلي",
-      "pages": "كراسة الواجب المنزلي صفحة 45",
-      "details": "حل تدريبات تحليل الكلمات إلى مقاطع صوتية وحروف في كراسة الواجب ص 45.",
+      "task": "واجب اللغة العربية: حل تدريبات كراسة الواجب المنزلي صفحة 45 (مراجعة التحليل الصوتي للكلمات)",
+      "pages": "كراسة الواجب ص 45",
+      "details": "حل تدريبات تحليل الكلمات إلى مقاطع صوتية وحروف في كراسة الواجب المنزلي ص 45.",
       "completed": false,
       "priority": "urgent",
-      "week": 1
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-math-g2a-tue",
+      "classId": "G2A",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Mathematics",
+      "task": "حل تدريبات الرياضيات في كتاب التمارين / الورقة المخصصة صفحة 81",
+      "pages": "Page 81",
+      "details": "Solve page 81 from Maths-Grade2-B1-All-Sheet1.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-math-g2b-tue",
+      "classId": "G2B",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Mathematics",
+      "task": "حل تدريبات الرياضيات في كتاب التمارين / الورقة المخصصة صفحة 81",
+      "pages": "Page 81",
+      "details": "Solve page 81 from Maths-Grade2-B1-All-Sheet1.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-math-g2c-tue",
+      "classId": "G2C",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Mathematics",
+      "task": "حل تدريبات الرياضيات في كتاب التمارين / الورقة المخصصة صفحة 81",
+      "pages": "Page 81",
+      "details": "Solve page 81 from Maths-Grade2-B1-All-Sheet1.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-math-g2a-thu",
+      "classId": "G2A",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "Mathematics",
+      "task": "حل تدريبات الرياضيات صفحة 80 وصفحة 84 السؤال 1 فقط",
+      "pages": "Page 80 & Page 84 (Q.1 only)",
+      "details": "Solve page 80 and page 84 (question 1 only) from Maths-Grade2-B1-All-Sheet1.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-math-g2b-thu",
+      "classId": "G2B",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "Mathematics",
+      "task": "حل تدريبات الرياضيات صفحة 80 وصفحة 84 السؤال 1 فقط",
+      "pages": "Page 80 & Page 84 (Q.1 only)",
+      "details": "Solve page 80 and page 84 (question 1 only) from Maths-Grade2-B1-All-Sheet1.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-math-g2c-thu",
+      "classId": "G2C",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "Mathematics",
+      "task": "حل تدريبات الرياضيات صفحة 80 وصفحة 84 السؤال 1 فقط",
+      "pages": "Page 80 & Page 84 (Q.1 only)",
+      "details": "Solve page 80 and page 84 (question 1 only) from Maths-Grade2-B1-All-Sheet1.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-eng-g2a-thu",
+      "classId": "G2A",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "English",
+      "task": "حل واجب اللغة الإنجليزية صفحة 56 وصفحة 58 في كراسة التمارين",
+      "pages": "Pages 56 & 58",
+      "details": "Complete homework exercises on pages 56 and 58.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-eng-g2b-thu",
+      "classId": "G2B",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "English",
+      "task": "حل واجب اللغة الإنجليزية صفحة 56 وصفحة 58 في كراسة التمارين",
+      "pages": "Pages 56 & 58",
+      "details": "Complete homework exercises on pages 56 and 58.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-eng-g2c-thu",
+      "classId": "G2C",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "English",
+      "task": "حل واجب اللغة الإنجليزية صفحة 56 وصفحة 58 في كراسة التمارين",
+      "pages": "Pages 56 & 58",
+      "details": "Complete homework exercises on pages 56 and 58.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-sci-g2a-wed",
+      "classId": "G2A",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Science",
+      "task": "حل تدريبات العلوم صفحة 16 في كتاب التمارين / كراسة الطالب (مفهوم اهتزازات الصوت)",
+      "pages": "Page 16",
+      "details": "Solve Science workbook exercises on Page 16 (Sound is a vibration).",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-sci-g2b-wed",
+      "classId": "G2B",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Science",
+      "task": "حل تدريبات العلوم صفحة 16 في كتاب التمارين / كراسة الطالب (مفهوم اهتزازات الصوت)",
+      "pages": "Page 16",
+      "details": "Solve Science workbook exercises on Page 16 (Sound is a vibration).",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
+    },
+    {
+      "id": "hw-w1-sci-g2c-tue",
+      "classId": "G2C",
+      "assignedDay": "Tuesday",
+      "dueDay": "Thursday",
+      "subject": "Science",
+      "task": "حل تدريبات العلوم صفحة 16 في كتاب التمارين / كراسة الطالب (مفهوم اهتزازات الصوت)",
+      "pages": "Page 16",
+      "details": "Solve Science workbook exercises on Page 16 (Sound is a vibration).",
+      "completed": false,
+      "priority": "urgent",
+      "week": 1,
+      "block": 1
     },
     {
       "id": "hw-w2-ar-sun-g2a",
@@ -2130,7 +3011,8 @@
       "details": "كتابة الفقرة الأولى من درس (يوم جديد) بخط نسخ جميل ومراعاة الحركات وضبط الحروف.",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-ar-sun-g2b",
@@ -2143,7 +3025,8 @@
       "details": "كتابة الفقرة الأولى من درس (يوم جديد) بخط نسخ جميل ومراعاة الحركات وضبط الحروف.",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-ar-sun-g2c",
@@ -2156,7 +3039,8 @@
       "details": "كتابة الفقرة الأولى من درس (يوم جديد) بخط نسخ جميل ومراعاة الحركات وضبط الحروف.",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-ar-tue-g2a-wb",
@@ -2169,7 +3053,8 @@
       "details": "حل أسئلة وتدريبات كراسة الواجب المنزلي صفحة 46 الخاصة بنشيد مدرستي بيتي الثاني.",
       "completed": false,
       "priority": "urgent",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-ar-tue-g2b-wb",
@@ -2182,7 +3067,8 @@
       "details": "حل أسئلة وتدريبات كراسة الواجب المنزلي صفحة 46 الخاصة بنشيد مدرستي بيتي الثاني.",
       "completed": false,
       "priority": "urgent",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-ar-tue-g2c-wb",
@@ -2195,7 +3081,8 @@
       "details": "حل أسئلة وتدريبات كراسة الواجب المنزلي صفحة 46 الخاصة بنشيد مدرستي بيتي الثاني.",
       "completed": false,
       "priority": "urgent",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-fr-g2a",
@@ -2208,7 +3095,8 @@
       "details": "Compléter tous les exercices de la Page 23 dans le livret de devoir de français (Les goûts et les activités).",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-fr-g2b",
@@ -2221,7 +3109,8 @@
       "details": "Compléter tous les exercices de la Page 23 dans le livret de devoir de français (Les goûts et les activités).",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-fr-g2c",
@@ -2234,7 +3123,8 @@
       "details": "Compléter tous les exercices de la Page 23 dans le livret de devoir de français (Les goûts et les activités).",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-math-tue-g2a",
@@ -2247,7 +3137,8 @@
       "details": "Unit 1: Word problems homework - solve Page 79 and Page 84 Question 2.",
       "completed": false,
       "priority": "urgent",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-math-tue-g2b",
@@ -2260,7 +3151,8 @@
       "details": "Unit 1: Word problems homework - solve Page 79 and Page 84 Question 2.",
       "completed": false,
       "priority": "urgent",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-math-tue-g2c",
@@ -2273,7 +3165,8 @@
       "details": "Unit 1: Word problems homework - solve Page 79 and Page 84 Question 2.",
       "completed": false,
       "priority": "urgent",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-math-thu-g2a",
@@ -2286,7 +3179,8 @@
       "details": "Unit 1: Test consolidation homework - complete Page 85 and Page 86.",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-math-thu-g2b",
@@ -2299,7 +3193,8 @@
       "details": "Unit 1: Test consolidation homework - complete Page 85 and Page 86.",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-math-thu-g2c",
@@ -2312,7 +3207,8 @@
       "details": "Unit 1: Test consolidation homework - complete Page 85 and Page 86.",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-soc-tue-g2a",
@@ -2325,7 +3221,8 @@
       "details": "رسم 3 أماكن في كشكول الدراسات الاجتماعية - التسليم يوم الأربعاء.",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-soc-tue-g2b",
@@ -2338,7 +3235,8 @@
       "details": "رسم 3 أماكن في كشكول الدراسات الاجتماعية - التسليم يوم الأربعاء.",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
     },
     {
       "id": "hw-w2-soc-tue-g2c",
@@ -2351,7 +3249,296 @@
       "details": "رسم 3 أماكن في كشكول الدراسات الاجتماعية - التسليم يوم الأربعاء.",
       "completed": false,
       "priority": "normal",
-      "week": 2
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-eng-mon-g2a",
+      "classId": "G2A",
+      "assignedDay": "Monday",
+      "dueDay": "Tuesday",
+      "subject": "English",
+      "task": "English Homework: Activity Book pages 61 and 62",
+      "pages": "Pages 61 & 62",
+      "details": "Complete homework exercises on pages 61 and 62.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-eng-mon-g2b",
+      "classId": "G2B",
+      "assignedDay": "Monday",
+      "dueDay": "Tuesday",
+      "subject": "English",
+      "task": "English Homework: Activity Book pages 61 and 62",
+      "pages": "Pages 61 & 62",
+      "details": "Complete homework exercises on pages 61 and 62.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-eng-mon-g2c",
+      "classId": "G2C",
+      "assignedDay": "Monday",
+      "dueDay": "Tuesday",
+      "subject": "English",
+      "task": "English Homework: Activity Book pages 61 and 62",
+      "pages": "Pages 61 & 62",
+      "details": "Complete homework exercises on pages 61 and 62.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-eng-thu-g2a",
+      "classId": "G2A",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "English",
+      "task": "English Homework: Activity Book pages 60 and 63",
+      "pages": "Pages 60 & 63",
+      "details": "Complete homework exercises on pages 60 and 63.",
+      "completed": false,
+      "priority": "normal",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-eng-thu-g2b",
+      "classId": "G2B",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "English",
+      "task": "English Homework: Activity Book pages 60 and 63",
+      "pages": "Pages 60 & 63",
+      "details": "Complete homework exercises on pages 60 and 63.",
+      "completed": false,
+      "priority": "normal",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-eng-thu-g2c",
+      "classId": "G2C",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "English",
+      "task": "English Homework: Activity Book pages 60 and 63",
+      "pages": "Pages 60 & 63",
+      "details": "Complete homework exercises on pages 60 and 63.",
+      "completed": false,
+      "priority": "normal",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-ict-wed-g2a",
+      "classId": "G2A",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "ICT",
+      "task": "واجب تكنولوجيا المعلومات (ICT): حل أنشطة وتدريبات صفحة 25",
+      "pages": "Page 25",
+      "details": "Unit one: Working with text - Complete ICT activities on Page 25.",
+      "completed": false,
+      "priority": "normal",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-ict-thu-g2b",
+      "classId": "G2B",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "ICT",
+      "task": "واجب تكنولوجيا المعلومات (ICT): حل أنشطة وتدريبات صفحة 25",
+      "pages": "Page 25",
+      "details": "Unit one: Working with text - Complete ICT activities on Page 25.",
+      "completed": false,
+      "priority": "normal",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-ict-thu-g2c",
+      "classId": "G2C",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "ICT",
+      "task": "واجب تكنولوجيا المعلومات (ICT): حل أنشطة وتدريبات صفحة 25",
+      "pages": "Page 25",
+      "details": "Unit one: Working with text - Complete ICT activities on Page 25.",
+      "completed": false,
+      "priority": "normal",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-hint-math-test-g2a",
+      "classId": "G2A",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Mathematics",
+      "task": "🔔 تنبيه اختبار رياضيات (Unit 1: Test): مراجعة دروس الوحدة الأولى والاستعداد للاختبار غداً يوم الخميس",
+      "details": "Unit 1 Mathematics Test tomorrow (Thursday). Review all addition strategies, 1 more, 1 less, and estimation.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-hint-math-test-g2b",
+      "classId": "G2B",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Mathematics",
+      "task": "🔔 تنبيه اختبار رياضيات (Unit 1: Test): مراجعة دروس الوحدة الأولى والاستعداد للاختبار غداً يوم الخميس",
+      "details": "Unit 1 Mathematics Test tomorrow (Thursday). Review all addition strategies, 1 more, 1 less, and estimation.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-hint-math-test-g2c",
+      "classId": "G2C",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Mathematics",
+      "task": "🔔 تنبيه اختبار رياضيات (Unit 1: Test): مراجعة دروس الوحدة الأولى والاستعداد للاختبار غداً يوم الخميس",
+      "details": "Unit 1 Mathematics Test tomorrow (Thursday). Review all addition strategies, 1 more, 1 less, and estimation.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-hint-ict-quiz-g2a",
+      "classId": "G2A",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "ICT",
+      "task": "🔔 تنبيه كويز تكنولوجيا المعلومات (ICT Quiz): مراجعة محتوى الأسبوع الأول استعداداً لكويز الحصة القادمة يوم الأحد",
+      "details": "Quiz on week one content in Session 1 on Sunday. Review keyboard basics and text concepts.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-hint-ict-quiz-g2b",
+      "classId": "G2B",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "ICT",
+      "task": "🔔 تنبيه كويز تكنولوجيا المعلومات (ICT Quiz): مراجعة محتوى الأسبوع الأول استعداداً لكويز الحصة القادمة يوم الأحد",
+      "details": "Quiz on week one content in Session 1 on Sunday. Review keyboard basics and text concepts.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-hint-ict-quiz-g2c",
+      "classId": "G2C",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "ICT",
+      "task": "🔔 تنبيه كويز تكنولوجيا المعلومات (ICT Quiz): مراجعة محتوى الأسبوع الأول استعداداً لكويز الحصة القادمة يوم الأحد",
+      "details": "Quiz on week one content in Session 1 on Sunday. Review keyboard basics and text concepts.",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-sci-mon-g2c",
+      "classId": "G2C",
+      "assignedDay": "Monday",
+      "dueDay": "Tuesday",
+      "subject": "Science",
+      "task": "Science Homework: Workbook Page 20-21-22 (Sound travels through materials)",
+      "pages": "Page : 20-21-22",
+      "details": "Unit 1: Sound Sources - Complete workbook exercises on pages 20, 21, and 22 about sound traveling through materials.",
+      "completed": false,
+      "priority": "normal",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-sci-wed-g2a",
+      "classId": "G2A",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Science",
+      "task": "Science Homework: Workbook Page 25 (Quiet and loud)",
+      "pages": "Page : 25",
+      "details": "Unit 1: Sound Sources - Complete workbook exercises on page 25 about quiet and loud sounds.",
+      "completed": false,
+      "priority": "normal",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-sci-wed-g2b",
+      "classId": "G2B",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Science",
+      "task": "Science Homework: Workbook Page 25 (Quiet and loud)",
+      "pages": "Page : 25",
+      "details": "Unit 1: Sound Sources - Complete workbook exercises on page 25 about quiet and loud sounds.",
+      "completed": false,
+      "priority": "normal",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-hint-sci-quiz-g2a",
+      "classId": "G2A",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Science",
+      "task": "🔔 تنبيه كويز علوم (Science Quiz - Unit 1): مراجعة دروس الوحدة الأولى والاستعداد للكويز غداً يوم الخميس",
+      "details": "Unit 1: Sound Sources - QUIZ on unit 1 tomorrow (Thursday). Review sound traveling through materials and quiet and loud sounds (Pages 17-25).",
+      "pages": "Unit 1: Pages 17 - 25",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-hint-sci-quiz-g2b",
+      "classId": "G2B",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Science",
+      "task": "🔔 تنبيه كويز علوم (Science Quiz - Unit 1): مراجعة دروس الوحدة الأولى والاستعداد للكويز غداً يوم الخميس",
+      "details": "Unit 1: Sound Sources - QUIZ on unit 1 tomorrow (Thursday). Review sound traveling through materials and quiet and loud sounds (Pages 17-25).",
+      "pages": "Unit 1: Pages 17 - 25",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
+    },
+    {
+      "id": "hw-w2-hint-sci-quiz-g2c",
+      "classId": "G2C",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Science",
+      "task": "🔔 تنبيه كويز علوم (Science Quiz - Unit 1): مراجعة دروس الوحدة الأولى والاستعداد للكويز غداً يوم الخميس",
+      "details": "Unit 1: Sound Sources - QUIZ on unit 1 tomorrow (Thursday). Review sound traveling through materials and quiet and loud sounds (Pages 17-25).",
+      "pages": "Unit 1: Pages 17 - 25",
+      "completed": false,
+      "priority": "urgent",
+      "week": 2,
+      "block": 1
     }
   ]
 }
