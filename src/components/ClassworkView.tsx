@@ -57,7 +57,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   interface GroupedPeriodSlot {
     periods: number[];
     periodLabel: string;
-    arabicPeriodLabel: string;
     time: string;
     subject: SubjectName;
     teacher: string;
@@ -73,12 +72,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       const endTime = slot.time.split(' - ')[1] || slot.time;
       last.time = `${startTime} - ${endTime}`;
       last.periodLabel = last.periods.map((p) => `P${p}`).join(' & ');
-      last.arabicPeriodLabel = last.periods.map((p) => `ب${p}`).join(' وب');
     } else {
       timetablePeriods.push({
         periods: [slot.period],
         periodLabel: `P${slot.period}`,
-        arabicPeriodLabel: `ب${slot.period}`,
         time: slot.time,
         subject: slot.subject,
         teacher: slot.teacher,
@@ -275,14 +272,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                       cwEntry?.completed ? 'bg-emerald-700 text-white' : theme.cwPeriodBox
                     } font-black py-2 px-2 rounded-xl flex items-center justify-center text-center shadow-2xs transition-colors`}
                   >
-                    {slot.periods.length > 1 ? (
-                      <div className="flex flex-col items-center justify-center leading-tight">
-                        <span className="text-xs sm:text-sm font-black tracking-tight">{slot.periodLabel}</span>
-                        <span className="text-[10px] opacity-85 font-bold">{slot.arabicPeriodLabel}</span>
-                      </div>
-                    ) : (
-                      <span className="text-xs sm:text-sm font-black">{slot.periodLabel}</span>
-                    )}
+                    <span className="text-xs sm:text-sm font-black tracking-tight">{slot.periodLabel}</span>
                   </div>
 
                   {/* Box 2: اسم المادة */}
