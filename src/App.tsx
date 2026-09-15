@@ -19,7 +19,29 @@ import {
   getStudentProgress,
   saveStudentProgress,
 } from './utils/studentStorage';
-import { Sparkles, RotateCcw } from 'lucide-react';
+import {
+  isSupabaseConfigured,
+  supabase,
+  fetchAllClasswork,
+  upsertClasswork,
+  updateClassworkCompletion,
+  deleteClasswork,
+  bulkInsertClasswork,
+  fetchAllHomework,
+  upsertHomework,
+  updateHomeworkCompletion,
+  deleteHomework,
+  bulkInsertHomework,
+  seedInitialDataIfEmpty,
+  fetchPlannerSettings,
+  savePlannerSetting,
+  rowToClasswork,
+  rowToHomework,
+  ClassworkRow,
+  HomeworkRow,
+} from './lib/supabase';
+import initialData from './data/initialData.json';
+import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
@@ -28,30 +50,32 @@ const STORAGE_KEYS = {
 };
 
 function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
+  const baseList = (initialData.nile_planner_classwork_b1_w1_w2_v9 as unknown) as ClassworkEntry[];
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
-    return INITIAL_CLASSWORK.map((c) => ({
+    return baseList.map((c) => ({
       ...c,
       completed: set.has(c.id),
     }));
   }
-  return INITIAL_CLASSWORK.map((c) => ({
+  return baseList.map((c) => ({
     ...c,
     completed: false,
   }));
 }
 
 function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
+  const baseList = (initialData.nile_planner_homework_b1_w1_w2_v10 as unknown) as HomeworkEntry[];
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedHomeworkIds);
-    return INITIAL_HOMEWORK.map((h) => ({
+    return baseList.map((h) => ({
       ...h,
       completed: set.has(h.id),
     }));
   }
-  return INITIAL_HOMEWORK.map((h) => ({
+  return baseList.map((h) => ({
     ...h,
     completed: false,
   }));
@@ -109,6 +133,11 @@ export default function App() {
   // Active View Tab: 'classwork' | 'homework' | 'tomorrow' | 'timetable'
   const [activeTab, setActiveTab] = useState<'classwork' | 'homework' | 'tomorrow' | 'timetable'>('classwork');
 
+  // Supabase Connection Status
+  const [supabaseStatus, setSupabaseStatus] = useState<'connecting' | 'connected' | 'unconfigured' | 'error'>(() => {
+    return isSupabaseConfigured ? 'connecting' : 'unconfigured';
+  });
+
   // Classwork state initialized based on user profile
   const [classworkList, setClassworkList] = useState<ClassworkEntry[]>(() => {
     return getProfileClasswork(getActiveUserProfile());
@@ -125,18 +154,138 @@ export default function App() {
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
 
-  // Persistence effects for class, week, day
+  // Persistence & Sync effects for class, week, day
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
+    if (isSupabaseConfigured) {
+      savePlannerSetting('current_class', currentClass);
+    }
   }, [currentClass]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.WEEK, String(currentWeek));
+    if (isSupabaseConfigured) {
+      savePlannerSetting('current_week', String(currentWeek));
+    }
   }, [currentWeek]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.DAY, selectedDay);
+    if (isSupabaseConfigured) {
+      savePlannerSetting('selected_day', selectedDay);
+    }
   }, [selectedDay]);
+
+  // Initial Supabase Seeding and Realtime Subscriptions
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setSupabaseStatus('unconfigured');
+      return;
+    }
+
+    let isMounted = true;
+
+    async function initializeFromSupabase() {
+      try {
+        setSupabaseStatus('connecting');
+
+        // 1. Check if DB is empty; if so, seed from initialData.json
+        const seedResult = await seedInitialDataIfEmpty();
+        if (seedResult.seeded) {
+          console.log('✅ Initial data automatically seeded into Supabase tables.');
+        }
+
+        // 2. Fetch classwork, homework, and planner settings
+        const [cwData, hwData, settings] = await Promise.all([
+          fetchAllClasswork(),
+          fetchAllHomework(),
+          fetchPlannerSettings(),
+        ]);
+
+        if (!isMounted) return;
+
+        // Apply classwork with student completion checks
+        if (cwData && cwData.length > 0) {
+          const profile = getActiveUserProfile();
+          if (profile?.mode === 'student' && profile.studentName) {
+            const progress = getStudentProgress(profile.studentName);
+            const cwSet = new Set(progress.completedClassworkIds);
+            setClassworkList(cwData.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+          } else {
+            setClassworkList(cwData);
+          }
+        }
+
+        // Apply homework with student completion checks
+        if (hwData && hwData.length > 0) {
+          const profile = getActiveUserProfile();
+          if (profile?.mode === 'student' && profile.studentName) {
+            const progress = getStudentProgress(profile.studentName);
+            const hwSet = new Set(progress.completedHomeworkIds);
+            setHomeworkList(hwData.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+          } else {
+            setHomeworkList(hwData);
+          }
+        }
+
+        // Apply settings if found in DB
+        if (
+          settings.current_class &&
+          (settings.current_class === 'G2A' || settings.current_class === 'G2B' || settings.current_class === 'G2C')
+        ) {
+          setCurrentClass(settings.current_class as ClassId);
+        }
+        if (settings.current_week) {
+          setCurrentWeek(Number(settings.current_week) || 2);
+        }
+
+        setSupabaseStatus('connected');
+      } catch (err) {
+        console.error('Failed to initialize data from Supabase:', err);
+        if (isMounted) setSupabaseStatus('error');
+      }
+    }
+
+    initializeFromSupabase();
+
+    // 3. Setup Supabase Realtime Channels
+    const channel = supabase
+      .channel('planner-realtime-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newCw = rowToClasswork(payload.new as ClassworkRow);
+          setClassworkList((prev) => [newCw, ...prev.filter((c) => c.id !== newCw.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedCw = rowToClasswork(payload.new as ClassworkRow);
+          setClassworkList((prev) =>
+            prev.map((c) => (c.id === updatedCw.id ? { ...c, ...updatedCw } : c))
+          );
+        } else if (payload.eventType === 'DELETE') {
+          const oldId = payload.old.id;
+          setClassworkList((prev) => prev.filter((c) => c.id !== oldId));
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newHw = rowToHomework(payload.new as HomeworkRow);
+          setHomeworkList((prev) => [newHw, ...prev.filter((h) => h.id !== newHw.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedHw = rowToHomework(payload.new as HomeworkRow);
+          setHomeworkList((prev) =>
+            prev.map((h) => (h.id === updatedHw.id ? { ...h, ...updatedHw } : h))
+          );
+        } else if (payload.eventType === 'DELETE') {
+          const oldId = payload.old.id;
+          setHomeworkList((prev) => prev.filter((h) => h.id !== oldId));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -157,31 +306,38 @@ export default function App() {
       const cwSet = new Set(progress.completedClassworkIds);
       const hwSet = new Set(progress.completedHomeworkIds);
 
-      setClassworkList(
-        INITIAL_CLASSWORK.map((c) => ({
+      setClassworkList((prev) =>
+        prev.map((c) => ({
           ...c,
           completed: cwSet.has(c.id),
         }))
       );
-      setHomeworkList(
-        INITIAL_HOMEWORK.map((h) => ({
+      setHomeworkList((prev) =>
+        prev.map((h) => ({
           ...h,
           completed: hwSet.has(h.id),
         }))
       );
       showToast(`مرحباً يا ${newProfile.studentName}! تم تحميل إنجازاتك وواجباتك المحفوظة.`);
     } else {
-      // Guest mode: Reset all checkmarks (transient session, not saved)
-      setClassworkList(INITIAL_CLASSWORK.map((c) => ({ ...c, completed: false })));
-      setHomeworkList(INITIAL_HOMEWORK.map((h) => ({ ...h, completed: false })));
+      // Guest mode: Reset all checkmarks
+      setClassworkList((prev) => prev.map((c) => ({ ...c, completed: false })));
+      setHomeworkList((prev) => prev.map((h) => ({ ...h, completed: false })));
       showToast('تم الدخول كزائر (تصفح فقط - لن يتم حفظ علامات الإنجاز بعد إغلاق المتصفح).');
     }
   };
 
-  // Classwork handlers
-  const handleToggleClasswork = (id: string) => {
+  // Classwork handlers with Supabase CRUD
+  const handleToggleClasswork = async (id: string) => {
+    let nextCompleted = false;
     setClassworkList((prev) => {
-      const updated = prev.map((c) => (c.id === id ? { ...c, completed: !c.completed } : c));
+      const updated = prev.map((c) => {
+        if (c.id === id) {
+          nextCompleted = !c.completed;
+          return { ...c, completed: nextCompleted };
+        }
+        return c;
+      });
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         const completedCwIds = updated.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
@@ -191,9 +347,17 @@ export default function App() {
       }
       return updated;
     });
+
+    if (isSupabaseConfigured) {
+      try {
+        await updateClassworkCompletion(id, nextCompleted);
+      } catch (e) {
+        console.warn('Could not update classwork completion in Supabase:', e);
+      }
+    }
   };
 
-  const handleSaveClasswork = (entry: ClassworkEntry) => {
+  const handleSaveClasswork = async (entry: ClassworkEntry) => {
     setClassworkList((prev) => {
       const idx = prev.findIndex((c) => c.id === entry.id);
       let next: ClassworkEntry[];
@@ -210,13 +374,28 @@ export default function App() {
       }
       return next;
     });
-    showToast('Classwork saved successfully!');
+
+    if (isSupabaseConfigured) {
+      try {
+        await upsertClasswork(entry);
+      } catch (e) {
+        console.error('Error saving classwork to Supabase:', e);
+      }
+    }
+    showToast('تم حفظ الحصة بنجاح في قاعدة بيانات Supabase!');
   };
 
-  // Homework handlers
-  const handleToggleHomework = (id: string) => {
+  // Homework handlers with Supabase CRUD
+  const handleToggleHomework = async (id: string) => {
+    let nextCompleted = false;
     setHomeworkList((prev) => {
-      const updated = prev.map((h) => (h.id === id ? { ...h, completed: !h.completed } : h));
+      const updated = prev.map((h) => {
+        if (h.id === id) {
+          nextCompleted = !h.completed;
+          return { ...h, completed: nextCompleted };
+        }
+        return h;
+      });
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = updated.filter((h) => h.completed).map((h) => h.id);
@@ -226,9 +405,17 @@ export default function App() {
       }
       return updated;
     });
+
+    if (isSupabaseConfigured) {
+      try {
+        await updateHomeworkCompletion(id, nextCompleted);
+      } catch (e) {
+        console.warn('Could not update homework completion in Supabase:', e);
+      }
+    }
   };
 
-  const handleAddHomework = (entry: HomeworkEntry) => {
+  const handleAddHomework = async (entry: HomeworkEntry) => {
     setHomeworkList((prev) => {
       const next = [entry, ...prev];
       if (userProfile?.mode === 'student' && userProfile.studentName) {
@@ -238,10 +425,18 @@ export default function App() {
       }
       return next;
     });
-    showToast('New homework assignment added!');
+
+    if (isSupabaseConfigured) {
+      try {
+        await upsertHomework(entry);
+      } catch (e) {
+        console.error('Error adding homework to Supabase:', e);
+      }
+    }
+    showToast('تمت إضافة الواجب المنزلي بنجاح إلى Supabase!');
   };
 
-  const handleDeleteHomework = (id: string) => {
+  const handleDeleteHomework = async (id: string) => {
     setHomeworkList((prev) => {
       const next = prev.filter((h) => h.id !== id);
       if (userProfile?.mode === 'student' && userProfile.studentName) {
@@ -251,24 +446,58 @@ export default function App() {
       }
       return next;
     });
-    showToast('Assignment removed.');
+
+    if (isSupabaseConfigured) {
+      try {
+        await deleteHomework(id);
+      } catch (e) {
+        console.error('Error deleting homework from Supabase:', e);
+      }
+    }
+    showToast('تم حذف الواجب من قاعدة بيانات Supabase.');
   };
 
-  const handleApplyWeeklyPlan = (newClasswork: ClassworkEntry[], newHomework: HomeworkEntry[]) => {
+  const handleApplyWeeklyPlan = async (newClasswork: ClassworkEntry[], newHomework: HomeworkEntry[]) => {
     setClassworkList((prev) => [...newClasswork, ...prev]);
     setHomeworkList((prev) => [...newHomework, ...prev]);
-    showToast('Weekly plan imported successfully!');
+
+    if (isSupabaseConfigured) {
+      try {
+        await Promise.all([
+          bulkInsertClasswork(newClasswork),
+          bulkInsertHomework(newHomework),
+        ]);
+      } catch (e) {
+        console.error('Error saving weekly plan to Supabase:', e);
+      }
+    }
+    showToast('تم استيراد الخطة الأسبوعية وحفظها في Supabase بنجاح!');
   };
 
   // Reset to sample plan
-  const handleResetToDefaults = () => {
-    if (confirm('Reset to standard Grade 2 Nile International School weekly plan?')) {
-      setClassworkList(INITIAL_CLASSWORK.map((c) => ({ ...c, completed: false })));
-      setHomeworkList(INITIAL_HOMEWORK.map((h) => ({ ...h, completed: false })));
+  const handleResetToDefaults = async () => {
+    if (confirm('هل تريد استعادة الخطة الأصلية ومزامنتها مباشرة مع Supabase؟')) {
+      const initialCw = (initialData.nile_planner_classwork_b1_w1_w2_v9 as unknown) as ClassworkEntry[];
+      const initialHw = (initialData.nile_planner_homework_b1_w1_w2_v10 as unknown) as HomeworkEntry[];
+
+      setClassworkList(initialCw.map((c) => ({ ...c, completed: false })));
+      setHomeworkList(initialHw.map((h) => ({ ...h, completed: false })));
+
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         saveStudentProgress(userProfile.studentName, [], [], currentClass);
       }
-      showToast('Reset to default sample plan.');
+
+      if (isSupabaseConfigured) {
+        try {
+          await Promise.all([
+            bulkInsertClasswork(initialCw),
+            bulkInsertHomework(initialHw),
+          ]);
+        } catch (e) {
+          console.error('Failed to sync default data to Supabase:', e);
+        }
+      }
+      showToast('تمت استعادة الخطة الأولية وتحديث Supabase.');
     }
   };
 
@@ -399,6 +628,36 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Supabase connection indicator */}
+            {supabaseStatus === 'connected' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <Database className="w-3.5 h-3.5 text-emerald-600" />
+                Supabase متصل
+              </span>
+            )}
+            {supabaseStatus === 'connecting' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                جاري الاتصال بـ Supabase...
+              </span>
+            )}
+            {supabaseStatus === 'unconfigured' && (
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200"
+                title="أضف VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY في ملف .env"
+              >
+                <Database className="w-3.5 h-3.5 text-slate-400" />
+                Supabase بانتظار المفاتيح
+              </span>
+            )}
+            {supabaseStatus === 'error' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                خطأ في اتصال Supabase
+              </span>
+            )}
+
             <button
               onClick={() => setIsPlanModalOpen(true)}
               className="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1.5 transition-colors"

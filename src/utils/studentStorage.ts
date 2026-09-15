@@ -1,4 +1,10 @@
 import { ClassId, UserMode, UserProfile } from '../types';
+import {
+  saveStudentProgressToDb,
+  fetchStudentProgressFromDb,
+  fetchKnownStudentsFromDb,
+  isSupabaseConfigured,
+} from '../lib/supabase';
 
 const PROFILE_KEY = 'nile_planner_active_user_profile_v1';
 const KNOWN_STUDENTS_KEY = 'nile_planner_known_students_list_v1';
@@ -128,7 +134,32 @@ export function saveStudentProgress(
   try {
     localStorage.setItem(PROGRESS_PREFIX + norm, JSON.stringify(data));
     addKnownStudent(cleanName, classId);
+    // Sync with Supabase in background
+    if (isSupabaseConfigured) {
+      saveStudentProgressToDb(cleanName, completedClassworkIds, completedHomeworkIds, classId);
+    }
   } catch (e) {
     console.error('Error saving student progress', e);
   }
+}
+
+export async function syncStudentProgressFromDb(studentName: string): Promise<StudentProgressData> {
+  const local = getStudentProgress(studentName);
+  if (!isSupabaseConfigured) return local;
+
+  try {
+    const remote = await fetchStudentProgressFromDb(studentName);
+    if (remote) {
+      saveStudentProgress(
+        remote.studentName,
+        remote.completedClassworkIds,
+        remote.completedHomeworkIds,
+        remote.classId
+      );
+      return remote;
+    }
+  } catch (e) {
+    console.warn('Could not sync student progress from Supabase:', e);
+  }
+  return local;
 }
