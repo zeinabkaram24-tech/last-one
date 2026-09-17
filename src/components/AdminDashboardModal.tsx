@@ -22,6 +22,9 @@ import {
   ChevronUp,
   Edit2,
   Plus,
+  Link2,
+  ExternalLink,
+  Globe,
 } from 'lucide-react';
 import { ClassId, MaterialItem, ClassworkEntry, HomeworkEntry } from '../types';
 import { TomorrowSpecialNote } from '../data/defaultWeeklyPlan';
@@ -56,10 +59,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [showUploadForm, setShowUploadForm] = useState(false);
 
   // Materials Upload Form State
+  const [materialUploadMode, setMaterialUploadMode] = useState<'pdf' | 'link'>('pdf');
   const [targetBlock, setTargetBlock] = useState<number>(1);
   const [targetSection, setTargetSection] = useState<string>('Main sheet');
   const [targetClass, setTargetClass] = useState<ClassId | 'ALL'>('ALL');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [materialLinkTitle, setMaterialLinkTitle] = useState<string>('');
+  const [materialLinkUrl, setMaterialLinkUrl] = useState<string>('');
 
   // Weekly Plan Upload State
   const [showPlanUploadForm, setShowPlanUploadForm] = useState(false);
@@ -354,83 +360,138 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setSelectedFile(file);
   };
 
-  // Submit Upload
+  // Submit Upload (PDF or External Link)
   const handleConfirmUpload = async () => {
-    if (!selectedFile) {
-      setErrorMessage('يرجى اختيار ملف PDF أولاً.');
-      return;
-    }
-
-    try {
-      setIsUploading(true);
-      setErrorMessage(null);
-
-      // 1. Try uploading to Supabase Storage bucket first
-      let cloudUrl: string | null = null;
-      try {
-        cloudUrl = await uploadPdfToSupabaseStorage(selectedFile, selectedFile.name);
-      } catch (uploadErr) {
-        console.warn('Direct bucket upload failed, using local/DB fallback:', uploadErr);
+    if (materialUploadMode === 'pdf') {
+      if (!selectedFile) {
+        setErrorMessage('يرجى اختيار ملف PDF أولاً.');
+        return;
       }
 
-      // 2. Read file binary as Base64 Data URL for local offline cache and fallback
-      const reader = new FileReader();
-      reader.onload = async () => {
+      try {
+        setIsUploading(true);
+        setErrorMessage(null);
+
+        // 1. Try uploading to Supabase Storage bucket first
+        let cloudUrl: string | null = null;
         try {
-          const fileData = reader.result as string;
-
-          const newItem: MaterialItem = {
-            id: 'mat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-            fileName: selectedFile.name,
-            fileSize: selectedFile.size,
-            fileData: fileData,
-            storageUrl: cloudUrl || undefined,
-            block: targetBlock,
-            section: targetSection,
-            classId: targetClass,
-            uploadedAt: new Date().toISOString(),
-          };
-
-          await saveMaterial(newItem);
-          await refreshMaterials();
-
-          setSuccessMessage(
-            cloudUrl
-              ? `تم رفع الملف سحابياً بنجاح وتوفيره لجميع الأجهزة واللابتوب!`
-              : `تم حفظ الملف بنجاح في Block ${targetBlock} — ${targetSection}!`
-          );
-          setSelectedFile(null);
-          if (fileInputRef.current) fileInputRef.current.value = '';
-          setIsUploading(false);
-
-          // Auto clear success message after 4s
-          setTimeout(() => {
-            setSuccessMessage(null);
-          }, 4000);
-        } catch (saveErr) {
-          console.error(saveErr);
-          setErrorMessage('حدث خطأ أثناء حفظ الملف. يرجى المحاولة مرة أخرى.');
-          setIsUploading(false);
+          cloudUrl = await uploadPdfToSupabaseStorage(selectedFile, selectedFile.name);
+        } catch (uploadErr) {
+          console.warn('Direct bucket upload failed, using local/DB fallback:', uploadErr);
         }
-      };
 
-      reader.onerror = () => {
-        setErrorMessage('تعذر قراءة ملف الـ PDF. يرجى التحقق من الملف.');
+        // 2. Read file binary as Base64 Data URL for local offline cache and fallback
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const fileData = reader.result as string;
+
+            const newItem: MaterialItem = {
+              id: 'mat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+              fileName: selectedFile.name,
+              fileSize: selectedFile.size,
+              fileData: fileData,
+              storageUrl: cloudUrl || undefined,
+              type: 'pdf',
+              block: targetBlock,
+              section: targetSection,
+              classId: targetClass,
+              uploadedAt: new Date().toISOString(),
+            };
+
+            await saveMaterial(newItem);
+            await refreshMaterials();
+
+            setSuccessMessage(
+              cloudUrl
+                ? `تم رفع الملف سحابياً بنجاح وتوفيره لجميع الأجهزة واللابتوب!`
+                : `تم حفظ الملف بنجاح في Block ${targetBlock} — ${targetSection}!`
+            );
+            setSelectedFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            setIsUploading(false);
+
+            // Auto clear success message after 4s
+            setTimeout(() => {
+              setSuccessMessage(null);
+            }, 4000);
+          } catch (saveErr) {
+            console.error(saveErr);
+            setErrorMessage('حدث خطأ أثناء حفظ الملف. يرجى المحاولة مرة أخرى.');
+            setIsUploading(false);
+          }
+        };
+
+        reader.onerror = () => {
+          setErrorMessage('تعذر قراءة ملف الـ PDF. يرجى التحقق من الملف.');
+          setIsUploading(false);
+        };
+
+        reader.readAsDataURL(selectedFile);
+      } catch (err) {
+        console.error(err);
+        setErrorMessage('حدث خطأ غير متوقع أثناء الرفع.');
         setIsUploading(false);
-      };
+      }
+    } else {
+      // Link Upload Mode
+      if (!materialLinkUrl.trim()) {
+        setErrorMessage('يرجى إدخال رابط الويب (URL).');
+        return;
+      }
+      if (!materialLinkTitle.trim()) {
+        setErrorMessage('يرجى إدخال اسم أو عنوان الرابط / المادة.');
+        return;
+      }
 
-      reader.readAsDataURL(selectedFile);
-    } catch (err) {
-      console.error(err);
-      setErrorMessage('حدث خطأ غير متوقع أثناء الرفع.');
-      setIsUploading(false);
+      try {
+        setIsUploading(true);
+        setErrorMessage(null);
+
+        let cleanUrl = materialLinkUrl.trim();
+        if (!/^https?:\/\//i.test(cleanUrl)) {
+          cleanUrl = 'https://' + cleanUrl;
+        }
+
+        const newItem: MaterialItem = {
+          id: 'mat_link_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+          fileName: materialLinkTitle.trim(),
+          fileSize: 0,
+          storageUrl: cleanUrl,
+          linkUrl: cleanUrl,
+          type: 'link',
+          block: targetBlock,
+          section: targetSection,
+          classId: targetClass,
+          uploadedAt: new Date().toISOString(),
+        };
+
+        await saveMaterial(newItem);
+        await refreshMaterials();
+
+        setSuccessMessage(
+          `✨ تمت إضافة وتوزيع الرابط بنجاح في Block ${targetBlock} (${targetSection})!`
+        );
+        setMaterialLinkTitle('');
+        setMaterialLinkUrl('');
+        setIsUploading(false);
+
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 4000);
+      } catch (err: any) {
+        console.error(err);
+        setErrorMessage('حدث خطأ أثناء حفظ الرابط. يرجى المحاولة مرة أخرى.');
+        setIsUploading(false);
+      }
     }
   };
 
   // Handle Delete with Confirmation
   const handleDelete = async (item: MaterialItem) => {
+    const itemTypeName = item.type === 'link' || item.linkUrl ? 'الرابط' : 'الملف';
     const confirmed = window.confirm(
-      `هل أنت متأكد من مسح ملف "${item.fileName}" نهائياً من Block ${item.block} (${item.section})؟`
+      `هل أنت متأكد من مسح ${itemTypeName} "${item.fileName}" نهائياً من Block ${item.block} (${item.section})؟`
     );
     if (!confirmed) return;
 
@@ -1708,10 +1769,10 @@ Sunday:
                   </div>
                   <div>
                     <h3 className="text-sm sm:text-base font-black text-amber-950">
-                      زر تحميل وتوزيع الـ PDF على الـ Materials
+                      زر تحميل وتوزيع الـ PDF والروابط على الـ Materials
                     </h3>
                     <p className="text-xs text-amber-800/80 font-medium">
-                      اختر الـ Block والقسم لتحميل ملف الـ PDF بنفس ألوانه وتنسيقه الأصلي
+                      اختر الـ Block والقسم لتحميل ملف PDF أو إضافة رابط إلكتروني / فيديو
                     </p>
                   </div>
                 </div>
@@ -1726,18 +1787,54 @@ Sunday:
                       : 'bg-amber-600 text-white hover:bg-amber-700'
                   }`}
                 >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{showUploadForm ? 'إخفاء نموذج التحميل' : 'تحميل ملف PDF جديد'}</span>
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{showUploadForm ? 'إخفاء نموذج الإضافة' : 'إضافة ملف PDF أو رابط جديد'}</span>
                 </button>
               </div>
 
               {/* Upload Form Box (when opened) */}
               {showUploadForm && (
                 <div className="pt-3 border-t border-amber-200/80 space-y-4 animate-in fade-in duration-200">
+                  {/* Step 0: Choose Type (PDF vs Link) */}
+                  <div>
+                    <label className="block text-xs font-black text-slate-800 mb-1.5">
+                      1. نوع المحتوى المراد إضافته وتوزيعه:
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        id="admin-choose-type-pdf-btn"
+                        onClick={() => setMaterialUploadMode('pdf')}
+                        className={`py-2.5 px-3 rounded-xl text-xs font-black border flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          materialUploadMode === 'pdf'
+                            ? 'bg-rose-600 text-white border-rose-700 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-rose-50/50'
+                        }`}
+                      >
+                        <FileText className="w-4 h-4" />
+                        <span>ملف PDF (شيت أو مذكرة)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        id="admin-choose-type-link-btn"
+                        onClick={() => setMaterialUploadMode('link')}
+                        className={`py-2.5 px-3 rounded-xl text-xs font-black border flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          materialUploadMode === 'link'
+                            ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-indigo-50/50'
+                        }`}
+                      >
+                        <Link2 className="w-4 h-4" />
+                        <span>رابط إلكتروني / فيديو (Link)</span>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Step 1: Select Block */}
                   <div>
                     <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      1. أنت عايز تحمل في أي بلوك؟ (اختر الـ Block):
+                      2. أنت عايز تضيف في أي بلوك؟ (اختر الـ Block):
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {blocks.map((b) => (
@@ -1761,7 +1858,7 @@ Sunday:
                   {/* Step 2: Select Section */}
                   <div>
                     <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      2. عايز تحمل في الـ Main Sheet ولا في ويك معين؟:
+                      3. عايز تضيف في الـ Main Sheet ولا في ويك معين؟:
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                       {sections.map((sec) => (
@@ -1785,7 +1882,7 @@ Sunday:
                   {/* Step 3: Select Target Class */}
                   <div>
                     <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      3. تحديد الفصل (المستفيدين):
+                      4. تحديد الفصل (المستفيدين):
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
@@ -1811,54 +1908,105 @@ Sunday:
                     </div>
                   </div>
 
-                  {/* Step 4: Choose PDF file */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      4. اختيار ملف الـ PDF المطلوب رفعه:
-                    </label>
-                    <div className="flex flex-col sm:flex-row items-center gap-3">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf,application/pdf"
-                        onChange={handleFileChange}
-                        className="block w-full text-xs text-slate-500 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-amber-600 file:text-white hover:file:bg-amber-700 file:cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs"
-                      />
-                    </div>
-                    {selectedFile && (
-                      <div className="mt-2 p-2.5 bg-white rounded-xl border border-emerald-200 flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 text-slate-800 font-bold truncate">
-                          <FileText className="w-4 h-4 text-rose-500 shrink-0" />
-                          <span className="truncate">{selectedFile.name}</span>
-                          <span className="text-slate-400 font-medium">
-                            ({formatBytes(selectedFile.size)})
+                  {/* Step 4: Mode Specific Form (PDF File Input vs Link Input) */}
+                  {materialUploadMode === 'pdf' ? (
+                    <div>
+                      <label className="block text-xs font-black text-slate-800 mb-1.5">
+                        5. اختيار ملف الـ PDF المطلوب رفعه:
+                      </label>
+                      <div className="flex flex-col sm:flex-row items-center gap-3">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          onChange={handleFileChange}
+                          className="block w-full text-xs text-slate-500 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-amber-600 file:text-white hover:file:bg-amber-700 file:cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs"
+                        />
+                      </div>
+                      {selectedFile && (
+                        <div className="mt-2 p-2.5 bg-white rounded-xl border border-emerald-200 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2 text-slate-800 font-bold truncate">
+                            <FileText className="w-4 h-4 text-rose-500 shrink-0" />
+                            <span className="truncate">{selectedFile.name}</span>
+                            <span className="text-slate-400 font-medium">
+                              ({formatBytes(selectedFile.size)})
+                            </span>
+                          </div>
+                          <span className="text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded-lg shrink-0">
+                            جاهز للرفع
                           </span>
                         </div>
-                        <span className="text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded-lg shrink-0">
-                          جاهز للرفع
-                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3 bg-white p-3.5 rounded-xl border border-indigo-100 shadow-2xs">
+                      <div>
+                        <label className="block text-xs font-black text-slate-800 mb-1">
+                          5. عنوان أو اسم الرابط / الشيت:
+                        </label>
+                        <input
+                          type="text"
+                          id="admin-material-link-title"
+                          placeholder="مثال: فيديو درس أفراد العائلة - Les membres de ma famille"
+                          value={materialLinkTitle}
+                          onChange={(e) => setMaterialLinkTitle(e.target.value)}
+                          className="w-full text-xs border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium"
+                          dir="auto"
+                        />
                       </div>
-                    )}
-                  </div>
 
-                  {/* Upload Confirm Button */}
+                      <div>
+                        <label className="block text-xs font-black text-slate-800 mb-1">
+                          رابط الويب (URL) أو فيديو YouTube:
+                        </label>
+                        <div className="relative">
+                          <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="url"
+                            id="admin-material-link-url"
+                            placeholder="https://www.youtube.com/watch?v=... أو https://example.com"
+                            value={materialLinkUrl}
+                            onChange={(e) => setMaterialLinkUrl(e.target.value)}
+                            className="w-full text-xs border border-slate-200 rounded-xl py-2.5 pr-3 pl-9 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-left"
+                            dir="ltr"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload / Add Confirm Button */}
                   <div className="pt-2 flex justify-end">
                     <button
                       id="admin-submit-upload-btn"
                       type="button"
-                      disabled={!selectedFile || isUploading}
+                      disabled={
+                        materialUploadMode === 'pdf'
+                          ? !selectedFile || isUploading
+                          : !materialLinkTitle.trim() || !materialLinkUrl.trim() || isUploading
+                      }
                       onClick={handleConfirmUpload}
                       className={`px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-sm flex items-center gap-2 transition-all cursor-pointer ${
-                        !selectedFile || isUploading
+                        (materialUploadMode === 'pdf'
+                          ? !selectedFile || isUploading
+                          : !materialLinkTitle.trim() || !materialLinkUrl.trim() || isUploading)
                           ? 'bg-slate-300 cursor-not-allowed'
-                          : 'bg-emerald-600 hover:bg-emerald-700 active:scale-98'
+                          : materialUploadMode === 'pdf'
+                          ? 'bg-emerald-600 hover:bg-emerald-700 active:scale-98'
+                          : 'bg-indigo-600 hover:bg-indigo-700 active:scale-98'
                       }`}
                     >
-                      <Upload className="w-4 h-4" />
+                      {materialUploadMode === 'pdf' ? (
+                        <Upload className="w-4 h-4" />
+                      ) : (
+                        <Link2 className="w-4 h-4" />
+                      )}
                       <span>
                         {isUploading
-                          ? 'جاري حفظ ورفع الملف...'
-                          : `تأكيد الرفع في Block ${targetBlock} (${targetSection})`}
+                          ? 'جاري الحفظ...'
+                          : materialUploadMode === 'pdf'
+                          ? `تأكيد رفع PDF في Block ${targetBlock} (${targetSection})`
+                          : `تأكيد إضافة الرابط في Block ${targetBlock} (${targetSection})`}
                       </span>
                     </button>
                   </div>
@@ -1872,11 +2020,11 @@ Sunday:
                 <div className="flex items-center gap-2">
                   <Layers className="w-4 h-4 text-slate-700" />
                   <h3 className="text-sm font-black text-slate-900">
-                    الملفات المرفوعة حالياً في Materials ({materials.length})
+                    المحتويات المرفوعة حالياً في Materials ({materials.length})
                   </h3>
                 </div>
                 <span className="text-[11px] font-bold text-slate-400">
-                  يمكنك المعاينة أو الطباعة أو المسح
+                  يمكنك المعاينة أو الفتح أو الطباعة أو المسح
                 </span>
               </div>
 
@@ -1884,107 +2032,131 @@ Sunday:
                 <div className="py-8 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center space-y-2">
                   <FileText className="w-8 h-8 text-slate-300 mx-auto" />
                   <p className="text-xs text-slate-500 font-bold">
-                    لا توجد ملفات مرفوعة حتى الآن.
+                    لا توجد ملفات أو روابط مرفوعة حتى الآن.
                   </p>
                   <p className="text-[11px] text-slate-400 font-medium">
-                    اضغط على زر "تحميل ملف PDF جديد" بالأعلى لرفع وتوزيع الملفات.
+                    اضغط على زر "إضافة ملف PDF أو رابط جديد" بالأعلى لرفع وتوزيع المواد.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-2.5">
-                  {materials.map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-3.5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-all"
-                    >
-                      {/* Left: Info */}
-                      <div className="flex items-start gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
-                          <FileText className="w-5 h-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-black text-slate-900 truncate">
-                              {item.fileName}
-                            </span>
-                            <span className="text-[10px] font-extrabold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md">
-                              Block {item.block}
-                            </span>
-                            <span className="text-[10px] font-extrabold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded-md">
-                              {item.section}
-                            </span>
-                            <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded-md">
-                              {item.classId === 'ALL' ? 'كل الفصول' : item.classId}
-                            </span>
-                            {item.storageUrl && (
-                              <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300 px-1.5 py-0.5 rounded-md">
-                                سحابي ☁️
+                  {materials.map((item) => {
+                    const isLink = item.type === 'link' || Boolean(item.linkUrl);
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="p-3.5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-all"
+                      >
+                        {/* Left: Info */}
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div
+                            className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 mt-0.5 ${
+                              isLink
+                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
+                                : 'bg-rose-50 border-rose-200 text-rose-600'
+                            }`}
+                          >
+                            {isLink ? <ExternalLink className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-black text-slate-900 truncate">
+                                {item.fileName}
                               </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-3 text-[11px] text-slate-400 font-medium mt-1">
-                            <span>الحجم: {formatBytes(item.fileSize)}</span>
-                            <span>•</span>
-                            <span>
-                              {new Date(item.uploadedAt).toLocaleDateString('ar-EG', {
-                                day: 'numeric',
-                                month: 'short',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
+                              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md">
+                                Block {item.block}
+                              </span>
+                              <span className="text-[10px] font-extrabold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded-md">
+                                {item.section}
+                              </span>
+                              <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded-md">
+                                {item.classId === 'ALL' ? 'كل الفصول' : item.classId}
+                              </span>
+                              {isLink ? (
+                                <span className="text-[10px] font-black bg-indigo-100 text-indigo-900 border border-indigo-200 px-1.5 py-0.5 rounded-md">
+                                  رابط إلكتروني 🔗
+                                </span>
+                              ) : item.storageUrl && (
+                                <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300 px-1.5 py-0.5 rounded-md">
+                                  سحابي ☁️
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 text-[11px] text-slate-400 font-medium mt-1">
+                              {isLink ? (
+                                <span className="truncate max-w-[220px] text-indigo-600 font-mono" dir="ltr">
+                                  {item.linkUrl || item.storageUrl}
+                                </span>
+                              ) : (
+                                <span>الحجم: {formatBytes(item.fileSize)}</span>
+                              )}
+                              <span>•</span>
+                              <span>
+                                {new Date(item.uploadedAt).toLocaleDateString('ar-EG', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            </div>
                           </div>
                         </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                          {/* Preview / Open */}
+                          <button
+                            type="button"
+                            id={`admin-preview-${item.id}-btn`}
+                            onClick={() => handlePreview(item)}
+                            className="p-2 rounded-xl text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
+                            title={isLink ? 'فتح الرابط في صفحة جديدة' : 'معاينة الملف'}
+                          >
+                            {isLink ? <ExternalLink className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+
+                          {/* Print (Only for PDF) */}
+                          {!isLink && (
+                            <button
+                              type="button"
+                              id={`admin-print-${item.id}-btn`}
+                              onClick={() => handlePrint(item)}
+                              className="p-2 rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
+                              title="طباعة الملف"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {/* Download (Only for PDF) */}
+                          {!isLink && (
+                            <button
+                              type="button"
+                              id={`admin-download-${item.id}-btn`}
+                              onClick={() => handleDownload(item)}
+                              className="p-2 rounded-xl text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
+                              title="تحميل الملف"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {/* Delete Button (زرار مسح) */}
+                          <button
+                            type="button"
+                            id={`admin-delete-${item.id}-btn`}
+                            onClick={() => handleDelete(item)}
+                            className="p-2 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                            title="مسح وحذف نهائياً"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-
-                      {/* Right: Actions (Preview, Print, Download, Delete) */}
-                      <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
-                        {/* Preview */}
-                        <button
-                          type="button"
-                          id={`admin-preview-${item.id}-btn`}
-                          onClick={() => handlePreview(item)}
-                          className="p-2 rounded-xl text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
-                          title="معاينة الملف"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Print */}
-                        <button
-                          type="button"
-                          id={`admin-print-${item.id}-btn`}
-                          onClick={() => handlePrint(item)}
-                          className="p-2 rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
-                          title="طباعة الملف"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Download */}
-                        <button
-                          type="button"
-                          id={`admin-download-${item.id}-btn`}
-                          onClick={() => handleDownload(item)}
-                          className="p-2 rounded-xl text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
-                          title="تحميل الملف"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Delete Button (زرار مسح) */}
-                        <button
-                          type="button"
-                          id={`admin-delete-${item.id}-btn`}
-                          onClick={() => handleDelete(item)}
-                          className="p-2 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
-                          title="مسح وحذف الملف نهائياً"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

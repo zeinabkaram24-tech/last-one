@@ -838,14 +838,15 @@ export interface MaterialRow {
 }
 
 export function materialToRow(item: MaterialItem): MaterialRow {
+  const effectiveUrl = item.type === 'link' ? (item.linkUrl || item.storageUrl || null) : (item.storageUrl || null);
   return {
     id: item.id,
     file_name: item.fileName,
-    file_size: item.fileSize,
+    file_size: item.fileSize || 0,
     block: item.block,
     section: item.section,
     class_id: item.classId || 'ALL',
-    storage_url: item.storageUrl || null,
+    storage_url: effectiveUrl,
     // Only save file_data if small (< 1.5MB) to prevent large DB payloads
     file_data: item.fileSize < 1500000 ? (item.fileData || null) : null,
     uploaded_at: item.uploadedAt || new Date().toISOString(),
@@ -853,6 +854,14 @@ export function materialToRow(item: MaterialItem): MaterialRow {
 }
 
 export function rowToMaterial(row: MaterialRow): MaterialItem {
+  const isWebUrl = Boolean(
+    row.storage_url &&
+    (row.storage_url.startsWith('http://') || row.storage_url.startsWith('https://')) &&
+    !row.storage_url.toLowerCase().endsWith('.pdf') &&
+    !row.storage_url.includes('.pdf?')
+  );
+  const isLink = isWebUrl || row.file_size === 0;
+
   return {
     id: row.id,
     fileName: row.file_name,
@@ -861,6 +870,8 @@ export function rowToMaterial(row: MaterialRow): MaterialItem {
     section: row.section,
     classId: (row.class_id as ClassId | 'ALL') || 'ALL',
     storageUrl: row.storage_url || undefined,
+    linkUrl: isLink ? (row.storage_url || undefined) : undefined,
+    type: isLink ? 'link' : 'pdf',
     fileData: row.file_data || undefined,
     uploadedAt: row.uploaded_at,
   };

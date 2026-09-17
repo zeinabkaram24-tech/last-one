@@ -1,0 +1,84 @@
+[
+  {
+    "id": "mat_link_french_w3_famille",
+    "fileName": "فيديو درس أفراد العائلة - Les membres de ma famille",
+    "fileSize": 0,
+    "block": 1,
+    "section": "Week 3",
+    "classId": "ALL",
+    "type": "link",
+    "linkUrl": "https://www.youtube.com/watch?v=MFk9YmJv-jc",
+    "storageUrl": "https://www.youtube.com/watch?v=MFk9YmJv-jc",
+    "uploadedAt": "2026-09-17T09:00:00.000Z"
+  },
+  {
+    "id": "mat_1789483812271_hbgou",
+    "fileName": "English-Grade2-B1-All-U1-Sheet20 - Main.pdf",
+    "fileSize": 16788085,
+    "block": 1,
+    "section": "Main sheet",
+    "classId": "ALL",
+    "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483795410_English-Grade2-B1-All-U1-Sheet20_-_Main.pdf",
+    "uploadedAt": "2026-09-15T14:50:12.271+00:00"
+  },
+  {
+    "id": "mat_1789483038726_rpjd3",
+    "fileName": "French-Grade2-B1-All-U4-Sheet1 - Main.pdf",
+    "fileSize": 6754496,
+    "block": 1,
+    "section": "Main sheet",
+    "classId": "ALL",
+    "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483031568_French-Grade2-B1-All-U4-Sheet1_-_Main.pdf",
+    "uploadedAt": "2026-09-15T14:37:18.727+00:00"
+  },
+  {
+    "id": "mat_1789483264878_orp8u",
+    "fileName": "Maths-Grade2-B1-All-Sheet1 - Main.pdf",
+    "fileSize": 15373207,
+    "block": 1,
+    "section": "Main sheet",
+    "classId": "ALL",
+    "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+    "uploadedAt": "2026-09-15T14:41:04.878+00:00"
+  },
+  {
+    "id": "mat_1789483187764_2aou7",
+    "fileName": "SocialStudies-Grade2-B1-All-U1-Sheet1 - Main (1).pdf",
+    "fileSize": 12728194,
+    "block": 1,
+    "section": "Main sheet",
+    "classId": "ALL",
+    "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf",
+    "uploadedAt": "2026-09-15T14:39:47.764+00:00"
+  },
+  {
+    "id": "mat_1789483092563_azdcp",
+    "fileName": "ICT-Grade2-B1-All-Sheet1 - Main (1).pdf",
+    "fileSize": 9577386,
+    "block": 1,
+    "section": "Main sheet",
+    "classId": "ALL",
+    "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483083225_ICT-Grade2-B1-All-Sheet1_-_Main__1_.pdf",
+    "uploadedAt": "2026-09-15T14:38:12.563+00:00"
+  },
+  {
+    "id": "mat_1789483067680_dd1z6",
+    "fileName": "Science-Grade2-B1-All-Sheet1 - Main.pdf",
+    "fileSize": 7502119,
+    "block": 1,
+    "section": "Main sheet",
+    "classId": "ALL",
+    "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf",
+    "uploadedAt": "2026-09-15T14:37:47.68+00:00"
+  },
+  {
+    "id": "mat_1789483783585_qlc0n",
+    "fileName": "Arabic-Grade2-B1-All-U1-Sheet2 - Main.pdf",
+    "fileSize": 4179643,
+    "block": 1,
+    "section": "Main sheet",
+    "classId": "ALL",
+    "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483779043_Arabic-Grade2-B1-All-U1-Sheet2_-_Main.pdf",
+    "uploadedAt": "2026-09-15T14:49:43.585+00:00"
+  }
+]

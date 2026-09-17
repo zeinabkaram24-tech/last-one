@@ -9,6 +9,8 @@ import {
   Eye,
   Printer,
   Download,
+  ExternalLink,
+  Link2,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
 import {
@@ -263,82 +265,132 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                   </span>
                 </div>
 
-                {/* If files exist, render them with the 3 buttons underneath */}
+                {/* If files exist, render them with the appropriate buttons underneath */}
                 {currentSectionMaterials.length > 0 ? (
                   <div className="space-y-3 pt-1">
-                    {currentSectionMaterials.map((file) => (
-                      <div
-                        key={file.id}
-                        className="bg-white border-2 border-slate-200 hover:border-amber-300 rounded-2xl p-4 shadow-2xs space-y-3 transition-all"
-                      >
-                        {/* File Details */}
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
-                            <FileText className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h4 className="text-sm font-black text-slate-900 truncate">
-                              {file.fileName}
-                            </h4>
-                            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
-                              <span>{formatBytes(file.fileSize)}</span>
-                              <span>•</span>
-                              <span>PDF</span>
-                              {file.storageUrl && (
-                                <>
-                                  <span>•</span>
-                                  <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
-                                    سحابي Cloud ☁️
+                    {currentSectionMaterials.map((file) => {
+                      const isLink = file.type === 'link' || Boolean(file.linkUrl);
+                      const targetLink = file.linkUrl || file.storageUrl || '';
+
+                      if (isLink) {
+                        return (
+                          <div
+                            key={file.id}
+                            className="bg-white border-2 border-indigo-100 hover:border-indigo-300 rounded-2xl p-4 shadow-2xs space-y-3 transition-all"
+                          >
+                            {/* Link Details */}
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
+                                <ExternalLink className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h4 className="text-sm font-black text-slate-900 truncate">
+                                  {file.fileName}
+                                </h4>
+                                <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
+                                  <span className="text-indigo-600 font-black bg-indigo-50 px-1.5 py-0.5 rounded text-[10px] border border-indigo-200">
+                                    رابط إلكتروني / فيديو 🔗
                                   </span>
-                                </>
-                              )}
-                              {file.classId && file.classId !== 'ALL' && (
-                                <>
-                                  <span>•</span>
-                                  <span className="text-indigo-600 font-bold">{file.classId}</span>
-                                </>
-                              )}
+                                  {file.classId && file.classId !== 'ALL' && (
+                                    <>
+                                      <span>•</span>
+                                      <span className="text-indigo-600 font-bold">{file.classId}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Link Action Button */}
+                            <div className="pt-2 border-t border-slate-100">
+                              <button
+                                type="button"
+                                id={`open-link-btn-${file.id}`}
+                                onClick={() => handlePreview(file)}
+                                className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>فتح الرابط / مشاهدة المحتوى ↗</span>
+                              </button>
                             </div>
                           </div>
+                        );
+                      }
+
+                      return (
+                        <div
+                          key={file.id}
+                          className="bg-white border-2 border-slate-200 hover:border-amber-300 rounded-2xl p-4 shadow-2xs space-y-3 transition-all"
+                        >
+                          {/* File Details */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                              <FileText className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-sm font-black text-slate-900 truncate">
+                                {file.fileName}
+                              </h4>
+                              <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
+                                <span>{formatBytes(file.fileSize)}</span>
+                                <span>•</span>
+                                <span>PDF</span>
+                                {file.storageUrl && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
+                                      سحابي Cloud ☁️
+                                    </span>
+                                  </>
+                                )}
+                                {file.classId && file.classId !== 'ALL' && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-indigo-600 font-bold">{file.classId}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* The 3 requested buttons underneath the file */}
+                          <div className="pt-2 border-t border-slate-100 grid grid-cols-3 gap-2">
+                            {/* 1. زرار معاينة */}
+                            <button
+                              type="button"
+                              id={`preview-btn-${file.id}`}
+                              onClick={() => handlePreview(file)}
+                              className="py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100/90 text-indigo-900 font-black text-xs border border-indigo-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                              <span>معاينة</span>
+                            </button>
+
+                            {/* 2. زرار طباعة */}
+                            <button
+                              type="button"
+                              id={`print-btn-${file.id}`}
+                              onClick={() => handlePrint(file)}
+                              className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs border border-slate-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Printer className="w-3.5 h-3.5 text-slate-600" />
+                              <span>طباعة</span>
+                            </button>
+
+                            {/* 3. زرار تحميل */}
+                            <button
+                              type="button"
+                              id={`download-btn-${file.id}`}
+                              onClick={() => handleDownload(file)}
+                              className="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-black text-xs border border-emerald-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Download className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>تحميل</span>
+                            </button>
+                          </div>
                         </div>
-
-                        {/* The 3 requested buttons underneath the file */}
-                        <div className="pt-2 border-t border-slate-100 grid grid-cols-3 gap-2">
-                          {/* 1. زرار معاينة */}
-                          <button
-                            type="button"
-                            id={`preview-btn-${file.id}`}
-                            onClick={() => handlePreview(file)}
-                            className="py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100/90 text-indigo-900 font-black text-xs border border-indigo-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-indigo-600" />
-                            <span>معاينة</span>
-                          </button>
-
-                          {/* 2. زرار طباعة */}
-                          <button
-                            type="button"
-                            id={`print-btn-${file.id}`}
-                            onClick={() => handlePrint(file)}
-                            className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs border border-slate-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <Printer className="w-3.5 h-3.5 text-slate-600" />
-                            <span>طباعة</span>
-                          </button>
-
-                          {/* 3. زرار تحميل */}
-                          <button
-                            type="button"
-                            id={`download-btn-${file.id}`}
-                            onClick={() => handleDownload(file)}
-                            className="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-black text-xs border border-emerald-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <Download className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>تحميل</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   /* Empty state placeholder when no PDF uploaded yet */

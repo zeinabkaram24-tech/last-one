@@ -284,10 +284,10 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
-// Open PDF Directly in a new browser tab (supports storageUrl, server endpoint, and dataUrl)
+// Open PDF or Link directly in a new browser tab (supports linkUrl, storageUrl, server endpoint, and dataUrl)
 export function openPdfItem(item: MaterialItem): void {
   try {
-    const targetUrl = item.storageUrl || (item.id ? `/api/materials/${item.id}/file` : null);
+    const targetUrl = item.linkUrl || item.storageUrl || (item.id && item.type !== 'link' ? `/api/materials/${item.id}/file` : null);
     if (targetUrl) {
       const opened = window.open(targetUrl, '_blank', 'noopener,noreferrer');
       if (opened) return;
