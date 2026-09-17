@@ -151,9 +151,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
             </h4>
           </div>
           <div className="space-y-1.5 pt-0.5">
-            {upcomingTestsAndQuizzes.map((t) => (
+            {upcomingTestsAndQuizzes.map((t, idx) => (
               <div
-                key={t.id}
+                key={`test-${t.id}-${t.period}-${idx}`}
                 className="flex items-center justify-between gap-2 bg-white/95 border border-amber-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
               >
                 <div className="flex items-center gap-2 flex-wrap">
@@ -187,7 +187,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         </div>
       ) : (
         <div className="space-y-2.5">
-          {dayHomework.map((hw) => {
+          {dayHomework.map((hw, idx) => {
             const meta = SUBJECT_METADATA[hw.subject];
             const theme = getSubjectTheme(hw.subject);
             const isTestOrQuiz =
@@ -199,7 +199,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
             return (
               <div
-                key={hw.id}
+                key={`hw-${hw.id}-${idx}`}
                 className={`rounded-2xl border border-s-4 p-3.5 sm:p-4 transition-all flex items-start justify-between gap-3 shadow-2xs ${
                   hw.completed
                     ? 'border-emerald-300 border-s-emerald-600 bg-emerald-50/30 opacity-85'

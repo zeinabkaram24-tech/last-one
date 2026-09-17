@@ -55,12 +55,14 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   // Group repeated periods (especially English or Mathematics) so they appear once only
   interface GroupedPeriodSlot {
+    slotId: string;
     periods: number[];
     periodLabel: string;
     time: string;
     subject: SubjectName;
     teacher: string;
     notes?: string;
+    cwEntry?: ClassworkEntry;
   }
 
   const timetablePeriods: GroupedPeriodSlot[] = [];
@@ -72,8 +74,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       const endTime = slot.time.split(' - ')[1] || slot.time;
       last.time = `${startTime} - ${endTime}`;
       last.periodLabel = last.periods.map((p) => `P${p}`).join(' & ');
+      last.slotId = `tt-${selectedDay}-${last.periodLabel}-${last.subject}-${last.periods.join('_')}`;
     } else {
       timetablePeriods.push({
+        slotId: `tt-${selectedDay}-P${slot.period}-${slot.subject}-${slot.period}`,
         periods: [slot.period],
         periodLabel: `P${slot.period}`,
         time: slot.time,
@@ -86,6 +90,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   // Edit modal state
   const [editingPeriod, setEditingPeriod] = useState<number | null>(null);
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDetails, setEditDetails] = useState('');
   const [editPages, setEditPages] = useState('');
@@ -93,6 +98,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   const openEdit = (slotPeriods: number[], subject: SubjectName, existing?: ClassworkEntry) => {
     setEditingPeriod(slotPeriods[0]);
+    setEditingEntryId(existing?.id || null);
     setEditSubject(subject);
     setEditTitle(existing ? existing.title : '');
     setEditDetails(existing?.details || '');
@@ -104,14 +110,16 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     const currentGroup = timetablePeriods.find((slot) => slot.periods.includes(editingPeriod));
     const targetPeriods = currentGroup ? currentGroup.periods : [editingPeriod];
 
-    const existing = classworkList.find(
-      (c) =>
-        c.classId === currentClass &&
-        c.day === selectedDay &&
-        targetPeriods.includes(c.period) &&
-        (c.block || 1) === currentBlock &&
-        (c.week || 1) === currentWeek
-    );
+    const existing = editingEntryId
+      ? classworkList.find((c) => c.id === editingEntryId)
+      : classworkList.find(
+          (c) =>
+            c.classId === currentClass &&
+            c.day === selectedDay &&
+            targetPeriods.includes(c.period) &&
+            (c.block || 1) === currentBlock &&
+            (c.week || 1) === currentWeek
+        );
 
     const newEntry: ClassworkEntry = {
       id: existing ? existing.id : `cw-${currentClass}-${selectedDay}-${editingPeriod}-${Date.now()}`,
@@ -129,10 +137,12 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
     onSaveClasswork(newEntry);
     setEditingPeriod(null);
+    setEditingEntryId(null);
   };
 
   // Helper to find valid classwork entry with actual educational content
   const getCwEntryForSlot = (slot: GroupedPeriodSlot): ClassworkEntry | undefined => {
+    if (slot.cwEntry) return slot.cwEntry;
     return (
       classworkList.find(
         (c) =>
@@ -155,33 +165,77 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     );
   };
 
-  // STRICT USER RULE: Only display periods that actually have educational content in the weekly plan!
-  // "اتفقنا قبل كده ان الحصص اللي ما يتذكرلهاش أي بيانات أو ما يبقاش ليها ويكلابان ما تنزلش، الحاجات اللي ليها محتوى بس هي اللي تنزل في الكلاس وورك."
-  const activeTimetablePeriods = timetablePeriods.filter((slot) => Boolean(getCwEntryForSlot(slot)));
-
-  // Also include any standalone custom classwork entries for this class/day/block/week that weren't in standard timetable
-  const matchedCwIds = new Set(activeTimetablePeriods.map((s) => getCwEntryForSlot(s)?.id).filter(Boolean));
-  const additionalCustomEntries = classworkList.filter(
+  // Collect all valid educational classwork items for this class, day, block, and week
+  const dayClasswork = classworkList.filter(
     (c) =>
       (c.classId === currentClass || (c.classId as any) === 'ALL') &&
       c.day === selectedDay &&
       (c.block || 1) === currentBlock &&
       (c.week || 1) === currentWeek &&
-      !matchedCwIds.has(c.id) &&
       Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
   );
-  const additionalSlots: GroupedPeriodSlot[] = additionalCustomEntries.map((c) => ({
+
+  // Deduplicate entries by ID to protect against any data-level duplicates
+  const uniqueClassworkMap = new Map<string, ClassworkEntry>();
+  dayClasswork.forEach((c) => {
+    if (!uniqueClassworkMap.has(c.id)) {
+      uniqueClassworkMap.set(c.id, c);
+    }
+  });
+  const availableClasswork = Array.from(uniqueClassworkMap.values());
+
+  // STRICT USER RULE: Only display periods that actually have educational content in the weekly plan!
+  // "اتفقنا قبل كده ان الحصص اللي ما يتذكرلهاش أي بيانات أو ما يبقاش ليها ويكلابان ما تنزلش، الحاجات اللي ليها محتوى بس هي اللي تنزل في الكلاس وورك."
+  // 1-to-1 matching to prevent duplicate card claims across timetable periods
+  const matchedCwIds = new Set<string>();
+  const activeTimetablePeriods: GroupedPeriodSlot[] = [];
+
+  for (const slot of timetablePeriods) {
+    // 1. Match by exact period AND subject
+    let matched = availableClasswork.find(
+      (c) => !matchedCwIds.has(c.id) && slot.periods.includes(c.period) && c.subject === slot.subject
+    );
+
+    // 2. Match by exact period
+    if (!matched) {
+      matched = availableClasswork.find(
+        (c) => !matchedCwIds.has(c.id) && slot.periods.includes(c.period)
+      );
+    }
+
+    // 3. Match by subject
+    if (!matched) {
+      matched = availableClasswork.find(
+        (c) => !matchedCwIds.has(c.id) && c.subject === slot.subject
+      );
+    }
+
+    if (matched) {
+      matchedCwIds.add(matched.id);
+      activeTimetablePeriods.push({
+        ...slot,
+        slotId: `active-tt-${selectedDay}-${slot.periodLabel}-${slot.subject}-${matched.id}`,
+        cwEntry: matched,
+      });
+    }
+  }
+
+  // Also include any standalone custom classwork entries for this class/day/block/week that weren't in standard timetable
+  const additionalCustomEntries = availableClasswork.filter((c) => !matchedCwIds.has(c.id));
+  const additionalSlots: GroupedPeriodSlot[] = additionalCustomEntries.map((c, i) => ({
+    slotId: `custom-${selectedDay}-${c.id || i}`,
     periods: [c.period || 1],
     periodLabel: `P${c.period || 1}`,
     time: 'الحصة الصفية',
     subject: c.subject,
     teacher: 'معلم المادة',
+    cwEntry: c,
   }));
 
   const visibleSlots = [...activeTimetablePeriods, ...additionalSlots];
 
   // Stats for the day based on visible cards
-  const completedCount = visibleSlots.filter((slot) => getCwEntryForSlot(slot)?.completed).length;
+  const completedCount = visibleSlots.filter((slot) => (slot.cwEntry || getCwEntryForSlot(slot))?.completed).length;
   const totalCount = visibleSlots.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
@@ -259,7 +313,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             const isFrench = slot.subject === 'French';
             const meta = SUBJECT_METADATA[slot.subject];
             const theme = getSubjectTheme(slot.subject);
-            const cwEntry = getCwEntryForSlot(slot);
+            const cwEntry = slot.cwEntry || getCwEntryForSlot(slot);
 
             const activeLinkUrl = cwEntry?.linkUrl;
             const activeLinkTitle = cwEntry?.linkTitle || 'رابط الدرس 🔗';
@@ -287,7 +341,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             };
 
           return (
-            <React.Fragment key={`${selectedDay}-${slot.periodLabel}-${slot.subject}-${slot.periods.join('_')}-${cwEntry?.id || idx}`}>
+            <React.Fragment key={`${slot.slotId}-${selectedDay}-${idx}`}>
               {/* Period Card */}
               <div
                 className={`group rounded-2xl border transition-all p-3 sm:p-3.5 space-y-3 shadow-2xs ${

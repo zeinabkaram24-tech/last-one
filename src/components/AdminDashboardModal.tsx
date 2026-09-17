@@ -773,7 +773,7 @@ Sunday:
                           <div className="space-y-1.5">
                             {parsedResult.classwork.slice(0, 20).map((cw, idx) => (
                               <div
-                                key={cw.id || idx}
+                                key={`preview-cw-${cw.id || 'item'}-${idx}`}
                                 className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
                               >
                                 <div className="flex items-center gap-2 shrink-0">
@@ -807,7 +807,7 @@ Sunday:
                           <div className="space-y-1.5">
                             {parsedResult.homework.map((hw, idx) => (
                               <div
-                                key={hw.id || idx}
+                                key={`preview-hw-${hw.id || 'item'}-${idx}`}
                                 className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
                               >
                                 <div className="flex items-center gap-2 shrink-0">
@@ -886,7 +886,7 @@ Sunday:
 
                               return (
                                 <div
-                                  key={note.id || idx}
+                                  key={`preview-note-${note.id || 'item'}-${idx}`}
                                   className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1"
                                 >
                                   <div className="flex items-center justify-between">

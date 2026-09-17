@@ -477,7 +477,7 @@ export default function App() {
 
   const handleAddHomework = async (entry: HomeworkEntry) => {
     setHomeworkList((prev) => {
-      const next = [entry, ...prev];
+      const next = [entry, ...prev.filter((h) => h.id !== entry.id)];
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = next.filter((h) => h.completed).map((h) => h.id);

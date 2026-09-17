@@ -184,7 +184,10 @@ app.post('/api/planner-data', (req, res) => {
         current.classwork = current.classwork.filter(
           (cw: any) => !targetKeys.has(`${cw.block || 1}-${cw.week || 1}-${cw.classId}-${normalizeSubject(cw.subject)}`)
         );
-        current.classwork = [...current.classwork, ...classwork];
+        const cwMap = new Map<string, any>();
+        current.classwork.forEach((cw: any) => { if (cw?.id) cwMap.set(cw.id, cw); });
+        classwork.forEach((cw: any) => { if (cw?.id) cwMap.set(cw.id, cw); });
+        current.classwork = Array.from(cwMap.values());
       }
 
       if (Array.isArray(homework) && homework.length > 0) {
@@ -194,7 +197,10 @@ app.post('/api/planner-data', (req, res) => {
         current.homework = current.homework.filter(
           (hw: any) => !targetKeys.has(`${hw.block || 1}-${hw.week || 1}-${hw.classId}-${normalizeSubject(hw.subject)}`)
         );
-        current.homework = [...current.homework, ...homework];
+        const hwMap = new Map<string, any>();
+        current.homework.forEach((hw: any) => { if (hw?.id) hwMap.set(hw.id, hw); });
+        homework.forEach((hw: any) => { if (hw?.id) hwMap.set(hw.id, hw); });
+        current.homework = Array.from(hwMap.values());
       }
 
       if (Array.isArray(tomorrowNotes) && tomorrowNotes.length > 0) {
@@ -204,7 +210,16 @@ app.post('/api/planner-data', (req, res) => {
         current.tomorrowNotes = current.tomorrowNotes.filter(
           (n: any) => !targetKeys.has(`${n.block || 1}-${n.week || 1}-${n.classId}-${normalizeSubject(n.subject)}`)
         );
-        current.tomorrowNotes = [...current.tomorrowNotes, ...tomorrowNotes];
+        const notesMap = new Map<string, any>();
+        current.tomorrowNotes.forEach((n: any) => {
+          const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
+          notesMap.set(key, n);
+        });
+        tomorrowNotes.forEach((n: any) => {
+          const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
+          notesMap.set(key, n);
+        });
+        current.tomorrowNotes = Array.from(notesMap.values());
       }
     } else {
       // Merge mode
