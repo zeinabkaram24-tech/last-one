@@ -30,13 +30,20 @@ export async function parseWeeklyPlanWithAI(
   }
 }
 
-function fallbackClientParser(text: string, classId: ClassId): ParsedWeeklyPlanResponse {
+export function fallbackClientParser(
+  text: string,
+  classId: ClassId | 'ALL',
+  block: number = 1,
+  week: number = 2
+): ParsedWeeklyPlanResponse {
   const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
   const classwork: any[] = [];
   const homework: any[] = [];
   const tomorrowNotes: any[] = [];
   let currentDay = 'Sunday';
   let currentSubject = 'English';
+
+  const targetClasses: ClassId[] = classId === 'ALL' ? ['G2A', 'G2B', 'G2C'] : [classId];
 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
   const subjects = [
@@ -87,31 +94,41 @@ function fallbackClientParser(text: string, classId: ClassId): ParsedWeeklyPlanR
     const isNote = /ملاحظات|ملاحظة|remarque|remarks|notes?|أدوات|تنبيه/i.test(line);
     if (isNote) {
       const cleanNote = line.replace(/^(ملاحظات|ملاحظة|remarques?|remarks?|notes?|أدوات|تنبيه)[:\-–\s]*/i, '').trim();
-      tomorrowNotes.push({
-        classId,
-        targetDay: currentDay as any,
-        subject: currentSubject,
-        note: cleanNote,
-        arabicNote: cleanNote,
-        bagItem: /كشكول|كتاب|ألوان|مسطرة|أدوات|زي|sketch|whiteboard|notebook|cahier/i.test(line) ? cleanNote : undefined,
-        isQuiz: testRegex.test(cleanNote),
-        categoryType: testRegex.test(cleanNote) ? 'quiz' : 'note',
-      });
+      for (const targetCls of targetClasses) {
+        tomorrowNotes.push({
+          id: `note-${targetCls}-${currentDay}-${Date.now()}-${tomorrowNotes.length}`,
+          classId: targetCls,
+          targetDay: currentDay as any,
+          subject: currentSubject,
+          note: cleanNote,
+          arabicNote: cleanNote,
+          bagItem: /كشكول|كتاب|ألوان|مسطرة|أدوات|زي|sketch|whiteboard|notebook|cahier/i.test(line) ? cleanNote : undefined,
+          isQuiz: testRegex.test(cleanNote),
+          categoryType: testRegex.test(cleanNote) ? 'quiz' : 'note',
+          block,
+          week,
+        });
+      }
       continue;
     }
 
     // Check Quiz / Test Standalone
     const isTest = testRegex.test(line);
     if (isTest && !/cw|classwork|hw|homework/i.test(line)) {
-      tomorrowNotes.push({
-        classId,
-        targetDay: currentDay as any,
-        subject: currentSubject,
-        note: line,
-        arabicNote: line,
-        isQuiz: true,
-        categoryType: 'quiz',
-      });
+      for (const targetCls of targetClasses) {
+        tomorrowNotes.push({
+          id: `quiz-${targetCls}-${currentDay}-${Date.now()}-${tomorrowNotes.length}`,
+          classId: targetCls,
+          targetDay: currentDay as any,
+          subject: currentSubject,
+          note: line,
+          arabicNote: line,
+          isQuiz: true,
+          categoryType: 'quiz',
+          block,
+          week,
+        });
+      }
     }
 
     const isHw = /hw|homework|الواجب|الواجب المنزلي|devoir|h\.w/i.test(line);
@@ -120,50 +137,66 @@ function fallbackClientParser(text: string, classId: ClassId): ParsedWeeklyPlanR
     const urlMatch = line.match(urlRegex);
 
     if (isHw) {
-      if (isTest) {
-        tomorrowNotes.push({
-          classId,
-          targetDay: currentDay === 'Thursday' ? 'Sunday' : 'Monday',
-          subject: currentSubject,
-          note: clean || line,
-          arabicNote: clean || line,
-          isQuiz: true,
-          categoryType: 'quiz',
+      for (const targetCls of targetClasses) {
+        if (isTest) {
+          tomorrowNotes.push({
+            id: `hw-quiz-${targetCls}-${currentDay}-${Date.now()}-${tomorrowNotes.length}`,
+            classId: targetCls,
+            targetDay: currentDay === 'Thursday' ? 'Sunday' : 'Monday',
+            subject: currentSubject,
+            note: clean || line,
+            arabicNote: clean || line,
+            isQuiz: true,
+            categoryType: 'quiz',
+            block,
+            week,
+          });
+        }
+        homework.push({
+          id: `hw-${targetCls}-${currentDay}-${Date.now()}-${homework.length}`,
+          classId: targetCls,
+          assignedDay: currentDay as any,
+          dueDay: currentDay === 'Thursday' ? 'Sunday' : 'Monday',
+          subject: currentSubject as any,
+          task: clean || line,
+          completed: false,
+          priority: isTest ? 'urgent' : 'normal',
+          linkUrl: urlMatch ? urlMatch[1] : undefined,
+          isLinkTask: Boolean(urlMatch),
+          block,
+          week,
         });
       }
-      homework.push({
-        classId,
-        assignedDay: currentDay as any,
-        dueDay: currentDay === 'Thursday' ? 'Sunday' : 'Monday',
-        subject: currentSubject as any,
-        task: clean || line,
-        completed: false,
-        priority: isTest ? 'urgent' : 'normal',
-        linkUrl: urlMatch ? urlMatch[1] : undefined,
-        isLinkTask: Boolean(urlMatch),
-      });
     } else if (isCw || clean.length > 3) {
-      if (isTest) {
-        tomorrowNotes.push({
-          classId,
-          targetDay: currentDay as any,
-          subject: currentSubject,
-          note: clean || line,
-          arabicNote: clean || line,
-          isQuiz: true,
-          categoryType: 'quiz',
+      for (const targetCls of targetClasses) {
+        if (isTest) {
+          tomorrowNotes.push({
+            id: `cw-quiz-${targetCls}-${currentDay}-${Date.now()}-${tomorrowNotes.length}`,
+            classId: targetCls,
+            targetDay: currentDay as any,
+            subject: currentSubject,
+            note: clean || line,
+            arabicNote: clean || line,
+            isQuiz: true,
+            categoryType: 'quiz',
+            block,
+            week,
+          });
+        }
+        classwork.push({
+          id: `cw-${targetCls}-${currentDay}-${Date.now()}-${classwork.length}`,
+          classId: targetCls,
+          day: currentDay as any,
+          period: (classwork.length % 8) + 1,
+          subject: currentSubject as any,
+          title: clean,
+          completed: false,
+          linkUrl: urlMatch ? urlMatch[1] : undefined,
+          linkTitle: urlMatch ? (currentSubject === 'French' ? 'Lien Kahoot / Activité 🔗' : 'رابط الدرس 🔗') : undefined,
+          block,
+          week,
         });
       }
-      classwork.push({
-        classId,
-        day: currentDay as any,
-        period: (classwork.length % 8) + 1,
-        subject: currentSubject as any,
-        title: clean,
-        completed: false,
-        linkUrl: urlMatch ? urlMatch[1] : undefined,
-        linkTitle: urlMatch ? (currentSubject === 'French' ? 'Lien Kahoot / Activité 🔗' : 'رابط الدرس 🔗') : undefined,
-      });
     }
   }
 

@@ -113,14 +113,24 @@ export async function getTomorrowNotesForDay(
 export async function saveTomorrowNotes(
   block: number,
   week: number,
-  notes: TomorrowSpecialNote[]
+  notes: TomorrowSpecialNote[],
+  mode: 'merge' | 'replace' = 'merge'
 ): Promise<void> {
   const storageKey = `${LOCAL_STORAGE_PREFIX}${block}_${week}`;
   const settingKey = `tomorrow_notes_${block}_${week}`;
 
   // 1. Cache locally
   try {
-    localStorage.setItem(storageKey, JSON.stringify(notes));
+    let finalNotes = notes;
+    if (mode === 'merge') {
+      const existingRaw = localStorage.getItem(storageKey);
+      const existing: TomorrowSpecialNote[] = existingRaw ? JSON.parse(existingRaw) : [];
+      const map = new Map<string, TomorrowSpecialNote>();
+      existing.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 20)}`, n));
+      notes.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 20)}`, n));
+      finalNotes = Array.from(map.values());
+    }
+    localStorage.setItem(storageKey, JSON.stringify(finalNotes));
   } catch (e) {
     console.warn('Could not cache tomorrow notes to localStorage:', e);
   }
@@ -130,7 +140,7 @@ export async function saveTomorrowNotes(
     await fetch('/api/planner-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tomorrowNotes: notes }),
+      body: JSON.stringify({ tomorrowNotes: notes, mode }),
     });
   } catch (e) {
     console.warn('Failed to sync tomorrow notes to /api/planner-data:', e);

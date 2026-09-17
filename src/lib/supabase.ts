@@ -183,14 +183,26 @@ function getLocalCustomClasswork(): ClassworkEntry[] {
   }
 }
 
-function saveLocalCustomClasswork(entries: ClassworkEntry[]) {
+function saveLocalCustomClasswork(entries: ClassworkEntry[], mode: 'merge' | 'replace' = 'merge') {
   if (typeof window === 'undefined') return;
   try {
     const existing = getLocalCustomClasswork();
-    const map = new Map<string, ClassworkEntry>();
-    existing.forEach((e) => map.set(e.id, e));
-    entries.forEach((e) => map.set(e.id, e));
-    localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(Array.from(map.values())));
+    let updated: ClassworkEntry[];
+    if (mode === 'replace') {
+      const targetKeys = new Set(
+        entries.map((c) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
+      );
+      updated = existing.filter(
+        (c) => !targetKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
+      );
+      updated = [...updated, ...entries];
+    } else {
+      const map = new Map<string, ClassworkEntry>();
+      existing.forEach((e) => map.set(e.id, e));
+      entries.forEach((e) => map.set(e.id, e));
+      updated = Array.from(map.values());
+    }
+    localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(updated));
   } catch (e) {
     console.warn('Failed to save custom classwork to localStorage:', e);
   }
@@ -206,14 +218,26 @@ function getLocalCustomHomework(): HomeworkEntry[] {
   }
 }
 
-function saveLocalCustomHomework(entries: HomeworkEntry[]) {
+function saveLocalCustomHomework(entries: HomeworkEntry[], mode: 'merge' | 'replace' = 'merge') {
   if (typeof window === 'undefined') return;
   try {
     const existing = getLocalCustomHomework();
-    const map = new Map<string, HomeworkEntry>();
-    existing.forEach((e) => map.set(e.id, e));
-    entries.forEach((e) => map.set(e.id, e));
-    localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(Array.from(map.values())));
+    let updated: HomeworkEntry[];
+    if (mode === 'replace') {
+      const targetKeys = new Set(
+        entries.map((h) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
+      );
+      updated = existing.filter(
+        (h) => !targetKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
+      );
+      updated = [...updated, ...entries];
+    } else {
+      const map = new Map<string, HomeworkEntry>();
+      existing.forEach((e) => map.set(e.id, e));
+      entries.forEach((e) => map.set(e.id, e));
+      updated = Array.from(map.values());
+    }
+    localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(updated));
   } catch (e) {
     console.warn('Failed to save custom homework to localStorage:', e);
   }
@@ -225,7 +249,7 @@ function saveLocalCustomHomework(entries: HomeworkEntry[]) {
 
 export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const localCustom = getLocalCustomClasswork();
-  let baseItems = INITIAL_CLASSWORK;
+  let baseItems = [...INITIAL_CLASSWORK];
 
   // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
   try {
@@ -233,6 +257,14 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
     if (res.ok) {
       const srvData = await res.json();
       if (srvData && Array.isArray(srvData.classwork) && srvData.classwork.length > 0) {
+        // Collect replaced keys from server custom data: block-week-classId-subject
+        const srvKeys = new Set(
+          srvData.classwork.map((c: ClassworkEntry) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
+        );
+        // Filter out base initial items that were replaced by new imports for that subject/week/class
+        baseItems = baseItems.filter(
+          (c) => !srvKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
+        );
         const srvMap = new Map<string, ClassworkEntry>();
         baseItems.forEach((c) => srvMap.set(c.id, c));
         srvData.classwork.forEach((c: ClassworkEntry) => srvMap.set(c.id, c));
@@ -256,6 +288,16 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
     } catch (err) {
       console.warn('Network exception fetching classwork from Supabase (using local baseline):', err);
     }
+  }
+
+  // Also filter out any base items that have been replaced in localCustom
+  if (localCustom.length > 0) {
+    const localKeys = new Set(
+      localCustom.map((c) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
+    );
+    baseItems = baseItems.filter(
+      (c) => !localKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
+    );
   }
 
   // Merge custom entries over baseline items
@@ -334,9 +376,9 @@ export async function deleteClasswork(id: string): Promise<void> {
   }
 }
 
-export async function bulkInsertClasswork(entries: ClassworkEntry[]): Promise<void> {
+export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merge' | 'replace' = 'merge'): Promise<void> {
   if (entries.length === 0) return;
-  saveLocalCustomClasswork(entries);
+  saveLocalCustomClasswork(entries, mode);
 
   if (!isSupabaseConfigured) return;
 
@@ -360,7 +402,7 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[]): Promise<vo
 
 export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const localCustom = getLocalCustomHomework();
-  let baseItems = INITIAL_HOMEWORK;
+  let baseItems = [...INITIAL_HOMEWORK];
 
   // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
   try {
@@ -368,6 +410,14 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     if (res.ok) {
       const srvData = await res.json();
       if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {
+        // Collect replaced keys from server custom data: block-week-classId-subject
+        const srvKeys = new Set(
+          srvData.homework.map((h: HomeworkEntry) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
+        );
+        // Filter out base initial items that were replaced by new imports for that subject/week/class
+        baseItems = baseItems.filter(
+          (h) => !srvKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
+        );
         const srvMap = new Map<string, HomeworkEntry>();
         baseItems.forEach((h) => srvMap.set(h.id, h));
         srvData.homework.forEach((h: HomeworkEntry) => srvMap.set(h.id, h));
@@ -391,6 +441,16 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     } catch (err) {
       console.warn('Network exception fetching homework from Supabase (using local baseline):', err);
     }
+  }
+
+  // Also filter out any base items that have been replaced in localCustom
+  if (localCustom.length > 0) {
+    const localKeys = new Set(
+      localCustom.map((h) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
+    );
+    baseItems = baseItems.filter(
+      (h) => !localKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
+    );
   }
 
   // Ensure Tuesday Week 2 Arabic homework is page 47 and sync to Supabase if outdated
@@ -510,9 +570,9 @@ export async function deleteHomework(id: string): Promise<void> {
   }
 }
 
-export async function bulkInsertHomework(entries: HomeworkEntry[]): Promise<void> {
+export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge' | 'replace' = 'merge'): Promise<void> {
   if (entries.length === 0) return;
-  saveLocalCustomHomework(entries);
+  saveLocalCustomHomework(entries, mode);
 
   if (!isSupabaseConfigured) return;
 

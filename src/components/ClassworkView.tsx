@@ -131,19 +131,58 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     setEditingPeriod(null);
   };
 
-  // Stats for the day based on grouped cards
-  const dayStats = timetablePeriods.map((slot) => {
-    return classworkList.find(
-      (c) =>
-        c.classId === currentClass &&
-        c.day === selectedDay &&
-        slot.periods.includes(c.period) &&
-        (c.block || 1) === currentBlock &&
-        (c.week || 1) === currentWeek
+  // Helper to find valid classwork entry with actual educational content
+  const getCwEntryForSlot = (slot: GroupedPeriodSlot): ClassworkEntry | undefined => {
+    return (
+      classworkList.find(
+        (c) =>
+          (c.classId === currentClass || (c.classId as any) === 'ALL') &&
+          c.day === selectedDay &&
+          slot.periods.includes(c.period) &&
+          (c.block || 1) === currentBlock &&
+          (c.week || 1) === currentWeek &&
+          Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
+      ) ||
+      classworkList.find(
+        (c) =>
+          (c.classId === currentClass || (c.classId as any) === 'ALL') &&
+          c.day === selectedDay &&
+          c.subject === slot.subject &&
+          (c.block || 1) === currentBlock &&
+          (c.week || 1) === currentWeek &&
+          Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
+      )
     );
-  });
-  const completedCount = dayStats.filter((c) => c && c.completed).length;
-  const totalCount = timetablePeriods.length;
+  };
+
+  // STRICT USER RULE: Only display periods that actually have educational content in the weekly plan!
+  // "اتفقنا قبل كده ان الحصص اللي ما يتذكرلهاش أي بيانات أو ما يبقاش ليها ويكلابان ما تنزلش، الحاجات اللي ليها محتوى بس هي اللي تنزل في الكلاس وورك."
+  const activeTimetablePeriods = timetablePeriods.filter((slot) => Boolean(getCwEntryForSlot(slot)));
+
+  // Also include any standalone custom classwork entries for this class/day/block/week that weren't in standard timetable
+  const matchedCwIds = new Set(activeTimetablePeriods.map((s) => getCwEntryForSlot(s)?.id).filter(Boolean));
+  const additionalCustomEntries = classworkList.filter(
+    (c) =>
+      (c.classId === currentClass || (c.classId as any) === 'ALL') &&
+      c.day === selectedDay &&
+      (c.block || 1) === currentBlock &&
+      (c.week || 1) === currentWeek &&
+      !matchedCwIds.has(c.id) &&
+      Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
+  );
+  const additionalSlots: GroupedPeriodSlot[] = additionalCustomEntries.map((c) => ({
+    periods: [c.period || 1],
+    periodLabel: `P${c.period || 1}`,
+    time: 'الحصة الصفية',
+    subject: c.subject,
+    teacher: 'معلم المادة',
+  }));
+
+  const visibleSlots = [...activeTimetablePeriods, ...additionalSlots];
+
+  // Stats for the day based on visible cards
+  const completedCount = visibleSlots.filter((slot) => getCwEntryForSlot(slot)?.completed).length;
+  const totalCount = visibleSlots.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   // If this entire week has no plan entered, render clean empty state
@@ -166,7 +205,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   return (
     <div className="space-y-4">
       {/* Timetable Period Cards or Weekend / Empty Day Message */}
-      {timetablePeriods.length === 0 ? (
+      {visibleSlots.length === 0 ? (
         selectedDay === 'Saturday' ? (
           <div
             id="saturday-prep-card"
@@ -203,38 +242,24 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-xs">
-            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-3">
               <BookOpen className="w-6 h-6" />
             </div>
             <h3 className="text-base font-black text-slate-900">
-              لا توجد حصص مقررة ليوم {selectedDay} ({currentClass})
+              لا توجد حصص مسجلة بالخطة الأسبوعية لهذا اليوم ({selectedDay})
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
-              يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (إنجليزي وعربي وفرنش وماث ودراسات اجتماعية وتكنولوجيا المعلومات ICT وساينس Science).
+              يقتصر العرض فقط على الحصص التي لها محتوى أو بيانات مسجلة في الخطة الأسبوعية (الكلاس وورك).
             </p>
           </div>
         )
       ) : (
         <div className="space-y-2.5">
-          {timetablePeriods.map((slot) => {
+          {visibleSlots.map((slot, idx) => {
             const isFrench = slot.subject === 'French';
             const meta = SUBJECT_METADATA[slot.subject];
             const theme = getSubjectTheme(slot.subject);
-            const cwEntry = classworkList.find(
-              (c) =>
-                (c.classId === currentClass || (c.classId as any) === 'ALL') &&
-                c.day === selectedDay &&
-                slot.periods.includes(c.period) &&
-                (c.block || 1) === currentBlock &&
-                (c.week || 1) === currentWeek
-            ) || classworkList.find(
-              (c) =>
-                (c.classId === currentClass || (c.classId as any) === 'ALL') &&
-                c.day === selectedDay &&
-                c.subject === slot.subject &&
-                (c.block || 1) === currentBlock &&
-                (c.week || 1) === currentWeek
-            );
+            const cwEntry = getCwEntryForSlot(slot);
 
             const activeLinkUrl = cwEntry?.linkUrl;
             const activeLinkTitle = cwEntry?.linkTitle || 'رابط الدرس 🔗';
@@ -262,7 +287,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             };
 
           return (
-            <React.Fragment key={slot.periodLabel}>
+            <React.Fragment key={`${selectedDay}-${slot.periodLabel}-${slot.subject}-${slot.periods.join('_')}-${cwEntry?.id || idx}`}>
               {/* Period Card */}
               <div
                 className={`group rounded-2xl border transition-all p-3 sm:p-3.5 space-y-3 shadow-2xs ${

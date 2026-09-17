@@ -172,34 +172,68 @@ app.get('/api/planner-data', (req, res) => {
 
 app.post('/api/planner-data', (req, res) => {
   try {
-    const { classwork, homework, tomorrowNotes } = req.body;
-    const current = getStoredPlannerData();
+    const { classwork, homework, tomorrowNotes, mode = 'merge' } = req.body;
+    let current = getStoredPlannerData();
 
-    if (Array.isArray(classwork)) {
-      const cwMap = new Map<string, any>();
-      current.classwork.forEach((cw: any) => cwMap.set(cw.id, cw));
-      classwork.forEach((cw: any) => cwMap.set(cw.id, cw));
-      current.classwork = Array.from(cwMap.values());
-    }
+    if (mode === 'replace') {
+      // If replacing, remove existing items matching the incoming items' (block, week, subject, classId) or (block, week)
+      if (Array.isArray(classwork) && classwork.length > 0) {
+        const targetKeys = new Set(
+          classwork.map((cw: any) => `${cw.block || 1}-${cw.week || 1}-${cw.classId}-${normalizeSubject(cw.subject)}`)
+        );
+        current.classwork = current.classwork.filter(
+          (cw: any) => !targetKeys.has(`${cw.block || 1}-${cw.week || 1}-${cw.classId}-${normalizeSubject(cw.subject)}`)
+        );
+        current.classwork = [...current.classwork, ...classwork];
+      }
 
-    if (Array.isArray(homework)) {
-      const hwMap = new Map<string, any>();
-      current.homework.forEach((hw: any) => hwMap.set(hw.id, hw));
-      homework.forEach((hw: any) => hwMap.set(hw.id, hw));
-      current.homework = Array.from(hwMap.values());
-    }
+      if (Array.isArray(homework) && homework.length > 0) {
+        const targetKeys = new Set(
+          homework.map((hw: any) => `${hw.block || 1}-${hw.week || 1}-${hw.classId}-${normalizeSubject(hw.subject)}`)
+        );
+        current.homework = current.homework.filter(
+          (hw: any) => !targetKeys.has(`${hw.block || 1}-${hw.week || 1}-${hw.classId}-${normalizeSubject(hw.subject)}`)
+        );
+        current.homework = [...current.homework, ...homework];
+      }
 
-    if (Array.isArray(tomorrowNotes)) {
-      const notesMap = new Map<string, any>();
-      current.tomorrowNotes.forEach((n: any) => {
-        const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
-        notesMap.set(key, n);
-      });
-      tomorrowNotes.forEach((n: any) => {
-        const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
-        notesMap.set(key, n);
-      });
-      current.tomorrowNotes = Array.from(notesMap.values());
+      if (Array.isArray(tomorrowNotes) && tomorrowNotes.length > 0) {
+        const targetKeys = new Set(
+          tomorrowNotes.map((n: any) => `${n.block || 1}-${n.week || 1}-${n.classId}-${normalizeSubject(n.subject)}`)
+        );
+        current.tomorrowNotes = current.tomorrowNotes.filter(
+          (n: any) => !targetKeys.has(`${n.block || 1}-${n.week || 1}-${n.classId}-${normalizeSubject(n.subject)}`)
+        );
+        current.tomorrowNotes = [...current.tomorrowNotes, ...tomorrowNotes];
+      }
+    } else {
+      // Merge mode
+      if (Array.isArray(classwork)) {
+        const cwMap = new Map<string, any>();
+        current.classwork.forEach((cw: any) => cwMap.set(cw.id, cw));
+        classwork.forEach((cw: any) => cwMap.set(cw.id, cw));
+        current.classwork = Array.from(cwMap.values());
+      }
+
+      if (Array.isArray(homework)) {
+        const hwMap = new Map<string, any>();
+        current.homework.forEach((hw: any) => hwMap.set(hw.id, hw));
+        homework.forEach((hw: any) => hwMap.set(hw.id, hw));
+        current.homework = Array.from(hwMap.values());
+      }
+
+      if (Array.isArray(tomorrowNotes)) {
+        const notesMap = new Map<string, any>();
+        current.tomorrowNotes.forEach((n: any) => {
+          const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
+          notesMap.set(key, n);
+        });
+        tomorrowNotes.forEach((n: any) => {
+          const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
+          notesMap.set(key, n);
+        });
+        current.tomorrowNotes = Array.from(notesMap.values());
+      }
     }
 
     saveStoredPlannerData(current);
@@ -245,16 +279,17 @@ function allocateClassworkSlot(
   classId: string,
   preferredDay: string,
   subject: string,
-  usedSlots: Map<string, Set<string>>
-): { day: string; period: number } {
+  usedSlots: Map<string, Set<string>>,
+  itemWeek: number = 1
+): { day: string; period: number } | null {
   const normSub = normalizeSubject(subject);
   const classTimetable = (CLASS_TIMETABLES as any)?.[classId];
   if (!classTimetable) return { day: preferredDay, period: 1 };
 
-  const classKey = classId;
+  const classKey = `${itemWeek}-${classId}-${normSub}`;
   const classUsed = usedSlots.get(classKey) || new Set<string>();
 
-  // 1. Try preferred day first
+  // 1. Try preferred day first if unused
   const daySlots = classTimetable[preferredDay] || [];
   const unusedMatchOnDay = daySlots.find(
     (slot: any) => normalizeSubject(slot.subject) === normSub && !classUsed.has(`${preferredDay}-${slot.period}`)
@@ -263,14 +298,6 @@ function allocateClassworkSlot(
     classUsed.add(`${preferredDay}-${unusedMatchOnDay.period}`);
     usedSlots.set(classKey, classUsed);
     return { day: preferredDay, period: unusedMatchOnDay.period };
-  }
-
-  // Any match on preferred day
-  const anyMatchOnDay = daySlots.find((slot: any) => normalizeSubject(slot.subject) === normSub);
-  if (anyMatchOnDay && !classUsed.has(`${preferredDay}-${anyMatchOnDay.period}`)) {
-    classUsed.add(`${preferredDay}-${anyMatchOnDay.period}`);
-    usedSlots.set(classKey, classUsed);
-    return { day: preferredDay, period: anyMatchOnDay.period };
   }
 
   // 2. Try other days of the school week in timetable order
@@ -287,24 +314,51 @@ function allocateClassworkSlot(
     }
   }
 
-  // 3. Fallback to any slot in timetable matching subject
-  for (const d of days) {
-    const slots = classTimetable[d] || [];
-    const match = slots.find((slot: any) => normalizeSubject(slot.subject) === normSub);
-    if (match) {
-      return { day: d, period: match.period };
-    }
-  }
-
-  return { day: preferredDay, period: 1 };
+  // If all legitimate timetable slots for this subject in this week are exhausted,
+  // return null! DO NOT invent extra slots or overflow sessions!
+  return null;
 }
 
-// Multi-model fallback runner to prevent 503 errors and spikes in demand
+// Robust JSON cleaner and parser that strips markdown fences and boundary noise
+function cleanAndParseJson(text: string): any {
+  if (!text || typeof text !== 'string') {
+    throw new Error('Empty or invalid response from AI');
+  }
+  let clean = text.trim();
+  // Strip markdown code fences if present: ```json ... ``` or ``` ... ```
+  clean = clean.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  // Extract bounded JSON structure if extraneous commentary is present
+  const firstBrace = clean.search(/[{\[]/);
+  const lastBrace = Math.max(clean.lastIndexOf('}'), clean.lastIndexOf(']'));
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    clean = clean.slice(firstBrace, lastBrace + 1);
+  }
+  return JSON.parse(clean);
+}
+
+// Multi-model fallback runner with instant 503 capacity recovery and health cooldown
+const modelCoolDown = new Map<string, number>();
+
 async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any): Promise<string> {
-  const models = ['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+  const baseModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
+  const now = Date.now();
+
+  // Prioritize healthy models that are NOT currently in a 503 high-demand cooldown
+  const models = [...baseModels].sort((a, b) => {
+    const aCool = (modelCoolDown.get(a) || 0) > now ? 1 : 0;
+    const bCool = (modelCoolDown.get(b) || 0) > now ? 1 : 0;
+    return aCool - bCool;
+  });
+
   let lastErr = null;
 
   for (const model of models) {
+    // If model is currently in cooldown and another model is healthy, skip the overloaded model
+    if ((modelCoolDown.get(model) || 0) > now && models.some((m) => (modelCoolDown.get(m) || 0) <= now)) {
+      console.log(`[AI Planner] Skipping ${model} due to active 503 cooldown. Trying healthy model first.`);
+      continue;
+    }
+
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         console.log(`[AI Planner] Generating with model ${model} (attempt ${attempt})...`);
@@ -314,12 +368,34 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
           config,
         });
         if (response && response.text) {
+          modelCoolDown.delete(model);
           return response.text;
         }
       } catch (err: any) {
         lastErr = err;
-        console.warn(`[AI Planner] Model ${model} attempt ${attempt} notice:`, err?.message || err);
-        await new Promise((res) => setTimeout(res, 400 * attempt));
+        const errMsg = typeof err === 'string' ? err : err?.message || JSON.stringify(err);
+        console.warn(`[AI Planner] Model ${model} attempt ${attempt} notice:`, errMsg);
+
+        // Check if error is 503 / UNAVAILABLE / high demand spike
+        const isHighDemandOrUnavailable =
+          err?.status === 503 ||
+          err?.status === 'UNAVAILABLE' ||
+          err?.code === 503 ||
+          err?.error?.code === 503 ||
+          err?.error?.status === 'UNAVAILABLE' ||
+          /503|UNAVAILABLE|high demand|overloaded|spikes in demand/i.test(errMsg);
+
+        // If the model is currently experiencing temporary high demand, set cooldown and immediately proceed
+        // to the next model in the fallback cascade rather than repeating attempts on the same overloaded model
+        if (isHighDemandOrUnavailable) {
+          console.log(`[AI Planner] Model ${model} is experiencing temporary high demand (503). Setting 60s cooldown and immediately switching to next fallback model...`);
+          modelCoolDown.set(model, Date.now() + 60000);
+          break;
+        }
+
+        if (attempt < 2) {
+          await new Promise((res) => setTimeout(res, 200));
+        }
       }
     }
   }
@@ -346,16 +422,32 @@ function postProcessParsedPlan(
 
   // 1. Process Classwork mapped directly into each class's timetable
   const usedSlots = new Map<string, Set<string>>();
+  const seenCwKeys = new Set<string>();
 
   for (const item of rawCw) {
     const normSub = normalizeSubject(item.subject);
-    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId) && targetClasses.length === 1)
+    const itemWeek = Number(item.week) || week;
+    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId))
       ? [item.classId]
       : targetClasses;
 
+    const rawTitle = (item.title || item.details || '').trim();
+    if (!rawTitle) continue;
+
     for (const classId of classesForThisItem) {
+      // Deduplicate per class per week to ensure only explicit sessions without repetition
+      const dedupeKey = `${itemWeek}-${classId}-${normSub}-${rawTitle.slice(0, 40).toLowerCase()}`;
+      if (seenCwKeys.has(dedupeKey)) continue;
+
       const preferredDay = item.day || 'Sunday';
-      const slot = allocateClassworkSlot(classId, preferredDay, normSub, usedSlots);
+      const slot = allocateClassworkSlot(classId, preferredDay, normSub, usedSlots, itemWeek);
+      if (!slot) {
+        // All scheduled slots for this subject in this week are already filled (e.g. max 3 sessions for Social Studies)
+        // Prevent phantom extra sessions!
+        continue;
+      }
+
+      seenCwKeys.add(dedupeKey);
 
       // Extract links from Classwork (URL parameter or in title/details)
       let linkUrl = item.linkUrl;
@@ -382,12 +474,12 @@ function postProcessParsedPlan(
           isQuiz: true,
           categoryType: 'quiz',
           block,
-          week,
+          week: itemWeek,
         });
       }
 
       classwork.push({
-        id: `cw-b${block}-w${week}-${classId}-${slot.day}-p${slot.period}-${Math.random().toString(36).substring(2, 7)}`,
+        id: `cw-b${block}-w${itemWeek}-${classId}-${slot.day}-p${slot.period}-${Math.random().toString(36).substring(2, 7)}`,
         classId,
         day: slot.day,
         period: slot.period,
@@ -397,7 +489,7 @@ function postProcessParsedPlan(
         pages: item.pages || undefined,
         completed: false,
         block,
-        week,
+        week: itemWeek,
         linkUrl: linkUrl || undefined,
         linkTitle: linkTitle || undefined,
       });
@@ -405,13 +497,23 @@ function postProcessParsedPlan(
   }
 
   // 2. Process Homework (Enforce 3rd session for French & ICT)
+  const seenHwKeys = new Set<string>();
+
   for (const item of rawHw) {
     const normSub = normalizeSubject(item.subject);
-    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId) && targetClasses.length === 1)
+    const itemWeek = Number(item.week) || week;
+    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId))
       ? [item.classId]
       : targetClasses;
 
+    const rawTask = (item.task || item.details || '').trim();
+    if (!rawTask) continue;
+
     for (const classId of classesForThisItem) {
+      const dedupeKey = `${itemWeek}-${classId}-${normSub}-${rawTask.slice(0, 40).toLowerCase()}`;
+      if (seenHwKeys.has(dedupeKey)) continue;
+      seenHwKeys.add(dedupeKey);
+
       let assignedDay = item.assignedDay || 'Sunday';
       let dueDay = item.dueDay || 'Monday';
 
@@ -451,12 +553,12 @@ function postProcessParsedPlan(
           isQuiz: true,
           categoryType: 'quiz',
           block,
-          week,
+          week: itemWeek,
         });
       }
 
       homework.push({
-        id: `hw-b${block}-w${week}-${classId}-${normSub.toLowerCase()}-${assignedDay}-${Math.random().toString(36).substring(2, 7)}`,
+        id: `hw-b${block}-w${itemWeek}-${classId}-${normSub.toLowerCase()}-${assignedDay}-${Math.random().toString(36).substring(2, 7)}`,
         classId,
         assignedDay,
         dueDay,
@@ -467,7 +569,7 @@ function postProcessParsedPlan(
         completed: false,
         priority: (item.priority === 'urgent' || isTestHw) ? 'urgent' : 'normal',
         block,
-        week,
+        week: itemWeek,
         linkUrl: linkUrl || undefined,
         isLinkTask: isLinkTask || undefined,
       });
@@ -480,7 +582,8 @@ function postProcessParsedPlan(
 
   for (const item of rawTomorrowNotes) {
     const normSub = normalizeSubject(item.subject);
-    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId) && targetClasses.length === 1)
+    const itemWeek = Number(item.week) || week;
+    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId))
       ? [item.classId]
       : targetClasses;
 
@@ -499,8 +602,8 @@ function postProcessParsedPlan(
         bagItem = item.arabicNote || rawNote;
       }
 
-      // Deduplication
-      const dedupeKey = `${classId}-${targetDay}-${normSub}-${rawNote.slice(0, 30)}`;
+      // Deduplication per week
+      const dedupeKey = `${itemWeek}-${classId}-${targetDay}-${normSub}-${rawNote.slice(0, 30)}`;
       if (seenNoteKeys.has(dedupeKey)) continue;
       seenNoteKeys.add(dedupeKey);
 
@@ -514,7 +617,7 @@ function postProcessParsedPlan(
         isQuiz,
         categoryType: isQuiz ? 'quiz' : 'note',
         block,
-        week,
+        week: itemWeek,
       });
     }
   }
@@ -609,6 +712,22 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
   };
 
   for (const line of lines) {
+    // Dynamic week detection within document (e.g. Week 1, Week 2, Week 3 sections)
+    const lineWeekMatch = line.match(/\b(?:week\s*([1-4])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|[1-4])|الاسبوع\s*([1-4])|اسبوع\s*([1-4]))\b/i);
+    if (lineWeekMatch) {
+      if (lineWeekMatch[1]) activeWeek = Number(lineWeekMatch[1]);
+      else if (lineWeekMatch[3]) activeWeek = Number(lineWeekMatch[3]);
+      else if (lineWeekMatch[4]) activeWeek = Number(lineWeekMatch[4]);
+      else if (/الأول|1/.test(lineWeekMatch[2])) activeWeek = 1;
+      else if (/الثاني|2/.test(lineWeekMatch[2])) activeWeek = 2;
+      else if (/الثالث|3/.test(lineWeekMatch[2])) activeWeek = 3;
+      else if (/الرابع|4/.test(lineWeekMatch[2])) activeWeek = 4;
+    }
+
+    // Skip document headers, metadata, titles, and teacher signatures
+    const isDocHeader = /(nile|egyptian|schools?|weekly plan|خطة أسبوعية|الصف الثاني|grade\s*2|semester|term|academic year|العام الدراسي|الفصل الدراسي|أهداف|معلم|teacher|signature|مدارس النيل|وزارة التربية)/i.test(line);
+    if (isDocHeader) continue;
+
     // Skip table header rows
     if (/^\|?\s*(day|اليوم|subject|المادة|classwork|homework|cw|hw)\s*\|/i.test(line)) {
       continue;
@@ -665,9 +784,14 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
           }
         }
 
-        if (!cwText && parts.length >= 3) cwText = parts[2];
-        if (!hwText && parts.length >= 4) hwText = parts[3];
-        if (!noteText && parts.length >= 5) noteText = parts[4];
+        if (!cwText && parts.length >= 3 && !/^\-+$/.test(parts[2])) cwText = parts[2];
+        if (!hwText && parts.length >= 4 && !/^\-+$/.test(parts[3])) hwText = parts[3];
+        if (!noteText && parts.length >= 5 && !/^\-+$/.test(parts[4])) noteText = parts[4];
+
+        // Clean out empty/no-content indicators
+        if (/^(none|no homework|لا يوجد|لا يوجد واجب|\-|\/|n\/a)$/i.test(cwText.trim())) cwText = '';
+        if (/^(none|no homework|لا يوجد|لا يوجد واجب|\-|\/|n\/a)$/i.test(hwText.trim())) hwText = '';
+        if (/^(none|لا يوجد|\-|\/|n\/a)$/i.test(noteText.trim())) noteText = '';
 
         if (cwText) {
           const urlMatch = cwText.match(urlRegex);
@@ -677,6 +801,7 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
             period: (rawCw.length % 8) + 1,
             subject: rowSubject,
             title: cwText,
+            week: activeWeek,
             linkUrl: urlMatch ? urlMatch[1] : undefined,
           });
         }
@@ -688,6 +813,7 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
             dueDay: nextDayMap[rowDay] || 'Monday',
             subject: rowSubject,
             task: hwText,
+            week: activeWeek,
             linkUrl: urlMatch ? urlMatch[1] : undefined,
             isLinkTask: Boolean(urlMatch),
             priority: testRegex.test(hwText) ? 'urgent' : 'normal',
@@ -700,6 +826,7 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
             subject: rowSubject,
             note: noteText,
             arabicNote: noteText,
+            week: activeWeek,
             isQuiz: testRegex.test(noteText),
             categoryType: testRegex.test(noteText) ? 'quiz' : 'note',
             bagItem: bagRegex.test(noteText) ? noteText : undefined,
@@ -770,39 +897,48 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
 
       if (cwMatch && cwMatch[1].trim()) {
         const title = cwMatch[1].trim().replace(/[.;]+$/, '');
-        rawCw.push({
-          classId: classId || 'ALL',
-          day: currentDay,
-          period: (rawCw.length % 8) + 1,
-          subject: currentSubject,
-          title,
-          completed: false,
-        });
+        if (title && !/^(none|لا يوجد|\-|\/|n\/a)$/i.test(title)) {
+          rawCw.push({
+            classId: classId || 'ALL',
+            day: currentDay,
+            period: (rawCw.length % 8) + 1,
+            subject: currentSubject,
+            title,
+            week: activeWeek,
+            completed: false,
+          });
+        }
       }
       if (hwMatch && hwMatch[1].trim()) {
         const task = hwMatch[1].trim().replace(/[.;]+$/, '');
-        rawHw.push({
-          classId: classId || 'ALL',
-          assignedDay: currentDay,
-          dueDay: nextDayMap[currentDay] || 'Monday',
-          subject: currentSubject,
-          task,
-          completed: false,
-          priority: testRegex.test(task) ? 'urgent' : 'normal',
-        });
+        if (task && !/^(none|no homework|لا يوجد|لا يوجد واجب|\-|\/|n\/a)$/i.test(task)) {
+          rawHw.push({
+            classId: classId || 'ALL',
+            assignedDay: currentDay,
+            dueDay: nextDayMap[currentDay] || 'Monday',
+            subject: currentSubject,
+            task,
+            week: activeWeek,
+            completed: false,
+            priority: testRegex.test(task) ? 'urgent' : 'normal',
+          });
+        }
       }
       if (noteMatch && noteMatch[1].trim()) {
         const cleanNote = noteMatch[1].trim().replace(/[.;]+$/, '');
-        rawNotes.push({
-          classId: classId || 'ALL',
-          targetDay: currentDay,
-          subject: currentSubject,
-          note: cleanNote,
-          arabicNote: cleanNote,
-          isQuiz: testRegex.test(cleanNote),
-          categoryType: testRegex.test(cleanNote) ? 'quiz' : 'note',
-          bagItem: bagRegex.test(cleanNote) ? cleanNote : undefined,
-        });
+        if (cleanNote && !/^(none|لا يوجد|\-|\/|n\/a)$/i.test(cleanNote)) {
+          rawNotes.push({
+            classId: classId || 'ALL',
+            targetDay: currentDay,
+            subject: currentSubject,
+            note: cleanNote,
+            arabicNote: cleanNote,
+            week: activeWeek,
+            isQuiz: testRegex.test(cleanNote),
+            categoryType: testRegex.test(cleanNote) ? 'quiz' : 'note',
+            bagItem: bagRegex.test(cleanNote) ? cleanNote : undefined,
+          });
+        }
       }
       if (quizMatch && quizMatch[1].trim()) {
         const quizText = quizMatch[0].trim().replace(/[.;]+$/, '');
@@ -812,6 +948,7 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
           subject: currentSubject,
           note: quizText,
           arabicNote: quizText,
+          week: activeWeek,
           isQuiz: true,
           categoryType: 'quiz',
         });
@@ -823,16 +960,19 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
     const isNote = /ملاحظات|ملاحظة|remarque|remarks|notes?|أدوات|تنبيه/i.test(line);
     if (isNote) {
       const cleanNote = line.replace(/^(ملاحظات|ملاحظة|remarques?|remarks?|notes?|أدوات|تنبيه)[:\-–\s]*/i, '').trim();
-      rawNotes.push({
-        classId: classId || 'ALL',
-        targetDay: currentDay,
-        subject: currentSubject,
-        note: cleanNote,
-        arabicNote: cleanNote,
-        bagItem: bagRegex.test(line) ? cleanNote : undefined,
-        isQuiz: testRegex.test(cleanNote),
-        categoryType: testRegex.test(cleanNote) ? 'quiz' : 'note',
-      });
+      if (cleanNote && !/^(none|لا يوجد|\-|\/|n\/a)$/i.test(cleanNote)) {
+        rawNotes.push({
+          classId: classId || 'ALL',
+          targetDay: currentDay,
+          subject: currentSubject,
+          note: cleanNote,
+          arabicNote: cleanNote,
+          week: activeWeek,
+          bagItem: bagRegex.test(line) ? cleanNote : undefined,
+          isQuiz: testRegex.test(cleanNote),
+          categoryType: testRegex.test(cleanNote) ? 'quiz' : 'note',
+        });
+      }
       continue;
     }
 
@@ -844,6 +984,7 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
         subject: currentSubject,
         note: line,
         arabicNote: line,
+        week: activeWeek,
         isQuiz: true,
         categoryType: 'quiz',
       });
@@ -851,35 +992,42 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
     }
 
     // Single item CW or HW line
-    const isHw = /hw|homework|الواجب|الواجب المنزلي|devoir|h\.w/i.test(line);
-    const isCw = /cw|classwork|أعمال الفصل|الصف|الحصة|درس|c\.w/i.test(line);
+    const isHw = /^(?:hw|homework|الواجب|الواجب المنزلي|devoir|h\.w)[:\-–\s]*/i.test(line) || /hw|homework|الواجب|الواجب المنزلي|devoir|h\.w/i.test(line);
+    const isExplicitCw = /^(?:cw|classwork|أعمال الفصل|الصف|الحصة|درس|c\.w)[:\-–\s]*/i.test(line) ||
+      /^(?:درس|unit|lesson|ch\.|chapter|الوحدة|المفهوم|page|p\.|ص\b|كتاب|أنشطة|تدريبات|تسميع|نشيد|سورة)/i.test(line);
 
     const cleanText = line.replace(/^(hw|cw|h\.w|c\.w|homework|classwork|الواجب المنزلي|الواجب|أعمال الفصل|الحصة)[:\-–\s]*/i, '').trim();
     const urlMatch = line.match(urlRegex);
 
     if (isHw) {
-      rawHw.push({
-        classId: classId || 'ALL',
-        assignedDay: currentDay,
-        dueDay: nextDayMap[currentDay] || 'Monday',
-        subject: currentSubject,
-        task: cleanText || line,
-        completed: false,
-        priority: testRegex.test(line) ? 'urgent' : 'normal',
-        linkUrl: urlMatch ? urlMatch[1] : undefined,
-        isLinkTask: Boolean(urlMatch),
-      });
-    } else if (isCw || cleanText.length > 5) {
-      rawCw.push({
-        classId: classId || 'ALL',
-        day: currentDay,
-        period: (rawCw.length % 8) + 1,
-        subject: currentSubject,
-        title: cleanText || line,
-        completed: false,
-        linkUrl: urlMatch ? urlMatch[1] : undefined,
-        linkTitle: urlMatch ? (currentSubject === 'French' ? 'Lien Kahoot / Activité 🔗' : 'رابط الدرس 🔗') : undefined,
-      });
+      if (cleanText && !/^(none|no homework|لا يوجد|لا يوجد واجب|\-|\/|n\/a)$/i.test(cleanText)) {
+        rawHw.push({
+          classId: classId || 'ALL',
+          assignedDay: currentDay,
+          dueDay: nextDayMap[currentDay] || 'Monday',
+          subject: currentSubject,
+          task: cleanText,
+          week: activeWeek,
+          completed: false,
+          priority: testRegex.test(line) ? 'urgent' : 'normal',
+          linkUrl: urlMatch ? urlMatch[1] : undefined,
+          isLinkTask: Boolean(urlMatch),
+        });
+      }
+    } else if (isExplicitCw) {
+      if (cleanText && !/^(none|لا يوجد|\-|\/|n\/a)$/i.test(cleanText)) {
+        rawCw.push({
+          classId: classId || 'ALL',
+          day: currentDay,
+          period: (rawCw.length % 8) + 1,
+          subject: currentSubject,
+          title: cleanText,
+          week: activeWeek,
+          completed: false,
+          linkUrl: urlMatch ? urlMatch[1] : undefined,
+          linkTitle: urlMatch ? (currentSubject === 'French' ? 'Lien Kahoot / Activité 🔗' : 'رابط الدرس 🔗') : undefined,
+        });
+      }
     }
   }
 
@@ -1021,6 +1169,13 @@ ${JSON.stringify(timetableContext, null, 2)}
        "categoryType": "quiz" | "note"
      }
 
+
+CRITICAL RULES TO PREVENT DUPLICATION & PHANTOM SESSIONS:
+- "الحصص التي لا يذكر لها أي بيانات أو لا يكون لها محتوى في الخطة لا تنزل مطلقاً في الـ Classwork".
+- NEVER generate placeholder or filler sessions. Only create a classwork or homework item if the plan explicitly lists real educational content (lesson title, book pages, exercises).
+- If a subject has 3 sessions per week (like Social Studies, which is 3 sessions/week = 9 sessions over 3 weeks), output EXACTLY those 3 lessons per week. DO NOT repeat them across every period or produce 21 sessions!
+- Multi-Week Documents: If the document contains multiple weeks (e.g. Week 1, Week 2, Week 3), attach the correct "week": 1 | 2 | 3 | 4 to every single object in "classwork", "homework", and "tomorrowNotes".
+
 Return ONLY valid JSON matching this schema:
 {
   "classwork": [...],
@@ -1029,19 +1184,24 @@ Return ONLY valid JSON matching this schema:
 }
 `;
 
-    const contents: any[] = [];
-    if (pdfBase64 && typeof pdfBase64 === 'string') {
+    const parts: any[] = [];
+    // Only pass heavy raw PDF base64 if client-side text extraction didn't produce sufficient text
+    if (extractedPdfText.length < 50 && pdfBase64 && typeof pdfBase64 === 'string') {
       const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, '').trim();
-      contents.push({
-        inlineData: {
-          mimeType: 'application/pdf',
-          data: cleanBase64,
-        },
-      });
+      if (cleanBase64.length > 0) {
+        parts.push({
+          inlineData: {
+            mimeType: 'application/pdf',
+            data: cleanBase64,
+          },
+        });
+      }
     }
 
-    const textContent = extractedPdfText ? `Extracted/Supplementary Weekly Plan Text:\n${extractedPdfText}\n\n${systemPrompt}` : systemPrompt;
-    contents.push({ text: textContent });
+    const textContent = extractedPdfText ? `Extracted Weekly Plan Text:\n${extractedPdfText}\n\n${systemPrompt}` : systemPrompt;
+    parts.push({ text: textContent });
+
+    const contents = { parts };
 
     let textOutput = '';
     try {
@@ -1063,7 +1223,7 @@ Return ONLY valid JSON matching this schema:
     }
 
     try {
-      const parsed = JSON.parse(textOutput);
+      const parsed = cleanAndParseJson(textOutput);
       const finalized = postProcessParsedPlan(parsed, Number(block), detectedWeek, targetClasses);
       return res.json({
         success: true,
@@ -1180,6 +1340,12 @@ ${JSON.stringify(timetableContext, null, 2)}
    - Extract required tools or bag items into "bagItem" (e.g. كشكول، ألوان، مسطرة، لوحة بيضاء).
    - Format: { classId, targetDay, subject, note, arabicNote, bagItem, isQuiz, categoryType }
 
+CRITICAL RULES TO PREVENT DUPLICATION & PHANTOM SESSIONS:
+- "الحصص التي لا يذكر لها أي بيانات أو لا يكون لها محتوى في الخطة لا تنزل مطلقاً في الـ Classwork".
+- NEVER generate placeholder or filler sessions. Only create a classwork or homework item if the plan explicitly lists real educational content.
+- If a subject has 3 sessions per week (like Social Studies, which is 3 sessions/week = 9 sessions over 3 weeks), output EXACTLY those 3 lessons per week. DO NOT invent 21 sessions!
+- Multi-Week Documents: If the document contains multiple weeks, attach the correct "week": 1 | 2 | 3 | 4 to every object.
+
 Return ONLY JSON:
 {
   "classwork": [...],
@@ -1193,7 +1359,7 @@ ${planText}
 
     let textOutput = '';
     try {
-      textOutput = await generateWithFallback(ai, [{ text: prompt }], {
+      textOutput = await generateWithFallback(ai, { parts: [{ text: prompt }] }, {
         responseMimeType: 'application/json',
       });
     } catch (aiErr: any) {
@@ -1211,7 +1377,7 @@ ${planText}
     }
 
     try {
-      const parsed = JSON.parse(textOutput);
+      const parsed = cleanAndParseJson(textOutput);
       const finalized = postProcessParsedPlan(parsed, Number(block), detectedWeek, targetClasses);
       return res.json({
         success: true,

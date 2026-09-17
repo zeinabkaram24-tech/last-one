@@ -524,21 +524,43 @@ export default function App() {
     showToast('تم حذف الواجب من قاعدة بيانات Supabase.');
   };
 
-  const handleApplyWeeklyPlan = async (newClasswork: ClassworkEntry[], newHomework: HomeworkEntry[]) => {
-    setClassworkList((prev) => [...newClasswork, ...prev]);
-    setHomeworkList((prev) => [...newHomework, ...prev]);
+  const handleApplyWeeklyPlan = async (
+    newClasswork: ClassworkEntry[],
+    newHomework: HomeworkEntry[],
+    mode: 'merge' | 'replace' = 'replace'
+  ) => {
+    if (mode === 'replace') {
+      const cwKeys = new Set(newClasswork.map((c) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`));
+      const hwKeys = new Set(newHomework.map((h) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`));
+
+      setClassworkList((prev) => [
+        ...newClasswork,
+        ...prev.filter((c) => !cwKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)),
+      ]);
+      setHomeworkList((prev) => [
+        ...newHomework,
+        ...prev.filter((h) => !hwKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)),
+      ]);
+    } else {
+      setClassworkList((prev) => [...newClasswork, ...prev]);
+      setHomeworkList((prev) => [...newHomework, ...prev]);
+    }
 
     if (isSupabaseConfigured) {
       try {
         await Promise.all([
-          bulkInsertClasswork(newClasswork),
-          bulkInsertHomework(newHomework),
+          bulkInsertClasswork(newClasswork, mode),
+          bulkInsertHomework(newHomework, mode),
         ]);
       } catch (e) {
         console.error('Error saving weekly plan to Supabase:', e);
       }
     }
-    showToast('تم استيراد الخطة الأسبوعية وحفظها في Supabase بنجاح!');
+    showToast(
+      mode === 'replace'
+        ? 'تم استبدال الخطة السابقة بالخطة الجديدة وتحديث البيانات بنجاح!'
+        : 'تم استيراد الخطة الأسبوعية ودمجها بنجاح!'
+    );
   };
 
   // Reset to sample plan

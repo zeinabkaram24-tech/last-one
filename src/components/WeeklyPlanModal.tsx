@@ -21,7 +21,7 @@ interface WeeklyPlanModalProps {
   currentClass: ClassId;
   currentBlock?: number;
   currentWeek?: number;
-  onApplyPlan: (classwork: ClassworkEntry[], homework: HomeworkEntry[]) => void;
+  onApplyPlan: (classwork: ClassworkEntry[], homework: HomeworkEntry[], mode?: 'merge' | 'replace') => void;
 }
 
 const SAMPLE_WEEKLY_PLAN = `Grade 2 Weekly Plan - Nile Egyptian International School
@@ -63,11 +63,14 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
   isOpen,
   onClose,
   currentClass,
+  currentBlock = 1,
+  currentWeek = 2,
   onApplyPlan,
 }) => {
   const [planText, setPlanText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [parsedResult, setParsedResult] = useState<ParsedWeeklyPlanResponse | null>(null);
+  const [mode, setMode] = useState<'merge' | 'replace'>('replace');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -104,6 +107,8 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
       details: cw.details,
       pages: cw.pages,
       completed: false,
+      block: currentBlock,
+      week: (cw as any).week || currentWeek,
     }));
 
     const finalHomework: HomeworkEntry[] = parsedResult.homework.map((hw, idx) => ({
@@ -117,9 +122,11 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
       pages: hw.pages,
       completed: false,
       priority: hw.priority || 'normal',
+      block: currentBlock,
+      week: (hw as any).week || currentWeek,
     }));
 
-    onApplyPlan(finalClasswork, finalHomework);
+    onApplyPlan(finalClasswork, finalHomework, mode);
     onClose();
   };
 
@@ -260,13 +267,66 @@ Sunday:
                 </div>
               </div>
 
+              {/* Mode Selection: Replace vs Merge */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-black text-slate-800">
+                    طريقة تطبيق الخطة (Import Mode):
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    {mode === 'replace' ? 'استبدال كامل' : 'دمج وإضافة'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setMode('replace')}
+                    className={`p-2.5 rounded-xl border text-right transition-all ${
+                      mode === 'replace'
+                        ? 'bg-purple-50 border-purple-500 text-purple-950 ring-2 ring-purple-400/40 font-black shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-start gap-1.5 font-black text-xs">
+                      <RefreshCw className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                      <span>استبدال القديمة بالجديدة</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1 font-normal leading-relaxed">
+                      حذف خطة المادة السابقة لهذا الأسبوع واستبدالها بالخطة الجديدة منعاً للتكرار
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMode('merge')}
+                    className={`p-2.5 rounded-xl border text-right transition-all ${
+                      mode === 'merge'
+                        ? 'bg-indigo-50 border-indigo-500 text-indigo-950 ring-2 ring-indigo-400/40 font-black shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-start gap-1.5 font-black text-xs">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                      <span>إدخالها مع القديمة (دمج)</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1 font-normal leading-relaxed">
+                      الإبقاء على الحصص والبيانات الحالية وإضافة الخطة الجديدة إليها
+                    </p>
+                  </button>
+                </div>
+              </div>
+
               <div className="pt-2">
                 <button
                   onClick={handleApply}
                   className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-xs transition-colors flex items-center justify-center gap-2"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Apply to {currentClass} Planner</span>
+                  <span>
+                    {mode === 'replace'
+                      ? `استبدال الخطة القديمة وتطبيق الجديدة على ${currentClass}`
+                      : `دمج الخطة وتطبيقها على ${currentClass}`}
+                  </span>
                 </button>
               </div>
             </div>

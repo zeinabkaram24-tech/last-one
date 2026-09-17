@@ -36,11 +36,12 @@ import {
 import { uploadPdfToSupabaseStorage, bulkInsertClasswork, bulkInsertHomework } from '../lib/supabase';
 import { saveTomorrowNotes } from '../utils/tomorrowNotesStorage';
 import { fileToBase64, extractTextFromPdf } from '../utils/pdfExtractor';
+import { fallbackClientParser } from '../services/aiClassifier';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPlanUpdated?: () => void;
+  onPlanUpdated?: (block?: number, week?: number) => void;
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
@@ -66,6 +67,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [planFile, setPlanFile] = useState<File | null>(null);
   const [planTextInput, setPlanTextInput] = useState<string>('');
   const [planInputMode, setPlanInputMode] = useState<'pdf' | 'text'>('pdf');
+  const [importMode, setImportMode] = useState<'merge' | 'replace'>('replace');
   const [isParsingPlan, setIsParsingPlan] = useState(false);
   const [parsingStep, setParsingStep] = useState<string>('');
   const [parsedResult, setParsedResult] = useState<{
@@ -264,14 +266,20 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       setErrorMessage(null);
       setSuccessMessage(null);
 
-      let response: Response;
+      let response: Response | null = null;
+      let availableText = planTextInput;
 
       if (planInputMode === 'pdf' && planFile) {
-        setParsingStep('جاري قراءة ملف الـ PDF واستخراج الجداول...');
-        const base64 = await fileToBase64(planFile);
-
-        setParsingStep('جاري استخراج النصوص والجداول من صفحات الـ PDF...');
+        setParsingStep('جاري استخراج النصوص والجداول من ملف الـ PDF...');
         const extractedText = await extractTextFromPdf(planFile);
+        availableText = extractedText;
+
+        // Only convert to heavy Base64 if client-side text extraction couldn't read the PDF (e.g. scanned image)
+        let base64: string | undefined = undefined;
+        if (!extractedText || extractedText.trim().length < 50) {
+          setParsingStep('جاري قراءة وتجهيز صفحات المستند...');
+          base64 = await fileToBase64(planFile);
+        }
 
         setParsingStep('الذكاء الاصطناعي يحلل الجداول، يوزع Classwork و Homework، وينقل Quiz والاختبارات والملاحظات إلى Tomorrow...');
         response = await fetch('/api/parse-weekly-plan-pdf', {
@@ -299,8 +307,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         });
       }
 
-      if (!response.ok) {
-        throw new Error(`خطأ في استجابة الخادم (${response.status})`);
+      if (!response || !response.ok) {
+        throw new Error(`خطأ في استجابة الخادم (${response ? response.status : 'no response'})`);
       }
 
       const data = await response.json();
@@ -326,6 +334,25 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       );
     } catch (err: any) {
       console.error('Error parsing weekly plan:', err);
+
+      // Robust Client Fallback: If network or server request failed, extract locally from available text
+      let fallbackText = (planInputMode === 'pdf' ? (await extractTextFromPdf(planFile!).catch(() => '')) : planTextInput) || '';
+      if (fallbackText.trim().length > 0) {
+        try {
+          console.log('Activating client-side fallback parser...');
+          const localParsed = fallbackClientParser(fallbackText, planClass, planBlock, planWeek);
+          if (localParsed.classwork.length > 0 || localParsed.homework.length > 0 || localParsed.tomorrowNotes.length > 0) {
+            setParsedResult(localParsed);
+            setSuccessMessage(
+              `✨ تم تفكيك وتحليل الخطة بنجاح (المعالج السريع): تم استخراج ${localParsed.classwork.length} حصة صفية، ${localParsed.homework.length} واجب، و ${localParsed.tomorrowNotes.length} تنبيه واختبار.`
+            );
+            return;
+          }
+        } catch (localErr) {
+          console.warn('Local parser fallback also failed:', localErr);
+        }
+      }
+
       setErrorMessage(`تعذر تحليل الخطة الأسبوعية: ${err.message || 'حدث خطأ أثناء المعالجة'}`);
     } finally {
       setIsParsingPlan(false);
@@ -343,17 +370,17 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
       // 1. Bulk insert classwork
       if (parsedResult.classwork.length > 0) {
-        await bulkInsertClasswork(parsedResult.classwork);
+        await bulkInsertClasswork(parsedResult.classwork, importMode);
       }
 
       // 2. Bulk insert homework
       if (parsedResult.homework.length > 0) {
-        await bulkInsertHomework(parsedResult.homework);
+        await bulkInsertHomework(parsedResult.homework, importMode);
       }
 
       // 3. Save tomorrow notes
       if (parsedResult.tomorrowNotes.length > 0) {
-        await saveTomorrowNotes(planBlock, planWeek, parsedResult.tomorrowNotes);
+        await saveTomorrowNotes(planBlock, planWeek, parsedResult.tomorrowNotes, importMode);
       }
 
       // 4. Centralized Server Persistence for cross-device sync (Mobile, Laptop, Desktop)
@@ -365,6 +392,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             classwork: parsedResult.classwork,
             homework: parsedResult.homework,
             tomorrowNotes: parsedResult.tomorrowNotes,
+            mode: importMode,
           }),
         });
       } catch (serverSyncErr) {
@@ -372,7 +400,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       }
 
       setSuccessMessage(
-        `🎉 تم بنجاح اعتماد ونشر الخطة الأسبوعية (Block ${planBlock} — Week ${planWeek}) في قاعدة البيانات وتحديث التطبيق فوراً لجميع الطلاب والأجهزة!`
+        importMode === 'replace'
+          ? `🎉 تم بنجاح استبدال الخطة القديمة ونشر الخطة الأسبوعية الجديدة (Block ${planBlock} — Week ${planWeek}) وتحديث التطبيق لجميع الطلاب والأجهزة!`
+          : `🎉 تم بنجاح دمج الخطة الأسبوعية (Block ${planBlock} — Week ${planWeek}) في قاعدة البيانات وتحديث التطبيق فوراً لجميع الطلاب والأجهزة!`
       );
       setParsedResult(null);
       setPlanFile(null);
@@ -886,6 +916,70 @@ Sunday:
                             })}
                           </div>
                         )}
+                      </div>
+
+                      {/* Mode selection: Merge vs Replace */}
+                      <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-black text-slate-800">
+                            طريقة إدخال الخطة الأسبوعية:
+                          </label>
+                          <span className="text-[11px] font-bold text-slate-500">
+                            اختر ما إذا كنت تريد الإضافة مع الخطة القديمة أو استبدالها
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            id="plan-import-mode-replace-btn"
+                            onClick={() => setImportMode('replace')}
+                            className={`p-3 rounded-xl border text-right transition-all cursor-pointer flex items-start gap-2.5 ${
+                              importMode === 'replace'
+                                ? 'bg-purple-50/90 border-purple-500 text-purple-950 ring-1 ring-purple-400 shadow-2xs'
+                                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                              importMode === 'replace' ? 'border-purple-600 bg-purple-600 text-white' : 'border-slate-300 bg-white'
+                            }`}>
+                              {importMode === 'replace' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            </div>
+                            <div>
+                              <div className="font-black text-xs text-purple-950 flex items-center gap-1.5">
+                                <span>🔄 استبدال القديمة بالجديدة (Replace)</span>
+                                <span className="px-1.5 py-0.2 rounded bg-purple-200 text-purple-900 text-[10px] font-bold">الموصى به</span>
+                              </div>
+                              <div className="text-[11px] text-slate-600 mt-1 leading-normal">
+                                استبدال وتحديث حصص وواجبات المواد المذكورة بالخطة الجديدة لتجنب أي تكرار.
+                              </div>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            id="plan-import-mode-merge-btn"
+                            onClick={() => setImportMode('merge')}
+                            className={`p-3 rounded-xl border text-right transition-all cursor-pointer flex items-start gap-2.5 ${
+                              importMode === 'merge'
+                                ? 'bg-indigo-50/90 border-indigo-500 text-indigo-950 ring-1 ring-indigo-400 shadow-2xs'
+                                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                              importMode === 'merge' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 bg-white'
+                            }`}>
+                              {importMode === 'merge' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            </div>
+                            <div>
+                              <div className="font-black text-xs text-indigo-950">
+                                ➕ إدخالها مع القديمة (Merge / Add)
+                              </div>
+                              <div className="text-[11px] text-slate-600 mt-1 leading-normal">
+                                الإضافة إلى جانب الحصص والواجبات والملاحظات الموجودة مسبقاً دون حذف.
+                              </div>
+                            </div>
+                          </button>
+                        </div>
                       </div>
 
                       {/* Publish and Cancel Buttons */}

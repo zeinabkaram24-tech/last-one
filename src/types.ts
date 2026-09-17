@@ -68,6 +68,7 @@ export interface HomeworkEntry {
 }
 
 export interface TomorrowSpecialNote {
+  id?: string;
   classId: ClassId;
   targetDay: SchoolDay; // The day being prepared for
   subject: string;
