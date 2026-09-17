@@ -20,6 +20,8 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  Edit2,
+  Plus,
 } from 'lucide-react';
 import { ClassId, MaterialItem, ClassworkEntry, HomeworkEntry } from '../types';
 import { TomorrowSpecialNote } from '../data/defaultWeeklyPlan';
@@ -77,6 +79,232 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   } | null>(null);
   const [isPublishingPlan, setIsPublishingPlan] = useState(false);
   const [previewTab, setPreviewTab] = useState<'classwork' | 'homework' | 'tomorrow'>('classwork');
+
+  // Editing state for parsed weekly plan before publishing
+  const [editingItemType, setEditingItemType] = useState<'classwork' | 'homework' | 'tomorrow' | null>(null);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [isAddingNewItem, setIsAddingNewItem] = useState(false);
+
+  // Edit Form Fields
+  const [formTitle, setFormTitle] = useState('');
+  const [formDetails, setFormDetails] = useState('');
+  const [formPages, setFormPages] = useState('');
+  const [formSubject, setFormSubject] = useState<string>('English');
+  const [formClassId, setFormClassId] = useState<ClassId | 'ALL'>('G2B');
+  const [formDay, setFormDay] = useState<string>('Sunday');
+  const [formDueDay, setFormDueDay] = useState<string>('Monday');
+  const [formPeriod, setFormPeriod] = useState<number>(1);
+  const [formPriority, setFormPriority] = useState<'normal' | 'urgent'>('normal');
+  const [formLinkUrl, setFormLinkUrl] = useState('');
+  const [formLinkTitle, setFormLinkTitle] = useState('');
+  const [formArabicNote, setFormArabicNote] = useState('');
+  const [formBagItem, setFormBagItem] = useState('');
+  const [formIsQuiz, setFormIsQuiz] = useState(false);
+
+  const openEditClasswork = (cw: ClassworkEntry, index: number) => {
+    setEditingItemType('classwork');
+    setEditingItemIndex(index);
+    setIsAddingNewItem(false);
+    setFormTitle(cw.title || '');
+    setFormDetails(cw.details || '');
+    setFormPages(cw.pages || '');
+    setFormSubject(cw.subject || 'English');
+    setFormClassId(cw.classId || 'G2B');
+    setFormDay(cw.day || 'Sunday');
+    setFormPeriod(cw.period || 1);
+    setFormLinkUrl(cw.linkUrl || '');
+    setFormLinkTitle(cw.linkTitle || '');
+  };
+
+  const openAddClasswork = () => {
+    setEditingItemType('classwork');
+    setEditingItemIndex(null);
+    setIsAddingNewItem(true);
+    setFormTitle('');
+    setFormDetails('');
+    setFormPages('');
+    setFormSubject('English');
+    setFormClassId(planClass === 'ALL' ? 'G2B' : planClass);
+    setFormDay('Sunday');
+    setFormPeriod(1);
+    setFormLinkUrl('');
+    setFormLinkTitle('');
+  };
+
+  const openEditHomework = (hw: HomeworkEntry, index: number) => {
+    setEditingItemType('homework');
+    setEditingItemIndex(index);
+    setIsAddingNewItem(false);
+    setFormTitle(hw.task || '');
+    setFormDetails(hw.details || '');
+    setFormPages(hw.pages || '');
+    setFormSubject(hw.subject || 'English');
+    setFormClassId(hw.classId || 'G2B');
+    setFormDay(hw.assignedDay || 'Sunday');
+    setFormDueDay(hw.dueDay || 'Monday');
+    setFormPriority(hw.priority || 'normal');
+    setFormLinkUrl(hw.linkUrl || '');
+  };
+
+  const openAddHomework = () => {
+    setEditingItemType('homework');
+    setEditingItemIndex(null);
+    setIsAddingNewItem(true);
+    setFormTitle('');
+    setFormDetails('');
+    setFormPages('');
+    setFormSubject('English');
+    setFormClassId(planClass === 'ALL' ? 'G2B' : planClass);
+    setFormDay('Sunday');
+    setFormDueDay('Monday');
+    setFormPriority('normal');
+    setFormLinkUrl('');
+  };
+
+  const openEditTomorrowNote = (note: TomorrowSpecialNote, index: number) => {
+    setEditingItemType('tomorrow');
+    setEditingItemIndex(index);
+    setIsAddingNewItem(false);
+    setFormTitle(note.note || '');
+    setFormArabicNote(note.arabicNote || note.note || '');
+    setFormSubject(note.subject || 'English');
+    setFormClassId(note.classId || 'G2B');
+    setFormDay(note.targetDay || 'Sunday');
+    setFormBagItem(note.bagItem || '');
+    setFormIsQuiz(Boolean(note.isQuiz || note.categoryType === 'quiz'));
+  };
+
+  const openAddTomorrowNote = () => {
+    setEditingItemType('tomorrow');
+    setEditingItemIndex(null);
+    setIsAddingNewItem(true);
+    setFormTitle('');
+    setFormArabicNote('');
+    setFormSubject('English');
+    setFormClassId(planClass === 'ALL' ? 'G2B' : planClass);
+    setFormDay('Sunday');
+    setFormBagItem('');
+    setFormIsQuiz(false);
+  };
+
+  const handleDeleteItem = (type: 'classwork' | 'homework' | 'tomorrow', index: number) => {
+    if (!parsedResult) return;
+    if (type === 'classwork') {
+      setParsedResult({
+        ...parsedResult,
+        classwork: parsedResult.classwork.filter((_, i) => i !== index),
+      });
+    } else if (type === 'homework') {
+      setParsedResult({
+        ...parsedResult,
+        homework: parsedResult.homework.filter((_, i) => i !== index),
+      });
+    } else if (type === 'tomorrow') {
+      setParsedResult({
+        ...parsedResult,
+        tomorrowNotes: parsedResult.tomorrowNotes.filter((_, i) => i !== index),
+      });
+    }
+  };
+
+  const handleSaveModalItem = () => {
+    if (!parsedResult || !editingItemType) return;
+
+    if (editingItemType === 'classwork') {
+      const entry: ClassworkEntry = {
+        id: isAddingNewItem || editingItemIndex === null
+          ? `cw-manual-${Date.now()}`
+          : parsedResult.classwork[editingItemIndex]?.id || `cw-manual-${Date.now()}`,
+        classId: formClassId as any,
+        day: formDay as any,
+        period: Number(formPeriod) || 1,
+        subject: formSubject as any,
+        title: formTitle.trim() || `${formSubject} Lesson`,
+        details: formDetails.trim() || undefined,
+        pages: formPages.trim() || undefined,
+        completed: false,
+        block: planBlock,
+        week: planWeek,
+        linkUrl: formLinkUrl.trim() || undefined,
+        linkTitle: formLinkTitle.trim() || (formLinkUrl.trim() ? 'رابط الدرس 🔗' : undefined),
+      };
+
+      if (isAddingNewItem) {
+        setParsedResult({
+          ...parsedResult,
+          classwork: [entry, ...parsedResult.classwork],
+        });
+      } else if (editingItemIndex !== null) {
+        setParsedResult({
+          ...parsedResult,
+          classwork: parsedResult.classwork.map((c, i) => (i === editingItemIndex ? entry : c)),
+        });
+      }
+    } else if (editingItemType === 'homework') {
+      const entry: HomeworkEntry = {
+        id: isAddingNewItem || editingItemIndex === null
+          ? `hw-manual-${Date.now()}`
+          : parsedResult.homework[editingItemIndex]?.id || `hw-manual-${Date.now()}`,
+        classId: formClassId as any,
+        assignedDay: formDay as any,
+        dueDay: formDueDay as any,
+        subject: formSubject as any,
+        task: formTitle.trim() || 'Homework task',
+        details: formDetails.trim() || undefined,
+        pages: formPages.trim() || undefined,
+        completed: false,
+        priority: formPriority,
+        block: planBlock,
+        week: planWeek,
+        linkUrl: formLinkUrl.trim() || undefined,
+        isLinkTask: Boolean(formLinkUrl.trim()),
+      };
+
+      if (isAddingNewItem) {
+        setParsedResult({
+          ...parsedResult,
+          homework: [entry, ...parsedResult.homework],
+        });
+      } else if (editingItemIndex !== null) {
+        setParsedResult({
+          ...parsedResult,
+          homework: parsedResult.homework.map((h, i) => (i === editingItemIndex ? entry : h)),
+        });
+      }
+    } else if (editingItemType === 'tomorrow') {
+      const entry: TomorrowSpecialNote = {
+        id: isAddingNewItem || editingItemIndex === null
+          ? `note-manual-${Date.now()}`
+          : parsedResult.tomorrowNotes[editingItemIndex]?.id || `note-manual-${Date.now()}`,
+        classId: formClassId as any,
+        targetDay: formDay as any,
+        subject: formSubject as any,
+        note: formTitle.trim() || formArabicNote.trim() || 'School Note',
+        arabicNote: formArabicNote.trim() || formTitle.trim() || 'ملاحظة مدرسية',
+        bagItem: formBagItem.trim() || undefined,
+        isQuiz: formIsQuiz,
+        categoryType: formIsQuiz ? 'quiz' : 'note',
+        block: planBlock,
+        week: planWeek,
+      };
+
+      if (isAddingNewItem) {
+        setParsedResult({
+          ...parsedResult,
+          tomorrowNotes: [entry, ...parsedResult.tomorrowNotes],
+        });
+      } else if (editingItemIndex !== null) {
+        setParsedResult({
+          ...parsedResult,
+          tomorrowNotes: parsedResult.tomorrowNotes.map((n, i) => (i === editingItemIndex ? entry : n)),
+        });
+      }
+    }
+
+    setEditingItemType(null);
+    setEditingItemIndex(null);
+    setIsAddingNewItem(false);
+  };
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -768,155 +996,608 @@ Sunday:
                       </div>
 
                       {/* Preview Tab Content */}
-                      <div className="max-h-56 overflow-y-auto space-y-2 pr-1 text-xs">
+                      <div className="max-h-72 overflow-y-auto space-y-2 pr-1 text-xs">
                         {previewTab === 'classwork' && (
-                          <div className="space-y-1.5">
-                            {parsedResult.classwork.slice(0, 20).map((cw, idx) => (
-                              <div
-                                key={`preview-cw-${cw.id || 'item'}-${idx}`}
-                                className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                              <span className="text-[11px] text-slate-500 font-medium">
+                                يمكنك تعديل تفاصيل أي حصة، أرقام صفحاتها، أو حذفها قبل النشر:
+                              </span>
+                              <button
+                                type="button"
+                                onClick={openAddClasswork}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs cursor-pointer transition-colors"
                               >
-                                <div className="flex items-center gap-2 shrink-0">
-                                  <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-800 font-black text-[11px] flex items-center justify-center shrink-0">
-                                    ح{cw.period}
-                                  </span>
-                                  <span className="font-bold text-slate-900">{cw.subject}</span>
-                                  <span className="text-slate-500 text-[11px]">({cw.day} - {cw.classId})</span>
-                                </div>
-                                <div className="flex items-center gap-2 truncate">
-                                  <span className="text-slate-700 truncate font-medium">
-                                    {cw.title || cw.details || (cw as any).lesson} {cw.pages && `(${cw.pages})`}
-                                  </span>
-                                  {cw.linkUrl && (
-                                    <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold shrink-0">
-                                      🔗 {cw.linkTitle || 'رابط الدرس'}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                            {parsedResult.classwork.length > 20 && (
-                              <p className="text-center text-slate-400 text-[11px] py-1">
-                                + {parsedResult.classwork.length - 20} حصة إضافية سيتم حفظها...
+                                <Plus className="w-3.5 h-3.5" />
+                                إضافة حصة
+                              </button>
+                            </div>
+
+                            {parsedResult.classwork.length === 0 ? (
+                              <p className="text-center py-4 text-slate-400 font-bold">
+                                لا توجد حصص مستخرجة حالياً. يمكنك الضغط على "+ إضافة حصة" لإضافة حصص يدوياً.
                               </p>
+                            ) : (
+                              parsedResult.classwork.map((cw, idx) => (
+                                <div
+                                  key={`preview-cw-${cw.id || 'item'}-${idx}`}
+                                  className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-indigo-200 transition-colors flex items-center justify-between gap-3"
+                                >
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <span className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-800 font-black text-xs flex items-center justify-center shrink-0">
+                                      ح{cw.period}
+                                    </span>
+                                    <div className="flex flex-col">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-black text-slate-900 text-xs">{cw.subject}</span>
+                                        <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">
+                                          {cw.classId}
+                                        </span>
+                                        <span className="text-slate-500 text-[10px] font-medium">{cw.day}</span>
+                                      </div>
+                                      {cw.pages && (
+                                        <span className="text-[10px] font-bold text-amber-900 bg-amber-100/70 px-1.5 py-0.5 rounded border border-amber-200 inline-block w-fit mt-0.5">
+                                          📖 {cw.pages}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="flex-1 min-w-0 px-2 text-right">
+                                    <p className="text-slate-800 font-bold text-xs truncate">
+                                      {cw.title || cw.details || (cw as any).lesson || 'درس بدون عنوان'}
+                                    </p>
+                                    {cw.details && cw.details !== cw.title && (
+                                      <p className="text-slate-500 text-[11px] truncate font-medium">
+                                        {cw.details}
+                                      </p>
+                                    )}
+                                    {cw.linkUrl && (
+                                      <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-bold">
+                                        🔗 {cw.linkTitle || 'رابط الدرس'}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <button
+                                      type="button"
+                                      onClick={() => openEditClasswork(cw, idx)}
+                                      className="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
+                                      title="تعديل الحصة"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteItem('classwork', idx)}
+                                      className="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-rose-400 text-slate-600 hover:text-rose-600 transition-colors cursor-pointer"
+                                      title="حذف الحصة"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))
                             )}
                           </div>
                         )}
 
                         {previewTab === 'homework' && (
-                          <div className="space-y-1.5">
-                            {parsedResult.homework.map((hw, idx) => (
-                              <div
-                                key={`preview-hw-${hw.id || 'item'}-${idx}`}
-                                className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                              <span className="text-[11px] text-slate-500 font-medium">
+                                يمكنك مراجعة وتعديل الواجبات المنزلية وأرقام الصفحات:
+                              </span>
+                              <button
+                                type="button"
+                                onClick={openAddHomework}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs cursor-pointer transition-colors"
                               >
-                                <div className="flex items-center gap-2 shrink-0">
-                                  <span className="px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px]">
-                                    {hw.subject}
-                                  </span>
-                                  <span className="text-slate-500 text-[11px]">({hw.assignedDay} - {hw.classId})</span>
-                                  {(hw.subject.toLowerCase().includes('french') ||
-                                    hw.subject.toLowerCase().includes('ict') ||
-                                    hw.subject.includes('فرنساوي') ||
-                                    hw.subject.includes('حاسب')) && (
-                                    <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 text-[10px] font-black">
-                                      مجدول بالحصة 3 ✅
+                                <Plus className="w-3.5 h-3.5" />
+                                إضافة واجب
+                              </button>
+                            </div>
+
+                            {parsedResult.homework.length === 0 ? (
+                              <p className="text-center py-4 text-slate-400 font-bold">
+                                لا توجد واجبات مستخرجة حالياً. يمكنك الضغط على "+ إضافة واجب" لإضافة واجب يدوياً.
+                              </p>
+                            ) : (
+                              parsedResult.homework.map((hw, idx) => (
+                                <div
+                                  key={`preview-hw-${hw.id || 'item'}-${idx}`}
+                                  className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-amber-200 transition-colors flex items-center justify-between gap-3"
+                                >
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <span className="px-2 py-1 rounded-md bg-amber-100 text-amber-900 font-bold text-[11px]">
+                                      {hw.subject}
                                     </span>
-                                  )}
-                                  {hw.priority === 'urgent' && (
-                                    <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold">
-                                      🚨 عاجل
-                                    </span>
-                                  )}
+                                    <div className="flex flex-col">
+                                      <div className="flex items-center gap-1 text-slate-500 text-[10px]">
+                                        <span className="font-bold text-slate-700">{hw.classId}</span>
+                                        <span>• يعطى: {hw.assignedDay}</span>
+                                        <span>• تسليم: {hw.dueDay}</span>
+                                      </div>
+                                      {hw.pages && (
+                                        <span className="text-[10px] font-bold text-indigo-900 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200 inline-block w-fit mt-0.5">
+                                          📖 {hw.pages}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {hw.priority === 'urgent' && (
+                                      <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold">
+                                        🚨 عاجل
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="flex-1 min-w-0 px-2 text-right">
+                                    <p className="text-slate-800 font-bold text-xs truncate">
+                                      {hw.task}
+                                    </p>
+                                    {hw.details && (
+                                      <p className="text-slate-500 text-[11px] truncate font-medium">
+                                        {hw.details}
+                                      </p>
+                                    )}
+                                    {hw.linkUrl && (
+                                      <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 text-[10px] font-bold">
+                                        🔗 رابط الواجب
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <button
+                                      type="button"
+                                      onClick={() => openEditHomework(hw, idx)}
+                                      className="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-amber-400 text-slate-600 hover:text-amber-700 transition-colors cursor-pointer"
+                                      title="تعديل الواجب"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteItem('homework', idx)}
+                                      className="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-rose-400 text-slate-600 hover:text-rose-600 transition-colors cursor-pointer"
+                                      title="حذف الواجب"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2 truncate">
-                                  <span className="text-slate-700 font-medium truncate">
-                                    {hw.task} {hw.pages && `(${hw.pages})`}
-                                  </span>
-                                  {hw.linkUrl && (
-                                    <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold shrink-0">
-                                      🔗 رابط
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
+                              ))
+                            )}
                           </div>
                         )}
 
                         {previewTab === 'tomorrow' && (
-                          <div className="space-y-1.5">
-                            {parsedResult.tomorrowNotes.map((note, idx) => {
-                              const isQuiz =
-                                note.isQuiz ||
-                                note.categoryType === 'quiz' ||
-                                /quiz|test|exam|dictation|اختبار|امتحان|كويز|إملاء|تسميع|تقييم/i.test(
-                                  note.note + ' ' + (note.arabicNote || '')
-                                );
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                              <span className="text-[11px] text-slate-500 font-medium">
+                                يمكنك تعديل تنبيهات الغد والكويزات المدرسية:
+                              </span>
+                              <button
+                                type="button"
+                                onClick={openAddTomorrowNote}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs cursor-pointer transition-colors"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                إضافة تنبيه
+                              </button>
+                            </div>
 
-                              let badgeLabel = 'Notes';
-                              let badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
+                            {parsedResult.tomorrowNotes.length === 0 ? (
+                              <p className="text-center py-4 text-slate-400 font-bold">
+                                لا توجد تنبيهات مستخرجة حالياً. يمكنك الضغط على "+ إضافة تنبيه" لإضافة تنبيهات يدوياً.
+                              </p>
+                            ) : (
+                              parsedResult.tomorrowNotes.map((note, idx) => {
+                                const isQuiz =
+                                  note.isQuiz ||
+                                  note.categoryType === 'quiz' ||
+                                  /quiz|test|exam|dictation|اختبار|امتحان|كويز|إملاء|تسميع|تقييم/i.test(
+                                    note.note + ' ' + (note.arabicNote || '')
+                                  );
 
-                              if (isQuiz) {
-                                badgeLabel = '🚨 اختبار / Quiz';
-                                badgeStyle = 'bg-rose-100 text-rose-800 border-rose-200';
-                              } else if (
-                                note.subject?.toLowerCase().includes('french') ||
-                                note.subject?.includes('فرنساوي')
-                              ) {
-                                badgeLabel = 'Remarque';
-                                badgeStyle = 'bg-purple-100 text-purple-800 border-purple-200';
-                              } else if (
-                                note.subject?.toLowerCase().includes('arabic') ||
-                                note.subject?.toLowerCase().includes('social') ||
-                                note.subject?.includes('عربي') ||
-                                note.subject?.includes('دراسات')
-                              ) {
-                                badgeLabel = 'ملاحظات';
-                                badgeStyle = 'bg-emerald-100 text-emerald-800 border-emerald-200';
-                              }
+                                let badgeLabel = 'Notes';
+                                let badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
 
-                              const dayArabicMap: Record<string, string> = {
-                                Sunday: 'الأحد',
-                                Monday: 'الاثنين',
-                                Tuesday: 'الثلاثاء',
-                                Wednesday: 'الأربعاء',
-                                Thursday: 'الخميس',
-                              };
+                                if (isQuiz) {
+                                  badgeLabel = '🚨 اختبار / Quiz';
+                                  badgeStyle = 'bg-rose-100 text-rose-800 border-rose-200';
+                                } else if (
+                                  note.subject?.toLowerCase().includes('french') ||
+                                  note.subject?.includes('فرنساوي')
+                                ) {
+                                  badgeLabel = 'Remarque';
+                                  badgeStyle = 'bg-purple-100 text-purple-800 border-purple-200';
+                                } else if (
+                                  note.subject?.toLowerCase().includes('arabic') ||
+                                  note.subject?.toLowerCase().includes('social') ||
+                                  note.subject?.includes('عربي') ||
+                                  note.subject?.includes('دراسات')
+                                ) {
+                                  badgeLabel = 'ملاحظات';
+                                  badgeStyle = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                                }
 
-                              return (
-                                <div
-                                  key={`preview-note-${note.id || 'item'}-${idx}`}
-                                  className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1"
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-black text-indigo-900 text-xs">
-                                        يوم {dayArabicMap[note.targetDay] || note.targetDay} — {note.subject}
-                                      </span>
+                                const dayArabicMap: Record<string, string> = {
+                                  Sunday: 'الأحد',
+                                  Monday: 'الاثنين',
+                                  Tuesday: 'الثلاثاء',
+                                  Wednesday: 'الأربعاء',
+                                  Thursday: 'الخميس',
+                                };
+
+                                return (
+                                  <div
+                                    key={`preview-note-${note.id || 'item'}-${idx}`}
+                                    className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-emerald-200 transition-colors flex items-center justify-between gap-3"
+                                  >
+                                    <div className="flex-1 min-w-0 space-y-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-black text-indigo-900 text-xs">
+                                          يوم {dayArabicMap[note.targetDay] || note.targetDay} — {note.subject}
+                                        </span>
+                                        <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">
+                                          {note.classId}
+                                        </span>
+                                        <span
+                                          className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${badgeStyle}`}
+                                        >
+                                          {badgeLabel}
+                                        </span>
+                                      </div>
+                                      <p className="text-slate-700 text-xs leading-relaxed font-medium">
+                                        {note.arabicNote || note.note}
+                                      </p>
+                                      {note.bagItem && (
+                                        <div className="mt-1">
+                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-amber-200 text-[11px] text-amber-900 font-bold">
+                                            🎒 الحقيبة المدرسية: {note.bagItem}
+                                          </span>
+                                        </div>
+                                      )}
                                     </div>
-                                    <span
-                                      className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${badgeStyle}`}
-                                    >
-                                      {badgeLabel}
-                                    </span>
+
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => openEditTomorrowNote(note, idx)}
+                                        className="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-emerald-400 text-slate-600 hover:text-emerald-700 transition-colors cursor-pointer"
+                                        title="تعديل التنبيه"
+                                      >
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteItem('tomorrow', idx)}
+                                        className="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-rose-400 text-slate-600 hover:text-rose-600 transition-colors cursor-pointer"
+                                        title="حذف التنبيه"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
                                   </div>
-                                  <p className="text-slate-700 text-xs leading-relaxed font-medium">
-                                    {note.arabicNote || note.note}
-                                  </p>
-                                  {note.bagItem && (
-                                    <div className="mt-1">
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-amber-200 text-[11px] text-amber-900 font-bold">
-                                        🎒 الحقيبة المدرسية / الأدوات: {note.bagItem}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
+                                );
+                              })
+                            )}
                           </div>
                         )}
                       </div>
+
+                      {/* Edit Sub-Modal Dialog */}
+                      {editingItemType && (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                            {/* Header */}
+                            <div className="px-5 py-4 bg-gradient-to-r from-indigo-900 to-slate-900 text-white flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className="p-2 rounded-xl bg-white/10 text-white">
+                                  <Edit2 className="w-5 h-5 text-indigo-300" />
+                                </div>
+                                <div>
+                                  <h3 className="font-black text-sm text-white">
+                                    {isAddingNewItem ? 'إضافة عنصر جديد للخطة' : 'تعديل تفاصيل العنصر قبل النشر'}
+                                  </h3>
+                                  <p className="text-[11px] text-slate-300">
+                                    {editingItemType === 'classwork'
+                                      ? 'حصة أعمال فصل (Classwork)'
+                                      : editingItemType === 'homework'
+                                      ? 'واجب منزلي (Homework)'
+                                      : 'تنبيه الغد أو الكويز (Tomorrow)'}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingItemType(null);
+                                  setEditingItemIndex(null);
+                                  setIsAddingNewItem(false);
+                                }}
+                                className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
+                            </div>
+
+                            {/* Form Body */}
+                            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+                              {/* Class, Subject, Day Row */}
+                              <div className="grid grid-cols-3 gap-2.5">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-1">الفصل</label>
+                                  <select
+                                    value={formClassId}
+                                    onChange={(e) => setFormClassId(e.target.value as any)}
+                                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
+                                  >
+                                    <option value="G2A">G2A</option>
+                                    <option value="G2B">G2B</option>
+                                    <option value="G2C">G2C</option>
+                                    <option value="ALL">جميع الفصول (ALL)</option>
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-1">المادة</label>
+                                  <select
+                                    value={formSubject}
+                                    onChange={(e) => setFormSubject(e.target.value)}
+                                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
+                                  >
+                                    <option value="English">English</option>
+                                    <option value="Mathematics">Mathematics</option>
+                                    <option value="Arabic">Arabic (اللغة العربية)</option>
+                                    <option value="Science">Science (العلوم)</option>
+                                    <option value="Social Studies">Social Studies (دراسات)</option>
+                                    <option value="French">French (Français)</option>
+                                    <option value="Religion">Religion (التربية الدينية)</option>
+                                    <option value="ICT">ICT (تكنولوجيا المعلومات)</option>
+                                    <option value="Arts">Arts (التربية الفنية)</option>
+                                    <option value="Music">Music (التربية الموسيقية)</option>
+                                    <option value="PE">PE (التربية البدنية)</option>
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                    {editingItemType === 'homework' ? 'يوم الإعطاء' : 'اليوم'}
+                                  </label>
+                                  <select
+                                    value={formDay}
+                                    onChange={(e) => setFormDay(e.target.value)}
+                                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
+                                  >
+                                    <option value="Sunday">Sunday (الأحد)</option>
+                                    <option value="Monday">Monday (الاثنين)</option>
+                                    <option value="Tuesday">Tuesday (الثلاثاء)</option>
+                                    <option value="Wednesday">Wednesday (الأربعاء)</option>
+                                    <option value="Thursday">Thursday (الخميس)</option>
+                                  </select>
+                                </div>
+                              </div>
+
+                              {/* Conditional Fields */}
+                              {editingItemType === 'classwork' && (
+                                <>
+                                  <div className="grid grid-cols-2 gap-2.5">
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">رقم الحصة (Period)</label>
+                                      <select
+                                        value={formPeriod}
+                                        onChange={(e) => setFormPeriod(Number(e.target.value))}
+                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
+                                      >
+                                        {[1, 2, 3, 4, 5, 6, 7, 8].map((p) => (
+                                          <option key={`period-${p}`} value={p}>
+                                            الحصة {p}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">أرقام الصفحات (Book Pages)</label>
+                                      <input
+                                        type="text"
+                                        value={formPages}
+                                        onChange={(e) => setFormPages(e.target.value)}
+                                        placeholder="مثال: ص 24 أو ص 14-24"
+                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none placeholder:text-slate-400"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">عنوان الدرس (Title)</label>
+                                    <input
+                                      type="text"
+                                      value={formTitle}
+                                      onChange={(e) => setFormTitle(e.target.value)}
+                                      placeholder="مثال: فصلي الجديد، Unit 1 Lesson 2"
+                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">التفاصيل والأنشطة (Details)</label>
+                                    <textarea
+                                      value={formDetails}
+                                      onChange={(e) => setFormDetails(e.target.value)}
+                                      rows={2}
+                                      placeholder="تفاصيل الدرس وشرح الأنشطة المدرسية..."
+                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-medium focus:border-indigo-500 focus:outline-none"
+                                    />
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-2.5">
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">رابط الدرس الإلكتروني (اختياري)</label>
+                                      <input
+                                        type="url"
+                                        value={formLinkUrl}
+                                        onChange={(e) => setFormLinkUrl(e.target.value)}
+                                        placeholder="https://..."
+                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">اسم الرابط (Link Title)</label>
+                                      <input
+                                        type="text"
+                                        value={formLinkTitle}
+                                        onChange={(e) => setFormLinkTitle(e.target.value)}
+                                        placeholder="مثال: كاهوت 🔗، فيديو توضيحي"
+                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
+                                      />
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+
+                              {editingItemType === 'homework' && (
+                                <>
+                                  <div className="grid grid-cols-3 gap-2.5">
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">يوم التسليم (Due Day)</label>
+                                      <select
+                                        value={formDueDay}
+                                        onChange={(e) => setFormDueDay(e.target.value)}
+                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
+                                      >
+                                        <option value="Sunday">Sunday (الأحد)</option>
+                                        <option value="Monday">Monday (الاثنين)</option>
+                                        <option value="Tuesday">Tuesday (الثلاثاء)</option>
+                                        <option value="Wednesday">Wednesday (الأربعاء)</option>
+                                        <option value="Thursday">Thursday (الخميس)</option>
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">أرقام الصفحات (Pages)</label>
+                                      <input
+                                        type="text"
+                                        value={formPages}
+                                        onChange={(e) => setFormPages(e.target.value)}
+                                        placeholder="مثال: ص 29-32"
+                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none placeholder:text-slate-400"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">الأهمية (Priority)</label>
+                                      <select
+                                        value={formPriority}
+                                        onChange={(e) => setFormPriority(e.target.value as any)}
+                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
+                                      >
+                                        <option value="normal">عادي (Normal)</option>
+                                        <option value="urgent">🚨 عاجل (Urgent)</option>
+                                      </select>
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">المهمة والواجب (Task)</label>
+                                    <input
+                                      type="text"
+                                      value={formTitle}
+                                      onChange={(e) => setFormTitle(e.target.value)}
+                                      placeholder="مثال: حل صفحة 29 بالكتاب، تدريب 3"
+                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">تفاصيل إضافية (Details)</label>
+                                    <textarea
+                                      value={formDetails}
+                                      onChange={(e) => setFormDetails(e.target.value)}
+                                      rows={2}
+                                      placeholder="تفاصيل وإرشادات حل الواجب..."
+                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-medium focus:border-indigo-500 focus:outline-none"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">رابط الواجب الإلكتروني (اختياري)</label>
+                                    <input
+                                      type="url"
+                                      value={formLinkUrl}
+                                      onChange={(e) => setFormLinkUrl(e.target.value)}
+                                      placeholder="https://forms.gle/... أو رابط كاهوت"
+                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
+                                    />
+                                  </div>
+                                </>
+                              )}
+
+                              {editingItemType === 'tomorrow' && (
+                                <>
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">نص الملاحظة أو التنبيه (Arabic Note)</label>
+                                    <textarea
+                                      value={formArabicNote}
+                                      onChange={(e) => setFormArabicNote(e.target.value)}
+                                      rows={3}
+                                      placeholder="مثال: اختبار في الوحدة الأولى، أو إحضار زي التربية الرياضية..."
+                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">أدوات الحقيبة المدرسية (Bag Item - اختياري)</label>
+                                    <input
+                                      type="text"
+                                      value={formBagItem}
+                                      onChange={(e) => setFormBagItem(e.target.value)}
+                                      placeholder="مثال: كشكول أزرق 60 ورقة، ألوان خشبية، مسطرة"
+                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-medium focus:border-indigo-500 focus:outline-none"
+                                    />
+                                  </div>
+
+                                  <div className="flex items-center gap-2 p-2 rounded-lg bg-rose-50 border border-rose-200">
+                                    <input
+                                      type="checkbox"
+                                      id="formIsQuizCheck"
+                                      checked={formIsQuiz}
+                                      onChange={(e) => setFormIsQuiz(e.target.checked)}
+                                      className="w-4 h-4 text-rose-600 rounded cursor-pointer"
+                                    />
+                                    <label htmlFor="formIsQuizCheck" className="text-xs font-bold text-rose-900 cursor-pointer">
+                                      🚨 هل هذا اختبار / Quiz / إملاء / تقييم أسبوعي؟
+                                    </label>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingItemType(null);
+                                  setEditingItemIndex(null);
+                                  setIsAddingNewItem(false);
+                                }}
+                                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-100 transition-colors cursor-pointer text-xs"
+                              >
+                                إلغاء
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleSaveModalItem}
+                                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-md transition-colors cursor-pointer text-xs flex items-center gap-1.5"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                                حفظ التعديل في الخطة
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Mode selection: Merge vs Replace */}
                       <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200 space-y-2">

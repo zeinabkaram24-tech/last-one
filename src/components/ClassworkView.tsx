@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   CheckCircle2,
   Circle,
-  Plus,
-  Edit2,
   User,
   BookOpen,
   ExternalLink,
@@ -21,7 +19,7 @@ interface ClassworkViewProps {
   currentBlock?: number;
   currentWeek?: number;
   onToggleClasswork: (id: string) => void;
-  onSaveClasswork: (entry: ClassworkEntry) => void;
+  onSaveClasswork?: (entry: ClassworkEntry) => void;
 }
 
 export const ClassworkView: React.FC<ClassworkViewProps> = ({
@@ -31,7 +29,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   currentBlock = 1,
   currentWeek = 2,
   onToggleClasswork,
-  onSaveClasswork,
 }) => {
   // Check if current class has ANY weekly plan entered for this Block and Week
   const hasPlanForWeek = classworkList.some(
@@ -88,58 +85,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     }
   }
 
-  // Edit modal state
-  const [editingPeriod, setEditingPeriod] = useState<number | null>(null);
-  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDetails, setEditDetails] = useState('');
-  const [editPages, setEditPages] = useState('');
-  const [editSubject, setEditSubject] = useState<SubjectName>('English');
-
-  const openEdit = (slotPeriods: number[], subject: SubjectName, existing?: ClassworkEntry) => {
-    setEditingPeriod(slotPeriods[0]);
-    setEditingEntryId(existing?.id || null);
-    setEditSubject(subject);
-    setEditTitle(existing ? existing.title : '');
-    setEditDetails(existing?.details || '');
-    setEditPages(existing?.pages || '');
-  };
-
-  const handleSave = () => {
-    if (editingPeriod === null) return;
-    const currentGroup = timetablePeriods.find((slot) => slot.periods.includes(editingPeriod));
-    const targetPeriods = currentGroup ? currentGroup.periods : [editingPeriod];
-
-    const existing = editingEntryId
-      ? classworkList.find((c) => c.id === editingEntryId)
-      : classworkList.find(
-          (c) =>
-            c.classId === currentClass &&
-            c.day === selectedDay &&
-            targetPeriods.includes(c.period) &&
-            (c.block || 1) === currentBlock &&
-            (c.week || 1) === currentWeek
-        );
-
-    const newEntry: ClassworkEntry = {
-      id: existing ? existing.id : `cw-${currentClass}-${selectedDay}-${editingPeriod}-${Date.now()}`,
-      classId: currentClass,
-      day: selectedDay,
-      period: editingPeriod,
-      subject: editSubject,
-      title: editTitle.trim() || `${editSubject} Lesson`,
-      details: editDetails.trim() || undefined,
-      pages: editPages.trim() || undefined,
-      completed: existing ? existing.completed : false,
-      block: currentBlock,
-      week: currentWeek,
-    };
-
-    onSaveClasswork(newEntry);
-    setEditingPeriod(null);
-    setEditingEntryId(null);
-  };
-
   // Helper to find valid classwork entry with actual educational content
   const getCwEntryForSlot = (slot: GroupedPeriodSlot): ClassworkEntry | undefined => {
     if (slot.cwEntry) return slot.cwEntry;
@@ -193,17 +138,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   for (const slot of timetablePeriods) {
     // 1. Match by exact period AND subject
     let matched = availableClasswork.find(
-      (c) => !matchedCwIds.has(c.id) && slot.periods.includes(c.period) && c.subject === slot.subject
+      (c) => !matchedCwIds.has(c.id) && c.subject === slot.subject && slot.periods.includes(c.period)
     );
 
-    // 2. Match by exact period
-    if (!matched) {
-      matched = availableClasswork.find(
-        (c) => !matchedCwIds.has(c.id) && slot.periods.includes(c.period)
-      );
-    }
-
-    // 3. Match by subject
+    // 2. If no exact period match for this subject, match by subject only
     if (!matched) {
       matched = availableClasswork.find(
         (c) => !matchedCwIds.has(c.id) && c.subject === slot.subject
@@ -324,19 +262,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                   triggerDoneCelebration();
                 }
                 onToggleClasswork(cwEntry.id);
-              } else {
-                triggerDoneCelebration();
-                onSaveClasswork({
-                  id: `cw-${currentClass}-${selectedDay}-${slot.periods[0]}-${Date.now()}`,
-                  classId: currentClass,
-                  day: selectedDay,
-                  period: slot.periods[0],
-                  subject: slot.subject,
-                  title: `${slot.subject} Lesson`,
-                  completed: true,
-                  block: currentBlock,
-                  week: currentWeek,
-                });
               }
             };
 
@@ -447,23 +372,16 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                           <span className="italic font-normal">
                             لا توجد تفاصيل مسجلة لهذه الحصة في الخطة
                           </span>
-                          <button
-                            onClick={() => openEdit(slot.periods, slot.subject)}
-                            className="text-indigo-700 hover:text-indigo-900 font-bold inline-flex items-center gap-1"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                            إضافة ملاحظة
-                          </button>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Actions (Check completion & Edit) */}
+                  {/* Actions (Check completion) */}
                   <div className="flex items-center gap-2 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 w-full sm:w-auto justify-end">
                     <button
                       onClick={handleToggleLesson}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         cwEntry?.completed
                           ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
                           : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 shadow-2xs'
@@ -481,14 +399,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                         </>
                       )}
                     </button>
-
-                    <button
-                      onClick={() => openEdit(slot.periods, slot.subject, cwEntry)}
-                      className="p-2 text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-200"
-                      title="Edit Classwork"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -496,76 +406,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           );
         })}
       </div>
-      )}
-
-      {/* Edit Classwork Modal */}
-      {editingPeriod !== null && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900 mb-1">
-              Edit P{editingPeriod} Classwork
-            </h3>
-            <p className="text-xs text-slate-500 mb-4">
-              {selectedDay} • {editSubject} • {currentClass}
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Lesson Title / Topic
-                </label>
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  placeholder="e.g. Chapter 3: Place Value & 2-Digit Addition"
-                  className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Book Pages / Material References
-                </label>
-                <input
-                  type="text"
-                  value={editPages}
-                  onChange={(e) => setEditPages(e.target.value)}
-                  placeholder="e.g. Student Book p. 24 - 26"
-                  className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Detailed Instructions / Notes
-                </label>
-                <textarea
-                  rows={3}
-                  value={editDetails}
-                  onChange={(e) => setEditDetails(e.target.value)}
-                  placeholder="e.g. Solve exercises 1 to 4 on board, check mental math strategies..."
-                  className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 mt-6">
-              <button
-                onClick={() => setEditingPeriod(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs"
-              >
-                Save Lesson Plan
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

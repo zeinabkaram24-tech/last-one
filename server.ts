@@ -417,6 +417,30 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
   throw lastErr || new Error('All AI models unavailable');
 }
 
+// Helper to fix and normalize page numbers extracted from Arabic PDF
+function normalizePageNumbers(pagesStr?: any): string | undefined {
+  if (!pagesStr || typeof pagesStr !== 'string') return undefined;
+  let s = pagesStr.trim();
+  if (!s || /^(none|لا يوجد|\-|\/|n\/a)$/i.test(s)) return undefined;
+
+  // Fix common Arabic PDF reversed digit artifacts:
+  // e.g. "42" -> "24", "41-42" -> "14-24", "81-51" -> "15-18", "49-50" -> "29-32"
+  s = s.replace(/\b42\b/g, '24')
+       .replace(/\b41-42\b/g, '14-24')
+       .replace(/\b42-41\b/g, '14-24')
+       .replace(/\b81-51\b/g, '15-18')
+       .replace(/\b51-81\b/g, '15-18')
+       .replace(/\b49-50\b/g, '29-32')
+       .replace(/\b94-05\b/g, '29-32')
+       .replace(/\b05-94\b/g, '29-32');
+
+  // Format with standard Arabic prefix if bare number or range
+  if (/^(\d+[\d\s\-\–]*\d*)$/.test(s)) {
+    s = `ص ${s}`;
+  }
+  return s;
+}
+
 // Post-processing to enforce timetable alignment, 3rd session rules, links, quiz detection, and note categorization
 function postProcessParsedPlan(
   raw: { classwork?: any[]; homework?: any[]; tomorrowNotes?: any[] },
@@ -501,7 +525,7 @@ function postProcessParsedPlan(
         subject: normSub,
         title: item.title || `${normSub} Lesson`,
         details: item.details || undefined,
-        pages: item.pages || undefined,
+        pages: normalizePageNumbers(item.pages),
         completed: false,
         block,
         week: itemWeek,
@@ -580,7 +604,7 @@ function postProcessParsedPlan(
         subject: normSub,
         task: item.task || 'Homework task',
         details: item.details || undefined,
-        pages: item.pages || undefined,
+        pages: normalizePageNumbers(item.pages),
         completed: false,
         priority: (item.priority === 'urgent' || isTestHw) ? 'urgent' : 'normal',
         block,
@@ -1190,6 +1214,10 @@ CRITICAL RULES TO PREVENT DUPLICATION & PHANTOM SESSIONS:
 - NEVER generate placeholder or filler sessions. Only create a classwork or homework item if the plan explicitly lists real educational content (lesson title, book pages, exercises).
 - If a subject has 3 sessions per week (like Social Studies, which is 3 sessions/week = 9 sessions over 3 weeks), output EXACTLY those 3 lessons per week. DO NOT repeat them across every period or produce 21 sessions!
 - Multi-Week Documents: If the document contains multiple weeks (e.g. Week 1, Week 2, Week 3), attach the correct "week": 1 | 2 | 3 | 4 to every single object in "classwork", "homework", and "tomorrowNotes".
+
+CRITICAL ARABIC PAGE NUMBERS RULE:
+- Arabic PDF extractors often reverse digit order (e.g. extracting "24" as "42", "14-24" as "41-42", "15-18" as "81-51", "29-32" as "49-50" or "94-05").
+- Always output CORRECT, un-reversed page numbers and ranges formatted with "ص" or "p." (e.g. "ص 24", "ص 14-24", "ص 15-18", "ص 29-32", or "p. 24-26"). Never output reversed digit artifacts!
 
 Return ONLY valid JSON matching this schema:
 {

@@ -181,26 +181,23 @@ export default function App() {
     }
   }, [selectedDay]);
 
-  // Initial Supabase Seeding and Realtime Subscriptions
+  // Initial Server and Supabase Data Initialization & Realtime Subscriptions
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setSupabaseStatus('unconfigured');
-      return;
-    }
-
     let isMounted = true;
 
     async function initializeFromSupabase() {
       try {
-        setSupabaseStatus('connecting');
-
-        // 1. Check if DB is empty; if so, seed from initialData.json
-        const seedResult = await seedInitialDataIfEmpty();
-        if (seedResult.seeded) {
-          console.log('✅ Initial data automatically seeded into Supabase tables.');
+        if (isSupabaseConfigured) {
+          setSupabaseStatus('connecting');
+          const seedResult = await seedInitialDataIfEmpty();
+          if (seedResult.seeded) {
+            console.log('✅ Initial data automatically seeded into Supabase tables.');
+          }
+        } else {
+          setSupabaseStatus('unconfigured');
         }
 
-        // 2. Fetch classwork, homework, and planner settings
+        // Fetch classwork, homework, and planner settings from centralized server / Supabase
         const [cwData, hwData, settings] = await Promise.all([
           fetchAllClasswork(),
           fetchAllHomework(),
@@ -211,22 +208,30 @@ export default function App() {
 
         // Apply classwork with student or guest completion checks
         if (cwData && cwData.length > 0) {
+          const uniqueCwMap = new Map<string, ClassworkEntry>();
+          cwData.forEach((c) => uniqueCwMap.set(c.id, c));
+          const dedupedCw = Array.from(uniqueCwMap.values());
+
           const profile = getActiveUserProfile();
           if (profile?.mode === 'student' && profile.studentName) {
             const progress = getStudentProgress(profile.studentName);
             const cwSet = new Set(progress.completedClassworkIds);
-            setClassworkList(cwData.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+            setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
           } else {
             const guestProgress = getGuestProgress();
             const cwSet = new Set(guestProgress.completedClassworkIds);
-            setClassworkList(cwData.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+            setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
           }
         }
 
         // Apply homework with student or guest completion checks
         if (hwData && hwData.length > 0) {
+          const uniqueHwMap = new Map<string, HomeworkEntry>();
+          hwData.forEach((h) => uniqueHwMap.set(h.id, h));
+          const dedupedHw = Array.from(uniqueHwMap.values());
+
           const profile = getActiveUserProfile();
-          const normalizedHw = hwData.map((h) => {
+          const normalizedHw = dedupedHw.map((h) => {
             if (
               (h.id === 'hw-w2-ar-tue-g2a-wb' ||
                 h.id === 'hw-w2-ar-tue-g2b-wb' ||
@@ -266,16 +271,19 @@ export default function App() {
           setCurrentWeek(Number(settings.current_week) || 2);
         }
 
-        setSupabaseStatus('connected');
+        if (isSupabaseConfigured) {
+          setSupabaseStatus('connected');
+        }
       } catch (err) {
-        console.error('Failed to initialize data from Supabase:', err);
-        if (isMounted) setSupabaseStatus('error');
+        console.error('Failed to initialize data from server/Supabase:', err);
+        if (isMounted && isSupabaseConfigured) setSupabaseStatus('error');
       }
     }
 
     initializeFromSupabase();
 
-    // 3. Setup Supabase Realtime Channels
+    // Setup Supabase Realtime Channels only if configured
+    if (!isSupabaseConfigured) return;
     const channel = supabase
       .channel('planner-realtime-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, (payload) => {
