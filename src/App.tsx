@@ -13,6 +13,7 @@ import { StudentAuthModal } from './components/StudentAuthModal';
 import { AdminAuthModal } from './components/AdminAuthModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { MaterialsModal } from './components/MaterialsModal';
+import { notifyTomorrowNotesListeners } from './utils/tomorrowNotesStorage';
 import {
   getActiveUserProfile,
   setActiveUserProfile,
@@ -770,8 +771,16 @@ export default function App() {
       <AdminDashboardModal
         isOpen={isAdminDashboardOpen}
         onClose={() => setIsAdminDashboardOpen(false)}
-        onPlanUpdated={async () => {
+        onPlanUpdated={async (updatedBlock?: number, updatedWeek?: number) => {
           try {
+            if (updatedBlock) {
+              setCurrentBlock(updatedBlock);
+              localStorage.setItem('nile_planner_block', String(updatedBlock));
+            }
+            if (updatedWeek) {
+              setCurrentWeek(updatedWeek);
+              localStorage.setItem(STORAGE_KEYS.WEEK, String(updatedWeek));
+            }
             const [cwData, hwData] = await Promise.all([
               fetchAllClasswork(),
               fetchAllHomework(),
@@ -782,6 +791,7 @@ export default function App() {
             if (hwData && hwData.length > 0) {
               setHomeworkList(hwData);
             }
+            notifyTomorrowNotesListeners();
             setToastMsg('تم تحديث الخطة الأسبوعية والحصص والواجبات بنجاح!');
             setTimeout(() => setToastMsg(null), 4000);
           } catch (err) {

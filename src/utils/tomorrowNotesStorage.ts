@@ -47,7 +47,30 @@ export async function getTomorrowNotesForDay(
     console.warn('Could not parse cached tomorrow notes:', e);
   }
 
-  // 2. If not found locally, check Supabase planner_settings
+  // 2. Check server /api/planner-data (Centralized cross-device sync)
+  if (!loadedNotes) {
+    try {
+      const res = await fetch('/api/planner-data');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.tomorrowNotes) && data.tomorrowNotes.length > 0) {
+          const matching = data.tomorrowNotes.filter(
+            (n: any) => Number(n.block || 1) === Number(block) && Number(n.week || 1) === Number(week)
+          );
+          if (matching.length > 0) {
+            loadedNotes = matching;
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(matching));
+            } catch {}
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Could not fetch tomorrow notes from /api/planner-data:', e);
+    }
+  }
+
+  // 3. If still not found, check Supabase planner_settings
   if (!loadedNotes) {
     try {
       const settings = await fetchPlannerSettings();
@@ -63,14 +86,14 @@ export async function getTomorrowNotesForDay(
     }
   }
 
-  // 3. Filter if dynamic notes found
+  // 4. Filter if dynamic notes found
   if (loadedNotes && Array.isArray(loadedNotes) && loadedNotes.length > 0) {
     return loadedNotes.filter(
       (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
     );
   }
 
-  // 4. Default Static Fallbacks (Block 1 Week 2 & Block 1 Week 1)
+  // 5. Default Static Fallbacks (Block 1 Week 2 & Block 1 Week 1)
   if (block === 1 && week === 2) {
     return WEEK2_SPECIAL_NOTES.filter(
       (n) => n.classId === classId && n.targetDay === targetDay
@@ -99,16 +122,26 @@ export async function saveTomorrowNotes(
   try {
     localStorage.setItem(storageKey, JSON.stringify(notes));
   } catch (e) {
-    console.warn('Could not save tomorrow notes locally:', e);
+    console.warn('Could not cache tomorrow notes to localStorage:', e);
   }
 
-  // 2. Persist to Supabase
+  // 2. Sync to centralized server endpoint
+  try {
+    await fetch('/api/planner-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tomorrowNotes: notes }),
+    });
+  } catch (e) {
+    console.warn('Failed to sync tomorrow notes to /api/planner-data:', e);
+  }
+
+  // 3. Save to Supabase Cloud planner_settings
   try {
     await savePlannerSetting(settingKey, JSON.stringify(notes));
   } catch (e) {
     console.warn('Could not save tomorrow notes to Supabase settings:', e);
   }
 
-  // 3. Notify all listeners
   notifyTomorrowNotesListeners();
 }

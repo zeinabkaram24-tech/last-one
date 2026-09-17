@@ -39,10 +39,18 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Tomorrow's timetable periods (the 8 periods)
   const targetPeriods: PeriodSlot[] = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
 
-  // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items, strictly excluding homework)
-  const isHomeworkNote = (noteText: string, arabicText?: string) => {
-    const lower = (noteText + ' ' + (arabicText || '')).toLowerCase();
-    return lower.includes('واجب') || lower.includes('homework') || lower.includes('devoir');
+  // Helper to determine whether an item is a Quiz or Test
+  const isQuizOrTest = (n: TomorrowSpecialNote) => {
+    if (n.isQuiz || n.categoryType === 'quiz') return true;
+    const text = (n.note + ' ' + (n.arabicNote || '')).toLowerCase();
+    return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(text);
+  };
+
+  // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items / quizzes, strictly excluding plain homework)
+  const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
+    if (isQuizOrTest(n) || n.bagItem) return false;
+    const lower = (n.note + ' ' + (n.arabicNote || '')).toLowerCase().trim();
+    return lower.startsWith('hw:') || lower.startsWith('homework:') || lower.startsWith('واجب:');
   };
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
@@ -59,7 +67,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
               (n.week === 1 || !n.week)
           )
         : [];
-    return raw.filter((n) => !isHomeworkNote(n.note, n.arabicNote));
+    return raw.filter((n) => !isDisallowedTomorrowItem(n));
   });
 
   useEffect(() => {
@@ -73,7 +81,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           tomorrowDay
         );
         if (isMounted) {
-          setTomorrowNotes(notes.filter((n) => !isHomeworkNote(n.note, n.arabicNote)));
+          setTomorrowNotes(notes.filter((n) => !isDisallowedTomorrowItem(n)));
         }
       } catch (err) {
         console.warn('Error loading tomorrow notes:', err);
@@ -87,6 +95,40 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       unsubscribe();
     };
   }, [currentBlock, currentWeek, currentClass, tomorrowDay]);
+
+  const getNoteBadgeInfo = (note: TomorrowSpecialNote) => {
+    const quiz = isQuizOrTest(note);
+    if (quiz) {
+      return {
+        label: '🚨 اختبار / Quiz',
+        badgeClass: 'bg-rose-600 text-white font-black',
+        cardClass: 'bg-rose-50/70 border-rose-200/90 shadow-2xs',
+        subjectName: note.subject === 'Social Studies' ? 'الدراسات الاجتماعية' : note.subject === 'Arabic' ? 'اللغة العربية' : note.subject,
+      };
+    }
+    if (note.subject === 'French') {
+      return {
+        label: 'Remarque',
+        badgeClass: 'bg-purple-100 text-purple-950 font-black',
+        cardClass: 'bg-purple-50/50 border-purple-200/80 shadow-2xs',
+        subjectName: 'French',
+      };
+    }
+    if (note.subject === 'Arabic' || note.subject === 'Social Studies') {
+      return {
+        label: 'ملاحظات',
+        badgeClass: note.subject === 'Arabic' ? 'bg-emerald-100 text-emerald-950 font-black' : 'bg-amber-100 text-amber-950 font-black',
+        cardClass: note.subject === 'Arabic' ? 'bg-emerald-50/40 border-emerald-200/80 shadow-2xs' : 'bg-amber-50/50 border-amber-200/80 shadow-2xs',
+        subjectName: note.subject === 'Social Studies' ? 'الدراسات الاجتماعية' : 'اللغة العربية',
+      };
+    }
+    return {
+      label: 'Notes',
+      badgeClass: 'bg-blue-100 text-blue-950 font-black',
+      cardClass: 'bg-amber-50/40 border-amber-200/70 shadow-2xs',
+      subjectName: note.subject,
+    };
+  };
 
   return (
     <div className="space-y-4">
@@ -143,30 +185,28 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {tomorrowNotes.map((note, idx) => (
-              <div
-                key={idx}
-                className="bg-amber-50/50 rounded-xl border border-amber-200/80 p-3 shadow-2xs space-y-1.5 text-xs"
-              >
-                <div className="flex items-start gap-2 text-slate-900">
-                  <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-950 font-black text-[11px] shrink-0">
-                    {note.subject === 'French'
-                      ? 'Remarque'
-                      : note.subject === 'Arabic'
-                      ? 'ملاحظات'
-                      : 'الملاحظات'}{' '}
-                    • {note.subject === 'Social Studies' ? 'الدراسات الاجتماعية' : note.subject}
-                  </span>
-                  <span className="font-bold leading-relaxed">{note.arabicNote || note.note}</span>
-                </div>
-                {note.bagItem && (
-                  <div className="text-[11px] text-amber-950 font-semibold bg-white px-2.5 py-1 rounded-lg border border-amber-200/90 inline-block">
-                    الأدوات المطلوبة: {note.bagItem}
+          <div className="space-y-2.5">
+            {tomorrowNotes.map((note, idx) => {
+              const badgeInfo = getNoteBadgeInfo(note);
+              return (
+                <div
+                  key={idx}
+                  className={`rounded-xl border p-3 transition-all space-y-1.5 text-xs ${badgeInfo.cardClass}`}
+                >
+                  <div className="flex items-start gap-2 text-slate-900">
+                    <span className={`px-2 py-0.5 rounded text-[11px] shrink-0 ${badgeInfo.badgeClass}`}>
+                      {badgeInfo.label} • {badgeInfo.subjectName}
+                    </span>
+                    <span className="font-bold leading-relaxed">{note.arabicNote || note.note}</span>
                   </div>
-                )}
-              </div>
-            ))}
+                  {note.bagItem && (
+                    <div className="text-[11px] text-amber-950 font-semibold bg-white px-2.5 py-1 rounded-lg border border-amber-200/90 inline-block">
+                      الأدوات المطلوبة: {note.bagItem}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

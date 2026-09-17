@@ -169,38 +169,105 @@ export function homeworkToRow(entry: HomeworkEntry): Omit<HomeworkRow, 'created_
   };
 }
 
+// Local persistence keys for offline and unconfigured Supabase environments
+const LOCAL_STORAGE_CUSTOM_CLASSWORK = 'nile_planner_custom_classwork';
+const LOCAL_STORAGE_CUSTOM_HOMEWORK = 'nile_planner_custom_homework';
+
+function getLocalCustomClasswork(): ClassworkEntry[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_CUSTOM_CLASSWORK);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalCustomClasswork(entries: ClassworkEntry[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getLocalCustomClasswork();
+    const map = new Map<string, ClassworkEntry>();
+    existing.forEach((e) => map.set(e.id, e));
+    entries.forEach((e) => map.set(e.id, e));
+    localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(Array.from(map.values())));
+  } catch (e) {
+    console.warn('Failed to save custom classwork to localStorage:', e);
+  }
+}
+
+function getLocalCustomHomework(): HomeworkEntry[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_CUSTOM_HOMEWORK);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalCustomHomework(entries: HomeworkEntry[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getLocalCustomHomework();
+    const map = new Map<string, HomeworkEntry>();
+    existing.forEach((e) => map.set(e.id, e));
+    entries.forEach((e) => map.set(e.id, e));
+    localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(Array.from(map.values())));
+  } catch (e) {
+    console.warn('Failed to save custom homework to localStorage:', e);
+  }
+}
+
 // =========================================================================
 // CRUD Operations for Classwork
 // =========================================================================
 
 export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
-  if (!isSupabaseConfigured) {
-    return INITIAL_CLASSWORK;
-  }
+  const localCustom = getLocalCustomClasswork();
+  let baseItems = INITIAL_CLASSWORK;
 
+  // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
   try {
-    const { data, error } = await supabase
-      .from('classwork')
-      .select('*')
-      .order('period', { ascending: true });
-
-    if (error) {
-      console.warn('Supabase fetch classwork notice (using local baseline):', error.message || error);
-      return INITIAL_CLASSWORK;
+    const res = await fetch('/api/planner-data');
+    if (res.ok) {
+      const srvData = await res.json();
+      if (srvData && Array.isArray(srvData.classwork) && srvData.classwork.length > 0) {
+        const srvMap = new Map<string, ClassworkEntry>();
+        baseItems.forEach((c) => srvMap.set(c.id, c));
+        srvData.classwork.forEach((c: ClassworkEntry) => srvMap.set(c.id, c));
+        baseItems = Array.from(srvMap.values());
+      }
     }
-
-    if (!data || data.length === 0) {
-      return INITIAL_CLASSWORK;
-    }
-
-    return (data as ClassworkRow[]).map(rowToClasswork);
   } catch (err) {
-    console.warn('Network exception fetching classwork from Supabase (using local baseline):', err);
-    return INITIAL_CLASSWORK;
+    // Server fetch fallback
   }
+
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('classwork')
+        .select('*')
+        .order('period', { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        baseItems = (data as ClassworkRow[]).map(rowToClasswork);
+      }
+    } catch (err) {
+      console.warn('Network exception fetching classwork from Supabase (using local baseline):', err);
+    }
+  }
+
+  // Merge custom entries over baseline items
+  const map = new Map<string, ClassworkEntry>();
+  baseItems.forEach((c) => map.set(c.id, c));
+  localCustom.forEach((c) => map.set(c.id, c));
+  return Array.from(map.values());
 }
 
 export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkEntry> {
+  saveLocalCustomClasswork([entry]);
+
   if (!isSupabaseConfigured) {
     return entry;
   }
@@ -226,6 +293,13 @@ export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkE
 }
 
 export async function updateClassworkCompletion(id: string, completed: boolean): Promise<void> {
+  const local = getLocalCustomClasswork();
+  const target = local.find((c) => c.id === id);
+  if (target) {
+    target.completed = completed;
+    saveLocalCustomClasswork([target]);
+  }
+
   if (!isSupabaseConfigured) return;
 
   try {
@@ -243,6 +317,11 @@ export async function updateClassworkCompletion(id: string, completed: boolean):
 }
 
 export async function deleteClasswork(id: string): Promise<void> {
+  try {
+    const local = getLocalCustomClasswork().filter((c) => c.id !== id);
+    localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(local));
+  } catch {}
+
   if (!isSupabaseConfigured) return;
 
   try {
@@ -256,7 +335,10 @@ export async function deleteClasswork(id: string): Promise<void> {
 }
 
 export async function bulkInsertClasswork(entries: ClassworkEntry[]): Promise<void> {
-  if (!isSupabaseConfigured || entries.length === 0) return;
+  if (entries.length === 0) return;
+  saveLocalCustomClasswork(entries);
+
+  if (!isSupabaseConfigured) return;
 
   const rows = entries.map(classworkToRow);
   for (let i = 0; i < rows.length; i += 50) {
@@ -277,47 +359,60 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[]): Promise<vo
 // =========================================================================
 
 export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
-  if (!isSupabaseConfigured) {
-    return INITIAL_HOMEWORK;
+  const localCustom = getLocalCustomHomework();
+  let baseItems = INITIAL_HOMEWORK;
+
+  // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
+  try {
+    const res = await fetch('/api/planner-data');
+    if (res.ok) {
+      const srvData = await res.json();
+      if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {
+        const srvMap = new Map<string, HomeworkEntry>();
+        baseItems.forEach((h) => srvMap.set(h.id, h));
+        srvData.homework.forEach((h: HomeworkEntry) => srvMap.set(h.id, h));
+        baseItems = Array.from(srvMap.values());
+      }
+    }
+  } catch (err) {
+    // Server fetch fallback
   }
 
-  try {
-    const { data, error } = await supabase
-      .from('homework')
-      .select('*')
-      .order('created_at', { ascending: false });
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('homework')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.warn('Supabase fetch homework notice (using local baseline):', error.message || error);
-      return INITIAL_HOMEWORK;
+      if (!error && data && data.length > 0) {
+        baseItems = (data as HomeworkRow[]).map(rowToHomework);
+      }
+    } catch (err) {
+      console.warn('Network exception fetching homework from Supabase (using local baseline):', err);
     }
+  }
 
-    if (!data || data.length === 0) {
-      return INITIAL_HOMEWORK;
-    }
+  // Ensure Tuesday Week 2 Arabic homework is page 47 and sync to Supabase if outdated
+  const normalizedBase = baseItems.map((item) => {
+    const isTargetArabicHw =
+      item.id === 'hw-w2-ar-tue-g2a-wb' ||
+      item.id === 'hw-w2-ar-tue-g2b-wb' ||
+      item.id === 'hw-w2-ar-tue-g2c-wb' ||
+      (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
 
-    const rawItems = (data as HomeworkRow[]).map(rowToHomework);
+    if (
+      isTargetArabicHw &&
+      (item.task.includes('46') || item.pages.includes('46') || item.details.includes('46'))
+    ) {
+      const corrected: HomeworkEntry = {
+        ...item,
+        task: item.task.replace(/46/g, '47'),
+        pages: item.pages.replace(/46/g, '47'),
+        details: item.details.replace(/46/g, '47'),
+      };
 
-    // Ensure Tuesday Week 2 Arabic homework is page 47 and sync to Supabase if outdated
-    return rawItems.map((item) => {
-      const isTargetArabicHw =
-        item.id === 'hw-w2-ar-tue-g2a-wb' ||
-        item.id === 'hw-w2-ar-tue-g2b-wb' ||
-        item.id === 'hw-w2-ar-tue-g2c-wb' ||
-        (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
-
-      if (
-        isTargetArabicHw &&
-        (item.task.includes('46') || item.pages.includes('46') || item.details.includes('46'))
-      ) {
-        const corrected: HomeworkEntry = {
-          ...item,
-          task: item.task.replace(/46/g, '47'),
-          pages: item.pages.replace(/46/g, '47'),
-          details: item.details.replace(/46/g, '47'),
-        };
-
-        // Persist correction to Supabase in the background
+      if (isSupabaseConfigured) {
         supabase
           .from('homework')
           .update({
@@ -331,19 +426,24 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
               console.warn('Notice syncing page 47 to Supabase:', syncErr.message);
             }
           });
-
-        return corrected;
       }
 
-      return item;
-    });
-  } catch (err) {
-    console.warn('Network exception fetching homework from Supabase (using local baseline):', err);
-    return INITIAL_HOMEWORK;
-  }
+      return corrected;
+    }
+
+    return item;
+  });
+
+  // Merge custom local homework over base items
+  const map = new Map<string, HomeworkEntry>();
+  normalizedBase.forEach((h) => map.set(h.id, h));
+  localCustom.forEach((h) => map.set(h.id, h));
+  return Array.from(map.values());
 }
 
 export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntry> {
+  saveLocalCustomHomework([entry]);
+
   if (!isSupabaseConfigured) {
     return entry;
   }
@@ -369,6 +469,13 @@ export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntr
 }
 
 export async function updateHomeworkCompletion(id: string, completed: boolean): Promise<void> {
+  const local = getLocalCustomHomework();
+  const target = local.find((h) => h.id === id);
+  if (target) {
+    target.completed = completed;
+    saveLocalCustomHomework([target]);
+  }
+
   if (!isSupabaseConfigured) return;
 
   try {
@@ -386,6 +493,11 @@ export async function updateHomeworkCompletion(id: string, completed: boolean): 
 }
 
 export async function deleteHomework(id: string): Promise<void> {
+  try {
+    const local = getLocalCustomHomework().filter((h) => h.id !== id);
+    localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(local));
+  } catch {}
+
   if (!isSupabaseConfigured) return;
 
   try {
@@ -399,7 +511,10 @@ export async function deleteHomework(id: string): Promise<void> {
 }
 
 export async function bulkInsertHomework(entries: HomeworkEntry[]): Promise<void> {
-  if (!isSupabaseConfigured || entries.length === 0) return;
+  if (entries.length === 0) return;
+  saveLocalCustomHomework(entries);
+
+  if (!isSupabaseConfigured) return;
 
   const rows = entries.map(homeworkToRow);
   for (let i = 0; i < rows.length; i += 50) {

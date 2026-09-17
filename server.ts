@@ -1,6 +1,9 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
+// @ts-ignore
+import { PDFParse } from 'pdf-parse';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import { CLASS_TIMETABLES } from './src/data/timetables';
@@ -12,6 +15,61 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Directories for server-side persistence
+const DATA_DIR = path.join(process.cwd(), 'data');
+const MATERIALS_DIR = path.join(process.cwd(), 'uploads', 'materials');
+const MATERIALS_FILE = path.join(DATA_DIR, 'materials.json');
+const PLANNER_DATA_FILE = path.join(DATA_DIR, 'planner_data.json');
+
+try {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(MATERIALS_DIR)) fs.mkdirSync(MATERIALS_DIR, { recursive: true });
+} catch (e) {
+  console.warn('Could not ensure data/upload directories:', e);
+}
+
+// Helper to read materials from disk
+function getStoredMaterials(): any[] {
+  try {
+    if (fs.existsSync(MATERIALS_FILE)) {
+      const raw = fs.readFileSync(MATERIALS_FILE, 'utf-8');
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn('Error reading materials.json:', err);
+  }
+  return [];
+}
+
+function saveStoredMaterials(items: any[]): void {
+  try {
+    fs.writeFileSync(MATERIALS_FILE, JSON.stringify(items, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Error writing materials.json:', err);
+  }
+}
+
+// Helper to read planner data
+function getStoredPlannerData(): { classwork: any[]; homework: any[]; tomorrowNotes: any[] } {
+  try {
+    if (fs.existsSync(PLANNER_DATA_FILE)) {
+      const raw = fs.readFileSync(PLANNER_DATA_FILE, 'utf-8');
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn('Error reading planner_data.json:', err);
+  }
+  return { classwork: [], homework: [], tomorrowNotes: [] };
+}
+
+function saveStoredPlannerData(data: { classwork: any[]; homework: any[]; tomorrowNotes: any[] }): void {
+  try {
+    fs.writeFileSync(PLANNER_DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Error writing planner_data.json:', err);
+  }
+}
 
 // Helper to get GoogleGenAI client safely (lazy initialization)
 function getGenAI(): GoogleGenAI | null {
@@ -32,6 +90,125 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Materials endpoints (Accessible across Mobile, Laptop & Desktop)
+app.get('/api/materials', (req, res) => {
+  const list = getStoredMaterials();
+  res.json(list);
+});
+
+app.post('/api/materials', (req, res) => {
+  try {
+    const item = req.body;
+    if (!item || !item.id) {
+      return res.status(400).json({ error: 'Valid material item with id is required' });
+    }
+
+    // If fileData (base64) is provided, persist it to disk as well
+    if (item.fileData && typeof item.fileData === 'string' && item.fileData.includes(',')) {
+      try {
+        const base64Data = item.fileData.split(',')[1];
+        const buffer = Buffer.from(base64Data, 'base64');
+        const filePath = path.join(MATERIALS_DIR, `${item.id}.pdf`);
+        fs.writeFileSync(filePath, buffer);
+        item.storageUrl = `/api/materials/${item.id}/file`;
+      } catch (fErr) {
+        console.warn('Failed to write material file to disk:', fErr);
+      }
+    }
+
+    const current = getStoredMaterials();
+    const existingIndex = current.findIndex((m: any) => m.id === item.id);
+    if (existingIndex >= 0) {
+      current[existingIndex] = { ...current[existingIndex], ...item };
+    } else {
+      current.unshift(item);
+    }
+    saveStoredMaterials(current);
+    res.json({ success: true, item });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Error saving material' });
+  }
+});
+
+app.get('/api/materials/:id/file', (req, res) => {
+  const { id } = req.params;
+  const filePath = path.join(MATERIALS_DIR, `${id}.pdf`);
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
+    const stream = fs.createReadStream(filePath);
+    return stream.pipe(res);
+  }
+
+  // Check if fileData in materials.json
+  const list = getStoredMaterials();
+  const found = list.find((m: any) => m.id === id);
+  if (found && found.fileData && found.fileData.includes(',')) {
+    const base64Data = found.fileData.split(',')[1];
+    const buffer = Buffer.from(base64Data, 'base64');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
+    return res.send(buffer);
+  }
+
+  res.status(404).json({ error: 'File not found' });
+});
+
+app.delete('/api/materials/:id', (req, res) => {
+  const { id } = req.params;
+  const current = getStoredMaterials().filter((m: any) => m.id !== id);
+  saveStoredMaterials(current);
+  const filePath = path.join(MATERIALS_DIR, `${id}.pdf`);
+  if (fs.existsSync(filePath)) {
+    try { fs.unlinkSync(filePath); } catch {}
+  }
+  res.json({ success: true });
+});
+
+// Planner Data endpoints (Backup & sync across all devices)
+app.get('/api/planner-data', (req, res) => {
+  res.json(getStoredPlannerData());
+});
+
+app.post('/api/planner-data', (req, res) => {
+  try {
+    const { classwork, homework, tomorrowNotes } = req.body;
+    const current = getStoredPlannerData();
+
+    if (Array.isArray(classwork)) {
+      const cwMap = new Map<string, any>();
+      current.classwork.forEach((cw: any) => cwMap.set(cw.id, cw));
+      classwork.forEach((cw: any) => cwMap.set(cw.id, cw));
+      current.classwork = Array.from(cwMap.values());
+    }
+
+    if (Array.isArray(homework)) {
+      const hwMap = new Map<string, any>();
+      current.homework.forEach((hw: any) => hwMap.set(hw.id, hw));
+      homework.forEach((hw: any) => hwMap.set(hw.id, hw));
+      current.homework = Array.from(hwMap.values());
+    }
+
+    if (Array.isArray(tomorrowNotes)) {
+      const notesMap = new Map<string, any>();
+      current.tomorrowNotes.forEach((n: any) => {
+        const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
+        notesMap.set(key, n);
+      });
+      tomorrowNotes.forEach((n: any) => {
+        const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
+        notesMap.set(key, n);
+      });
+      current.tomorrowNotes = Array.from(notesMap.values());
+    }
+
+    saveStoredPlannerData(current);
+    res.json({ success: true, count: { classwork: current.classwork.length, homework: current.homework.length } });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Error saving planner data' });
+  }
+});
+
 // Third session mapping for French and ICT as strictly requested
 const THIRD_SESSION_MAP: Record<string, { French: string; ICT: string }> = {
   G2A: { French: 'Thursday', ICT: 'Wednesday' },
@@ -39,7 +216,117 @@ const THIRD_SESSION_MAP: Record<string, { French: string; ICT: string }> = {
   G2C: { French: 'Wednesday', ICT: 'Thursday' },
 };
 
-// Post-processing to enforce timetable alignment, 3rd session rules, and IDs
+// Normalize subject names across multilingual variants (including Arabic & English)
+function normalizeSubject(sub: string): string {
+  if (!sub) return 'English';
+  const s = sub.trim().toLowerCase();
+  if (
+    s.includes('soc') ||
+    s.includes('دراسات') ||
+    s.includes('سوشيال') ||
+    s.includes('سوشيل') ||
+    s.includes('اجتماع')
+  ) return 'Social Studies';
+  if (s.includes('math') || s.includes('حساب') || s.includes('رياض') || s.includes('ماث')) return 'Mathematics';
+  if (s.includes('eng') || s.includes('إنجل') || s.includes('انجل') || s.includes('انجلش')) return 'English';
+  if (s.includes('arab') || s.includes('عرب')) return 'Arabic';
+  if (s.includes('sci') || s.includes('علوم') || s.includes('ساينس')) return 'Science';
+  if (s.includes('fren') || s.includes('franç') || s.includes('فرنس') || s.includes('فرنساوي') || s.includes('فرنش')) return 'French';
+  if (s.includes('relig') || s.includes('دين') || s.includes('islam') || s.includes('اسلام') || s.includes('إسلام')) return 'Religion';
+  if (s.includes('ict') || s.includes('comp') || s.includes('حاسب') || s.includes('تكنول') || s.includes('اي سي تي') || s.includes('كمبيوتر')) return 'ICT';
+  if (s.includes('art') || s.includes('رسم') || s.includes('فني') || s.includes('فنية') || s.includes('ارت') || s.includes('آرت')) return 'Arts';
+  if (s.includes('music') || s.includes('موسيق') || s.includes('ميوزيك')) return 'Music';
+  if (s.includes('pe') || s.includes('sport') || s.includes('رياضي') || s.includes('بدن') || s.includes('ألعاب')) return 'PE';
+  return sub.charAt(0).toUpperCase() + sub.slice(1);
+}
+
+// Timetable-aligned slot allocator for each specific class
+function allocateClassworkSlot(
+  classId: string,
+  preferredDay: string,
+  subject: string,
+  usedSlots: Map<string, Set<string>>
+): { day: string; period: number } {
+  const normSub = normalizeSubject(subject);
+  const classTimetable = (CLASS_TIMETABLES as any)?.[classId];
+  if (!classTimetable) return { day: preferredDay, period: 1 };
+
+  const classKey = classId;
+  const classUsed = usedSlots.get(classKey) || new Set<string>();
+
+  // 1. Try preferred day first
+  const daySlots = classTimetable[preferredDay] || [];
+  const unusedMatchOnDay = daySlots.find(
+    (slot: any) => normalizeSubject(slot.subject) === normSub && !classUsed.has(`${preferredDay}-${slot.period}`)
+  );
+  if (unusedMatchOnDay) {
+    classUsed.add(`${preferredDay}-${unusedMatchOnDay.period}`);
+    usedSlots.set(classKey, classUsed);
+    return { day: preferredDay, period: unusedMatchOnDay.period };
+  }
+
+  // Any match on preferred day
+  const anyMatchOnDay = daySlots.find((slot: any) => normalizeSubject(slot.subject) === normSub);
+  if (anyMatchOnDay && !classUsed.has(`${preferredDay}-${anyMatchOnDay.period}`)) {
+    classUsed.add(`${preferredDay}-${anyMatchOnDay.period}`);
+    usedSlots.set(classKey, classUsed);
+    return { day: preferredDay, period: anyMatchOnDay.period };
+  }
+
+  // 2. Try other days of the school week in timetable order
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+  for (const d of days) {
+    const slots = classTimetable[d] || [];
+    const unusedMatch = slots.find(
+      (slot: any) => normalizeSubject(slot.subject) === normSub && !classUsed.has(`${d}-${slot.period}`)
+    );
+    if (unusedMatch) {
+      classUsed.add(`${d}-${unusedMatch.period}`);
+      usedSlots.set(classKey, classUsed);
+      return { day: d, period: unusedMatch.period };
+    }
+  }
+
+  // 3. Fallback to any slot in timetable matching subject
+  for (const d of days) {
+    const slots = classTimetable[d] || [];
+    const match = slots.find((slot: any) => normalizeSubject(slot.subject) === normSub);
+    if (match) {
+      return { day: d, period: match.period };
+    }
+  }
+
+  return { day: preferredDay, period: 1 };
+}
+
+// Multi-model fallback runner to prevent 503 errors and spikes in demand
+async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any): Promise<string> {
+  const models = ['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+  let lastErr = null;
+
+  for (const model of models) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        console.log(`[AI Planner] Generating with model ${model} (attempt ${attempt})...`);
+        const response = await ai.models.generateContent({
+          model,
+          contents,
+          config,
+        });
+        if (response && response.text) {
+          return response.text;
+        }
+      } catch (err: any) {
+        lastErr = err;
+        console.warn(`[AI Planner] Model ${model} attempt ${attempt} notice:`, err?.message || err);
+        await new Promise((res) => setTimeout(res, 400 * attempt));
+      }
+    }
+  }
+  throw lastErr || new Error('All AI models unavailable');
+}
+
+// Post-processing to enforce timetable alignment, 3rd session rules, links, quiz detection, and note categorization
 function postProcessParsedPlan(
   raw: { classwork?: any[]; homework?: any[]; tomorrowNotes?: any[] },
   block: number = 1,
@@ -48,94 +335,200 @@ function postProcessParsedPlan(
 ) {
   const classwork: any[] = [];
   const homework: any[] = [];
-  const tomorrowNotes: any[] = [];
+  const rawTomorrowNotes: any[] = Array.isArray(raw.tomorrowNotes) ? [...raw.tomorrowNotes] : [];
+
+  const urlRegex = /(https?:\/\/[^\s)"]+)/i;
+  const testRegex = /\b(quiz|test|exam|dictation)\b|اختبار|امتحان|كويز|إملاء|تسميع|تقييم/i;
+  const bagRegex = /كشكول|كتاب|ألوان|مسطرة|أدوات|زي|sketch|whiteboard|markers?|notebook|cahier|palette|ورق/i;
 
   const rawCw = Array.isArray(raw.classwork) ? raw.classwork : [];
   const rawHw = Array.isArray(raw.homework) ? raw.homework : [];
-  const rawNotes = Array.isArray(raw.tomorrowNotes) ? raw.tomorrowNotes : [];
 
-  // 1. Process Classwork
+  // 1. Process Classwork mapped directly into each class's timetable
+  const usedSlots = new Map<string, Set<string>>();
+
   for (const item of rawCw) {
-    const classId = targetClasses.includes(item.classId) ? item.classId : targetClasses[0] || 'G2B';
-    const day = item.day || 'Sunday';
-    let period = Number(item.period) || 1;
+    const normSub = normalizeSubject(item.subject);
+    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId) && targetClasses.length === 1)
+      ? [item.classId]
+      : targetClasses;
 
-    // Verify against timetable if possible
-    const timetableDay = (CLASS_TIMETABLES as any)?.[classId]?.[day] || [];
-    if (timetableDay.length > 0 && item.subject) {
-      // Find matching period for this subject on this day
-      const matchingSlot = timetableDay.find((slot: any) => slot.subject === item.subject);
-      if (matchingSlot) {
-        period = matchingSlot.period;
+    for (const classId of classesForThisItem) {
+      const preferredDay = item.day || 'Sunday';
+      const slot = allocateClassworkSlot(classId, preferredDay, normSub, usedSlots);
+
+      // Extract links from Classwork (URL parameter or in title/details)
+      let linkUrl = item.linkUrl;
+      let linkTitle = item.linkTitle;
+      const combinedCwText = `${item.title || ''} ${item.details || ''}`;
+      if (!linkUrl) {
+        const urlMatch = combinedCwText.match(urlRegex);
+        if (urlMatch) {
+          linkUrl = urlMatch[1];
+          linkTitle = linkTitle || (normSub === 'French' ? 'Lien Kahoot / Activité 🔗' : 'رابط الدرس 🔗');
+        }
       }
-    }
 
-    classwork.push({
-      id: `cw-b${block}-w${week}-${classId}-${day}-p${period}-${Math.random().toString(36).substring(2, 7)}`,
-      classId,
-      day,
-      period,
-      subject: item.subject || 'English',
-      title: item.title || 'Lesson Topic',
-      details: item.details || undefined,
-      pages: item.pages || undefined,
-      completed: false,
-      block,
-      week,
-    });
+      // Check if Classwork mentions a Quiz or Test -> Route alert to Tomorrow!
+      if (testRegex.test(combinedCwText)) {
+        rawTomorrowNotes.push({
+          classId,
+          targetDay: slot.day,
+          subject: normSub,
+          note: item.title || 'Classroom Quiz / Test',
+          arabicNote: (item.title && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(item.title))
+            ? item.title
+            : `اختبار / Quiz في مادة ${normSub}: ${item.title || ''}`,
+          isQuiz: true,
+          categoryType: 'quiz',
+          block,
+          week,
+        });
+      }
+
+      classwork.push({
+        id: `cw-b${block}-w${week}-${classId}-${slot.day}-p${slot.period}-${Math.random().toString(36).substring(2, 7)}`,
+        classId,
+        day: slot.day,
+        period: slot.period,
+        subject: normSub,
+        title: item.title || `${normSub} Lesson`,
+        details: item.details || undefined,
+        pages: item.pages || undefined,
+        completed: false,
+        block,
+        week,
+        linkUrl: linkUrl || undefined,
+        linkTitle: linkTitle || undefined,
+      });
+    }
   }
 
   // 2. Process Homework (Enforce 3rd session for French & ICT)
   for (const item of rawHw) {
-    const classId = targetClasses.includes(item.classId) ? item.classId : targetClasses[0] || 'G2B';
-    let assignedDay = item.assignedDay || 'Sunday';
-    let dueDay = item.dueDay || 'Monday';
-    const subject = item.subject || 'English';
+    const normSub = normalizeSubject(item.subject);
+    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId) && targetClasses.length === 1)
+      ? [item.classId]
+      : targetClasses;
 
-    // Strict Rule: "عندنا الفرنش والـ ICT بيتحطوا الواجب بتاعهم في الحصة التالتة"
-    if (subject === 'French') {
-      assignedDay = THIRD_SESSION_MAP[classId]?.French || assignedDay;
-      dueDay = assignedDay === 'Thursday' ? 'Sunday' : 'Monday';
-    } else if (subject === 'ICT') {
-      assignedDay = THIRD_SESSION_MAP[classId]?.ICT || assignedDay;
-      dueDay = assignedDay === 'Thursday' ? 'Sunday' : 'Sunday';
+    for (const classId of classesForThisItem) {
+      let assignedDay = item.assignedDay || 'Sunday';
+      let dueDay = item.dueDay || 'Monday';
+
+      // Strict Rule: French and ICT homework is assigned in the 3rd session of the week
+      if (normSub === 'French') {
+        assignedDay = THIRD_SESSION_MAP[classId]?.French || assignedDay;
+        dueDay = assignedDay === 'Thursday' ? 'Sunday' : 'Monday';
+      } else if (normSub === 'ICT') {
+        assignedDay = THIRD_SESSION_MAP[classId]?.ICT || assignedDay;
+        dueDay = assignedDay === 'Thursday' ? 'Sunday' : 'Monday';
+      }
+
+      // Extract links from Homework
+      let linkUrl = item.linkUrl;
+      let isLinkTask = Boolean(item.isLinkTask);
+      const combinedHwText = `${item.task || ''} ${item.details || ''}`;
+      if (!linkUrl) {
+        const urlMatch = combinedHwText.match(urlRegex);
+        if (urlMatch) {
+          linkUrl = urlMatch[1];
+          isLinkTask = true;
+        }
+      }
+
+      // Check if Homework mentions a Quiz or Test -> Route alert to Tomorrow!
+      const isTestHw = testRegex.test(combinedHwText);
+      if (isTestHw) {
+        const targetDay = dueDay || assignedDay;
+        rawTomorrowNotes.push({
+          classId,
+          targetDay,
+          subject: normSub,
+          note: item.task || 'Homework Quiz / Test Reminder',
+          arabicNote: (item.task && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(item.task))
+            ? item.task
+            : `اختبار / Quiz (${normSub}): ${item.task || ''}`,
+          isQuiz: true,
+          categoryType: 'quiz',
+          block,
+          week,
+        });
+      }
+
+      homework.push({
+        id: `hw-b${block}-w${week}-${classId}-${normSub.toLowerCase()}-${assignedDay}-${Math.random().toString(36).substring(2, 7)}`,
+        classId,
+        assignedDay,
+        dueDay,
+        subject: normSub,
+        task: item.task || 'Homework task',
+        details: item.details || undefined,
+        pages: item.pages || undefined,
+        completed: false,
+        priority: (item.priority === 'urgent' || isTestHw) ? 'urgent' : 'normal',
+        block,
+        week,
+        linkUrl: linkUrl || undefined,
+        isLinkTask: isLinkTask || undefined,
+      });
     }
-
-    homework.push({
-      id: `hw-b${block}-w${week}-${classId}-${subject.toLowerCase()}-${assignedDay}-${Math.random().toString(36).substring(2, 7)}`,
-      classId,
-      assignedDay,
-      dueDay,
-      subject,
-      task: item.task || 'Homework task',
-      details: item.details || undefined,
-      pages: item.pages || undefined,
-      completed: false,
-      priority: item.priority === 'urgent' ? 'urgent' : 'normal',
-      block,
-      week,
-    });
   }
 
-  // 3. Process Tomorrow Notes (Remarks & Arabic/Social notes)
-  for (const item of rawNotes) {
-    const classId = targetClasses.includes(item.classId) ? item.classId : targetClasses[0] || 'G2B';
-    tomorrowNotes.push({
-      classId,
-      targetDay: item.targetDay || item.day || 'Sunday',
-      subject: item.subject || 'General',
-      note: item.note || '',
-      arabicNote: item.arabicNote || item.note || '',
-      bagItem: item.bagItem || undefined,
-      block,
-      week,
-    });
+  // 3. Process Tomorrow Notes (Remarks, Remarques, Notes, Quizzes)
+  const tomorrowNotes: any[] = [];
+  const seenNoteKeys = new Set<string>();
+
+  for (const item of rawTomorrowNotes) {
+    const normSub = normalizeSubject(item.subject);
+    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId) && targetClasses.length === 1)
+      ? [item.classId]
+      : targetClasses;
+
+    for (const classId of classesForThisItem) {
+      const targetDay = item.targetDay || item.day || 'Sunday';
+      const rawNote = (item.note || item.arabicNote || '').trim();
+      if (!rawNote) continue;
+
+      const isQuiz = Boolean(
+        item.isQuiz || item.categoryType === 'quiz' || testRegex.test(rawNote + ' ' + (item.arabicNote || ''))
+      );
+
+      // School Bag / Tool Detection
+      let bagItem = item.bagItem;
+      if (!bagItem && bagRegex.test(rawNote + ' ' + (item.arabicNote || ''))) {
+        bagItem = item.arabicNote || rawNote;
+      }
+
+      // Deduplication
+      const dedupeKey = `${classId}-${targetDay}-${normSub}-${rawNote.slice(0, 30)}`;
+      if (seenNoteKeys.has(dedupeKey)) continue;
+      seenNoteKeys.add(dedupeKey);
+
+      tomorrowNotes.push({
+        classId,
+        targetDay,
+        subject: normSub,
+        note: item.note || rawNote,
+        arabicNote: item.arabicNote || rawNote,
+        bagItem: bagItem || undefined,
+        isQuiz,
+        categoryType: isQuiz ? 'quiz' : 'note',
+        block,
+        week,
+      });
+    }
   }
 
-  return { classwork, homework, tomorrowNotes };
+  return {
+    block,
+    week,
+    classwork,
+    homework,
+    tomorrowNotes,
+  };
 }
 
-// Smart heuristic fallback parser
+// Smart heuristic fallback parser supporting single/multi-subject, compound lines, tables & structured Arabic/English text
 function heuristicParser(planText: string, classId: string, block: number = 1, week: number = 1) {
   const lines = planText.split('\n').map((l) => l.trim()).filter(Boolean);
   const subjects = [
@@ -152,31 +545,201 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
     'PE',
   ];
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+  const nextDayMap: Record<string, string> = {
+    Sunday: 'Monday',
+    Monday: 'Tuesday',
+    Tuesday: 'Wednesday',
+    Wednesday: 'Thursday',
+    Thursday: 'Sunday',
+  };
+
+  // 1. Auto-detect Week if mentioned anywhere in text (e.g. Week 3 / الأسبوع الثالث / الاسبوع 3)
+  let activeWeek = Number(week) || 1;
+  const weekMatch = planText.match(/week\s*([1-4])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|[1-4])|الاسبوع\s*([1-4])|اسبوع\s*([1-4])/i);
+  if (weekMatch) {
+    if (weekMatch[1]) activeWeek = Number(weekMatch[1]);
+    else if (weekMatch[3]) activeWeek = Number(weekMatch[3]);
+    else if (weekMatch[4]) activeWeek = Number(weekMatch[4]);
+    else if (/الأول|1/.test(weekMatch[2])) activeWeek = 1;
+    else if (/الثاني|2/.test(weekMatch[2])) activeWeek = 2;
+    else if (/الثالث|3/.test(weekMatch[2])) activeWeek = 3;
+    else if (/الرابع|4/.test(weekMatch[2])) activeWeek = 4;
+  }
+
+  // 2. Auto-detect single subject if document is dedicated to a specific subject (e.g. Social Studies / الدراسات الاجتماعية)
+  let defaultSubject = 'English';
+  const socialMatches = (planText.match(/دراسات|سوشيال|سوشيل|اجتماع|social studies/gi) || []).length;
+  const arabicMatches = (planText.match(/عربي|لغة عربية/gi) || []).length;
+  const mathMatches = (planText.match(/ماث|رياضيات|حساب|mathematics|math/gi) || []).length;
+  const scienceMatches = (planText.match(/ساينس|علوم|science/gi) || []).length;
+  const frenchMatches = (planText.match(/فرنش|فرنسي|فرنساوي|french|français/gi) || []).length;
+
+  if (socialMatches > 0 && socialMatches >= Math.max(arabicMatches, mathMatches, scienceMatches, frenchMatches)) {
+    defaultSubject = 'Social Studies';
+  } else if (arabicMatches > 0 && arabicMatches >= Math.max(socialMatches, mathMatches, scienceMatches, frenchMatches)) {
+    defaultSubject = 'Arabic';
+  } else if (mathMatches > 0 && mathMatches >= Math.max(socialMatches, arabicMatches, scienceMatches, frenchMatches)) {
+    defaultSubject = 'Mathematics';
+  } else if (scienceMatches > 0 && scienceMatches >= Math.max(socialMatches, arabicMatches, mathMatches, frenchMatches)) {
+    defaultSubject = 'Science';
+  } else if (frenchMatches > 0 && frenchMatches >= Math.max(socialMatches, arabicMatches, mathMatches, scienceMatches)) {
+    defaultSubject = 'French';
+  }
+
+  const urlRegex = /(https?:\/\/[^\s)"]+)/i;
+  const testRegex = /\b(quiz|test|exam|dictation)\b|اختبار|امتحان|كويز|إملاء|تسميع|تقييم/i;
+  const bagRegex = /كشكول|كتاب|ألوان|مسطرة|أدوات|زي|sketch|whiteboard|markers?|notebook|cahier|palette|ورق/i;
 
   const rawCw: any[] = [];
   const rawHw: any[] = [];
   const rawNotes: any[] = [];
 
   let currentDay = 'Sunday';
-  let currentSubject = 'English';
+  let currentSubject = defaultSubject;
+
+  // Session day map for subjects with specific sessions
+  const subjectSessionDays: Record<string, string[]> = {
+    'Social Studies': ['Sunday', 'Wednesday', 'Thursday'],
+    Science: ['Sunday', 'Wednesday', 'Thursday'],
+    French: ['Tuesday', 'Wednesday', 'Thursday'],
+    ICT: ['Sunday', 'Wednesday', 'Thursday'],
+    Mathematics: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+    English: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+    Arabic: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+  };
 
   for (const line of lines) {
-    // Check if line indicates a day
+    // Skip table header rows
+    if (/^\|?\s*(day|اليوم|subject|المادة|classwork|homework|cw|hw)\s*\|/i.test(line)) {
+      continue;
+    }
+
+    // Check table row with pipe delimiters: | Day | Subject | CW | HW | Notes |
+    if (line.includes('|')) {
+      const parts = line.split('|').map((p) => p.trim()).filter((p) => p.length > 0 && !p.startsWith('---'));
+      if (parts.length >= 2) {
+        let rowDay = currentDay;
+        let rowSubject = currentSubject;
+        let cwText = '';
+        let hwText = '';
+        let noteText = '';
+
+        for (const part of parts) {
+          // Check day
+          for (const d of days) {
+            if (new RegExp(`\\b${d}\\b`, 'i').test(part)) rowDay = d;
+          }
+          if (/الأحد/i.test(part)) rowDay = 'Sunday';
+          else if (/الاثنين|الإثنين/i.test(part)) rowDay = 'Monday';
+          else if (/الثلاثاء/i.test(part)) rowDay = 'Tuesday';
+          else if (/الأربعاء/i.test(part)) rowDay = 'Wednesday';
+          else if (/الخميس/i.test(part)) rowDay = 'Thursday';
+
+          // Check subject
+          for (const s of subjects) {
+            if (new RegExp(`\\b${s}\\b`, 'i').test(part)) rowSubject = s;
+          }
+          if (/عربي|لغة عربية/i.test(part)) rowSubject = 'Arabic';
+          else if (/ماث|حساب|رياضيات|math/i.test(part)) rowSubject = 'Mathematics';
+          else if (/انجليزي|انجلش|english|إنجل/i.test(part)) rowSubject = 'English';
+          else if (/علوم|ساينس|science/i.test(part)) rowSubject = 'Science';
+          else if (/دراسات|social|سوشيال|سوشيل|اجتماع/i.test(part)) rowSubject = 'Social Studies';
+          else if (/فرنساوي|فرنسي|french|français|فرنش/i.test(part)) rowSubject = 'French';
+          else if (/دين|تربية دينية|religion|اسلام|إسلام/i.test(part)) rowSubject = 'Religion';
+          else if (/حاسب|تكنولوجيا|ict|كمبيوتر|اي سي تي/i.test(part)) rowSubject = 'ICT';
+          else if (/رسم|فنية|art|فنون/i.test(part)) rowSubject = 'Arts';
+          else if (/موسيقى|music/i.test(part)) rowSubject = 'Music';
+          else if (/ألعاب|رياضية|pe|بدنية/i.test(part)) rowSubject = 'PE';
+
+          // Check CW column
+          if (/cw|classwork|أعمال الفصل|الصف|الحصة/i.test(part) && !/hw|homework|واجب/i.test(part)) {
+            cwText = part.replace(/^(cw|classwork|أعمال الفصل|الصف|الحصة)[:\-–\s]*/i, '').trim();
+          }
+          // Check HW column
+          else if (/hw|homework|الواجب|الواجب المنزلي|devoir/i.test(part)) {
+            hwText = part.replace(/^(hw|homework|الواجب|الواجب المنزلي|devoir)[:\-–\s]*/i, '').trim();
+          }
+          // Check Notes column
+          else if (/ملاحظات|ملاحظة|remarque|remarques|notes?|remarks?|تنبيه/i.test(part)) {
+            noteText = part.replace(/^(ملاحظات|ملاحظة|remarques?|notes?|remarks?|تنبيه)[:\-–\s]*/i, '').trim();
+          }
+        }
+
+        if (!cwText && parts.length >= 3) cwText = parts[2];
+        if (!hwText && parts.length >= 4) hwText = parts[3];
+        if (!noteText && parts.length >= 5) noteText = parts[4];
+
+        if (cwText) {
+          const urlMatch = cwText.match(urlRegex);
+          rawCw.push({
+            classId: classId || 'ALL',
+            day: rowDay,
+            period: (rawCw.length % 8) + 1,
+            subject: rowSubject,
+            title: cwText,
+            linkUrl: urlMatch ? urlMatch[1] : undefined,
+          });
+        }
+        if (hwText) {
+          const urlMatch = hwText.match(urlRegex);
+          rawHw.push({
+            classId: classId || 'ALL',
+            assignedDay: rowDay,
+            dueDay: nextDayMap[rowDay] || 'Monday',
+            subject: rowSubject,
+            task: hwText,
+            linkUrl: urlMatch ? urlMatch[1] : undefined,
+            isLinkTask: Boolean(urlMatch),
+            priority: testRegex.test(hwText) ? 'urgent' : 'normal',
+          });
+        }
+        if (noteText) {
+          rawNotes.push({
+            classId: classId || 'ALL',
+            targetDay: rowDay,
+            subject: rowSubject,
+            note: noteText,
+            arabicNote: noteText,
+            isQuiz: testRegex.test(noteText),
+            categoryType: testRegex.test(noteText) ? 'quiz' : 'note',
+            bagItem: bagRegex.test(noteText) ? noteText : undefined,
+          });
+        }
+        continue;
+      }
+    }
+
+    // Check Day indicators
     for (const d of days) {
       if (new RegExp(`^#*\\s*${d}`, 'i').test(line) || new RegExp(`\\b${d}\\b`, 'i').test(line)) {
         currentDay = d;
         break;
       }
     }
-
-    // Check Arabic days
     if (/الأحد/i.test(line)) currentDay = 'Sunday';
     else if (/الاثنين|الإثنين/i.test(line)) currentDay = 'Monday';
     else if (/الثلاثاء/i.test(line)) currentDay = 'Tuesday';
     else if (/الأربعاء/i.test(line)) currentDay = 'Wednesday';
     else if (/الخميس/i.test(line)) currentDay = 'Thursday';
 
-    // Check subject
+    // Check Session indicators (الحصة الأولى، الحصة الثانية، Session 1, Lesson 1)
+    const sessionMatch = line.match(/(?:الحصة|الدرس|Session|Period|Lesson)\s*(الأولى|الثانية|الثالثة|الرابعة|الخامسة|[1-5])/i);
+    if (sessionMatch) {
+      const sessStr = sessionMatch[1];
+      let sNum = 1;
+      if (/الأولى|1/.test(sessStr)) sNum = 1;
+      else if (/الثانية|2/.test(sessStr)) sNum = 2;
+      else if (/الثالثة|3/.test(sessStr)) sNum = 3;
+      else if (/الرابعة|4/.test(sessStr)) sNum = 4;
+      else if (/الخامسة|5/.test(sessStr)) sNum = 5;
+
+      const scheduledDays = subjectSessionDays[currentSubject] || days;
+      if (scheduledDays[sNum - 1]) {
+        currentDay = scheduledDays[sNum - 1];
+      }
+    }
+
+    // Check Subject indicators
     for (const s of subjects) {
       if (new RegExp(`\\b${s}\\b`, 'i').test(line)) {
         currentSubject = s;
@@ -185,69 +748,143 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
     }
     if (/عربي|لغة عربية/i.test(line)) currentSubject = 'Arabic';
     else if (/ماث|حساب|رياضيات|math/i.test(line)) currentSubject = 'Mathematics';
-    else if (/انجليزي|انجلش|english/i.test(line)) currentSubject = 'English';
+    else if (/انجليزي|انجلش|english|إنجل/i.test(line)) currentSubject = 'English';
     else if (/علوم|ساينس|science/i.test(line)) currentSubject = 'Science';
-    else if (/دراسات|social/i.test(line)) currentSubject = 'Social Studies';
-    else if (/فرنساوي|فرنسي|french/i.test(line)) currentSubject = 'French';
-    else if (/دين|تربية دينية|religion/i.test(line)) currentSubject = 'Religion';
-    else if (/حاسب|تكنولوجيا|ict/i.test(line)) currentSubject = 'ICT';
-    else if (/رسم|فنية|art/i.test(line)) currentSubject = 'Arts';
+    else if (/دراسات|social|سوشيال|سوشيل|اجتماع/i.test(line)) currentSubject = 'Social Studies';
+    else if (/فرنساوي|فرنسي|french|français|فرنش/i.test(line)) currentSubject = 'French';
+    else if (/دين|تربية دينية|religion|اسلام|إسلام/i.test(line)) currentSubject = 'Religion';
+    else if (/حاسب|تكنولوجيا|ict|كمبيوتر|اي سي تي/i.test(line)) currentSubject = 'ICT';
+    else if (/رسم|فنية|art|فنون/i.test(line)) currentSubject = 'Arts';
     else if (/موسيقى|music/i.test(line)) currentSubject = 'Music';
-    else if (/ألعاب|رياضية|pe/i.test(line)) currentSubject = 'PE';
+    else if (/ألعاب|رياضية|pe|بدنية/i.test(line)) currentSubject = 'PE';
+
+    // Compound line check: CW + HW on the same line
+    const hasCwToken = /(?:cw|classwork|أعمال الفصل|الصف|الحصة|درس|c\.w)/i.test(line);
+    const hasHwToken = /(?:hw|homework|الواجب|الواجب المنزلي|devoir|h\.w)/i.test(line);
+
+    if (hasCwToken && hasHwToken) {
+      const cwMatch = line.match(/(?:cw|classwork|أعمال الفصل|الصف|الحصة|درس|c\.w)[:\-–\s]+(.*?)(?=(?:hw|homework|الواجب|الواجب المنزلي|devoir|h\.w|ملاحظات|ملاحظة|remarques?|notes?|remarks?|quiz|test|اختبار|امتحان|كويز|إملاء)|$)/i);
+      const hwMatch = line.match(/(?:hw|homework|الواجب|الواجب المنزلي|devoir|h\.w)[:\-–\s]+(.*?)(?=(?:cw|classwork|أعمال الفصل|الصف|الحصة|درس|c\.w|ملاحظات|ملاحظة|remarques?|notes?|remarks?|quiz|test|اختبار|امتحان|كويز|إملاء)|$)/i);
+      const noteMatch = line.match(/(?:ملاحظات|ملاحظة|remarques?|notes?|remarks?|أدوات|تنبيه)[:\-–\s]+(.*?)(?=(?:cw|classwork|hw|homework|quiz|test|اختبار)|$)/i);
+      const quizMatch = line.match(/(?:quiz|test|اختبار|امتحان|كويز|إملاء|تسميع|تقييم)[:\-–\s]+(.*?)(?=(?:cw|classwork|hw|homework|ملاحظات|notes)|$)/i);
+
+      if (cwMatch && cwMatch[1].trim()) {
+        const title = cwMatch[1].trim().replace(/[.;]+$/, '');
+        rawCw.push({
+          classId: classId || 'ALL',
+          day: currentDay,
+          period: (rawCw.length % 8) + 1,
+          subject: currentSubject,
+          title,
+          completed: false,
+        });
+      }
+      if (hwMatch && hwMatch[1].trim()) {
+        const task = hwMatch[1].trim().replace(/[.;]+$/, '');
+        rawHw.push({
+          classId: classId || 'ALL',
+          assignedDay: currentDay,
+          dueDay: nextDayMap[currentDay] || 'Monday',
+          subject: currentSubject,
+          task,
+          completed: false,
+          priority: testRegex.test(task) ? 'urgent' : 'normal',
+        });
+      }
+      if (noteMatch && noteMatch[1].trim()) {
+        const cleanNote = noteMatch[1].trim().replace(/[.;]+$/, '');
+        rawNotes.push({
+          classId: classId || 'ALL',
+          targetDay: currentDay,
+          subject: currentSubject,
+          note: cleanNote,
+          arabicNote: cleanNote,
+          isQuiz: testRegex.test(cleanNote),
+          categoryType: testRegex.test(cleanNote) ? 'quiz' : 'note',
+          bagItem: bagRegex.test(cleanNote) ? cleanNote : undefined,
+        });
+      }
+      if (quizMatch && quizMatch[1].trim()) {
+        const quizText = quizMatch[0].trim().replace(/[.;]+$/, '');
+        rawNotes.push({
+          classId: classId || 'ALL',
+          targetDay: currentDay,
+          subject: currentSubject,
+          note: quizText,
+          arabicNote: quizText,
+          isQuiz: true,
+          categoryType: 'quiz',
+        });
+      }
+      continue;
+    }
 
     // Check Notes / Remarks for Tomorrow
-    const isNote = /ملاحظات|ملاحظة|remarque|remarks|note|أدوات|تنبيه/i.test(line);
+    const isNote = /ملاحظات|ملاحظة|remarque|remarks|notes?|أدوات|تنبيه/i.test(line);
     if (isNote) {
-      const cleanNote = line.replace(/^(ملاحظات|ملاحظة|remarques?|remarks?|notes?|أدوات)[:\-–\s]*/i, '').trim();
+      const cleanNote = line.replace(/^(ملاحظات|ملاحظة|remarques?|remarks?|notes?|أدوات|تنبيه)[:\-–\s]*/i, '').trim();
       rawNotes.push({
-        classId: classId || 'G2B',
+        classId: classId || 'ALL',
         targetDay: currentDay,
         subject: currentSubject,
         note: cleanNote,
         arabicNote: cleanNote,
-        bagItem: /كشكول|كتاب|ألوان|مسطرة|أدوات|زي|sketch|whiteboard|notebook/i.test(line) ? cleanNote : undefined,
+        bagItem: bagRegex.test(line) ? cleanNote : undefined,
+        isQuiz: testRegex.test(cleanNote),
+        categoryType: testRegex.test(cleanNote) ? 'quiz' : 'note',
       });
       continue;
     }
 
-    // Identify Homework indicators
-    const isHw = /hw|homework|واجب|h\.w/i.test(line);
-    // Identify Classwork indicators
-    const isCw = /cw|classwork|صف|حصة|درس|c\.w/i.test(line);
+    // Identify Quiz / Test Standalone line
+    if (testRegex.test(line) && !/cw|classwork|hw|homework/i.test(line)) {
+      rawNotes.push({
+        classId: classId || 'ALL',
+        targetDay: currentDay,
+        subject: currentSubject,
+        note: line,
+        arabicNote: line,
+        isQuiz: true,
+        categoryType: 'quiz',
+      });
+      continue;
+    }
 
-    const cleanText = line.replace(/^(hw|cw|h\.w|c\.w|homework|classwork|واجب|حصة)[:\-–\s]*/i, '').trim();
+    // Single item CW or HW line
+    const isHw = /hw|homework|الواجب|الواجب المنزلي|devoir|h\.w/i.test(line);
+    const isCw = /cw|classwork|أعمال الفصل|الصف|الحصة|درس|c\.w/i.test(line);
+
+    const cleanText = line.replace(/^(hw|cw|h\.w|c\.w|homework|classwork|الواجب المنزلي|الواجب|أعمال الفصل|الحصة)[:\-–\s]*/i, '').trim();
+    const urlMatch = line.match(urlRegex);
 
     if (isHw) {
-      const nextDayMap: Record<string, string> = {
-        Sunday: 'Monday',
-        Monday: 'Tuesday',
-        Tuesday: 'Wednesday',
-        Wednesday: 'Thursday',
-        Thursday: 'Sunday',
-      };
       rawHw.push({
-        classId: classId || 'G2B',
+        classId: classId || 'ALL',
         assignedDay: currentDay,
         dueDay: nextDayMap[currentDay] || 'Monday',
         subject: currentSubject,
         task: cleanText || line,
         completed: false,
-        priority: /urgent|هام|ضروري|quiz|امتحان/i.test(line) ? 'urgent' : 'normal',
+        priority: testRegex.test(line) ? 'urgent' : 'normal',
+        linkUrl: urlMatch ? urlMatch[1] : undefined,
+        isLinkTask: Boolean(urlMatch),
       });
     } else if (isCw || cleanText.length > 5) {
       rawCw.push({
-        classId: classId || 'G2B',
+        classId: classId || 'ALL',
         day: currentDay,
         period: (rawCw.length % 8) + 1,
         subject: currentSubject,
         title: cleanText || line,
         completed: false,
+        linkUrl: urlMatch ? urlMatch[1] : undefined,
+        linkTitle: urlMatch ? (currentSubject === 'French' ? 'Lien Kahoot / Activité 🔗' : 'رابط الدرس 🔗') : undefined,
       });
     }
   }
 
   const targetClasses = classId === 'ALL' ? ['G2A', 'G2B', 'G2C'] : [classId || 'G2B'];
-  return postProcessParsedPlan({ classwork: rawCw, homework: rawHw, tomorrowNotes: rawNotes }, block, week, targetClasses);
+  return postProcessParsedPlan({ classwork: rawCw, homework: rawHw, tomorrowNotes: rawNotes }, block, activeWeek, targetClasses);
 }
 
 // Build timetable reference snippet for Gemini
@@ -265,12 +902,44 @@ function buildTimetableContext(targetClasses: string[]) {
 app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
   try {
     const { pdfBase64, planText, block = 1, week = 2, targetClass = 'ALL' } = req.body;
+    let extractedPdfText = (typeof planText === 'string' ? planText : '').trim();
+
+    // 1. If text is empty or very short, extract directly from PDF buffer on server with pdf-parse
+    if (extractedPdfText.length < 20 && pdfBase64 && typeof pdfBase64 === 'string') {
+      try {
+        const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, '').trim();
+        const buffer = Buffer.from(cleanBase64, 'base64');
+        if (PDFParse) {
+          const parser = new (PDFParse as any)({ data: buffer });
+          const parsedRes = await parser.getText();
+          if (parsedRes && parsedRes.text && parsedRes.text.trim().length > 0) {
+            extractedPdfText = parsedRes.text.trim();
+            console.log(`[Server PDF Parser] Successfully extracted ${extractedPdfText.length} characters from PDF!`);
+          }
+        }
+      } catch (pdfErr) {
+        console.warn('[Server PDF Parser] Error extracting from PDF buffer:', pdfErr);
+      }
+    }
+
+    // Auto-detect Week if text mentions Week 3 / الأسبوع الثالث
+    let detectedWeek = Number(week) || 2;
+    const weekMatch = extractedPdfText.match(/week\s*([1-4])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|[1-4])|الاسبوع\s*([1-4])/i);
+    if (weekMatch) {
+      if (weekMatch[1]) detectedWeek = Number(weekMatch[1]);
+      else if (weekMatch[3]) detectedWeek = Number(weekMatch[3]);
+      else if (/الأول|1/.test(weekMatch[2])) detectedWeek = 1;
+      else if (/الثاني|2/.test(weekMatch[2])) detectedWeek = 2;
+      else if (/الثالث|3/.test(weekMatch[2])) detectedWeek = 3;
+      else if (/الرابع|4/.test(weekMatch[2])) detectedWeek = 4;
+    }
+
     const targetClasses = targetClass === 'ALL' ? ['G2A', 'G2B', 'G2C'] : [targetClass];
 
     const ai = getGenAI();
     if (!ai) {
       console.log('No GEMINI_API_KEY set, using smart heuristic parser.');
-      const parsed = heuristicParser(planText || '', targetClass, Number(block), Number(week));
+      const parsed = heuristicParser(extractedPdfText, targetClass, Number(block), detectedWeek);
       return res.json(parsed);
     }
 
@@ -278,31 +947,46 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
 
     const systemPrompt = `
 You are the expert Senior Academic Coordinator for Nile Egyptian International Schools (Grade 2).
-You are analyzing an official Nile School Grade 2 Weekly Plan (Block ${block}, Week ${week}) for class(es): ${targetClasses.join(', ')}.
+You are analyzing an official Nile School Grade 2 Weekly Plan (Block ${block}, Week ${detectedWeek}) for class(es): ${targetClasses.join(', ')}.
 
-Analyze the document with extreme precision and extract three core components:
+The weekly plan is often structured as a table with columns or rows for:
+- Day (اليوم): Sunday (الأحد), Monday (الاثنين), Tuesday (الثلاثاء), Wednesday (الأربعاء), Thursday (الخميس)
+- Subject (المادة): English, Mathematics, Arabic, Science, Social Studies, French, Religion, ICT, Arts, Music, PE
+- Classwork (أعمال الفصل / الصف / الحصة / CW / C.W)
+- Homework (الواجب المنزلي / الواجب / HW / H.W / Devoir)
+- Notes & Remarks (ملاحظات / Remarque / Notes / تنبيهات)
+- Tests & Quizzes (Quiz / Test / اختبار / امتحان / كويز / تقييم / إملاء)
+- Links & URLs (روابط / منصات إلكترونية / Kahoot / Wordwall / YouTube / Google Drive / Forms)
 
-1. "classwork": An array of every lesson taught in class this week.
-   - Match each subject lesson to the EXACT period slot for that day from the class timetable:
+MANDATORY PARSING & MAPPING RULES:
+
+1. "classwork" (أعمال الفصل):
+   - "الـ Classwork هو هو أعمال الفصل": Map all in-class lessons, page numbers, and practice exercises to "classwork".
+   - Match each lesson to the EXACT period slot for that day from the class timetable:
 ${JSON.stringify(timetableContext, null, 2)}
-   - Each item format:
+   - LINKS: If there are ANY links or URLs in the classwork (e.g. Kahoot, Wordwall, YouTube, Drive), extract them into "linkUrl" and set a descriptive "linkTitle" (e.g. "Lien Kahoot / Activité 🔗" or "رابط الدرس 🔗").
+   - Format:
      {
-       "classId": "${targetClasses[0]}", // or G2A, G2B, G2C
+       "classId": "${targetClasses[0]}",
        "day": "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday",
-       "period": 1 to 8, // matching the exact period in the timetable for that subject
+       "period": 1 to 8,
        "subject": "Mathematics" | "English" | "Arabic" | "Science" | "Social Studies" | "French" | "Religion" | "ICT" | "Arts" | "Music" | "PE",
        "title": "Short descriptive lesson title",
        "details": "Details or workbook exercises",
-       "pages": "Page numbers (e.g. p. 24-26 or ص 47)"
+       "pages": "Page numbers (e.g. p. 24-26 or ص 47)",
+       "linkUrl": "Optional URL if present",
+       "linkTitle": "Optional title for link"
      }
 
-2. "homework": An array of all homework tasks assigned.
-   - MANDATORY STRICT RULE: For French and ICT, the homework must ALWAYS be assigned on the day of the 3rd period/session of the week:
+2. "homework" (الواجب المنزلي):
+   - "الـ Homework هو هو الواجب المنزلي": Map all homework, workbook exercises, and home tasks to "homework".
+   - STRICT RULE: For French and ICT, homework is ALWAYS assigned on the 3rd period/session of the week:
      * G2A: French 3rd session is Thursday (period 2). ICT 3rd session is Wednesday (period 3).
      * G2B: French 3rd session is Tuesday (period 7). ICT 3rd session is Wednesday (period 8).
      * G2C: French 3rd session is Wednesday (period 2). ICT 3rd session is Thursday (period 1).
-   - For all other subjects (Arabic, Math, English, Science, Social Studies, Religion), homework is assigned on the day of the lesson.
-   - Each item format:
+   - For other subjects (Arabic, Math, English, Science, Social Studies, Religion), homework is assigned on the lesson day.
+   - LINKS: If there are links or URLs in the homework, extract them into "linkUrl" and set "isLinkTask": true.
+   - Format:
      {
        "classId": "${targetClasses[0]}",
        "assignedDay": "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday",
@@ -311,23 +995,30 @@ ${JSON.stringify(timetableContext, null, 2)}
        "task": "Clear homework description",
        "details": "Extra notes or links",
        "pages": "Page numbers",
-       "priority": "normal" | "urgent"
+       "priority": "normal" | "urgent",
+       "linkUrl": "Optional URL if present",
+       "isLinkTask": true // if link present
      }
 
-3. "tomorrowNotes": Teacher notes, supplies, bag items, and reminders for tomorrow.
-   - USER SPECIFICATION:
-     * French: Extract all "Remarks" / "Remarques" (e.g., Cahier, Vocabulaire, Devoirs).
-     * Arabic: Extract all "ملاحظات" (كشكول، إملاء، تحضير...).
-     * Social Studies: Extract all "ملاحظات" (كشكول، أدوات...).
-     * Math / English / Science / Arts / PE: Extract all equipment, sketchbooks, sports uniforms, whiteboards & markers.
-   - Each item format:
+3. "tomorrowNotes" (تنبيهات الغد، الملاحظات، الكويزات والاختبارات):
+   - STRICT USER REQUIREMENT 1: "ولو في كلمة Quiz أو Test أو اختبار بتنزل في الـ Tomorrow"
+     * ANY Quiz, Test, Exam, Short Test, Dictation, اختبار, كويز, امتحان, تسميع, تقييم mentioned in the plan MUST be added to "tomorrowNotes" for the target day so students are alerted immediately!
+     * Set "isQuiz": true and "categoryType": "quiz".
+   - STRICT USER REQUIREMENT 2: "الملاحظات في العربي والسوشيال بتبقى اسمها ملاحظات، في الفرنش بتبقى اسمها Remarque، في باقي المواد بتبقى اسمها Notes"
+     * For Arabic & Social Studies: Notes and instructions must be classified as "ملاحظات".
+     * For French: Notes and instructions must be classified as "Remarque".
+     * For all other subjects (English, Math, Science, ICT, Arts, PE, Religion): Notes must be classified as "Notes".
+   - Supplies & Bag Items: If specific supplies (whiteboard, sketch, sports kit, colors, notebook, كشكول، ألوان، مسطرة) are required, populate "bagItem".
+   - Format:
      {
        "classId": "${targetClasses[0]}",
        "targetDay": "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday",
        "subject": "Subject name",
-       "note": "English or original note text",
-       "arabicNote": "Clear Arabic translation or original Arabic note",
-       "bagItem": "Specific school bag item or tool needed (e.g. لوحة بيضاء وقلم سبورة, كراسة الرسم)"
+       "note": "Original note text",
+       "arabicNote": "Clear Arabic translation or original note",
+       "bagItem": "Specific school bag item or tool needed if any",
+       "isQuiz": true | false,
+       "categoryType": "quiz" | "note"
      }
 
 Return ONLY valid JSON matching this schema:
@@ -349,31 +1040,64 @@ Return ONLY valid JSON matching this schema:
       });
     }
 
-    const textContent = planText ? `Extracted/Supplementary Weekly Plan Text:\n${planText}\n\n${systemPrompt}` : systemPrompt;
+    const textContent = extractedPdfText ? `Extracted/Supplementary Weekly Plan Text:\n${extractedPdfText}\n\n${systemPrompt}` : systemPrompt;
     contents.push({ text: textContent });
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents,
-      config: {
+    let textOutput = '';
+    try {
+      textOutput = await generateWithFallback(ai, contents, {
         responseMimeType: 'application/json',
-      },
-    });
+      });
+    } catch (aiErr: any) {
+      console.warn('AI generateWithFallback unavailable, using smart heuristic fallback with extracted text:', aiErr?.message || aiErr);
+      const fallback = heuristicParser(extractedPdfText || '', targetClass, Number(block), detectedWeek);
+      return res.json({
+        success: true,
+        fallbackMode: true,
+        block: Number(block),
+        week: fallback.week || detectedWeek,
+        classwork: fallback.classwork,
+        homework: fallback.homework,
+        tomorrowNotes: fallback.tomorrowNotes,
+      });
+    }
 
-    const textOutput = response.text || '';
     try {
       const parsed = JSON.parse(textOutput);
-      const finalized = postProcessParsedPlan(parsed, Number(block), Number(week), targetClasses);
-      return res.json(finalized);
+      const finalized = postProcessParsedPlan(parsed, Number(block), detectedWeek, targetClasses);
+      return res.json({
+        success: true,
+        block: Number(block),
+        week: finalized.week || detectedWeek,
+        classwork: finalized.classwork,
+        homework: finalized.homework,
+        tomorrowNotes: finalized.tomorrowNotes,
+      });
     } catch (parseErr) {
       console.warn('Gemini JSON parse failed, falling back to heuristic:', parseErr);
-      const fallback = heuristicParser(planText || textOutput, targetClass, Number(block), Number(week));
-      return res.json(fallback);
+      const fallback = heuristicParser(extractedPdfText || textOutput, targetClass, Number(block), detectedWeek);
+      return res.json({
+        success: true,
+        fallbackMode: true,
+        block: Number(block),
+        week: fallback.week || detectedWeek,
+        classwork: fallback.classwork,
+        homework: fallback.homework,
+        tomorrowNotes: fallback.tomorrowNotes,
+      });
     }
   } catch (error: any) {
     console.error('Error in /api/parse-weekly-plan-pdf:', error);
     const fallback = heuristicParser(req.body?.planText || '', req.body?.targetClass || 'ALL', Number(req.body?.block || 1), Number(req.body?.week || 2));
-    return res.json(fallback);
+    return res.json({
+      success: true,
+      fallbackMode: true,
+      block: Number(req.body?.block || 1),
+      week: fallback.week || Number(req.body?.week || 2),
+      classwork: fallback.classwork,
+      homework: fallback.homework,
+      tomorrowNotes: fallback.tomorrowNotes,
+    });
   }
 });
 
@@ -385,32 +1109,76 @@ app.post('/api/parse-weekly-plan', async (req, res) => {
       return res.status(400).json({ error: 'planText is required' });
     }
 
-    const ai = getGenAI();
-    if (!ai) {
-      const parsed = heuristicParser(planText, classId, Number(block), Number(week));
-      return res.json(parsed);
+    // Auto-detect Week if text mentions Week 3 / الأسبوع الثالث
+    let detectedWeek = Number(week) || 2;
+    const weekMatch = planText.match(/week\s*([1-4])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|[1-4])|الاسبوع\s*([1-4])|اسبوع\s*([1-4])/i);
+    if (weekMatch) {
+      if (weekMatch[1]) detectedWeek = Number(weekMatch[1]);
+      else if (weekMatch[3]) detectedWeek = Number(weekMatch[3]);
+      else if (weekMatch[4]) detectedWeek = Number(weekMatch[4]);
+      else if (/الأول|1/.test(weekMatch[2])) detectedWeek = 1;
+      else if (/الثاني|2/.test(weekMatch[2])) detectedWeek = 2;
+      else if (/الثالث|3/.test(weekMatch[2])) detectedWeek = 3;
+      else if (/الرابع|4/.test(weekMatch[2])) detectedWeek = 4;
     }
 
     const targetClasses = (!classId || classId === 'ALL') ? ['G2A', 'G2B', 'G2C'] : [classId];
+
+    const ai = getGenAI();
+    if (!ai) {
+      const parsed = heuristicParser(planText, classId, Number(block), detectedWeek);
+      return res.json({
+        success: true,
+        block: Number(block),
+        week: parsed.week || detectedWeek,
+        classwork: parsed.classwork,
+        homework: parsed.homework,
+        tomorrowNotes: parsed.tomorrowNotes,
+      });
+    }
+
     const timetableContext = buildTimetableContext(targetClasses);
 
     const prompt = `
 You are the official Senior Academic Coordinator for Nile Egyptian International Schools (Grade 2).
-Categorize and extract classwork, homework, and tomorrow notes for Nile Grade 2 (Block ${block}, Week ${week}, Classes: ${targetClasses.join(', ')}).
+Categorize and extract classwork, homework, and tomorrow notes for Nile Grade 2 (Block ${block}, Week ${detectedWeek}, Classes: ${targetClasses.join(', ')}).
 
-Rules:
-1. "classwork": Match lessons to timetable slots:
+The weekly plan is often structured as a table or list with columns or rows for:
+- Day (اليوم): Sunday (الأحد), Monday (الاثنين), Tuesday (الثلاثاء), Wednesday (الأربعاء), Thursday (الخميس)
+- Subject (المادة): English, Mathematics, Arabic, Science, Social Studies, French, Religion, ICT, Arts, Music, PE
+- Classwork (أعمال الفصل / الصف / الحصة / CW / C.W)
+- Homework (الواجب المنزلي / الواجب / HW / H.W / Devoir)
+- Notes & Remarks (ملاحظات / Remarque / Notes / تنبيهات)
+- Tests & Quizzes (Quiz / Test / اختبار / امتحان / كويز / تقييم / إملاء)
+- Links & URLs (روابط / منصات إلكترونية / Kahoot / Wordwall / YouTube / Google Drive / Forms)
+
+MANDATORY PARSING & MAPPING RULES:
+1. "classwork" (أعمال الفصل):
+   - "الـ Classwork هو هو أعمال الفصل": Map all in-class lessons, page numbers, and practice exercises to "classwork".
+   - Match lessons to timetable slots:
 ${JSON.stringify(timetableContext, null, 2)}
-2. "homework": STRICT RULE: For French and ICT, assign homework on the 3rd period/session of the week:
-   - G2A: French Thursday, ICT Wednesday
-   - G2B: French Tuesday, ICT Wednesday
-   - G2C: French Wednesday, ICT Thursday
-3. "tomorrowNotes":
-   - French Remarks (Remarques)
-   - Arabic ملاحظات
-   - Social Studies ملاحظات
-   - Math / Science / English / Arts / PE supplies and warnings
-   Format: { classId, targetDay, subject, note, arabicNote, bagItem }
+   - LINKS: Extract any URLs into "linkUrl" and set a descriptive "linkTitle".
+   - Format: { classId, day, period, subject, title, details, pages, linkUrl, linkTitle }
+
+2. "homework" (الواجب المنزلي):
+   - "الـ Homework هو هو الواجب المنزلي": Map all homework, workbook exercises, and home tasks to "homework".
+   - STRICT RULE: For French and ICT, assign homework on the 3rd period/session of the week:
+     * G2A: French Thursday, ICT Wednesday
+     * G2B: French Tuesday, ICT Wednesday
+     * G2C: French Wednesday, ICT Thursday
+   - LINKS: Extract any URLs into "linkUrl" and set "isLinkTask": true.
+   - Format: { classId, assignedDay, dueDay, subject, task, details, pages, priority: "normal" | "urgent", linkUrl, isLinkTask }
+
+3. "tomorrowNotes" (تنبيهات الغد، الملاحظات، الكويزات والاختبارات):
+   - STRICT USER REQUIREMENT 1: "ولو في كلمة Quiz أو Test أو اختبار بتنزل في الـ Tomorrow"
+     * ANY Quiz, Test, Exam, Short Test, Dictation, اختبار, كويز, امتحان, تسميع, تقييم mentioned in the plan MUST be added to "tomorrowNotes" for the target day so students are alerted immediately!
+     * Set "isQuiz": true and "categoryType": "quiz".
+   - STRICT USER REQUIREMENT 2: "الملاحظات في العربي والسوشيال بتبقى اسمها ملاحظات، في الفرنش بتبقى اسمها Remarque، في باقي المواد بتبقى اسمها Notes"
+     * Arabic & Social Studies: Notes must be classified as "ملاحظات".
+     * French: Notes must be classified as "Remarque".
+     * All other subjects: Notes must be classified as "Notes".
+   - Extract required tools or bag items into "bagItem" (e.g. كشكول، ألوان، مسطرة، لوحة بيضاء).
+   - Format: { classId, targetDay, subject, note, arabicNote, bagItem, isQuiz, categoryType }
 
 Return ONLY JSON:
 {
@@ -423,28 +1191,61 @@ Weekly Plan Text:
 ${planText}
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
+    let textOutput = '';
+    try {
+      textOutput = await generateWithFallback(ai, [{ text: prompt }], {
         responseMimeType: 'application/json',
-      },
-    });
+      });
+    } catch (aiErr: any) {
+      console.warn('AI generateWithFallback unavailable, using smart heuristic fallback:', aiErr?.message || aiErr);
+      const fallback = heuristicParser(planText, classId, Number(block), detectedWeek);
+      return res.json({
+        success: true,
+        fallbackMode: true,
+        block: Number(block),
+        week: fallback.week || detectedWeek,
+        classwork: fallback.classwork,
+        homework: fallback.homework,
+        tomorrowNotes: fallback.tomorrowNotes,
+      });
+    }
 
-    const textOutput = response.text || '';
     try {
       const parsed = JSON.parse(textOutput);
-      const finalized = postProcessParsedPlan(parsed, Number(block), Number(week), targetClasses);
-      return res.json(finalized);
+      const finalized = postProcessParsedPlan(parsed, Number(block), detectedWeek, targetClasses);
+      return res.json({
+        success: true,
+        block: Number(block),
+        week: finalized.week || detectedWeek,
+        classwork: finalized.classwork,
+        homework: finalized.homework,
+        tomorrowNotes: finalized.tomorrowNotes,
+      });
     } catch (parseErr) {
       console.warn('Gemini JSON parse failed, falling back to heuristic:', parseErr);
-      const fallback = heuristicParser(planText, classId, Number(block), Number(week));
-      return res.json(fallback);
+      const fallback = heuristicParser(planText, classId, Number(block), detectedWeek);
+      return res.json({
+        success: true,
+        fallbackMode: true,
+        block: Number(block),
+        week: fallback.week || detectedWeek,
+        classwork: fallback.classwork,
+        homework: fallback.homework,
+        tomorrowNotes: fallback.tomorrowNotes,
+      });
     }
   } catch (error: any) {
     console.error('Error in /api/parse-weekly-plan:', error);
     const fallback = heuristicParser(req.body?.planText || '', req.body?.classId || 'G2B', Number(req.body?.block || 1), Number(req.body?.week || 2));
-    return res.json(fallback);
+    return res.json({
+      success: true,
+      fallbackMode: true,
+      block: Number(req.body?.block || 1),
+      week: fallback.week || Number(req.body?.week || 2),
+      classwork: fallback.classwork,
+      homework: fallback.homework,
+      tomorrowNotes: fallback.tomorrowNotes,
+    });
   }
 });
 

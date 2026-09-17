@@ -64,6 +64,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [planWeek, setPlanWeek] = useState<number>(2);
   const [planClass, setPlanClass] = useState<ClassId | 'ALL'>('ALL');
   const [planFile, setPlanFile] = useState<File | null>(null);
+  const [planTextInput, setPlanTextInput] = useState<string>('');
+  const [planInputMode, setPlanInputMode] = useState<'pdf' | 'text'>('pdf');
   const [isParsingPlan, setIsParsingPlan] = useState(false);
   const [parsingStep, setParsingStep] = useState<string>('');
   const [parsedResult, setParsedResult] = useState<{
@@ -248,8 +250,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
   // AI Parse Weekly Plan Handler
   const handleParseWeeklyPlan = async () => {
-    if (!planFile) {
+    if (planInputMode === 'pdf' && !planFile) {
       setErrorMessage('يرجى اختيار ملف PDF الخاص بالخطة الأسبوعية أولاً.');
+      return;
+    }
+    if (planInputMode === 'text' && !planTextInput.trim()) {
+      setErrorMessage('يرجى لصق نص أو جدول الخطة الأسبوعية أولاً.');
       return;
     }
 
@@ -257,25 +263,41 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       setIsParsingPlan(true);
       setErrorMessage(null);
       setSuccessMessage(null);
-      setParsingStep('جاري قراءة ملف الـ PDF...');
 
-      const base64 = await fileToBase64(planFile);
+      let response: Response;
 
-      setParsingStep('جاري استخراج النصوص من صفحات الـ PDF...');
-      const extractedText = await extractTextFromPdf(planFile);
+      if (planInputMode === 'pdf' && planFile) {
+        setParsingStep('جاري قراءة ملف الـ PDF واستخراج الجداول...');
+        const base64 = await fileToBase64(planFile);
 
-      setParsingStep('الذكاء الاصطناعي يحلل الجدول وحصص الفصل وواجبات الحصة الثالثة...');
-      const response = await fetch('/api/parse-weekly-plan-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pdfBase64: base64,
-          planText: extractedText,
-          block: planBlock,
-          week: planWeek,
-          targetClass: planClass,
-        }),
-      });
+        setParsingStep('جاري استخراج النصوص والجداول من صفحات الـ PDF...');
+        const extractedText = await extractTextFromPdf(planFile);
+
+        setParsingStep('الذكاء الاصطناعي يحلل الجداول، يوزع Classwork و Homework، وينقل Quiz والاختبارات والملاحظات إلى Tomorrow...');
+        response = await fetch('/api/parse-weekly-plan-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pdfBase64: base64,
+            planText: extractedText,
+            block: planBlock,
+            week: planWeek,
+            targetClass: planClass,
+          }),
+        });
+      } else {
+        setParsingStep('الذكاء الاصطناعي يحلل جدول الخطة، يفصل Classwork مع الروابط، يحدد Homework، وينقل الكويزات والملاحظات إلى Tomorrow...');
+        response = await fetch('/api/parse-weekly-plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            planText: planTextInput,
+            classId: planClass,
+            block: planBlock,
+            week: planWeek,
+          }),
+        });
+      }
 
       if (!response.ok) {
         throw new Error(`خطأ في استجابة الخادم (${response.status})`);
@@ -286,6 +308,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       const hw = data.homework || [];
       const notes = data.tomorrowNotes || [];
 
+      if (data.week && Number(data.week) !== planWeek) {
+        setPlanWeek(Number(data.week));
+      }
+      if (data.block && Number(data.block) !== planBlock) {
+        setPlanBlock(Number(data.block));
+      }
+
       setParsedResult({
         classwork: cw,
         homework: hw,
@@ -293,11 +322,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       });
 
       setSuccessMessage(
-        `✨ تم تفكيك الخطة بنجاح! تم استخراج ${cw.length} حصة صفية، ${hw.length} واجب مدرسي، و ${notes.length} ملاحظة للغد وحقيبة المدرسة.`
+        `✨ تم تفكيك وتحليل الخطة بنجاح! تم استخراج ${cw.length} حصة صفية (Classwork)، ${hw.length} واجب منزلي (Homework)، و ${notes.length} تنبيه واختبار وملاحظة (Tomorrow).`
       );
     } catch (err: any) {
       console.error('Error parsing weekly plan:', err);
-      setErrorMessage(`تعذر تحليل ملف الـ PDF: ${err.message || 'حدث خطأ أثناء المعالجة'}`);
+      setErrorMessage(`تعذر تحليل الخطة الأسبوعية: ${err.message || 'حدث خطأ أثناء المعالجة'}`);
     } finally {
       setIsParsingPlan(false);
       setParsingStep('');
@@ -327,15 +356,30 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         await saveTomorrowNotes(planBlock, planWeek, parsedResult.tomorrowNotes);
       }
 
+      // 4. Centralized Server Persistence for cross-device sync (Mobile, Laptop, Desktop)
+      try {
+        await fetch('/api/planner-data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            classwork: parsedResult.classwork,
+            homework: parsedResult.homework,
+            tomorrowNotes: parsedResult.tomorrowNotes,
+          }),
+        });
+      } catch (serverSyncErr) {
+        console.warn('Failed to sync plan data to server:', serverSyncErr);
+      }
+
       setSuccessMessage(
-        `🎉 تم بنجاح اعتماد ونشر الخطة الأسبوعية (Block ${planBlock} — Week ${planWeek}) في قاعدة البيانات وتحديث التطبيق فوراً لجميع الطلاب!`
+        `🎉 تم بنجاح اعتماد ونشر الخطة الأسبوعية (Block ${planBlock} — Week ${planWeek}) في قاعدة البيانات وتحديث التطبيق فوراً لجميع الطلاب والأجهزة!`
       );
       setParsedResult(null);
       setPlanFile(null);
       if (planFileInputRef.current) planFileInputRef.current.value = '';
 
       if (onPlanUpdated) {
-        onPlanUpdated();
+        onPlanUpdated(planBlock, planWeek);
       }
     } catch (err: any) {
       console.error('Error publishing plan:', err);
@@ -515,31 +559,82 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Step 4: Choose Plan PDF */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      4. اختيار ملف الـ PDF الخاص بالخطة الأسبوعية (Weekly Plan):
-                    </label>
-                    <input
-                      ref={planFileInputRef}
-                      type="file"
-                      accept=".pdf,application/pdf"
-                      onChange={handlePlanFileChange}
-                      className="block w-full text-xs text-slate-500 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 file:cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs"
-                    />
+                  {/* Step 4: Choose Plan Input Mode (PDF or Paste Table) */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-black text-slate-800">
+                        4. إدخال الخطة الأسبوعية (ملف PDF أو لصق جدول الخطة):
+                      </label>
+                      <div className="flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-bold">
+                        <button
+                          type="button"
+                          onClick={() => setPlanInputMode('pdf')}
+                          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                            planInputMode === 'pdf'
+                              ? 'bg-white text-indigo-700 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          📄 رفع ملف PDF
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPlanInputMode('text')}
+                          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                            planInputMode === 'text'
+                              ? 'bg-white text-indigo-700 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          📋 نسخ ولصق الجدول
+                        </button>
+                      </div>
+                    </div>
 
-                    {planFile && (
-                      <div className="mt-2 p-2.5 bg-white rounded-xl border border-indigo-200 flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 text-slate-800 font-bold truncate">
-                          <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
-                          <span className="truncate">{planFile.name}</span>
-                          <span className="text-slate-400 font-medium">
-                            ({formatBytes(planFile.size)})
-                          </span>
-                        </div>
-                        <span className="text-indigo-700 font-black bg-indigo-50 px-2 py-0.5 rounded-lg shrink-0">
-                          جاهز للتحليل والتفكيك
-                        </span>
+                    {planInputMode === 'pdf' ? (
+                      <div>
+                        <input
+                          ref={planFileInputRef}
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          onChange={handlePlanFileChange}
+                          className="block w-full text-xs text-slate-500 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 file:cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs"
+                        />
+
+                        {planFile && (
+                          <div className="mt-2 p-2.5 bg-white rounded-xl border border-indigo-200 flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2 text-slate-800 font-bold truncate">
+                              <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
+                              <span className="truncate">{planFile.name}</span>
+                              <span className="text-slate-400 font-medium">
+                                ({formatBytes(planFile.size)})
+                              </span>
+                            </div>
+                            <span className="text-indigo-700 font-black bg-indigo-50 px-2 py-0.5 rounded-lg shrink-0">
+                              جاهز للتحليل والتفكيك
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div>
+                        <textarea
+                          rows={6}
+                          value={planTextInput}
+                          onChange={(e) => {
+                            setPlanTextInput(e.target.value);
+                            setParsedResult(null);
+                          }}
+                          placeholder={`الصق هنا جدول أو نصوص الخطة الأسبوعية (Weekly Plan) مباشرة من ملف Word أو Excel أو PDF...
+
+مثال:
+Sunday:
+- French: Unité 1. CW: Manuel p. 6-8 (Lien Kahoot: https://kahoot.it/...). HW: None. Remarque: Cahier bleu.
+- Mathematics: Numbers to 100. CW: Student book p. 12. HW: Practice book p. 14. Quiz on Tuesday!
+- Arabic: درس أنا أستطيع. أعمال الفصل: ص 10. الواجب المنزلي: كتابة ص 11. ملاحظات: إحضار كشكول العربي.`}
+                          className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white font-mono leading-relaxed"
+                          dir="auto"
+                        />
                       </div>
                     )}
                   </div>
@@ -549,7 +644,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <button
                       id="admin-parse-plan-btn"
                       type="button"
-                      disabled={!planFile || isParsingPlan}
+                      disabled={
+                        (planInputMode === 'pdf' && !planFile) ||
+                        (planInputMode === 'text' && !planTextInput.trim()) ||
+                        isParsingPlan
+                      }
                       onClick={handleParseWeeklyPlan}
                       className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2"
                     >
@@ -566,8 +665,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       )}
                     </button>
 
-                    <p className="text-[11px] text-slate-500">
-                      * يوزع الحصص بالجدول تلقائياً، ويخصص واجب الفرنساوي والـ ICT بالحصة الثالثة، ويجهز ملاحظات الغد.
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      * يقرأ الجداول بدقة، يضع أعمال الفصل في مكانها مع روابطها، والواجبات في مكانها، ويحول تلقائياً أي Quiz أو Test أو اختبار أو ملاحظات إلى قسم الغد (Tomorrow)، مع ضبط أسماء الملاحظات (ملاحظات للعربي والسوشيال، Remarque للفرنساوي، و Notes لباقي المواد).
                     </p>
                   </div>
 
@@ -583,20 +682,20 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                             </h4>
                           </div>
                           <p className="text-xs text-slate-500 mt-0.5">
-                            تمت مواءمة الحصص مع جدول الفصول، وتعيين واجبات الفرنساوي والـ ICT في الحصة الثالثة.
+                            تمت مواءمة الحصص مع جدول الفصول، ونقل الاختبارات والملاحظات إلى Tomorrow، وتعيين واجبات الفرنساوي والـ ICT في الحصة الثالثة.
                           </p>
                         </div>
 
                         {/* Summary Badges */}
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
-                            📘 {parsedResult.classwork.length} حصة
+                            📘 {parsedResult.classwork.length} أعمال فصل (CW)
                           </span>
                           <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">
-                            📝 {parsedResult.homework.length} واجب
+                            📝 {parsedResult.homework.length} واجب (HW)
                           </span>
                           <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
-                            🎒 {parsedResult.tomorrowNotes.length} ملاحظة غد
+                            🎒 {parsedResult.tomorrowNotes.length} ملاحظات وكويزات (Tomorrow)
                           </span>
                         </div>
                       </div>
@@ -612,7 +711,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                               : 'border-transparent text-slate-500 hover:text-slate-800'
                           }`}
                         >
-                          الحصص الصفية (Classwork) ({parsedResult.classwork.length})
+                          أعمال الفصل (Classwork) ({parsedResult.classwork.length})
                         </button>
                         <button
                           type="button"
@@ -634,7 +733,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                               : 'border-transparent text-slate-500 hover:text-slate-800'
                           }`}
                         >
-                          ملاحظات الغد والحقيبة (Tomorrow Notes) ({parsedResult.tomorrowNotes.length})
+                          تنبيهات الغد والكويزات (Tomorrow) ({parsedResult.tomorrowNotes.length})
                         </button>
                       </div>
 
@@ -642,26 +741,33 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       <div className="max-h-56 overflow-y-auto space-y-2 pr-1 text-xs">
                         {previewTab === 'classwork' && (
                           <div className="space-y-1.5">
-                            {parsedResult.classwork.slice(0, 15).map((cw, idx) => (
+                            {parsedResult.classwork.slice(0, 20).map((cw, idx) => (
                               <div
                                 key={cw.id || idx}
-                                className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between"
+                                className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 shrink-0">
                                   <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-800 font-black text-[11px] flex items-center justify-center shrink-0">
                                     ح{cw.period}
                                   </span>
                                   <span className="font-bold text-slate-900">{cw.subject}</span>
                                   <span className="text-slate-500 text-[11px]">({cw.day} - {cw.classId})</span>
                                 </div>
-                                <span className="text-slate-600 truncate max-w-[200px] text-left" dir="ltr">
-                                  {cw.lesson || cw.details}
-                                </span>
+                                <div className="flex items-center gap-2 truncate">
+                                  <span className="text-slate-700 truncate font-medium">
+                                    {cw.title || cw.details || (cw as any).lesson} {cw.pages && `(${cw.pages})`}
+                                  </span>
+                                  {cw.linkUrl && (
+                                    <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold shrink-0">
+                                      🔗 {cw.linkTitle || 'رابط الدرس'}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             ))}
-                            {parsedResult.classwork.length > 15 && (
+                            {parsedResult.classwork.length > 20 && (
                               <p className="text-center text-slate-400 text-[11px] py-1">
-                                + {parsedResult.classwork.length - 15} حصة إضافية سيتم حفظها...
+                                + {parsedResult.classwork.length - 20} حصة إضافية سيتم حفظها...
                               </p>
                             )}
                           </div>
@@ -672,9 +778,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                             {parsedResult.homework.map((hw, idx) => (
                               <div
                                 key={hw.id || idx}
-                                className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between"
+                                className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 shrink-0">
                                   <span className="px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px]">
                                     {hw.subject}
                                   </span>
@@ -687,10 +793,22 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                                       مجدول بالحصة 3 ✅
                                     </span>
                                   )}
+                                  {hw.priority === 'urgent' && (
+                                    <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold">
+                                      🚨 عاجل
+                                    </span>
+                                  )}
                                 </div>
-                                <span className="text-slate-700 font-medium truncate max-w-[250px]">
-                                  {hw.task} {hw.pages && `(${hw.pages})`}
-                                </span>
+                                <div className="flex items-center gap-2 truncate">
+                                  <span className="text-slate-700 font-medium truncate">
+                                    {hw.task} {hw.pages && `(${hw.pages})`}
+                                  </span>
+                                  {hw.linkUrl && (
+                                    <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold shrink-0">
+                                      🔗 رابط
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -698,34 +816,74 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                         {previewTab === 'tomorrow' && (
                           <div className="space-y-1.5">
-                            {parsedResult.tomorrowNotes.map((note, idx) => (
-                              <div
-                                key={note.id || idx}
-                                className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="font-black text-indigo-900 text-xs">
-                                    يوم {note.day}: {note.title}
-                                  </span>
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
-                                    {note.category}
-                                  </span>
-                                </div>
-                                <p className="text-slate-600 text-xs leading-relaxed">{note.content}</p>
-                                {note.items && note.items.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {note.items.map((it, i) => (
-                                      <span
-                                        key={i}
-                                        className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[11px] text-slate-700 font-medium"
-                                      >
-                                        🎒 {it}
+                            {parsedResult.tomorrowNotes.map((note, idx) => {
+                              const isQuiz =
+                                note.isQuiz ||
+                                note.categoryType === 'quiz' ||
+                                /quiz|test|exam|dictation|اختبار|امتحان|كويز|إملاء|تسميع|تقييم/i.test(
+                                  note.note + ' ' + (note.arabicNote || '')
+                                );
+
+                              let badgeLabel = 'Notes';
+                              let badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
+
+                              if (isQuiz) {
+                                badgeLabel = '🚨 اختبار / Quiz';
+                                badgeStyle = 'bg-rose-100 text-rose-800 border-rose-200';
+                              } else if (
+                                note.subject?.toLowerCase().includes('french') ||
+                                note.subject?.includes('فرنساوي')
+                              ) {
+                                badgeLabel = 'Remarque';
+                                badgeStyle = 'bg-purple-100 text-purple-800 border-purple-200';
+                              } else if (
+                                note.subject?.toLowerCase().includes('arabic') ||
+                                note.subject?.toLowerCase().includes('social') ||
+                                note.subject?.includes('عربي') ||
+                                note.subject?.includes('دراسات')
+                              ) {
+                                badgeLabel = 'ملاحظات';
+                                badgeStyle = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                              }
+
+                              const dayArabicMap: Record<string, string> = {
+                                Sunday: 'الأحد',
+                                Monday: 'الاثنين',
+                                Tuesday: 'الثلاثاء',
+                                Wednesday: 'الأربعاء',
+                                Thursday: 'الخميس',
+                              };
+
+                              return (
+                                <div
+                                  key={note.id || idx}
+                                  className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-black text-indigo-900 text-xs">
+                                        يوم {dayArabicMap[note.targetDay] || note.targetDay} — {note.subject}
                                       </span>
-                                    ))}
+                                    </div>
+                                    <span
+                                      className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${badgeStyle}`}
+                                    >
+                                      {badgeLabel}
+                                    </span>
                                   </div>
-                                )}
-                              </div>
-                            ))}
+                                  <p className="text-slate-700 text-xs leading-relaxed font-medium">
+                                    {note.arabicNote || note.note}
+                                  </p>
+                                  {note.bagItem && (
+                                    <div className="mt-1">
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-amber-200 text-[11px] text-amber-900 font-bold">
+                                        🎒 الحقيبة المدرسية / الأدوات: {note.bagItem}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>

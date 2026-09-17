@@ -54,22 +54,15 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   // Check if this Block and Week has ANY homework entered for current class
   const hasHomeworkForWeek = homeworkList.some(
     (h) =>
-      h.classId === currentClass &&
+      (h.classId === currentClass || (h.classId as any) === 'ALL') &&
       (h.block || 1) === currentBlock &&
       (h.week || 1) === currentWeek
   );
 
-  // Only homework assigned for the selected day (Arabic, French, Mathematics, Social Studies, English, ICT, Science)
+  // Homework assigned for the selected day
   const dayHomework = homeworkList.filter(
     (h) =>
-      h.classId === currentClass &&
-      (h.subject === 'Arabic' ||
-        h.subject === 'French' ||
-        h.subject === 'Mathematics' ||
-        h.subject === 'Social Studies' ||
-        h.subject === 'English' ||
-        h.subject === 'ICT' ||
-        h.subject === 'Science') &&
+      (h.classId === currentClass || (h.classId as any) === 'ALL') &&
       h.assignedDay === selectedDay &&
       (h.block || 1) === currentBlock &&
       (h.week || 1) === currentWeek

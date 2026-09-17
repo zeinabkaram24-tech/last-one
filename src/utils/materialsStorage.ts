@@ -14,7 +14,7 @@ const EVENT_NAME = 'school_materials_updated';
 // Helper to open IndexedDB
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    if (!('indexedDB' in window)) {
+    if (typeof window === 'undefined' || !('indexedDB' in window)) {
       reject(new Error('IndexedDB is not supported'));
       return;
     }
@@ -58,7 +58,21 @@ function saveFallbackMaterials(items: MaterialItem[]) {
   }
 }
 
-// Retrieve all materials (from Supabase Cloud + Local IndexedDB merged seamlessly)
+// Helper to save items into local IndexedDB
+async function saveItemsToLocalDB(items: MaterialItem[]): Promise<void> {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    for (const item of items) {
+      store.put(item);
+    }
+  } catch (e) {
+    saveFallbackMaterials(items);
+  }
+}
+
+// Retrieve all materials (from Server API + Supabase Cloud + Local IndexedDB merged seamlessly)
 export async function getAllMaterials(): Promise<MaterialItem[]> {
   // 1. Fetch local items first
   let localItems: MaterialItem[] = [];
@@ -78,37 +92,77 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
       };
     });
   } catch (e) {
-    console.warn('IndexedDB failed, using fallback', e);
+    console.warn('IndexedDB read failed, using fallback', e);
     localItems = getFallbackMaterials();
   }
 
-  // 2. Fetch from Supabase Cloud if configured
+  const itemsMap = new Map<string, MaterialItem>();
+  localItems.forEach((item) => itemsMap.set(item.id, item));
+
+  // 2. Fetch from centralized Server API (/api/materials) - Cross-device sync between Mobile, Laptop & Desktop!
+  try {
+    const res = await fetch('/api/materials');
+    if (res.ok) {
+      const serverItems: MaterialItem[] = await res.json();
+      if (Array.isArray(serverItems)) {
+        serverItems.forEach((serverItem) => {
+          const localMatch = itemsMap.get(serverItem.id);
+          // If local has fileData but server doesn't, keep local fileData
+          if (localMatch && localMatch.fileData && !serverItem.fileData) {
+            itemsMap.set(serverItem.id, { ...serverItem, fileData: localMatch.fileData });
+          } else {
+            itemsMap.set(serverItem.id, serverItem);
+          }
+        });
+
+        // Background Sync: If mobile has local files that were never uploaded to server, push them to server now!
+        const missingOnServer = localItems.filter(
+          (loc) => !serverItems.some((srv) => srv.id === loc.id)
+        );
+        if (missingOnServer.length > 0) {
+          console.log(`[MaterialsSync] Syncing ${missingOnServer.length} local items to server for cross-device access...`);
+          missingOnServer.forEach((item) => {
+            fetch('/api/materials', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(item),
+            }).catch((err) => console.warn('Background sync item to server failed:', err));
+          });
+        }
+      }
+    }
+  } catch (serverErr) {
+    console.warn('Could not fetch server materials:', serverErr);
+  }
+
+  // 3. Fetch from Supabase Cloud if configured
   if (isSupabaseConfigured) {
     try {
       const cloudItems = await fetchAllMaterialsFromSupabase();
       if (cloudItems && cloudItems.length > 0) {
-        // Merge cloud items with local items, prioritizing cloud items with storageUrl
-        const map = new Map<string, MaterialItem>();
-        localItems.forEach((item) => map.set(item.id, item));
         cloudItems.forEach((cloudItem) => {
-          const existing = map.get(cloudItem.id);
+          const existing = itemsMap.get(cloudItem.id);
           if (existing && existing.fileData && !cloudItem.fileData) {
-            map.set(cloudItem.id, { ...cloudItem, fileData: existing.fileData });
+            itemsMap.set(cloudItem.id, { ...cloudItem, fileData: existing.fileData });
           } else {
-            map.set(cloudItem.id, cloudItem);
+            itemsMap.set(cloudItem.id, cloudItem);
           }
         });
-        return Array.from(map.values());
       }
     } catch (err) {
       console.warn('Could not fetch cloud materials:', err);
     }
   }
 
-  return localItems;
+  const finalItems = Array.from(itemsMap.values());
+
+  // Cache back to local DB so it's always accessible offline on laptop as well
+  saveItemsToLocalDB(finalItems).catch(() => {});
+
+  return finalItems;
 }
 
-// Save or add a material (saves both locally and to Supabase Cloud)
+// Save or add a material (saves locally AND to central server AND Supabase Cloud)
 export async function saveMaterial(item: MaterialItem): Promise<void> {
   // 1. Save to local IndexedDB
   try {
@@ -128,7 +182,24 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
     saveFallbackMaterials(existing);
   }
 
-  // 2. Sync to Supabase Cloud Database if configured
+  // 2. Centralized Server Persistence (/api/materials) for laptop & all devices
+  try {
+    const res = await fetch('/api/materials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.item && data.item.storageUrl) {
+        item.storageUrl = data.item.storageUrl;
+      }
+    }
+  } catch (serverErr) {
+    console.warn('Failed to sync material to server API:', serverErr);
+  }
+
+  // 3. Sync to Supabase Cloud Database if configured
   if (isSupabaseConfigured) {
     try {
       await saveMaterialToSupabase(item);
@@ -137,11 +208,11 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
     }
   }
 
-  // Notify components
+  // Notify components across app
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
 }
 
-// Delete a material (deletes locally and from Supabase Cloud)
+// Delete a material (deletes locally, from server, and from Supabase Cloud)
 export async function deleteMaterial(id: string, storageUrl?: string): Promise<void> {
   // 1. Delete from local IndexedDB
   try {
@@ -160,7 +231,14 @@ export async function deleteMaterial(id: string, storageUrl?: string): Promise<v
     saveFallbackMaterials(existing);
   }
 
-  // 2. Delete from Supabase Cloud
+  // 2. Delete from centralized server
+  try {
+    await fetch(`/api/materials/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  } catch (serverErr) {
+    console.warn('Failed to delete material from server API:', serverErr);
+  }
+
+  // 3. Delete from Supabase Cloud
   if (isSupabaseConfigured) {
     try {
       await deleteMaterialFromSupabase(id, storageUrl);
@@ -206,15 +284,21 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
-// Open PDF Directly in a new browser tab (supports storageUrl and dataUrl)
+// Open PDF Directly in a new browser tab (supports storageUrl, server endpoint, and dataUrl)
 export function openPdfItem(item: MaterialItem): void {
   try {
-    if (item.storageUrl) {
-      window.open(item.storageUrl, '_blank', 'noopener,noreferrer');
-      return;
+    const targetUrl = item.storageUrl || (item.id ? `/api/materials/${item.id}/file` : null);
+    if (targetUrl) {
+      const opened = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      if (opened) return;
     }
 
-    if (!item.fileData) return;
+    if (!item.fileData) {
+      if (targetUrl) {
+        window.location.href = targetUrl;
+      }
+      return;
+    }
 
     const blob = dataUrlToBlob(item.fileData);
     const blobUrl = URL.createObjectURL(blob);
@@ -236,14 +320,14 @@ export function openPdfItem(item: MaterialItem): void {
   }
 }
 
-// Universal Print Function for PDF item (supports storageUrl and dataUrl)
+// Universal Print Function for PDF item (supports storageUrl, server endpoint, and dataUrl)
 export function printPdfItem(item: MaterialItem): void {
   try {
     const targetUrl = item.storageUrl
       ? item.storageUrl
       : item.fileData
       ? URL.createObjectURL(dataUrlToBlob(item.fileData))
-      : null;
+      : `/api/materials/${item.id}/file`;
 
     if (!targetUrl) return;
 
@@ -288,33 +372,20 @@ export function printPdfItem(item: MaterialItem): void {
   }
 }
 
-// Universal Download Function (supports storageUrl and dataUrl)
+// Universal Download Function (supports storageUrl, server endpoint, and dataUrl)
 export function downloadPdfItem(item: MaterialItem): void {
   try {
-    if (item.storageUrl) {
-      const a = document.createElement('a');
-      a.href = item.storageUrl;
-      a.download = item.fileName.endsWith('.pdf') ? item.fileName : `${item.fileName}.pdf`;
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      return;
-    }
+    const fallbackUrl = `/api/materials/${item.id}/file`;
+    const targetUrl = item.storageUrl || (item.fileData ? URL.createObjectURL(dataUrlToBlob(item.fileData)) : fallbackUrl);
 
-    if (!item.fileData) return;
-
-    const blob = dataUrlToBlob(item.fileData);
-    const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = blobUrl;
+    a.href = targetUrl;
     a.download = item.fileName.endsWith('.pdf') ? item.fileName : `${item.fileName}.pdf`;
+    a.target = '_blank';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
   } catch (e) {
     console.error('Download error:', e);
   }
 }
-

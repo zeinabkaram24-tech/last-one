@@ -67,6 +67,20 @@ export interface HomeworkEntry {
   linkUrl?: string;
 }
 
+export interface TomorrowSpecialNote {
+  classId: ClassId;
+  targetDay: SchoolDay; // The day being prepared for
+  subject: string;
+  note: string;
+  arabicNote: string;
+  bagItem?: string;
+  icon?: string;
+  block?: number;
+  week?: number;
+  isQuiz?: boolean;
+  categoryType?: 'note' | 'quiz';
+}
+
 export interface TomorrowItem {
   subject: SubjectName;
   period: number;
@@ -80,10 +94,7 @@ export interface TomorrowItem {
 export interface ParsedWeeklyPlanResponse {
   classwork: Omit<ClassworkEntry, 'id'>[];
   homework: Omit<HomeworkEntry, 'id'>[];
-  tomorrowNotes?: {
-    day: SchoolDay;
-    note: string;
-  }[];
+  tomorrowNotes?: TomorrowSpecialNote[];
 }
 
 export type UserMode = 'guest' | 'student';

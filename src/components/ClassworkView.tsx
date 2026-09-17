@@ -36,7 +36,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   // Check if current class has ANY weekly plan entered for this Block and Week
   const hasPlanForWeek = classworkList.some(
     (c) =>
-      c.classId === currentClass &&
+      (c.classId === currentClass || (c.classId as any) === 'ALL') &&
       (c.block || 1) === currentBlock &&
       (c.week || 1) === currentWeek
   );
@@ -222,9 +222,16 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             const theme = getSubjectTheme(slot.subject);
             const cwEntry = classworkList.find(
               (c) =>
-                c.classId === currentClass &&
+                (c.classId === currentClass || (c.classId as any) === 'ALL') &&
                 c.day === selectedDay &&
                 slot.periods.includes(c.period) &&
+                (c.block || 1) === currentBlock &&
+                (c.week || 1) === currentWeek
+            ) || classworkList.find(
+              (c) =>
+                (c.classId === currentClass || (c.classId as any) === 'ALL') &&
+                c.day === selectedDay &&
+                c.subject === slot.subject &&
                 (c.block || 1) === currentBlock &&
                 (c.week || 1) === currentWeek
             );

@@ -1,21 +1,11 @@
-import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry } from '../types';
+import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, TomorrowSpecialNote } from '../types';
 import {
   WEEK2_CLASSWORK,
   ALL_LINK_AND_WEEK2_HOMEWORK,
   WEEK2_SPECIAL_NOTES,
 } from './week2Plan';
 
-export interface TomorrowSpecialNote {
-  classId: ClassId;
-  targetDay: SchoolDay; // The day being prepared for
-  subject: string;
-  note: string;
-  arabicNote: string;
-  bagItem?: string;
-  icon?: string;
-  block?: number;
-  week?: number;
-}
+export type { TomorrowSpecialNote };
 
 export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
   // --- PREPARING FOR MONDAY (Packed on Sunday night) ---
