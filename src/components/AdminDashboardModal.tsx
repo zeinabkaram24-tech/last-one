@@ -25,9 +25,11 @@ import {
   Link2,
   ExternalLink,
   Globe,
+  Database,
 } from 'lucide-react';
 import { ClassId, MaterialItem, ClassworkEntry, HomeworkEntry } from '../types';
 import { TomorrowSpecialNote } from '../data/defaultWeeklyPlan';
+import { SupabaseConfigModal } from './SupabaseConfigModal';
 import {
   getAllMaterials,
   saveMaterial,
@@ -85,6 +87,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   } | null>(null);
   const [isPublishingPlan, setIsPublishingPlan] = useState(false);
   const [previewTab, setPreviewTab] = useState<'classwork' | 'homework' | 'tomorrow'>('classwork');
+  const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
   // Editing state for parsed weekly plan before publishing
   const [editingItemType, setEditingItemType] = useState<'classwork' | 'homework' | 'tomorrow' | null>(null);
@@ -734,15 +737,26 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              id="admin-dashboard-close-btn"
-              onClick={onClose}
-              type="button"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-            >
-              <span>خروج</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsSupabaseModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors cursor-pointer shadow-2xs"
+                title="إعدادات وحفظ مفاتيح وقاعدة بيانات Supabase"
+              >
+                <Database className="w-3.5 h-3.5 text-emerald-600" />
+                <span>ربط Supabase</span>
+              </button>
+              <button
+                id="admin-dashboard-close-btn"
+                onClick={onClose}
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                <span>خروج</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           {/* Body Content */}
@@ -2163,6 +2177,15 @@ Sunday:
           </div>
         </div>
       </div>
+
+      {/* Supabase Cloud Connection & Persistent Credentials Modal */}
+      <SupabaseConfigModal
+        isOpen={isSupabaseModalOpen}
+        onClose={() => setIsSupabaseModalOpen(false)}
+        onSaved={() => {
+          setSuccessMessage('تم حفظ إعدادات ومفاتيح Supabase وتحديث الاتصال بنجاح!');
+        }}
+      />
     </>
   );
 };

@@ -329,9 +329,12 @@ function allocateClassworkSlot(
     }
   }
 
-  // If all legitimate timetable slots for this subject in this week are exhausted,
-  // return null! DO NOT invent extra slots or overflow sessions!
-  return null;
+  // If all scheduled timetable slots for this subject in this week are already used,
+  // do NOT drop the teacher's lesson! Allocate it gracefully to preferredDay with an appropriate period
+  const preferredSlots = classTimetable[preferredDay] || [];
+  const existingSubSlot = preferredSlots.find((slot: any) => normalizeSubject(slot.subject) === normSub);
+  const fallbackPeriod = existingSubSlot ? existingSubSlot.period : (preferredSlots.length > 0 ? preferredSlots[0].period : 2);
+  return { day: preferredDay || 'Sunday', period: fallbackPeriod };
 }
 
 // Robust JSON cleaner and parser that strips markdown fences and boundary noise

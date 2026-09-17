@@ -59,14 +59,22 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       (h.week || 1) === currentWeek
   );
 
-  // Homework assigned for the selected day
-  const dayHomework = homeworkList.filter(
+  // Homework assigned for the selected day with strict deduplication by ID
+  const rawDayHomework = homeworkList.filter(
     (h) =>
       (h.classId === currentClass || (h.classId as any) === 'ALL') &&
       h.assignedDay === selectedDay &&
       (h.block || 1) === currentBlock &&
       (h.week || 1) === currentWeek
   );
+
+  const uniqueHwMap = new Map<string, HomeworkEntry>();
+  rawDayHomework.forEach((h) => {
+    if (h && h.id) {
+      uniqueHwMap.set(h.id, h);
+    }
+  });
+  const dayHomework = Array.from(uniqueHwMap.values());
 
   // Check if tomorrow (next school day) has any scheduled Quiz or Test in classwork
   const nextDay = NEXT_SCHOOL_DAY[selectedDay];
@@ -151,9 +159,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
             </h4>
           </div>
           <div className="space-y-1.5 pt-0.5">
-            {upcomingTestsAndQuizzes.map((t, idx) => (
+            {upcomingTestsAndQuizzes.map((t) => (
               <div
-                key={`test-${t.id}-${t.period}-${idx}`}
+                key={t.id}
                 className="flex items-center justify-between gap-2 bg-white/95 border border-amber-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
               >
                 <div className="flex items-center gap-2 flex-wrap">
@@ -187,7 +195,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         </div>
       ) : (
         <div className="space-y-2.5">
-          {dayHomework.map((hw, idx) => {
+          {dayHomework.map((hw) => {
             const meta = SUBJECT_METADATA[hw.subject];
             const theme = getSubjectTheme(hw.subject);
             const isTestOrQuiz =
@@ -199,7 +207,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
             return (
               <div
-                key={`hw-${hw.id}-${idx}`}
+                key={hw.id}
                 className={`rounded-2xl border border-s-4 p-3.5 sm:p-4 transition-all flex items-start justify-between gap-3 shadow-2xs ${
                   hw.completed
                     ? 'border-emerald-300 border-s-emerald-600 bg-emerald-50/30 opacity-85'

@@ -27,13 +27,46 @@ export function cleanSupabaseKey(rawKey: string): string {
   return (rawKey || '').trim().replace(/^["']|["']$/g, '');
 }
 
-const rawSupabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const rawSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+export const STORAGE_KEYS_SUPABASE = {
+  URL: 'nile_supabase_url',
+  KEY: 'nile_supabase_anon_key',
+};
 
-export const supabaseUrl = cleanSupabaseUrl(rawSupabaseUrl);
-export const supabaseAnonKey = cleanSupabaseKey(rawSupabaseAnonKey);
+export const DEFAULT_SUPABASE_URL = 'https://umryrjwmlkdbjmgmnbkt.supabase.co';
+export const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag';
 
-export const isSupabaseConfigured = Boolean(
+export function getActiveSupabaseConfig(): { url: string; key: string } {
+  let url = '';
+  let key = '';
+  if (typeof window !== 'undefined') {
+    url = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL) || '';
+    key = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY) || '';
+  }
+  if (!url) {
+    url = (import.meta.env.VITE_SUPABASE_URL as string) || DEFAULT_SUPABASE_URL;
+  }
+  if (!key) {
+    key = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || DEFAULT_SUPABASE_ANON_KEY;
+  }
+  return {
+    url: cleanSupabaseUrl(url),
+    key: cleanSupabaseKey(key),
+  };
+}
+
+export function saveActiveSupabaseConfig(url: string, key: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEYS_SUPABASE.URL, cleanSupabaseUrl(url));
+    localStorage.setItem(STORAGE_KEYS_SUPABASE.KEY, cleanSupabaseKey(key));
+    window.dispatchEvent(new Event('supabase_config_updated'));
+  }
+}
+
+const initialConfig = getActiveSupabaseConfig();
+export let supabaseUrl = initialConfig.url;
+export let supabaseAnonKey = initialConfig.key;
+
+export let isSupabaseConfigured = Boolean(
   supabaseUrl &&
     supabaseAnonKey &&
     supabaseUrl.trim() !== '' &&
@@ -42,10 +75,31 @@ export const isSupabaseConfigured = Boolean(
     !supabaseUrl.includes('placeholder')
 );
 
-export const supabase: SupabaseClient = createClient(
+export let supabase: SupabaseClient = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder'
 );
+
+export function updateSupabaseClient(url: string, key: string): SupabaseClient {
+  const cleanedUrl = cleanSupabaseUrl(url);
+  const cleanedKey = cleanSupabaseKey(key);
+  saveActiveSupabaseConfig(cleanedUrl, cleanedKey);
+  supabaseUrl = cleanedUrl;
+  supabaseAnonKey = cleanedKey;
+  isSupabaseConfigured = Boolean(
+    cleanedUrl &&
+      cleanedKey &&
+      cleanedUrl.trim() !== '' &&
+      cleanedKey.trim() !== '' &&
+      cleanedUrl !== 'https://your-project.supabase.co' &&
+      !cleanedUrl.includes('placeholder')
+  );
+  supabase = createClient(
+    cleanedUrl || 'https://placeholder.supabase.co',
+    cleanedKey || 'placeholder'
+  );
+  return supabase;
+}
 
 // Database Row Types (snake_case in Supabase)
 export interface ClassworkRow {
@@ -248,6 +302,32 @@ function saveLocalCustomHomework(entries: HomeworkEntry[], mode: 'merge' | 'repl
 // =========================================================================
 
 export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
+  // If Supabase is configured, fetch directly from cloud database (Single Source of Truth)
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('classwork')
+        .select('*')
+        .order('period', { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        // Strict Deduplication based on item.id directly from Supabase
+        const uniqueMap = new Map<string, ClassworkEntry>();
+        (data as ClassworkRow[]).forEach((row) => {
+          const item = rowToClasswork(row);
+          if (item && item.id) {
+            uniqueMap.set(item.id, item);
+          }
+        });
+        // Return pure Supabase cloud data without merging localStorage or baseline!
+        return Array.from(uniqueMap.values());
+      }
+    } catch (err) {
+      console.warn('Network exception fetching classwork from Supabase (falling back):', err);
+    }
+  }
+
+  // Fallback ONLY if Supabase is unconfigured or returns offline/empty
   const localCustom = getLocalCustomClasswork();
   let baseItems = [...INITIAL_CLASSWORK];
 
@@ -275,21 +355,6 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
     // Server fetch fallback
   }
 
-  if (isSupabaseConfigured) {
-    try {
-      const { data, error } = await supabase
-        .from('classwork')
-        .select('*')
-        .order('period', { ascending: true });
-
-      if (!error && data && data.length > 0) {
-        baseItems = (data as ClassworkRow[]).map(rowToClasswork);
-      }
-    } catch (err) {
-      console.warn('Network exception fetching classwork from Supabase (using local baseline):', err);
-    }
-  }
-
   // Also filter out any base items that have been replaced in localCustom
   if (localCustom.length > 0) {
     const localKeys = new Set(
@@ -300,10 +365,14 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
     );
   }
 
-  // Merge custom entries over baseline items
+  // Deduplicate and merge custom entries over baseline items ONLY in offline fallback
   const map = new Map<string, ClassworkEntry>();
-  baseItems.forEach((c) => map.set(c.id, c));
-  localCustom.forEach((c) => map.set(c.id, c));
+  baseItems.forEach((c) => {
+    if (c && c.id) map.set(c.id, c);
+  });
+  localCustom.forEach((c) => {
+    if (c && c.id) map.set(c.id, c);
+  });
   return Array.from(map.values());
 }
 
@@ -401,6 +470,48 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merg
 // =========================================================================
 
 export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
+  // If Supabase is configured, fetch directly from cloud database (Single Source of Truth)
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('homework')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        // Strict Deduplication based on item.id directly from Supabase
+        const uniqueMap = new Map<string, HomeworkEntry>();
+        (data as HomeworkRow[]).forEach((row) => {
+          const item = rowToHomework(row);
+          if (item && item.id) {
+            // Ensure Tuesday Week 2 Arabic homework is page 47
+            const isTargetArabicHw =
+              item.id === 'hw-w2-ar-tue-g2a-wb' ||
+              item.id === 'hw-w2-ar-tue-g2b-wb' ||
+              item.id === 'hw-w2-ar-tue-g2c-wb' ||
+              (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
+
+            if (
+              isTargetArabicHw &&
+              (item.task.includes('46') || (item.pages && item.pages.includes('46')) || (item.details && item.details.includes('46')))
+            ) {
+              item.task = item.task.replace(/46/g, '47');
+              if (item.pages) item.pages = item.pages.replace(/46/g, '47');
+              if (item.details) item.details = item.details.replace(/46/g, '47');
+            }
+
+            uniqueMap.set(item.id, item);
+          }
+        });
+        // Return pure Supabase cloud data without merging localStorage or baseline!
+        return Array.from(uniqueMap.values());
+      }
+    } catch (err) {
+      console.warn('Network exception fetching homework from Supabase (falling back):', err);
+    }
+  }
+
+  // Fallback ONLY if Supabase is unconfigured or returns offline/empty
   const localCustom = getLocalCustomHomework();
   let baseItems = [...INITIAL_HOMEWORK];
 
@@ -428,21 +539,6 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     // Server fetch fallback
   }
 
-  if (isSupabaseConfigured) {
-    try {
-      const { data, error } = await supabase
-        .from('homework')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!error && data && data.length > 0) {
-        baseItems = (data as HomeworkRow[]).map(rowToHomework);
-      }
-    } catch (err) {
-      console.warn('Network exception fetching homework from Supabase (using local baseline):', err);
-    }
-  }
-
   // Also filter out any base items that have been replaced in localCustom
   if (localCustom.length > 0) {
     const localKeys = new Set(
@@ -453,7 +549,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     );
   }
 
-  // Ensure Tuesday Week 2 Arabic homework is page 47 and sync to Supabase if outdated
+  // Ensure Tuesday Week 2 Arabic homework is page 47
   const normalizedBase = baseItems.map((item) => {
     const isTargetArabicHw =
       item.id === 'hw-w2-ar-tue-g2a-wb' ||
@@ -463,41 +559,28 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
 
     if (
       isTargetArabicHw &&
-      (item.task.includes('46') || item.pages.includes('46') || item.details.includes('46'))
+      (item.task.includes('46') || (item.pages && item.pages.includes('46')) || (item.details && item.details.includes('46')))
     ) {
       const corrected: HomeworkEntry = {
         ...item,
         task: item.task.replace(/46/g, '47'),
-        pages: item.pages.replace(/46/g, '47'),
-        details: item.details.replace(/46/g, '47'),
+        pages: item.pages ? item.pages.replace(/46/g, '47') : '47',
+        details: item.details ? item.details.replace(/46/g, '47') : item.details,
       };
-
-      if (isSupabaseConfigured) {
-        supabase
-          .from('homework')
-          .update({
-            task: corrected.task,
-            pages: corrected.pages,
-            details: corrected.details,
-          })
-          .eq('id', item.id)
-          .then(({ error: syncErr }) => {
-            if (syncErr) {
-              console.warn('Notice syncing page 47 to Supabase:', syncErr.message);
-            }
-          });
-      }
-
       return corrected;
     }
 
     return item;
   });
 
-  // Merge custom local homework over base items
+  // Deduplicate and merge custom local homework over base items ONLY in offline fallback
   const map = new Map<string, HomeworkEntry>();
-  normalizedBase.forEach((h) => map.set(h.id, h));
-  localCustom.forEach((h) => map.set(h.id, h));
+  normalizedBase.forEach((h) => {
+    if (h && h.id) map.set(h.id, h);
+  });
+  localCustom.forEach((h) => {
+    if (h && h.id) map.set(h.id, h);
+  });
   return Array.from(map.values());
 }
 

@@ -1,4 +1,5 @@
 import { ClassId, ParsedWeeklyPlanResponse } from '../types';
+import { CLASS_TIMETABLES } from '../data/timetables';
 
 export async function parseWeeklyPlanWithAI(
   planText: string,
@@ -183,11 +184,16 @@ export function fallbackClientParser(
             week,
           });
         }
+        // Find matching timetable period for this subject and day
+        const daySchedule = (CLASS_TIMETABLES as any)?.[targetCls]?.[currentDay] || [];
+        const matchedSlot = daySchedule.find((s: any) => s.subject === currentSubject);
+        const resolvedPeriod = matchedSlot ? matchedSlot.period : Math.min((classwork.length % 6) + 1, 7);
+
         classwork.push({
           id: `cw-${targetCls}-${currentDay}-${Date.now()}-${classwork.length}`,
           classId: targetCls,
           day: currentDay as any,
-          period: (classwork.length % 8) + 1,
+          period: resolvedPeriod,
           subject: currentSubject as any,
           title: clean,
           completed: false,

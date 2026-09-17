@@ -190,7 +190,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
               const badgeInfo = getNoteBadgeInfo(note);
               return (
                 <div
-                  key={idx}
+                  key={note.id || `${note.subject}-${note.targetDay}-${idx}`}
                   className={`rounded-xl border p-3 transition-all space-y-1.5 text-xs ${badgeInfo.cardClass}`}
                 >
                   <div className="flex items-start gap-2 text-slate-900">

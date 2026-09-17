@@ -13,6 +13,7 @@ import { StudentAuthModal } from './components/StudentAuthModal';
 import { AdminAuthModal } from './components/AdminAuthModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { MaterialsModal } from './components/MaterialsModal';
+import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 import { notifyTomorrowNotesListeners } from './utils/tomorrowNotesStorage';
 import {
   getActiveUserProfile,
@@ -158,6 +159,32 @@ export default function App() {
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
+  const [isSupabaseConfigOpen, setIsSupabaseConfigOpen] = useState(false);
+
+  // Listen for Supabase config updates (saving URL / API Key from UI)
+  useEffect(() => {
+    const handleConfigUpdated = async () => {
+      setSupabaseStatus('connecting');
+      try {
+        const [cwData, hwData] = await Promise.all([
+          fetchAllClasswork(),
+          fetchAllHomework(),
+        ]);
+        if (cwData && cwData.length > 0) setClassworkList(cwData);
+        if (hwData && hwData.length > 0) setHomeworkList(hwData);
+        setSupabaseStatus('connected');
+        showToast('تم تحديث اتصال Supabase وقراءة البيانات السحابية بنجاح!');
+      } catch (err) {
+        console.error('Error reloading data after Supabase config change:', err);
+        setSupabaseStatus('error');
+      }
+    };
+
+    window.addEventListener('supabase_config_updated', handleConfigUpdated);
+    return () => {
+      window.removeEventListener('supabase_config_updated', handleConfigUpdated);
+    };
+  }, []);
 
   // Persistence & Sync effects for class, week, day
   useEffect(() => {
@@ -632,6 +659,8 @@ export default function App() {
         onOpenProfileModal={() => setIsAuthModalOpen(true)}
         onOpenAdminAuth={() => setIsAdminAuthOpen(true)}
         onOpenMaterials={() => setIsMaterialsModalOpen(true)}
+        onOpenSupabaseConfig={() => setIsSupabaseConfigOpen(true)}
+        supabaseStatus={supabaseStatus}
       />
 
       {/* Main Container */}
@@ -724,32 +753,48 @@ export default function App() {
           <div className="flex items-center gap-4">
             {/* Supabase connection indicator */}
             {supabaseStatus === 'connected' && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <button
+                type="button"
+                onClick={() => setIsSupabaseConfigOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+                title="قاعدة بيانات Supabase السحابية متصلة - انقر لتعديل الإعدادات"
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <Database className="w-3.5 h-3.5 text-emerald-600" />
-                Supabase متصل
-              </span>
+                <span>Supabase متصل</span>
+              </button>
             )}
             {supabaseStatus === 'connecting' && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+              <button
+                type="button"
+                onClick={() => setIsSupabaseConfigOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+              >
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
-                جاري الاتصال بـ Supabase...
-              </span>
+                <span>جاري الاتصال بـ Supabase...</span>
+              </button>
             )}
             {supabaseStatus === 'unconfigured' && (
-              <span
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200"
-                title="أضف VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY في ملف .env"
+              <button
+                type="button"
+                onClick={() => setIsSupabaseConfigOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors cursor-pointer shadow-2xs"
+                title="انقر لإدخال وحفظ رابط ومفتاح Supabase بسهولة"
               >
-                <Database className="w-3.5 h-3.5 text-slate-400" />
-                Supabase بانتظار المفاتيح
-              </span>
+                <Database className="w-3.5 h-3.5 text-slate-600" />
+                <span>إعداد وحفظ Supabase</span>
+              </button>
             )}
             {supabaseStatus === 'error' && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+              <button
+                type="button"
+                onClick={() => setIsSupabaseConfigOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
+                title="انقر لتصحيح إعدادات ومفاتيح الربط"
+              >
                 <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-                خطأ في اتصال Supabase
-              </span>
+                <span>خطأ في اتصال Supabase (تعديل)</span>
+              </button>
             )}
 
             <button
@@ -837,6 +882,27 @@ export default function App() {
         currentClass={currentClass}
         currentBlock={currentBlock}
         currentWeek={currentWeek}
+      />
+
+      {/* Supabase Cloud Connection & Persistent Credentials Modal */}
+      <SupabaseConfigModal
+        isOpen={isSupabaseConfigOpen}
+        onClose={() => setIsSupabaseConfigOpen(false)}
+        onSaved={async () => {
+          setSupabaseStatus('connecting');
+          try {
+            const [cwData, hwData] = await Promise.all([
+              fetchAllClasswork(),
+              fetchAllHomework(),
+            ]);
+            if (cwData && cwData.length > 0) setClassworkList(cwData);
+            if (hwData && hwData.length > 0) setHomeworkList(hwData);
+            setSupabaseStatus('connected');
+            showToast('تم حفظ إعدادات Supabase وتحديث البيانات بنجاح!');
+          } catch {
+            setSupabaseStatus('error');
+          }
+        }}
       />
     </div>
   );

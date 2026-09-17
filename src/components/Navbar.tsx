@@ -11,6 +11,7 @@ import {
   Shield,
   GraduationCap,
   FolderOpen,
+  Database,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
 import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
@@ -32,6 +33,8 @@ interface NavbarProps {
   onOpenProfileModal?: () => void;
   onOpenAdminAuth?: () => void;
   onOpenMaterials?: () => void;
+  onOpenSupabaseConfig?: () => void;
+  supabaseStatus?: 'connecting' | 'connected' | 'unconfigured' | 'error';
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -50,6 +53,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProfileModal,
   onOpenAdminAuth,
   onOpenMaterials,
+  onOpenSupabaseConfig,
+  supabaseStatus = 'unconfigured',
 }) => {
   const tabs = [
     {
@@ -104,16 +109,44 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
 
-            {/* Admin Button directly inside the top blue bar without any separation */}
-            <button
-              type="button"
-              onClick={onOpenAdminAuth}
-              className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white hover:text-amber-300 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-white/25 active:scale-95 shrink-0"
-              title="لوحة الأدمن / Admin Mode"
-            >
-              <Shield className="w-3.5 h-3.5 text-amber-300" />
-              <span>أدمن</span>
-            </button>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Supabase Cloud Connection & Settings */}
+              <button
+                type="button"
+                onClick={onOpenSupabaseConfig}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border active:scale-95 shrink-0 ${
+                  supabaseStatus === 'connected'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40 hover:bg-emerald-500/30'
+                    : supabaseStatus === 'connecting'
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-400/40 hover:bg-amber-500/30'
+                    : 'bg-white/10 hover:bg-white/20 text-white hover:text-emerald-300 border-white/25'
+                }`}
+                title="إعدادات وحفظ ربط Supabase السحابي الدائم"
+              >
+                <Database className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden sm:inline">السحابة</span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    supabaseStatus === 'connected'
+                      ? 'bg-emerald-400 animate-pulse'
+                      : supabaseStatus === 'connecting'
+                      ? 'bg-amber-400 animate-pulse'
+                      : 'bg-slate-400'
+                  }`}
+                />
+              </button>
+
+              {/* Admin Button directly inside the top blue bar without any separation */}
+              <button
+                type="button"
+                onClick={onOpenAdminAuth}
+                className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white hover:text-amber-300 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-white/25 active:scale-95 shrink-0"
+                title="لوحة الأدمن / Admin Mode"
+              >
+                <Shield className="w-3.5 h-3.5 text-amber-300" />
+                <span>أدمن</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
