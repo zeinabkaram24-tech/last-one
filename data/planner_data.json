@@ -380,27 +380,29 @@
       "assignedDay": "Wednesday",
       "dueDay": "Sunday",
       "subject": "Social Studies",
-      "task": "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع",
-      "details": "يتم تسليم الواجبات المطلوبة في كراسة الأنشطة",
-      "pages": "حسب ما تم تناوله في الأسبوع",
+      "task": "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع (الأحد)",
+      "details": "يتم تسليم الواجبات المطلوبة في كراسة الأنشطة أو شيت الواجب المرفق",
+      "pages": "شيت الواجب المنزلي (HomeWork 1)",
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
     },
     {
       "id": "hw-b1-w3-G2B-social studies-Wednesday-g2r3v",
       "classId": "G2B",
       "assignedDay": "Wednesday",
-      "dueDay": "Sunday",
+      "dueDay": "Monday",
       "subject": "Social Studies",
-      "task": "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع",
-      "details": "يتم تسليم الواجبات المطلوبة في كراسة الأنشطة",
-      "pages": "حسب ما تم تناوله في الأسبوع",
+      "task": "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع (الاثنين)",
+      "details": "يتم تسليم الواجبات المطلوبة في كراسة الأنشطة أو شيت الواجب المرفق",
+      "pages": "شيت الواجب المنزلي (HomeWork 1)",
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
     },
     {
       "id": "hw-b1-w3-G2C-social studies-Wednesday-fvoav",
@@ -408,13 +410,14 @@
       "assignedDay": "Wednesday",
       "dueDay": "Sunday",
       "subject": "Social Studies",
-      "task": "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع",
-      "details": "يتم تسليم الواجبات المطلوبة في كراسة الأنشطة",
-      "pages": "حسب ما تم تناوله في الأسبوع",
+      "task": "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع (الأحد)",
+      "details": "يتم تسليم الواجبات المطلوبة في كراسة الأنشطة أو شيت الواجب المرفق",
+      "pages": "شيت الواجب المنزلي (HomeWork 1)",
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
     },
     {
       "id": "hw-b1-w3-G2A-french-Thu-1",
@@ -536,48 +539,121 @@
       "week": 3
     },
     {
+      "id": "tn-b1-w3-G2A-Wed-social-hw",
+      "classId": "G2A",
+      "targetDay": "Wednesday",
+      "subject": "Social Studies",
+      "note": "يتم إرسال الواجب المنزلي يوم الأربعاء، والاستلام أول حصة في الأسبوع (يوم الأحد)",
+      "arabicNote": "يتم إرسال الواجب المنزلي لمادة الدراسات الاجتماعية اليوم الأربعاء، ويسلّم أول حصة الأسبوع القادم (الأحد)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "block": 1,
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+    },
+    {
+      "id": "tn-b1-w3-G2B-Wed-social-hw",
       "classId": "G2B",
       "targetDay": "Wednesday",
       "subject": "Social Studies",
-      "note": "يتم إستلام الواجب أول حصة في الاسبوع",
-      "arabicNote": "يتم إستلام الواجب أول حصة في الاسبوع",
+      "note": "يتم إرسال الواجب المنزلي يوم الأربعاء، والاستلام أول حصة في الأسبوع (يوم الاثنين)",
+      "arabicNote": "يتم إرسال الواجب المنزلي لمادة الدراسات الاجتماعية اليوم الأربعاء، ويسلّم أول حصة الأسبوع القادم (الاثنين)",
       "isQuiz": false,
       "categoryType": "note",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
     },
     {
+      "id": "tn-b1-w3-G2C-Wed-social-hw",
       "classId": "G2C",
       "targetDay": "Wednesday",
       "subject": "Social Studies",
-      "note": "يتم استلام الواجب أول حصة في الأسبوع",
-      "arabicNote": "يتم استلام الواجب أول حصة في الأسبوع",
+      "note": "يتم إرسال الواجب المنزلي يوم الأربعاء، والاستلام أول حصة في الأسبوع (يوم الأحد)",
+      "arabicNote": "يتم إرسال الواجب المنزلي لمادة الدراسات الاجتماعية اليوم الأربعاء، ويسلّم أول حصة الأسبوع القادم (الأحد)",
       "isQuiz": false,
       "categoryType": "note",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
     },
     {
+      "id": "tn-b1-w3-G2A-Sat-social-submit-reminder",
       "classId": "G2A",
-      "targetDay": "Wednesday",
+      "targetDay": "Saturday",
       "subject": "Social Studies",
-      "note": "يتم إرسال الواجب المنزلي يوم الاربعاء",
-      "arabicNote": "يتم إرسال الواجب المنزلي يوم الأربعاء",
+      "note": "تذكير: تسليم واجب الدراسات الاجتماعية غداً أول حصة في الأسبوع (يوم الأحد)",
+      "arabicNote": "تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية غداً (الأحد) أول حصة في الأسبوع",
       "isQuiz": false,
       "categoryType": "note",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
     },
     {
+      "id": "tn-b1-w3-G2C-Sat-social-submit-reminder",
+      "classId": "G2C",
+      "targetDay": "Saturday",
+      "subject": "Social Studies",
+      "note": "تذكير: تسليم واجب الدراسات الاجتماعية غداً أول حصة في الأسبوع (يوم الأحد)",
+      "arabicNote": "تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية غداً (الأحد) أول حصة في الأسبوع",
+      "isQuiz": false,
+      "categoryType": "note",
+      "block": 1,
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+    },
+    {
+      "id": "tn-b1-w3-G2A-Sun-social-submit-due",
       "classId": "G2A",
       "targetDay": "Sunday",
       "subject": "Social Studies",
-      "note": "يتم إستلام الواجب أول حصة في الأسبوع",
-      "arabicNote": "يتم استلام الواجب أول حصة في الأسبوع",
+      "note": "تسليم واجب الدراسات الاجتماعية اليوم (أول حصة في الأسبوع)",
+      "arabicNote": "تسليم واجب الدراسات الاجتماعية اليوم (أول حصة في الأسبوع)",
       "isQuiz": false,
       "categoryType": "note",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+    },
+    {
+      "id": "tn-b1-w3-G2C-Sun-social-submit-due",
+      "classId": "G2C",
+      "targetDay": "Sunday",
+      "subject": "Social Studies",
+      "note": "تسليم واجب الدراسات الاجتماعية اليوم (أول حصة في الأسبوع)",
+      "arabicNote": "تسليم واجب الدراسات الاجتماعية اليوم (أول حصة في الأسبوع)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "block": 1,
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+    },
+    {
+      "id": "tn-b1-w3-G2B-Sun-social-submit-reminder",
+      "classId": "G2B",
+      "targetDay": "Sunday",
+      "subject": "Social Studies",
+      "note": "تذكير: تسليم واجب الدراسات الاجتماعية غداً أول حصة في الأسبوع (يوم الاثنين)",
+      "arabicNote": "تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية غداً (الاثنين) أول حصة في الأسبوع لكلاس B",
+      "isQuiz": false,
+      "categoryType": "note",
+      "block": 1,
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+    },
+    {
+      "id": "tn-b1-w3-G2B-Mon-social-submit-due",
+      "classId": "G2B",
+      "targetDay": "Monday",
+      "subject": "Social Studies",
+      "note": "تسليم واجب الدراسات الاجتماعية اليوم (أول حصة في الأسبوع لكلاس B)",
+      "arabicNote": "تسليم واجب الدراسات الاجتماعية اليوم (أول حصة في الأسبوع)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "block": 1,
+      "week": 3,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
     }
   ]
 }

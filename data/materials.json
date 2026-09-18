@@ -1,5 +1,16 @@
 [
   {
+    "id": "mat_social_studies_b1_hw1",
+    "fileName": "SocialStudies-Grade2-B1-HomeWork-1.pdf",
+    "fileSize": 678480,
+    "block": 1,
+    "section": "Week 3",
+    "classId": "ALL",
+    "type": "pdf",
+    "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf",
+    "uploadedAt": "2026-09-18T10:00:00.000Z"
+  },
+  {
     "id": "mat_link_french_w3_famille",
     "fileName": "فيديو درس أفراد العائلة - Les membres de ma famille",
     "fileSize": 0,

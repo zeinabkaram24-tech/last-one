@@ -40,8 +40,10 @@ import {
   printPdfItem,
   downloadPdfItem,
 } from '../utils/materialsStorage';
-import { uploadPdfToSupabaseStorage, bulkInsertClasswork, bulkInsertHomework } from '../lib/supabase';
+import { uploadPdfToSupabaseStorage, bulkInsertClasswork, bulkInsertHomework, getLocalCustomClasswork, getLocalCustomHomework } from '../lib/supabase';
 import { saveTomorrowNotes } from '../utils/tomorrowNotesStorage';
+import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
+import { WEEK2_CLASSWORK, ALL_LINK_AND_WEEK2_HOMEWORK, WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { fileToBase64, extractTextFromPdf } from '../utils/pdfExtractor';
 import { fallbackClientParser, parseWeeklyPlanWithAI } from '../services/aiClassifier';
 
@@ -398,39 +400,67 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       const loadActiveDataQuietly = async () => {
+        const b = Number(planBlock);
+        const w = Number(planWeek);
+
+        const filterAndSet = (classwork: any[], homework: any[], tomorrowNotes: any[]) => {
+          let fc = (classwork || []).filter(
+            (c: any) => Number(c.block || 1) === b && Number(c.week || 1) === w
+          );
+          let fh = (homework || []).filter(
+            (h: any) => Number(h.block || 1) === b && Number(h.week || 1) === w
+          );
+          let ft = (tomorrowNotes || []).filter(
+            (n: any) => Number(n.block || 1) === b && Number(n.week || 1) === w
+          );
+
+          if (planClass !== 'ALL') {
+            fc = fc.filter((c: any) => c.classId === planClass);
+            fh = fh.filter((h: any) => h.classId === planClass);
+            ft = ft.filter((n: any) => n.classId === planClass);
+          }
+
+          setParsedResult({
+            classwork: fc,
+            homework: fh,
+            tomorrowNotes: ft,
+          });
+        };
+
         try {
-          const res = await fetch('/api/planner-data');
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2500);
+          const res = await fetch('/api/planner-data', { signal: controller.signal });
+          clearTimeout(timeoutId);
+
           if (res.ok) {
             const data = await res.json();
-            const b = Number(planBlock);
-            const w = Number(planWeek);
-            
-            // Filter by block and week
-            let filteredClasswork = (data.classwork || []).filter(
-              (c: any) => Number(c.block || 1) === b && Number(c.week || 1) === w
-            );
-            let filteredHomework = (data.homework || []).filter(
-              (h: any) => Number(h.block || 1) === b && Number(h.week || 1) === w
-            );
-            let filteredTomorrow = (data.tomorrowNotes || []).filter(
-              (n: any) => Number(n.block || 1) === b && Number(n.week || 1) === w
-            );
-
-            // Filter by class if not 'ALL'
-            if (planClass !== 'ALL') {
-              filteredClasswork = filteredClasswork.filter((c: any) => c.classId === planClass);
-              filteredHomework = filteredHomework.filter((h: any) => h.classId === planClass);
-              filteredTomorrow = filteredTomorrow.filter((n: any) => n.classId === planClass);
-            }
-
-            setParsedResult({
-              classwork: filteredClasswork,
-              homework: filteredHomework,
-              tomorrowNotes: filteredTomorrow,
-            });
+            filterAndSet(data.classwork || [], data.homework || [], data.tomorrowNotes || []);
+            return;
           }
-        } catch (err) {
-          console.error('Error loading active data automatically:', err);
+        } catch {
+          // Graceful fallback to client-cached and default baseline plan data if server is unreachable or slow
+        }
+
+        // Fallback: Assemble from local custom and default baseline data
+        try {
+          const localCw = getLocalCustomClasswork();
+          const localHw = getLocalCustomHomework();
+          const defaultCw = w === 2 ? WEEK2_CLASSWORK : INITIAL_CLASSWORK;
+          const defaultHw = w === 2 ? ALL_LINK_AND_WEEK2_HOMEWORK : INITIAL_HOMEWORK;
+          const defaultTn = w === 2 ? WEEK2_SPECIAL_NOTES : SPECIAL_TEACHER_NOTES;
+
+          const cwMap = new Map<string, any>();
+          defaultCw.forEach((c) => cwMap.set(c.id, c));
+          localCw.forEach((c) => cwMap.set(c.id, c));
+
+          const hwMap = new Map<string, any>();
+          defaultHw.forEach((h) => hwMap.set(h.id, h));
+          localHw.forEach((h) => hwMap.set(h.id, h));
+
+          filterAndSet(Array.from(cwMap.values()), Array.from(hwMap.values()), defaultTn);
+        } catch {
+          // Keep whatever parsedResult is or clean fallback
         }
       };
       loadActiveDataQuietly();
@@ -648,19 +678,30 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       setIsParsingPlan(true);
       setParsingStep('جاري جلب البيانات النشطة حالياً من السيرفر لـ Block ' + planBlock + ' (Week ' + planWeek + ')...');
       
-      const res = await fetch('/api/planner-data');
-      if (res.ok) {
-        const data = await res.json();
-        const b = Number(planBlock);
-        const w = Number(planWeek);
-        
-        const filteredClasswork = (data.classwork || []).filter(
+      const b = Number(planBlock);
+      const w = Number(planWeek);
+
+      let fetchedData: any = null;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch('/api/planner-data', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          fetchedData = await res.json();
+        }
+      } catch {
+        // Fallback below
+      }
+
+      if (fetchedData) {
+        const filteredClasswork = (fetchedData.classwork || []).filter(
           (c: any) => Number(c.block || 1) === b && Number(c.week || 1) === w
         );
-        const filteredHomework = (data.homework || []).filter(
+        const filteredHomework = (fetchedData.homework || []).filter(
           (h: any) => Number(h.block || 1) === b && Number(h.week || 1) === w
         );
-        const filteredTomorrow = (data.tomorrowNotes || []).filter(
+        const filteredTomorrow = (fetchedData.tomorrowNotes || []).filter(
           (n: any) => Number(n.block || 1) === b && Number(n.week || 1) === w
         );
 
@@ -673,10 +714,40 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         setSuccessMessage('✨ تم تحميل البيانات النشطة بنجاح! يمكنك الآن تعديل أي عنصر، أو إضافة حصص/واجبات/تنبيهات يدوية بالكامل.');
         setTimeout(() => setSuccessMessage(null), 5000);
       } else {
-        throw new Error('Failed to fetch planner data from server');
+        // Assemble from local storage and default baseline plan
+        const localCw = getLocalCustomClasswork();
+        const localHw = getLocalCustomHomework();
+        const defaultCw = w === 2 ? WEEK2_CLASSWORK : INITIAL_CLASSWORK;
+        const defaultHw = w === 2 ? ALL_LINK_AND_WEEK2_HOMEWORK : INITIAL_HOMEWORK;
+        const defaultTn = w === 2 ? WEEK2_SPECIAL_NOTES : SPECIAL_TEACHER_NOTES;
+
+        const cwMap = new Map<string, any>();
+        defaultCw.forEach((c) => cwMap.set(c.id, c));
+        localCw.forEach((c) => cwMap.set(c.id, c));
+
+        const hwMap = new Map<string, any>();
+        defaultHw.forEach((h) => hwMap.set(h.id, h));
+        localHw.forEach((h) => hwMap.set(h.id, h));
+
+        const fc = Array.from(cwMap.values()).filter(
+          (c: any) => Number(c.block || 1) === b && Number(c.week || 1) === w
+        );
+        const fh = Array.from(hwMap.values()).filter(
+          (h: any) => Number(h.block || 1) === b && Number(h.week || 1) === w
+        );
+        const ft = (defaultTn || []).filter(
+          (n: any) => Number(n.block || 1) === b && Number(n.week || 1) === w
+        );
+
+        setParsedResult({
+          classwork: fc,
+          homework: fh,
+          tomorrowNotes: ft,
+        });
+        setSuccessMessage('✨ تم تحميل الخطة النشطة من الذاكرة المحلية والافتراضية بنجاح!');
+        setTimeout(() => setSuccessMessage(null), 5000);
       }
-    } catch (err) {
-      console.error('Error loading active data:', err);
+    } catch {
       // Fallback: initialize clean empty lists for adding from scratch
       setParsedResult({
         classwork: [],
