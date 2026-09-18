@@ -49,12 +49,16 @@ interface AdminDashboardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPlanUpdated?: (block?: number, week?: number) => void;
+  isAdminEditMode: boolean;
+  onToggleAdminEditMode: (enabled: boolean) => void;
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   isOpen,
   onClose,
   onPlanUpdated,
+  isAdminEditMode,
+  onToggleAdminEditMode,
 }) => {
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -869,6 +873,39 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
           {/* Body Content */}
           <div className="py-4 overflow-y-auto flex-1 space-y-5">
+            {/* Direct Admin Edit Mode Toggle Banner */}
+            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+              <div className="text-right">
+                <h3 className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5 justify-start">
+                  <span>🛠️ وضع التحكم والتعديل المباشر (Direct Edit Mode)</span>
+                  {isAdminEditMode && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse">
+                      نشط حالياً 🟢
+                    </span>
+                  )}
+                </h3>
+                <p className="text-[11px] text-amber-900/80 font-bold mt-1">
+                  عند تفعيل هذا الخيار، سيتم عرض أزرار (إضافة ➕، تعديل ✏️، حذف 🗑️) مباشرة على صفحة الحصص والواجبات والتنبيهات أمامكِ لتعديلها فوراً كأدمن!
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onToggleAdminEditMode(!isAdminEditMode);
+                  if (!isAdminEditMode) {
+                    onClose();
+                  }
+                }}
+                className={`px-4.5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs whitespace-nowrap text-center ${
+                  isAdminEditMode
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                    : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                }`}
+              >
+                {isAdminEditMode ? '❌ إيقاف وضع التعديل المباشر' : '⚙️ تفعيل وضع التعديل المباشر والخروج للمعالجة'}
+              </button>
+            </div>
+
             {/* Success & Error alerts */}
             {successMessage && (
               <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold rounded-2xl flex items-center gap-2">

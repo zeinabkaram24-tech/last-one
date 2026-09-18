@@ -6,6 +6,9 @@ import {
   BookOpen,
   AlertTriangle,
   AlertCircle,
+  Pencil,
+  Trash,
+  Plus,
 } from 'lucide-react';
 import { ClassId, SchoolDay, HomeworkEntry, ClassworkEntry } from '../types';
 import { SUBJECT_METADATA } from '../data/timetables';
@@ -22,6 +25,10 @@ interface HomeworkViewProps {
   currentWeek?: number;
   onToggleHomework: (id: string) => void;
   onPrint?: () => void;
+  isAdminEditMode?: boolean;
+  onAddHomework?: () => void;
+  onEditHomework?: (entry: HomeworkEntry) => void;
+  onDeleteHomework?: (id: string) => void;
 }
 
 const ARABIC_DAY_NAMES: Record<SchoolDay, string> = {
@@ -50,6 +57,10 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   currentBlock = 1,
   currentWeek = 2,
   onToggleHomework,
+  isAdminEditMode = false,
+  onAddHomework,
+  onEditHomework,
+  onDeleteHomework,
 }) => {
   // Check if this Block and Week has ANY homework entered for current class
   const hasHomeworkForWeek = homeworkList.some(
@@ -105,7 +116,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   const totalCount = dayHomework.length;
 
   // If this entire week has no homework entered, render clean empty state
-  if (!hasHomeworkForWeek) {
+  if (!hasHomeworkForWeek && !isAdminEditMode) {
     return (
       <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-xs space-y-3">
         <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
@@ -123,6 +134,23 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
   return (
     <div className="space-y-3.5">
+      {/* Admin Quick Add Row */}
+      {isAdminEditMode && onAddHomework && (
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-3.5 rounded-2xl border border-emerald-200 shadow-2xs flex items-center justify-between gap-3 animate-fade-in" dir="rtl">
+          <div className="text-right">
+            <h4 className="text-xs font-black text-emerald-950">التحكم المباشر للأدمن ⚙️</h4>
+            <p className="text-[10px] font-bold text-emerald-700">إضافة أو نشر واجبات منزلية جديدة مباشرةً لهذا اليوم الدراسي</p>
+          </div>
+          <button
+            onClick={onAddHomework}
+            className="inline-flex items-center gap-1.5 px-4.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-emerald-100" />
+            <span>➕ إضافة واجب جديد يدوياً</span>
+          </button>
+        </div>
+      )}
+
       {/* Top Banner: Header for the selected day only */}
       <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
@@ -298,25 +326,53 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                   </div>
                 </div>
 
-                {/* Interactive toggle button: Done with celebration */}
-                <button
-                  onClick={() => handleToggle(hw.id, hw.completed)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 self-start sm:self-center flex items-center gap-1.5 ${
-                    hw.completed
-                      ? 'bg-emerald-100 text-emerald-800 hover:bg-slate-100 hover:text-slate-600 border border-emerald-300'
-                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs hover:scale-105 active:scale-95'
-                  }`}
-                  title={hw.completed ? 'اضغطي للإلغاء' : 'اضغطي للتحديد كـ Done'}
-                >
-                  {hw.completed ? (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Done ✓</span>
-                    </>
-                  ) : (
-                    <span>Done</span>
+                {/* Actions: Done check and Admin controls */}
+                <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center flex-wrap sm:flex-nowrap">
+                  {isAdminEditMode && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => onEditHomework?.(hw)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 text-xs font-black rounded-lg transition-all cursor-pointer"
+                        title="تعديل تفاصيل الواجب"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-amber-700" />
+                        <span>تعديل</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('هل أنتِ متأكدة من رغبتكِ في حذف هذا الواجب نهائياً؟')) {
+                            onDeleteHomework?.(hw.id);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-black rounded-lg transition-all cursor-pointer"
+                        title="حذف الواجب نهائياً"
+                      >
+                        <Trash className="w-3.5 h-3.5 text-rose-700" />
+                        <span>حذف</span>
+                      </button>
+                    </div>
                   )}
-                </button>
+
+                  {/* Interactive toggle button: Done with celebration */}
+                  <button
+                    onClick={() => handleToggle(hw.id, hw.completed)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 flex items-center gap-1.5 ${
+                      hw.completed
+                        ? 'bg-emerald-100 text-emerald-800 hover:bg-slate-100 hover:text-slate-600 border border-emerald-300'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs hover:scale-105 active:scale-95'
+                    }`}
+                    title={hw.completed ? 'اضغطي للإلغاء' : 'اضغطي للتحديد كـ Done'}
+                  >
+                    {hw.completed ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>Done ✓</span>
+                      </>
+                    ) : (
+                      <span>Done</span>
+                    )}
+                  </button>
+                </div>
               </div>
             );
           })}

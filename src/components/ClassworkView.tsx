@@ -5,6 +5,9 @@ import {
   User,
   BookOpen,
   ExternalLink,
+  Pencil,
+  Trash,
+  Plus,
 } from 'lucide-react';
 import { ClassId, SchoolDay, ClassworkEntry, SubjectName } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
@@ -20,6 +23,10 @@ interface ClassworkViewProps {
   currentWeek?: number;
   onToggleClasswork: (id: string) => void;
   onSaveClasswork?: (entry: ClassworkEntry) => void;
+  isAdminEditMode?: boolean;
+  onEditClasswork?: (entry: ClassworkEntry) => void;
+  onDeleteClasswork?: (id: string) => void;
+  onAddClasswork?: () => void;
 }
 
 export const ClassworkView: React.FC<ClassworkViewProps> = ({
@@ -29,6 +36,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   currentBlock = 1,
   currentWeek = 2,
   onToggleClasswork,
+  isAdminEditMode = false,
+  onEditClasswork,
+  onDeleteClasswork,
+  onAddClasswork,
 }) => {
   // Check if current class has ANY weekly plan entered for this Block and Week
   let hasPlanForWeek = classworkList.some(
@@ -209,7 +220,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   // If this entire week has no plan entered, render clean empty state
-  if (!hasPlanForWeek) {
+  if (!hasPlanForWeek && !isAdminEditMode) {
     return (
       <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-xs space-y-3">
         <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
@@ -227,6 +238,23 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Admin Quick Add Row */}
+      {isAdminEditMode && onAddClasswork && (
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-3.5 rounded-2xl border border-emerald-200 shadow-2xs flex items-center justify-between gap-3 animate-fade-in" dir="rtl">
+          <div className="text-right">
+            <h4 className="text-xs font-black text-emerald-950">التحكم المباشر للأدمن ⚙️</h4>
+            <p className="text-[10px] font-bold text-emerald-700">إضافة أو نشر حصص جديدة مباشرةً لهذا اليوم الدراسي</p>
+          </div>
+          <button
+            onClick={onAddClasswork}
+            className="inline-flex items-center gap-1.5 px-4.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-emerald-100" />
+            <span>➕ إضافة حصة جديدة يدوياً</span>
+          </button>
+        </div>
+      )}
+
       {/* Timetable Period Cards or Weekend / Empty Day Message */}
       {visibleSlots.length === 0 ? (
         selectedDay === 'Saturday' ? (
@@ -428,8 +456,33 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                     )}
                   </div>
 
-                  {/* Actions (Check completion) */}
-                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 w-full sm:w-auto justify-end">
+                  {/* Actions (Check completion & Admin Controls) */}
+                  <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 w-full sm:w-auto justify-end">
+                    {isAdminEditMode && cwEntry && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => onEditClasswork?.(cwEntry)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 text-xs font-black rounded-lg transition-all cursor-pointer"
+                          title="تعديل تفاصيل الحصة"
+                        >
+                          <Pencil className="w-3.5 h-3.5 text-amber-700" />
+                          <span>تعديل</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm('هل أنتِ متأكدة من رغبتكِ في حذف هذه الحصة نهائياً؟')) {
+                              onDeleteClasswork?.(cwEntry.id);
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-black rounded-lg transition-all cursor-pointer"
+                          title="حذف الحصة نهائياً"
+                        >
+                          <Trash className="w-3.5 h-3.5 text-rose-700" />
+                          <span>حذف</span>
+                        </button>
+                      </div>
+                    )}
+
                     <button
                       onClick={handleToggleLesson}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, BookOpen, ExternalLink } from 'lucide-react';
-import { ClassId, SchoolDay, PeriodSlot } from '../types';
+import { Sparkles, BookOpen, ExternalLink, Pencil, Trash, Plus } from 'lucide-react';
+import { ClassId, SchoolDay, PeriodSlot, TomorrowSpecialNote } from '../types';
 import {
   CLASS_TIMETABLES,
   NEXT_SCHOOL_DAY,
   SUBJECT_METADATA,
 } from '../data/timetables';
-import { SPECIAL_TEACHER_NOTES, TomorrowSpecialNote } from '../data/defaultWeeklyPlan';
+import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
 import { getTomorrowNotesForDay, subscribeToTomorrowNotes } from '../utils/tomorrowNotesStorage';
@@ -16,6 +16,10 @@ interface TomorrowViewProps {
   selectedDay: SchoolDay;
   currentBlock?: number;
   currentWeek?: number;
+  isAdminEditMode?: boolean;
+  onAddTomorrowNote?: () => void;
+  onEditTomorrowNote?: (entry: TomorrowSpecialNote) => void;
+  onDeleteTomorrowNote?: (id: string) => void;
 }
 
 const ARABIC_DAY_NAMES: Record<SchoolDay, string> = {
@@ -32,6 +36,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   selectedDay,
   currentBlock = 1,
   currentWeek = 2,
+  isAdminEditMode = false,
+  onAddTomorrowNote,
+  onEditTomorrowNote,
+  onDeleteTomorrowNote,
 }) => {
   // Tomorrow's target day based on the active selected day
   const tomorrowDay: SchoolDay = NEXT_SCHOOL_DAY[selectedDay] || 'Sunday';
@@ -173,9 +181,20 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
       {/* Block for Notes Underneath (ملاحظات العربي، ريمارك الفرنش، نوتس باقي المواد) */}
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs space-y-3">
-        <div className="flex items-center gap-2 text-amber-950 font-black text-xs sm:text-sm pb-1 border-b border-slate-100">
-          <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
-          <span>الملاحظات ليوم {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})</span>
+        <div className="flex items-center justify-between pb-1 border-b border-slate-100 flex-wrap gap-2">
+          <div className="flex items-center gap-2 text-amber-950 font-black text-xs sm:text-sm">
+            <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>الملاحظات ليوم {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})</span>
+          </div>
+          {isAdminEditMode && onAddTomorrowNote && (
+            <button
+              onClick={onAddTomorrowNote}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black rounded-lg transition-all shadow-xs cursor-pointer"
+            >
+              <Plus className="w-3 h-3 text-emerald-100" />
+              <span>➕ إضافة ملاحظة للغد</span>
+            </button>
+          )}
         </div>
 
         {tomorrowNotes.length === 0 ? (
@@ -193,11 +212,35 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                   key={note.id || `${note.subject}-${note.targetDay}-${idx}`}
                   className={`rounded-xl border p-3 transition-all space-y-1.5 text-xs ${badgeInfo.cardClass}`}
                 >
-                  <div className="flex items-start gap-2 text-slate-900">
-                    <span className={`px-2 py-0.5 rounded text-[11px] shrink-0 ${badgeInfo.badgeClass}`}>
-                      {badgeInfo.label} • {badgeInfo.subjectName}
-                    </span>
-                    <span className="font-bold leading-relaxed">{note.arabicNote || note.note}</span>
+                  <div className="flex items-start justify-between gap-3 text-slate-900">
+                    <div className="flex items-start gap-2">
+                      <span className={`px-2 py-0.5 rounded text-[11px] shrink-0 ${badgeInfo.badgeClass}`}>
+                        {badgeInfo.label} • {badgeInfo.subjectName}
+                      </span>
+                      <span className="font-bold leading-relaxed">{note.arabicNote || note.note}</span>
+                    </div>
+                    {isAdminEditMode && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => onEditTomorrowNote?.(note)}
+                          className="p-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 rounded-md transition-colors cursor-pointer"
+                          title="تعديل الملاحظة"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm('هل أنتِ متأكدة من رغبتكِ في حذف هذه الملاحظة نهائياً؟')) {
+                              onDeleteTomorrowNote?.(note.id || '');
+                            }
+                          }}
+                          className="p-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-md transition-colors cursor-pointer"
+                          title="حذف الملاحظة"
+                        >
+                          <Trash className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   {note.bagItem && (
                     <div className="text-[11px] text-amber-950 font-semibold bg-white px-2.5 py-1 rounded-lg border border-amber-200/90 inline-block">

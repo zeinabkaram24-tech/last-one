@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, UserProfile } from './types';
+import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, UserProfile, TomorrowSpecialNote } from './types';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from './data/defaultWeeklyPlan';
 import { SCHOOL_DAYS, SCHOOL_NAME, SCHOOL_BRANCH } from './data/timetables';
 import { Navbar } from './components/Navbar';
@@ -14,7 +14,8 @@ import { AdminAuthModal } from './components/AdminAuthModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { MaterialsModal } from './components/MaterialsModal';
 import { SupabaseConfigModal } from './components/SupabaseConfigModal';
-import { notifyTomorrowNotesListeners } from './utils/tomorrowNotesStorage';
+import { InteractiveEditorModal } from './components/InteractiveEditorModal';
+import { notifyTomorrowNotesListeners, saveTomorrowNotes } from './utils/tomorrowNotesStorage';
 import {
   getActiveUserProfile,
   setActiveUserProfile,
@@ -149,6 +150,13 @@ export default function App() {
   const [homeworkList, setHomeworkList] = useState<HomeworkEntry[]>(() => {
     return getProfileHomework(getActiveUserProfile());
   });
+
+  // Admin Direct Edit Mode and Interactive Editor States
+  const [isAdminEditMode, setIsAdminEditMode] = useState<boolean>(false);
+  const [isEditorModalOpen, setIsEditorModalOpen] = useState<boolean>(false);
+  const [editorModalMode, setEditorModalMode] = useState<'add' | 'edit'>('add');
+  const [editorItemType, setEditorItemType] = useState<'classwork' | 'homework' | 'tomorrow'>('classwork');
+  const [selectedEditorItem, setSelectedEditorItem] = useState<any>(null);
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
@@ -618,6 +626,87 @@ export default function App() {
     }
   };
 
+  const handleDeleteClasswork = async (id: string) => {
+    if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذه الحصة؟')) {
+      setClassworkList((prev) => prev.filter((c) => c.id !== id));
+      if (isSupabaseConfigured) {
+        try {
+          await deleteClasswork(id);
+        } catch (e) {
+          console.error('Error deleting classwork:', e);
+        }
+      }
+      showToast('تم حذف الحصة بنجاح.');
+    }
+  };
+
+  const handleSaveInteractiveItem = async (type: 'classwork' | 'homework' | 'tomorrow', data: any) => {
+    if (type === 'classwork') {
+      await handleSaveClasswork(data);
+    } else if (type === 'homework') {
+      await handleAddHomework(data);
+    } else if (type === 'tomorrow') {
+      const block = data.block || currentBlock;
+      const week = data.week || currentWeek;
+      const storageKey = `nile_tomorrow_notes_${block}_${week}`;
+      let existing: TomorrowSpecialNote[] = [];
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) existing = JSON.parse(raw);
+      } catch {}
+
+      const idx = existing.findIndex((n) => n.id === data.id);
+      let next: TomorrowSpecialNote[];
+      if (idx >= 0) {
+        next = [...existing];
+        next[idx] = data;
+      } else {
+        next = [data, ...existing];
+      }
+
+      await saveTomorrowNotes(block, week, next, 'replace');
+      showToast('تم حفظ التنبيه بنجاح!');
+    }
+    setIsEditorModalOpen(false);
+  };
+
+  const handleDeleteInteractiveItem = async (type: 'classwork' | 'homework' | 'tomorrow', id: string) => {
+    if (type === 'classwork') {
+      await handleDeleteClasswork(id);
+    } else if (type === 'homework') {
+      if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذا الواجب؟')) {
+        await handleDeleteHomework(id);
+      }
+    } else if (type === 'tomorrow') {
+      if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذا التنبيه؟')) {
+        const storageKey = `nile_tomorrow_notes_${currentBlock}_${currentWeek}`;
+        let existing: TomorrowSpecialNote[] = [];
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (raw) existing = JSON.parse(raw);
+        } catch {}
+
+        const next = existing.filter((n) => n.id !== id);
+        await saveTomorrowNotes(currentBlock, currentWeek, next, 'replace');
+        showToast('تم حذف التنبيه بنجاح.');
+      }
+    }
+  };
+
+  const handleOpenAddModal = (type: 'classwork' | 'homework' | 'tomorrow') => {
+    setEditorItemType(type);
+    setEditorModalMode('add');
+    setSelectedEditorItem(null);
+    setIsEditorModalOpen(true);
+  };
+
+  const handleOpenEditModal = (type: 'classwork' | 'homework' | 'tomorrow', item: any) => {
+    setEditorItemType(type);
+    setEditorModalMode('edit');
+    setSelectedEditorItem(item);
+    setIsEditorModalOpen(true);
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -688,6 +777,10 @@ export default function App() {
               currentWeek={currentWeek}
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
+              isAdminEditMode={isAdminEditMode}
+              onAddClasswork={() => handleOpenAddModal('classwork')}
+              onEditClasswork={(entry) => handleOpenEditModal('classwork', entry)}
+              onDeleteClasswork={(id) => handleDeleteInteractiveItem('classwork', id)}
             />
           )}
 
@@ -700,8 +793,9 @@ export default function App() {
               currentBlock={currentBlock}
               currentWeek={currentWeek}
               onToggleHomework={handleToggleHomework}
-              onAddHomework={handleAddHomework}
-              onDeleteHomework={handleDeleteHomework}
+              onAddHomework={() => handleOpenAddModal('homework')}
+              onEditHomework={(entry) => handleOpenEditModal('homework', entry)}
+              onDeleteHomework={(id) => handleDeleteInteractiveItem('homework', id)}
             />
           )}
 
@@ -711,6 +805,10 @@ export default function App() {
               selectedDay={selectedDay}
               currentBlock={currentBlock}
               currentWeek={currentWeek}
+              isAdminEditMode={isAdminEditMode}
+              onAddTomorrowNote={() => handleOpenAddModal('tomorrow')}
+              onEditTomorrowNote={(entry) => handleOpenEditModal('tomorrow', entry)}
+              onDeleteTomorrowNote={(id) => handleDeleteInteractiveItem('tomorrow', id)}
             />
           )}
 
@@ -842,6 +940,8 @@ export default function App() {
       <AdminDashboardModal
         isOpen={isAdminDashboardOpen}
         onClose={() => setIsAdminDashboardOpen(false)}
+        isAdminEditMode={isAdminEditMode}
+        onToggleAdminEditMode={setIsAdminEditMode}
         onPlanUpdated={async (updatedBlock?: number, updatedWeek?: number) => {
           try {
             if (updatedBlock) {
@@ -869,6 +969,20 @@ export default function App() {
             console.error('Failed to reload after plan update:', err);
           }
         }}
+      />
+
+      {/* Unified Direct Interactive Editor Modal */}
+      <InteractiveEditorModal
+        isOpen={isEditorModalOpen}
+        onClose={() => setIsEditorModalOpen(false)}
+        mode={editorModalMode}
+        itemType={editorItemType}
+        initialData={selectedEditorItem}
+        currentClass={currentClass}
+        currentBlock={currentBlock}
+        currentWeek={currentWeek}
+        selectedDay={selectedDay}
+        onSave={handleSaveInteractiveItem}
       />
 
       {/* Materials Modal */}
