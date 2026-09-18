@@ -84,7 +84,7 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
     setIsProcessing(true);
 
     try {
-      const result = await parseWeeklyPlanWithAI(planText, currentClass);
+      const result = await parseWeeklyPlanWithAI(planText, currentClass, currentBlock, currentWeek);
       setParsedResult(result);
     } catch (err: any) {
       setErrorMsg('Classification encountered an issue, but local rules were applied.');

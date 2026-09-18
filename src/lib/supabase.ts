@@ -101,6 +101,37 @@ export function updateSupabaseClient(url: string, key: string): SupabaseClient {
   return supabase;
 }
 
+export async function syncSupabaseConfigWithServer(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/supabase-config');
+    if (res.ok) {
+      const srvConfig = await res.json();
+      if (srvConfig && srvConfig.url && srvConfig.key) {
+        const cleanedUrl = cleanSupabaseUrl(srvConfig.url);
+        const cleanedKey = cleanSupabaseKey(srvConfig.key);
+        
+        const localUrl = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL) || '';
+        const localKey = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY) || '';
+        
+        if (cleanedUrl !== localUrl || cleanedKey !== localKey) {
+          console.log('[Supabase Sync] Replicating Supabase config from centralized server...');
+          saveActiveSupabaseConfig(cleanedUrl, cleanedKey);
+          supabaseUrl = cleanedUrl;
+          supabaseAnonKey = cleanedKey;
+          isSupabaseConfigured = true;
+          supabase = createClient(supabaseUrl, supabaseAnonKey);
+          
+          window.dispatchEvent(new Event('supabase_config_updated'));
+          return true;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[Supabase Sync] Could not fetch shared Supabase config from server:', e);
+  }
+  return false;
+}
+
 // Database Row Types (snake_case in Supabase)
 export interface ClassworkRow {
   id: string;
@@ -502,6 +533,17 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merg
   if (entries.length === 0) return;
   saveLocalCustomClasswork(entries, mode);
 
+  // Centralized cross-device sync backup
+  try {
+    await fetch('/api/planner-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ classwork: entries, mode }),
+    });
+  } catch (err) {
+    console.warn('Central server sync error in bulkInsertClasswork:', err);
+  }
+
   if (!isSupabaseConfigured) return;
 
   const rows = entries.map(classworkToRow);
@@ -742,6 +784,17 @@ export async function deleteHomework(id: string): Promise<void> {
 export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge' | 'replace' = 'merge'): Promise<void> {
   if (entries.length === 0) return;
   saveLocalCustomHomework(entries, mode);
+
+  // Centralized cross-device sync backup
+  try {
+    await fetch('/api/planner-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ homework: entries, mode }),
+    });
+  } catch (err) {
+    console.warn('Central server sync error in bulkInsertHomework:', err);
+  }
 
   if (!isSupabaseConfigured) return;
 

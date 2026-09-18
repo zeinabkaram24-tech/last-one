@@ -2,8 +2,9 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
-// @ts-ignore
-import pdf from 'pdf-parse';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdf = require('pdf-parse');
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import { CLASS_TIMETABLES } from './src/data/timetables';
@@ -21,12 +22,37 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const MATERIALS_DIR = path.join(process.cwd(), 'uploads', 'materials');
 const MATERIALS_FILE = path.join(DATA_DIR, 'materials.json');
 const PLANNER_DATA_FILE = path.join(DATA_DIR, 'planner_data.json');
+const SUPABASE_CONFIG_FILE = path.join(DATA_DIR, 'supabase_config.json');
 
 try {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(MATERIALS_DIR)) fs.mkdirSync(MATERIALS_DIR, { recursive: true });
 } catch (e) {
   console.warn('Could not ensure data/upload directories:', e);
+}
+
+function getStoredSupabaseConfig(): { url: string; key: string } | null {
+  try {
+    if (fs.existsSync(SUPABASE_CONFIG_FILE)) {
+      const raw = fs.readFileSync(SUPABASE_CONFIG_FILE, 'utf-8');
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn('Error reading supabase_config.json:', err);
+  }
+  return null;
+}
+
+function saveStoredSupabaseConfig(config: { url: string; key: string } | null): void {
+  try {
+    if (config) {
+      fs.writeFileSync(SUPABASE_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
+    } else if (fs.existsSync(SUPABASE_CONFIG_FILE)) {
+      fs.unlinkSync(SUPABASE_CONFIG_FILE);
+    }
+  } catch (err) {
+    console.warn('Error saving supabase_config.json:', err);
+  }
 }
 
 // Helper to read materials from disk
@@ -73,7 +99,7 @@ function saveStoredPlannerData(data: { classwork: any[]; homework: any[]; tomorr
 
 // Helper to get GoogleGenAI client safely (lazy initialization)
 function getGenAI(): GoogleGenAI | null {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
   if (!apiKey) return null;
   return new GoogleGenAI({
     apiKey,
@@ -84,6 +110,30 @@ function getGenAI(): GoogleGenAI | null {
     },
   });
 }
+
+// Shared Supabase Configuration for cross-device sync
+app.get('/api/supabase-config', (req, res) => {
+  res.json(getStoredSupabaseConfig() || { url: '', key: '' });
+});
+
+app.post('/api/supabase-config', (req, res) => {
+  try {
+    const { url, key } = req.body;
+    saveStoredSupabaseConfig({ url: url || '', key: key || '' });
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Error saving Supabase config' });
+  }
+});
+
+app.post('/api/supabase-config/clear', (req, res) => {
+  try {
+    saveStoredSupabaseConfig(null);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Error clearing Supabase config' });
+  }
+});
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -1482,7 +1532,10 @@ async function startServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: false,
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);

@@ -99,12 +99,23 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
     }
   };
 
-  const handleSavePermanently = () => {
+  const handleSavePermanently = async () => {
     const cleanedUrl = url.trim();
     const cleanedKey = anonKey.trim();
 
     saveActiveSupabaseConfig(cleanedUrl, cleanedKey);
     updateSupabaseClient(cleanedUrl, cleanedKey);
+
+    // Synchronize configuration to backend server
+    try {
+      await fetch('/api/supabase-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: cleanedUrl, key: cleanedKey }),
+      });
+    } catch (err) {
+      console.warn('Failed to save Supabase config on server:', err);
+    }
 
     setSavedSuccess(true);
     if (onConfigSaved) onConfigSaved();
