@@ -490,7 +490,7 @@ Return ONLY JSON block formatted like:
 }
 `;
 
-    const modelsToTry = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    const modelsToTry = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
     let responseText = '';
     let lastError: any = null;
 

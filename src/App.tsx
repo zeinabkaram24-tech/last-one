@@ -793,6 +793,7 @@ export default function App() {
               currentBlock={currentBlock}
               currentWeek={currentWeek}
               onToggleHomework={handleToggleHomework}
+              isAdminEditMode={isAdminEditMode}
               onAddHomework={() => handleOpenAddModal('homework')}
               onEditHomework={(entry) => handleOpenEditModal('homework', entry)}
               onDeleteHomework={(id) => handleDeleteInteractiveItem('homework', id)}
