@@ -470,9 +470,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm('هل أنتِ متأكدة من رغبتكِ في حذف هذه الحصة نهائياً؟')) {
-                              onDeleteClasswork?.(cwEntry.id);
-                            }
+                            onDeleteClasswork?.(cwEntry.id);
                           }}
                           className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-black rounded-lg transition-all cursor-pointer"
                           title="حذف الحصة نهائياً"

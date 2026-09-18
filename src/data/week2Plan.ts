@@ -9,37 +9,6 @@ import { TomorrowSpecialNote } from './defaultWeeklyPlan';
 // =============================================================
 
 export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
-// Prep for Sunday (Saturday night) - G2B & G2C French Lesson 1
-  {
-    classId: 'G2B',
-    targetDay: 'Sunday',
-    subject: 'French',
-    note: 'Apportez vos crayons de couleurs avec vous, on va les utiliser pendant le cours (Les couleurs p. 11 à 14).',
-    arabicNote: 'يرجى إحضار أقلام تلوين خشبية لحصة الفرنش (درس الألوان ص 11 إلى 14).',
-    bagItem: 'French Colored Pencils (أقلام تلوين خشبية لحصة الفرنش)',
-    week: 2,
-  },
-  {
-    classId: 'G2C',
-    targetDay: 'Sunday',
-    subject: 'French',
-    note: 'Apportez vos crayons de couleurs avec vous, on va les utiliser pendant le cours (Les couleurs p. 11 à 14).',
-    arabicNote: 'يرجى إحضار أقلام تلوين خشبية لحصة الفرنش (درس الألوان ص 11 إلى 14).',
-    bagItem: 'French Colored Pencils (أقلام تلوين خشبية لحصة الفرنش)',
-    week: 2,
-  },
-
-  // Prep for Tuesday (Monday night) - G2A French Lesson 1
-  {
-    classId: 'G2A',
-    targetDay: 'Tuesday',
-    subject: 'French',
-    note: 'Apportez vos crayons de couleurs avec vous, on va les utiliser pendant le cours (Les couleurs p. 11 à 14).',
-    arabicNote: 'يرجى إحضار أقلام تلوين خشبية لحصة الفرنش (درس الألوان ص 11 إلى 14).',
-    bagItem: 'French Colored Pencils (أقلام تلوين خشبية لحصة الفرنش)',
-    week: 2,
-  },
-
   // Prep for Wednesday (Tuesday night) - Dictation Notebook
   {
     classId: 'G2A',
@@ -457,8 +426,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     day: 'Wednesday',
     period: 4,
     subject: 'Arabic',
-    title: 'متابعة الإملاء وتصويب المفردات',
-    details: 'تصويب الكلمات الإملائية وتحليل الأخطاء الشائعة.',
+    title: 'تطبيقات لغوية وأنشطة كتابية',
+    details: 'تعزيز المهارات اللغوية والأنشطة الكتابية في كراسة الطالب.',
     pages: 'كراسة الطالب',
     completed: false,
     week: 2,

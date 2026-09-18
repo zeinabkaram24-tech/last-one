@@ -338,32 +338,15 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
   };
 }
 
-// Open PDF or Link directly in our guaranteed In-App Viewer Modal with fallback
+// Open PDF or Link directly in our guaranteed In-App Viewer Modal
 export function openPdfItem(item: MaterialItem): void {
   try {
-    // 1. Dispatch custom event to open In-App PDF Viewer Modal (guaranteed in iframe sandbox)
+    // Dispatch custom event to open In-App PDF Viewer Modal directly in place
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('open_pdf_viewer_modal', { detail: item }));
     }
-
-    const targetUrl =
-      item.linkUrl ||
-      item.storageUrl ||
-      (item.id && item.type !== 'link' ? `/api/materials/${item.id}/file` : null);
-
-    if (targetUrl) {
-      // 2. Direct window.open attempt (as secondary or if popup allowed)
-      try {
-        const opened = window.open(targetUrl, '_blank', 'noopener,noreferrer');
-        if (opened && !opened.closed && typeof opened.closed !== 'undefined') {
-          return;
-        }
-      } catch (err) {
-        console.warn('Direct window.open failed:', err);
-      }
-    }
   } catch (e) {
-    console.error('Error opening PDF:', e);
+    console.error('Error opening PDF in modal:', e);
   }
 }
 

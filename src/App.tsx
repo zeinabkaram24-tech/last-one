@@ -565,6 +565,11 @@ export default function App() {
 
     try {
       await deleteHomework(id);
+      await fetch('/api/planner-data/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type: 'homework' }),
+      });
     } catch (e) {
       console.error('Error deleting homework:', e);
     }
@@ -635,15 +640,18 @@ export default function App() {
   };
 
   const handleDeleteClasswork = async (id: string) => {
-    if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذه الحصة؟')) {
-      setClassworkList((prev) => prev.filter((c) => c.id !== id));
-      try {
-        await deleteClasswork(id);
-      } catch (e) {
-        console.error('Error deleting classwork:', e);
-      }
-      showToast('تم حذف الحصة بنجاح.');
+    setClassworkList((prev) => prev.filter((c) => c.id !== id));
+    try {
+      await deleteClasswork(id);
+      await fetch('/api/planner-data/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type: 'classwork' }),
+      });
+    } catch (e) {
+      console.error('Error deleting classwork:', e);
     }
+    showToast('تم حذف الحصة بنجاح.');
   };
 
   const handleSaveInteractiveItem = async (type: 'classwork' | 'homework' | 'tomorrow', data: any) => {
@@ -680,22 +688,27 @@ export default function App() {
     if (type === 'classwork') {
       await handleDeleteClasswork(id);
     } else if (type === 'homework') {
-      if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذا الواجب؟')) {
-        await handleDeleteHomework(id);
-      }
+      await handleDeleteHomework(id);
     } else if (type === 'tomorrow') {
-      if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذا التنبيه؟')) {
-        const storageKey = `nile_tomorrow_notes_${currentBlock}_${currentWeek}`;
-        let existing: TomorrowSpecialNote[] = [];
-        try {
-          const raw = localStorage.getItem(storageKey);
-          if (raw) existing = JSON.parse(raw);
-        } catch {}
+      const storageKey = `nile_tomorrow_notes_${currentBlock}_${currentWeek}`;
+      let existing: TomorrowSpecialNote[] = [];
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) existing = JSON.parse(raw);
+      } catch {}
 
-        const next = existing.filter((n) => n.id !== id);
-        await saveTomorrowNotes(currentBlock, currentWeek, next, 'replace');
-        showToast('تم حذف التنبيه بنجاح.');
+      const next = existing.filter((n) => n.id !== id);
+      await saveTomorrowNotes(currentBlock, currentWeek, next, 'replace');
+      try {
+        await fetch('/api/planner-data/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, type: 'tomorrowNotes' }),
+        });
+      } catch (e) {
+        console.error('Error deleting tomorrow note:', e);
       }
+      showToast('تم حذف التنبيه بنجاح.');
     }
   };
 

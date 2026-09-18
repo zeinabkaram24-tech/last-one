@@ -84,6 +84,27 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Saturday rule: On Saturday (preparing for Sunday), take notes from previous week's Thursday
   const effectiveWeek = tomorrowDay === 'Sunday' && currentWeek > 1 ? currentWeek - 1 : currentWeek;
 
+  const [deletedNoteIds, setDeletedNoteIds] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('nile_deleted_tomorrow_note_ids');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const handleDeleteTomorrowNote = (noteId: string) => {
+    setDeletedNoteIds((prev) => {
+      const next = [...prev, noteId];
+      try {
+        localStorage.setItem('nile_deleted_tomorrow_note_ids', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    setTomorrowNotes((prev) => prev.filter((n) => n.id !== noteId && `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}` !== noteId));
+    onDeleteTomorrowNote?.(noteId);
+  };
+
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
     const base =
       currentBlock === 1 && effectiveWeek === 2
@@ -284,24 +305,51 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Merge tomorrowNotes with linkedAlerts without duplicates
   const mergedNotes = useMemo<TomorrowSpecialNote[]>(() => {
     const map = new Map<string, TomorrowSpecialNote>();
+    let hasArabicDictation = false;
 
-    tomorrowNotes.forEach((n) => {
+    // Filter out deleted notes from base tomorrowNotes
+    const activeBaseNotes = tomorrowNotes.filter((n) => {
+      if (isDisallowedTomorrowItem(n)) return false;
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      if (deletedNoteIds.includes(key) || (n.id && deletedNoteIds.includes(n.id))) return false;
+      return true;
+    });
+
+    activeBaseNotes.forEach((n) => {
+      const isArabic = n.subject === 'Arabic';
+      const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isDictation = text.includes('إملاء') || text.includes('dictation') || text.includes('تسميع');
+      if (isArabic && isDictation) {
+        if (hasArabicDictation) return; // Strict user rule: dictation is ONE task per day
+        hasArabicDictation = true;
+      }
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       map.set(key, n);
     });
 
     linkedAlerts.forEach((la) => {
-      // If a quiz note for this subject already exists in tomorrowNotes, don't duplicate
-      const hasExistingSubjectQuiz = tomorrowNotes.some(
+      const key = la.id || `${la.targetDay}-${la.subject}-${(la.note || '').slice(0, 30)}`;
+      if (deletedNoteIds.includes(key) || (la.id && deletedNoteIds.includes(la.id))) return;
+
+      const isArabic = la.subject === 'Arabic';
+      const text = ((la.note || '') + ' ' + (la.arabicNote || '')).toLowerCase();
+      const isDictation = text.includes('إملاء') || text.includes('dictation') || text.includes('تسميع');
+      if (isArabic && isDictation) {
+        if (hasArabicDictation) return; // Strict user rule: dictation is ONE task per day
+        hasArabicDictation = true;
+      }
+
+      // If a quiz note for this subject already exists in map, don't duplicate
+      const hasExistingSubjectQuiz = Array.from(map.values()).some(
         (n) => n.subject === la.subject && isQuizOrTest(n)
       );
       if (!hasExistingSubjectQuiz) {
-        map.set(la.id, la);
+        map.set(key, la);
       }
     });
 
     return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));
-  }, [tomorrowNotes, linkedAlerts]);
+  }, [tomorrowNotes, linkedAlerts, deletedNoteIds]);
 
   // Prioritize quizzes and tests to appear first in the notes list
   const sortedNotes = useMemo(() => {
@@ -406,9 +454,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm('هل أنتِ متأكدة من رغبتكِ في حذف هذه الملاحظة نهائياً؟')) {
-                              onDeleteTomorrowNote?.(note.id || '');
-                            }
+                            handleDeleteTomorrowNote(note.id || `${note.targetDay}-${note.subject}-${(note.note || '').slice(0, 30)}`);
                           }}
                           className="p-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-md transition-colors cursor-pointer"
                           title="حذف الملاحظة"
