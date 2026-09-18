@@ -47,10 +47,9 @@ export async function getTomorrowNotesForDay(
   classId: ClassId,
   targetDay: SchoolDay
 ): Promise<TomorrowSpecialNote[]> {
-  // Saturday / Sunday rule per user instruction:
-  // On Saturday (preparing for Sunday), take notes from previous week's Thursday (e.g. Week 2 Saturday takes from Week 1)
   const effectiveWeek = targetDay === 'Sunday' && week > 1 ? week - 1 : week;
-  const storageKey = `${LOCAL_STORAGE_PREFIX}${block}_${effectiveWeek}`;
+  const storageKey = `${LOCAL_STORAGE_PREFIX}${block}_${week}`;
+  const effectiveStorageKey = `${LOCAL_STORAGE_PREFIX}${block}_${effectiveWeek}`;
 
   let loadedNotes: TomorrowSpecialNote[] | null = null;
   let fetchedFromServer = false;
@@ -64,9 +63,11 @@ export async function getTomorrowNotesForDay(
     if (res.ok) {
       const data = await res.json();
       if (data && Array.isArray(data.tomorrowNotes)) {
-        // Match effective week's notes
+        // Match current week's notes, or effective week's notes
         const matching = data.tomorrowNotes.filter(
-          (n: any) => Number(n.block || 1) === Number(block) && Number(n.week || 1) === Number(effectiveWeek)
+          (n: any) =>
+            Number(n.block || 1) === Number(block) &&
+            (Number(n.week || 1) === Number(week) || (targetDay === 'Sunday' && Number(n.week || 1) === Number(effectiveWeek)))
         );
 
         if (matching.length > 0) {
@@ -85,7 +86,7 @@ export async function getTomorrowNotesForDay(
   // 2. Fallback to local cache only if not fetched from server
   if (!fetchedFromServer && !loadedNotes) {
     try {
-      const raw = localStorage.getItem(storageKey);
+      const raw = localStorage.getItem(storageKey) || localStorage.getItem(effectiveStorageKey);
       if (raw) {
         loadedNotes = JSON.parse(raw);
       }
@@ -98,9 +99,11 @@ export async function getTomorrowNotesForDay(
   if (!fetchedFromServer && !loadedNotes) {
     try {
       const settings = await fetchPlannerSettings();
-      const settingKey = `tomorrow_notes_${block}_${effectiveWeek}`;
-      if (settings[settingKey]) {
-        loadedNotes = JSON.parse(settings[settingKey]);
+      const settingKey = `tomorrow_notes_${block}_${week}`;
+      const effectiveSettingKey = `tomorrow_notes_${block}_${effectiveWeek}`;
+      const targetSetting = settings[settingKey] || settings[effectiveSettingKey];
+      if (targetSetting) {
+        loadedNotes = JSON.parse(targetSetting);
         if (loadedNotes && Array.isArray(loadedNotes)) {
           localStorage.setItem(storageKey, JSON.stringify(loadedNotes));
         }
@@ -110,13 +113,13 @@ export async function getTomorrowNotesForDay(
     }
   }
 
-  // Base official notes for Block/EffectiveWeek
+  // Base official notes for Block/Week or EffectiveWeek
   const baseNotes: TomorrowSpecialNote[] =
-    block === 1 && effectiveWeek === 2
+    block === 1 && (week === 2 || effectiveWeek === 2)
       ? WEEK2_SPECIAL_NOTES.filter(
           (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
         )
-      : block === 1 && effectiveWeek === 1
+      : block === 1 && (week === 1 || effectiveWeek === 1)
       ? SPECIAL_TEACHER_NOTES.filter(
           (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay && (n.week === 1 || !n.week)
         )

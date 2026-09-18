@@ -78,10 +78,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (isFabricatedMathNote(n)) return true;
     if (isQuizOrTest(n) || n.bagItem) return false;
     const lower = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase().trim();
+    if (lower.includes('تسليم') || lower.includes('submission') || lower.includes('استلام') || lower.includes('شيت') || lower.includes('sheet')) return false;
     return lower.startsWith('hw:') || lower.startsWith('homework:') || lower.startsWith('واجب:');
   };
 
-  // Saturday rule: On Saturday (preparing for Sunday), take notes from previous week's Thursday
+  // Support both currentWeek and previous week if applicable
   const effectiveWeek = tomorrowDay === 'Sunday' && currentWeek > 1 ? currentWeek - 1 : currentWeek;
 
   const [deletedNoteIds, setDeletedNoteIds] = useState<string[]>(() => {
@@ -107,11 +108,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
     const base =
-      currentBlock === 1 && effectiveWeek === 2
+      currentBlock === 1 && (currentWeek === 2 || effectiveWeek === 2)
         ? WEEK2_SPECIAL_NOTES.filter(
             (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
           )
-        : currentBlock === 1 && effectiveWeek === 1
+        : currentBlock === 1 && (currentWeek === 1 || effectiveWeek === 1)
         ? SPECIAL_TEACHER_NOTES.filter(
             (n) =>
               (n.classId === currentClass || (n.classId as any) === 'ALL') &&
@@ -120,19 +121,25 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           )
         : [];
 
-    // Check local storage cached notes first for instant 0ms render
-    const storageKey = `nile_tomorrow_notes_${currentBlock}_${effectiveWeek}`;
+    // Check local storage cached notes for currentWeek and effectiveWeek
+    const storageKeyCurrent = `nile_tomorrow_notes_${currentBlock}_${currentWeek}`;
+    const storageKeyEffective = `nile_tomorrow_notes_${currentBlock}_${effectiveWeek}`;
     try {
-      const rawStored = localStorage.getItem(storageKey);
+      const rawCurrent = localStorage.getItem(storageKeyCurrent);
+      const rawEffective = localStorage.getItem(storageKeyEffective);
       let parsedList: TomorrowSpecialNote[] = [];
-      if (rawStored) {
-        const parsed = JSON.parse(rawStored);
-        if (Array.isArray(parsed)) {
-          parsedList = parsed.filter(
-            (n) => (n.classId === currentClass || n.classId === 'ALL') && n.targetDay === tomorrowDay
-          );
+      [rawCurrent, rawEffective].forEach((raw) => {
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((n) => {
+              if ((n.classId === currentClass || n.classId === 'ALL') && n.targetDay === tomorrowDay) {
+                parsedList.push(n);
+              }
+            });
+          }
         }
-      }
+      });
 
       if (parsedList.length > 0) {
         const map = new Map<string, TomorrowSpecialNote>();
@@ -218,12 +225,26 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         isAlert: false,
       };
     }
-    if (note.subject === 'Arabic' || note.subject === 'Social Studies') {
+    if (note.subject === 'Social Studies') {
+      const isSubmission =
+        fullText.includes('تسليم') ||
+        fullText.includes('submission') ||
+        fullText.includes('استلام') ||
+        fullText.includes('واجب');
+      return {
+        label: isSubmission ? 'تسليم واجب 📋' : 'ملاحظات',
+        badgeClass: 'bg-amber-100 text-amber-950 font-black border border-amber-300',
+        cardClass: 'bg-amber-50/80 border-2 border-amber-300/90 shadow-2xs text-amber-950',
+        subjectName: 'الدراسات الاجتماعية',
+        isAlert: false,
+      };
+    }
+    if (note.subject === 'Arabic') {
       return {
         label: 'ملاحظات',
-        badgeClass: note.subject === 'Arabic' ? 'bg-emerald-100 text-emerald-950 font-black' : 'bg-amber-100 text-amber-950 font-black',
-        cardClass: note.subject === 'Arabic' ? 'bg-emerald-50/40 border border-emerald-200/80 shadow-2xs' : 'bg-amber-50/50 border border-amber-200/80 shadow-2xs',
-        subjectName: note.subject === 'Social Studies' ? 'الدراسات الاجتماعية' : 'اللغة العربية',
+        badgeClass: 'bg-emerald-100 text-emerald-950 font-black',
+        cardClass: 'bg-emerald-50/40 border border-emerald-200/80 shadow-2xs',
+        subjectName: 'اللغة العربية',
         isAlert: false,
       };
     }
@@ -236,26 +257,22 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     };
   };
 
-  // Automatically link and synchronize tests/quizzes/dictations from homework and classwork (strictly for Block 1 Week 3 per instructions)
+  // Automatically link and synchronize tests/quizzes/dictations and homework submissions from homework and classwork
   const linkedAlerts = useMemo<TomorrowSpecialNote[]>(() => {
-    // Only apply for Block 1 Week 3
-    if (currentBlock !== 1 || currentWeek !== 3) {
-      return [];
-    }
-
     const alerts: TomorrowSpecialNote[] = [];
     const checkText = (txt: string) => {
       return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((txt || '').toLowerCase());
     };
 
     // 1. Linked from Homework:
-    // If any homework item for this class mentions a test/quiz/dictation and is due/assigned for tomorrowDay
     homeworkList.forEach((h) => {
       if (h.classId !== currentClass && (h.classId as any) !== 'ALL') return;
       if (h.week && h.week !== currentWeek) return;
 
-      const isForTomorrow = h.dueDay === tomorrowDay || h.assignedDay === tomorrowDay;
       const fullText = `${h.task} ${h.details || ''} ${h.subject}`;
+      const isForTomorrow = h.dueDay === tomorrowDay || h.assignedDay === tomorrowDay;
+
+      // A) Tests, quizzes, dictations
       if (isForTomorrow && checkText(fullText)) {
         alerts.push({
           id: `linked-hw-${h.id}`,
@@ -267,6 +284,28 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           bagItem: h.pages || undefined,
           isQuiz: true,
           categoryType: 'quiz',
+          block: currentBlock,
+          week: currentWeek,
+          pdfUrl: h.pdfUrl,
+        });
+      }
+      // B) Due for submission tomorrow (e.g. Social Studies homework sheet due on Sunday for 2A & 2C)
+      else if (h.dueDay === tomorrowDay) {
+        const isSocial = h.subject === 'Social Studies';
+        alerts.push({
+          id: `linked-hw-due-${h.id}`,
+          classId: currentClass,
+          targetDay: tomorrowDay,
+          subject: h.subject,
+          note: isSocial
+            ? 'تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)'
+            : `تسليم واجب ${h.subject}: ${h.task}`,
+          arabicNote: isSocial
+            ? 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع'
+            : (h.details ? `تذكير: تسليم الواجب غداً (${h.details})` : `تذكير: تسليم واجب ${h.subject} غداً`),
+          bagItem: isSocial ? 'شيت واجب الدراسات الاجتماعية المرفق' : (h.pages || undefined),
+          isQuiz: false,
+          categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
           pdfUrl: h.pdfUrl,
@@ -343,9 +382,20 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       const hasExistingSubjectQuiz = Array.from(map.values()).some(
         (n) => n.subject === la.subject && isQuizOrTest(n)
       );
-      if (!hasExistingSubjectQuiz) {
-        map.set(key, la);
+      if (isQuizOrTest(la) && hasExistingSubjectQuiz) {
+        return;
       }
+
+      // If a submission note for this subject already exists in map, don't duplicate
+      const isSubmission = ((la.note || '') + ' ' + (la.arabicNote || '')).includes('تسليم');
+      const hasExistingSubmission = Array.from(map.values()).some(
+        (n) => n.subject === la.subject && ((n.note || '') + ' ' + (n.arabicNote || '')).includes('تسليم')
+      );
+      if (isSubmission && hasExistingSubmission) {
+        return;
+      }
+
+      map.set(key, la);
     });
 
     return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));

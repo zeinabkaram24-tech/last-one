@@ -9,6 +9,40 @@ import { TomorrowSpecialNote } from './defaultWeeklyPlan';
 // =============================================================
 
 export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
+  // Prep for Sunday (Saturday night) - Social Studies Homework Submission
+  {
+    id: 'tn-w2-g2a-sun-soc-due',
+    classId: 'G2A',
+    targetDay: 'Sunday',
+    subject: 'Social Studies',
+    note: 'تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)',
+    arabicNote: 'تذكير: تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع',
+    bagItem: 'Social Studies Homework Sheet (شيت واجب الدراسات الاجتماعية)',
+    week: 2,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+  },
+  {
+    id: 'tn-w2-g2c-sun-soc-due',
+    classId: 'G2C',
+    targetDay: 'Sunday',
+    subject: 'Social Studies',
+    note: 'تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)',
+    arabicNote: 'تذكير: تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع',
+    bagItem: 'Social Studies Homework Sheet (شيت واجب الدراسات الاجتماعية)',
+    week: 2,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+  },
+  {
+    id: 'tn-w2-g2b-mon-soc-due',
+    classId: 'G2B',
+    targetDay: 'Monday',
+    subject: 'Social Studies',
+    note: 'تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع لكلاس B)',
+    arabicNote: 'تذكير: تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع لكلاس B',
+    bagItem: 'Social Studies Homework Sheet (شيت واجب الدراسات الاجتماعية)',
+    week: 2,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+  },
   // Prep for Wednesday (Tuesday night) - Dictation Notebook
   {
     classId: 'G2A',
