@@ -346,10 +346,61 @@ export async function parseWeeklyPlanWithAI(
   week: number = 2,
   pdfFile?: File
 ): Promise<ParsedWeeklyPlanResponse> {
+  // 1. Attempt server-side API proxy first. This is secure and works perfectly outside AI Studio
+  try {
+    console.log('[Smart Reader] Attempting server-side parsing API...');
+    let response: Response;
+    if (pdfFile) {
+      const base64Data = await fileToBase64(pdfFile);
+      response = await fetch('/api/parse-weekly-plan-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pdfBase64: base64Data,
+          planText,
+          block,
+          week,
+          targetClass: classId,
+        }),
+      });
+    } else {
+      response = await fetch('/api/parse-weekly-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planText,
+          classId,
+          block,
+          week,
+        }),
+      });
+    }
+
+    if (response.ok) {
+      const serverData = await response.json();
+      // Only accept if successfully parsed via AI (not falling back to static/heuristic mode)
+      if (serverData && serverData.success && !serverData.fallbackMode) {
+        console.log('[Smart Reader] Server-side parsing completed successfully via Gemini API on backend!');
+        return {
+          classwork: serverData.classwork || [],
+          homework: serverData.homework || [],
+          tomorrowNotes: serverData.tomorrowNotes || [],
+        };
+      } else {
+        console.warn('[Smart Reader] Server-side API returned fallback/heuristic mode, trying direct client-side Gemini fallback...');
+      }
+    } else {
+      console.warn('[Smart Reader] Server-side API returned non-OK status:', response.status);
+    }
+  } catch (serverErr) {
+    console.warn('[Smart Reader] Server-side parsing failed or is unavailable:', serverErr);
+  }
+
+  // 2. Client-side fallback if server-side is unsuccessful or returns fallback
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
   if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
-    alert('تنبيه: مفتاح الـ API الخاص بـ Gemini (VITE_GEMINI_API_KEY) غير موجود في المتغيرات الافتراضية. يرجى تهيئة المفتاح لتشغيل القارئ الذكي.');
+    alert('تنبيه: مفتاح الـ API الخاص بـ Gemini (VITE_GEMINI_API_KEY) غير موجود في المتغيرات الافتراضية. يرجى تهيئة المفتاح في الإعدادات أو تشغيل التطبيق في البيئة الافتراضية لربط القارئ الذكي.');
     throw new Error('VITE_GEMINI_API_KEY is missing or undefined.');
   }
 
