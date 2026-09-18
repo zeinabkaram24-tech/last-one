@@ -621,7 +621,7 @@
       "priority": "normal",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "hw-b1-w3-G2B-social studies-Wednesday-g2r3v",
@@ -636,7 +636,7 @@
       "priority": "normal",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "hw-b1-w3-G2C-social studies-Wednesday-fvoav",
@@ -651,7 +651,7 @@
       "priority": "normal",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "hw-b1-w3-G2A-french-Thu-1",
@@ -782,46 +782,7 @@
   ],
   "tomorrowNotes": [
     {
-      "id": "tn-b1-w2-G2B-Mon-french-quiz",
-      "classId": "G2B",
-      "targetDay": "Monday",
-      "subject": "French",
-      "note": "Remarque: Quiz de Français sur les nombres et tous les jours de la semaine (p. 16, 18, 19).",
-      "arabicNote": "🚨 Remarque: كويز فرنسي (Quiz Français) يوم الإثنين - مراجعة درس tous les jours والأعداد (ص 16 و 18 و 19)",
-      "bagItem": "French Manuel de cours p. 16, 18, 19 + Cahier (كتاب وكشكول الفرنش)",
-      "isQuiz": true,
-      "categoryType": "quiz",
-      "block": 1,
-      "week": 2
-    },
-    {
-      "id": "tn-b1-w2-G2C-Mon-french-quiz",
-      "classId": "G2C",
-      "targetDay": "Monday",
-      "subject": "French",
-      "note": "Remarque: Quiz de Français sur les nombres et tous les jours de la semaine (p. 16, 18, 19).",
-      "arabicNote": "🚨 Remarque: كويز فرنسي (Quiz Français) يوم الإثنين - مراجعة درس tous les jours والأعداد (ص 16 و 18 و 19)",
-      "bagItem": "French Manuel de cours p. 16, 18, 19 + Cahier (كتاب وكشكول الفرنش)",
-      "isQuiz": true,
-      "categoryType": "quiz",
-      "block": 1,
-      "week": 2
-    },
-    {
-      "id": "tn-b1-w2-G2A-Wed-french-quiz",
-      "classId": "G2A",
-      "targetDay": "Wednesday",
-      "subject": "French",
-      "note": "Remarque: Quiz de Français sur la leçon (Les nombres et les jours de la semaine)",
-      "arabicNote": "🚨 Remarque: كويز فرنسي (Quiz Français) يوم الأربعاء - مراجعة درس الأعداد وأيام الأسبوع (ص 16 و 18 و 19)",
-      "bagItem": "French Manuel de cours p. 16, 18, 19 + Cahier (كتاب وكشكول الفرنش)",
-      "isQuiz": true,
-      "categoryType": "quiz",
-      "block": 1,
-      "week": 2
-    },
-    {
-      "id": "tn-b1-w2-G2A-Thu-math-test",
+      "id": "tn-b1-w3-G2A-Thu-math-test",
       "classId": "G2A",
       "targetDay": "Thursday",
       "subject": "Mathematics",
@@ -831,10 +792,10 @@
       "isQuiz": true,
       "categoryType": "quiz",
       "block": 1,
-      "week": 2
+      "week": 3
     },
     {
-      "id": "tn-b1-w2-G2B-Thu-math-test",
+      "id": "tn-b1-w3-G2B-Thu-math-test",
       "classId": "G2B",
       "targetDay": "Thursday",
       "subject": "Mathematics",
@@ -844,10 +805,10 @@
       "isQuiz": true,
       "categoryType": "quiz",
       "block": 1,
-      "week": 2
+      "week": 3
     },
     {
-      "id": "tn-b1-w2-G2C-Thu-math-test",
+      "id": "tn-b1-w3-G2C-Thu-math-test",
       "classId": "G2C",
       "targetDay": "Thursday",
       "subject": "Mathematics",
@@ -857,7 +818,7 @@
       "isQuiz": true,
       "categoryType": "quiz",
       "block": 1,
-      "week": 2
+      "week": 3
     },
     {
       "id": "tn-b1-w3-G2A-Wed-french-quiz",
@@ -948,7 +909,7 @@
       "categoryType": "note",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "tn-b1-w3-G2B-Wed-social-hw",
@@ -961,7 +922,7 @@
       "categoryType": "note",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "tn-b1-w3-G2C-Wed-social-hw",
@@ -974,7 +935,7 @@
       "categoryType": "note",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "tn-b1-w3-G2A-Sat-social-submit-reminder",
@@ -987,7 +948,7 @@
       "categoryType": "note",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "tn-b1-w3-G2C-Sat-social-submit-reminder",
@@ -1000,7 +961,7 @@
       "categoryType": "note",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "tn-b1-w3-G2A-Sun-social-submit-due",
@@ -1013,7 +974,7 @@
       "categoryType": "note",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "tn-b1-w3-G2C-Sun-social-submit-due",
@@ -1026,7 +987,7 @@
       "categoryType": "note",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "tn-b1-w3-G2B-Sun-social-submit-reminder",
@@ -1039,7 +1000,7 @@
       "categoryType": "note",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "tn-b1-w3-G2B-Mon-social-submit-due",
@@ -1052,7 +1013,7 @@
       "categoryType": "note",
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "tn-b1-w3-G2A-Sun-arabic-prep",

@@ -1,4 +1,5 @@
 import { MaterialItem } from '../types';
+export type { MaterialItem };
 import {
   isSupabaseConfigured,
   fetchAllMaterialsFromSupabase,
@@ -284,18 +285,96 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
+// Resolve a MaterialItem from a given URL or file name (supports Social Studies homework PDF and other attached documents)
+export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): MaterialItem {
+  const all = getFallbackMaterials();
+  const lower = (urlOrName || '').toLowerCase();
+  const isSocial =
+    lower.includes('socialstudies') ||
+    lower.includes('social') ||
+    lower.includes('minia') ||
+    lower.includes('homwork-1') ||
+    lower.includes('homework-1');
+
+  if (isSocial) {
+    const existing = all.find(
+      (m) => m.id === 'mat_social_studies_b1_hw1' || m.fileName?.includes('SocialStudies')
+    );
+    return {
+      id: existing?.id || 'mat_social_studies_b1_hw1',
+      fileName: 'SocialStudies-Grade2-B1-HomeWork-1.pdf',
+      fileSize: 678480,
+      block: 1,
+      section: 'Week 3',
+      classId: 'ALL',
+      type: 'pdf',
+      storageUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+      linkUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+      uploadedAt: existing?.uploadedAt || new Date().toISOString(),
+    };
+  }
+
+  if (urlOrName) {
+    const found = all.find(
+      (m) =>
+        m.storageUrl === urlOrName ||
+        m.linkUrl === urlOrName ||
+        (m.fileName && urlOrName.includes(m.fileName))
+    );
+    if (found) return found;
+  }
+
+  return {
+    id: `mat-${Math.random().toString(36).slice(2, 8)}`,
+    fileName: defaultTitle || (urlOrName ? urlOrName.split('/').pop()?.split('?')[0] : 'ملف PDF مرفق.pdf') || 'ملف PDF مرفق.pdf',
+    fileSize: 678480,
+    block: 1,
+    section: 'Week 3',
+    classId: 'ALL',
+    type: 'pdf',
+    storageUrl: urlOrName || '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+    linkUrl: urlOrName || '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+    uploadedAt: new Date().toISOString(),
+  };
+}
+
 // Open PDF or Link directly in a new browser tab (supports linkUrl, storageUrl, server endpoint, and dataUrl)
 export function openPdfItem(item: MaterialItem): void {
   try {
-    const targetUrl = item.linkUrl || item.storageUrl || (item.id && item.type !== 'link' ? `/api/materials/${item.id}/file` : null);
+    const targetUrl =
+      item.linkUrl ||
+      item.storageUrl ||
+      (item.id && item.type !== 'link' ? `/api/materials/${item.id}/file` : null);
+
     if (targetUrl) {
-      const opened = window.open(targetUrl, '_blank', 'noopener,noreferrer');
-      if (opened) return;
+      // 1. Direct window.open attempt
+      try {
+        const opened = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        if (opened && !opened.closed && typeof opened.closed !== 'undefined') {
+          return;
+        }
+      } catch (err) {
+        console.warn('Direct window.open failed:', err);
+      }
+
+      // 2. Fallback via synthetic anchor click (bypasses iframe pop-up blockers)
+      try {
+        const a = document.createElement('a');
+        a.href = targetUrl;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+      } catch (err) {
+        console.warn('Anchor fallback click failed:', err);
+      }
     }
 
     if (!item.fileData) {
       if (targetUrl) {
-        window.location.href = targetUrl;
+        window.open(targetUrl, '_blank');
       }
       return;
     }

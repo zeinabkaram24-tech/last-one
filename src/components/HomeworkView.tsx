@@ -14,6 +14,7 @@ import { SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
+import { AttachmentPdfCard } from './AttachmentPdfCard';
 
 interface HomeworkViewProps {
   currentClass: ClassId;
@@ -242,18 +243,14 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       {hw.task}
                     </p>
 
-                    {/* PDF Worksheet if available */}
+                    {/* PDF Worksheet if available (using Materials files system) */}
                     {hw.pdfUrl && (
-                      <div className="pt-1">
-                        <a
-                          href={hw.pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-black bg-rose-50 text-rose-950 border border-rose-300 hover:bg-rose-100 transition-all shadow-2xs"
-                        >
-                          <BookOpen className="w-3.5 h-3.5 text-rose-700" />
-                          <span>📄 تحميل شيت الواجب (PDF)</span>
-                        </a>
+                      <div className="pt-2">
+                        <AttachmentPdfCard
+                          pdfUrl={hw.pdfUrl}
+                          subject={hw.subject}
+                          label="مرفق شيت الواجب"
+                        />
                       </div>
                     )}
 

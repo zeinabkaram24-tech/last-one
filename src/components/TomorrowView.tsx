@@ -10,6 +10,7 @@ import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
 import { getTomorrowNotesForDay, subscribeToTomorrowNotes } from '../utils/tomorrowNotesStorage';
+import { AttachmentPdfCard } from './AttachmentPdfCard';
 
 interface TomorrowViewProps {
   currentClass: ClassId;
@@ -199,8 +200,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     };
   };
 
-  // Automatically link and synchronize tests/quizzes/dictations from homework and classwork
+  // Automatically link and synchronize tests/quizzes/dictations from homework and classwork (strictly for Block 1 Week 3 per instructions)
   const linkedAlerts = useMemo<TomorrowSpecialNote[]>(() => {
+    // Only apply for Block 1 Week 3
+    if (currentBlock !== 1 || currentWeek !== 3) {
+      return [];
+    }
+
     const alerts: TomorrowSpecialNote[] = [];
     const checkText = (txt: string) => {
       return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((txt || '').toLowerCase());
@@ -227,6 +233,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           categoryType: 'quiz',
           block: currentBlock,
           week: currentWeek,
+          pdfUrl: h.pdfUrl,
         });
       }
     });
@@ -484,16 +491,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                     </div>
                   )}
                   {note.pdfUrl && (
-                    <div className="pt-1 flex">
-                      <a
-                        href={note.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black bg-rose-50 text-rose-950 border border-rose-300 hover:bg-rose-100 transition-all shadow-2xs"
-                      >
-                        <BookOpen className="w-3 h-3 text-rose-700" />
-                        <span>📄 تحميل ملف PDF المرفق</span>
-                      </a>
+                    <div className="pt-2">
+                      <AttachmentPdfCard
+                        pdfUrl={note.pdfUrl}
+                        subject={note.subject}
+                        label="مرفق التنبيه"
+                      />
                     </div>
                   )}
                 </div>
