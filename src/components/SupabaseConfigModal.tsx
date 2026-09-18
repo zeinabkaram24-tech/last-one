@@ -210,6 +210,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
                 placeholder="https://your-project.supabase.co"
                 className="w-full text-xs font-mono border border-slate-200 rounded-xl py-2.5 pr-3 pl-9 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-left bg-slate-50/50"
                 dir="ltr"
+                id="supabase_url_input"
               />
             </div>
             <span className="text-[11px] text-slate-400 font-medium block">
@@ -231,6 +232,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
                 placeholder="sb_publishable_... أو eyJhbGciOi..."
                 className="w-full text-xs font-mono border border-slate-200 rounded-xl py-2.5 pr-3 pl-9 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-left bg-slate-50/50"
                 dir="ltr"
+                id="supabase_key_input"
               />
             </div>
             <span className="text-[11px] text-slate-400 font-medium block">

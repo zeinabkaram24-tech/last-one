@@ -46,6 +46,7 @@ import {
   HomeworkRow,
   syncSupabaseConfigWithServer,
   syncLocalDataToServer,
+  saveActiveSupabaseConfig,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';

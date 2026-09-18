@@ -36,18 +36,9 @@ export const DEFAULT_SUPABASE_URL = 'https://umryrjwmlkdbjmgmnbkt.supabase.co';
 export const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag';
 
 export function getActiveSupabaseConfig(): { url: string; key: string } {
-  let url = '';
-  let key = '';
-  if (typeof window !== 'undefined') {
-    url = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL) || '';
-    key = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY) || '';
-  }
-  if (!url) {
-    url = (import.meta.env.VITE_SUPABASE_URL as string) || DEFAULT_SUPABASE_URL;
-  }
-  if (!key) {
-    key = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || DEFAULT_SUPABASE_ANON_KEY;
-  }
+  // Always default directly to the central shared school database for all devices and users
+  const url = (import.meta.env.VITE_SUPABASE_URL as string) || DEFAULT_SUPABASE_URL;
+  const key = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || DEFAULT_SUPABASE_ANON_KEY;
   return {
     url: cleanSupabaseUrl(url),
     key: cleanSupabaseKey(key),
@@ -438,15 +429,23 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
         .select('*')
         .order('period', { ascending: true });
 
-      if (!error && data && data.length > 0) {
-        // Strict Deduplication based on item.id directly from Supabase
+      if (!error && data) {
+        // Start with default baseline items
         const uniqueMap = new Map<string, ClassworkEntry>();
+        INITIAL_CLASSWORK.forEach((item) => {
+          if (item && item.id) {
+            uniqueMap.set(item.id, { ...item });
+          }
+        });
+
+        // Overlay edits/new entries from Supabase
         (data as ClassworkRow[]).forEach((row) => {
           const item = rowToClasswork(row);
           if (item && item.id) {
             uniqueMap.set(item.id, item);
           }
         });
+
         const finalData = Array.from(uniqueMap.values());
         // Sync local cache
         try {
@@ -665,9 +664,16 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) {
-        // Strict Deduplication based on item.id directly from Supabase
+      if (!error && data) {
+        // Start with default baseline items
         const uniqueMap = new Map<string, HomeworkEntry>();
+        INITIAL_HOMEWORK.forEach((item) => {
+          if (item && item.id) {
+            uniqueMap.set(item.id, { ...item });
+          }
+        });
+
+        // Overlay edits/new entries from Supabase
         (data as HomeworkRow[]).forEach((row) => {
           const item = rowToHomework(row);
           if (item && item.id) {
@@ -690,6 +696,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
             uniqueMap.set(item.id, item);
           }
         });
+
         const finalData = Array.from(uniqueMap.values());
         // Sync local cache
         try {
