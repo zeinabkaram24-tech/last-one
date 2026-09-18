@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, BookOpen } from 'lucide-react';
+import { Sparkles, BookOpen, ExternalLink } from 'lucide-react';
 import { ClassId, SchoolDay, PeriodSlot } from '../types';
 import {
   CLASS_TIMETABLES,
@@ -202,6 +202,32 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                   {note.bagItem && (
                     <div className="text-[11px] text-amber-950 font-semibold bg-white px-2.5 py-1 rounded-lg border border-amber-200/90 inline-block">
                       الأدوات المطلوبة: {note.bagItem}
+                    </div>
+                  )}
+                  {note.linkUrl && (
+                    <div className="pt-1 flex">
+                      <a
+                        href={note.linkUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black bg-blue-50 text-blue-950 border border-blue-200 hover:bg-blue-100 transition-colors shadow-2xs"
+                      >
+                        <ExternalLink className="w-3 h-3 text-blue-700" />
+                        <span>{note.linkTitle || 'رابط مرفق 🔗'}</span>
+                      </a>
+                    </div>
+                  )}
+                  {note.pdfUrl && (
+                    <div className="pt-1 flex">
+                      <a
+                        href={note.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black bg-rose-50 text-rose-950 border border-rose-300 hover:bg-rose-100 transition-all shadow-2xs"
+                      >
+                        <BookOpen className="w-3 h-3 text-rose-700" />
+                        <span>📄 تحميل ملف PDF المرفق</span>
+                      </a>
                     </div>
                   )}
                 </div>

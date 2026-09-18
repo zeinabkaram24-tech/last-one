@@ -43,7 +43,7 @@ import {
 import { uploadPdfToSupabaseStorage, bulkInsertClasswork, bulkInsertHomework } from '../lib/supabase';
 import { saveTomorrowNotes } from '../utils/tomorrowNotesStorage';
 import { fileToBase64, extractTextFromPdf } from '../utils/pdfExtractor';
-import { fallbackClientParser } from '../services/aiClassifier';
+import { fallbackClientParser, parseWeeklyPlanWithAI } from '../services/aiClassifier';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -109,6 +109,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [formArabicNote, setFormArabicNote] = useState('');
   const [formBagItem, setFormBagItem] = useState('');
   const [formIsQuiz, setFormIsQuiz] = useState(false);
+  const [formPdfUrl, setFormPdfUrl] = useState('');
+  const [hwSelectedFile, setHwSelectedFile] = useState<File | null>(null);
+  const [isUploadingHwPdf, setIsUploadingHwPdf] = useState(false);
 
   const openEditClasswork = (cw: ClassworkEntry, index: number) => {
     setEditingItemType('classwork');
@@ -123,6 +126,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setFormPeriod(cw.period || 1);
     setFormLinkUrl(cw.linkUrl || '');
     setFormLinkTitle(cw.linkTitle || '');
+    setFormPdfUrl(cw.pdfUrl || '');
+    setHwSelectedFile(null);
   };
 
   const openAddClasswork = () => {
@@ -138,6 +143,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setFormPeriod(1);
     setFormLinkUrl('');
     setFormLinkTitle('');
+    setFormPdfUrl('');
+    setHwSelectedFile(null);
   };
 
   const openEditHomework = (hw: HomeworkEntry, index: number) => {
@@ -153,6 +160,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setFormDueDay(hw.dueDay || 'Monday');
     setFormPriority(hw.priority || 'normal');
     setFormLinkUrl(hw.linkUrl || '');
+    setFormPdfUrl(hw.pdfUrl || '');
+    setHwSelectedFile(null);
   };
 
   const openAddHomework = () => {
@@ -168,6 +177,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setFormDueDay('Monday');
     setFormPriority('normal');
     setFormLinkUrl('');
+    setFormPdfUrl('');
+    setHwSelectedFile(null);
   };
 
   const openEditTomorrowNote = (note: TomorrowSpecialNote, index: number) => {
@@ -181,6 +192,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setFormDay(note.targetDay || 'Sunday');
     setFormBagItem(note.bagItem || '');
     setFormIsQuiz(Boolean(note.isQuiz || note.categoryType === 'quiz'));
+    setFormLinkUrl(note.linkUrl || '');
+    setFormLinkTitle(note.linkTitle || '');
+    setFormPdfUrl(note.pdfUrl || '');
+    setHwSelectedFile(null);
   };
 
   const openAddTomorrowNote = () => {
@@ -194,6 +209,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setFormDay('Sunday');
     setFormBagItem('');
     setFormIsQuiz(false);
+    setFormLinkUrl('');
+    setFormLinkTitle('');
+    setFormPdfUrl('');
+    setHwSelectedFile(null);
   };
 
   const handleDeleteItem = (type: 'classwork' | 'homework' | 'tomorrow', index: number) => {
@@ -216,8 +235,37 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  const handleSaveModalItem = () => {
+  const handleSaveModalItem = async () => {
     if (!parsedResult || !editingItemType) return;
+
+    let finalPdfUrl = formPdfUrl;
+
+    if (hwSelectedFile) {
+      try {
+        setIsUploadingHwPdf(true);
+        const cloudUrl = await uploadPdfToSupabaseStorage(hwSelectedFile, hwSelectedFile.name);
+        if (cloudUrl) {
+          finalPdfUrl = cloudUrl;
+        } else {
+          const readerPromise = new Promise<string>((resolve) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result as string);
+            r.readAsDataURL(hwSelectedFile);
+          });
+          finalPdfUrl = await readerPromise;
+        }
+      } catch (uploadErr) {
+        console.error('PDF upload error:', uploadErr);
+        const readerPromise = new Promise<string>((resolve) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result as string);
+          r.readAsDataURL(hwSelectedFile);
+        });
+        finalPdfUrl = await readerPromise;
+      } finally {
+        setIsUploadingHwPdf(false);
+      }
+    }
 
     if (editingItemType === 'classwork') {
       const entry: ClassworkEntry = {
@@ -236,6 +284,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         week: planWeek,
         linkUrl: formLinkUrl.trim() || undefined,
         linkTitle: formLinkTitle.trim() || (formLinkUrl.trim() ? 'رابط الدرس 🔗' : undefined),
+        pdfUrl: finalPdfUrl.trim() || undefined,
       };
 
       if (isAddingNewItem) {
@@ -267,6 +316,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         week: planWeek,
         linkUrl: formLinkUrl.trim() || undefined,
         isLinkTask: Boolean(formLinkUrl.trim()),
+        pdfUrl: finalPdfUrl.trim() || undefined,
       };
 
       if (isAddingNewItem) {
@@ -295,6 +345,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         categoryType: formIsQuiz ? 'quiz' : 'note',
         block: planBlock,
         week: planWeek,
+        linkUrl: formLinkUrl.trim() || undefined,
+        linkTitle: formLinkTitle.trim() || (formLinkUrl.trim() ? 'رابط مرفق 🔗' : undefined),
+        pdfUrl: finalPdfUrl.trim() || undefined,
       };
 
       if (isAddingNewItem) {
@@ -542,6 +595,54 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setParsedResult(null);
   };
 
+  // Fetch currently active published data for editing / manual addition from scratch
+  const handleLoadActiveData = async () => {
+    try {
+      setIsParsingPlan(true);
+      setParsingStep('جاري جلب البيانات النشطة حالياً من السيرفر لـ Block ' + planBlock + ' (Week ' + planWeek + ')...');
+      
+      const res = await fetch('/api/planner-data');
+      if (res.ok) {
+        const data = await res.json();
+        const b = Number(planBlock);
+        const w = Number(planWeek);
+        
+        const filteredClasswork = (data.classwork || []).filter(
+          (c: any) => Number(c.block || 1) === b && Number(c.week || 1) === w
+        );
+        const filteredHomework = (data.homework || []).filter(
+          (h: any) => Number(h.block || 1) === b && Number(h.week || 1) === w
+        );
+        const filteredTomorrow = (data.tomorrowNotes || []).filter(
+          (n: any) => Number(n.block || 1) === b && Number(n.week || 1) === w
+        );
+
+        setParsedResult({
+          classwork: filteredClasswork,
+          homework: filteredHomework,
+          tomorrowNotes: filteredTomorrow,
+        });
+        
+        setSuccessMessage('✨ تم تحميل البيانات النشطة بنجاح! يمكنك الآن تعديل أي عنصر، أو إضافة حصص/واجبات/تنبيهات يدوية بالكامل.');
+        setTimeout(() => setSuccessMessage(null), 5000);
+      } else {
+        throw new Error('Failed to fetch planner data from server');
+      }
+    } catch (err) {
+      console.error('Error loading active data:', err);
+      // Fallback: initialize clean empty lists for adding from scratch
+      setParsedResult({
+        classwork: [],
+        homework: [],
+        tomorrowNotes: [],
+      });
+      setSuccessMessage('✨ تم تهيئة لوحة الإضافة اليدوية. يمكنك الآن البدء بإضافة الحصص والواجبات والتنبيهات بالكامل من الصفر!');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } finally {
+      setIsParsingPlan(false);
+    }
+  };
+
   // AI Parse Weekly Plan Handler
   const handleParseWeeklyPlan = async () => {
     if (planInputMode === 'pdf' && !planFile) {
@@ -558,62 +659,26 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       setErrorMessage(null);
       setSuccessMessage(null);
 
-      let response: Response | null = null;
       let availableText = planTextInput;
 
       if (planInputMode === 'pdf' && planFile) {
         setParsingStep('جاري استخراج النصوص والجداول من ملف الـ PDF...');
         const extractedText = await extractTextFromPdf(planFile);
         availableText = extractedText;
-
-        // Only convert to heavy Base64 if client-side text extraction couldn't read the PDF (e.g. scanned image)
-        let base64: string | undefined = undefined;
-        if (!extractedText || extractedText.trim().length < 50) {
-          setParsingStep('جاري قراءة وتجهيز صفحات المستند...');
-          base64 = await fileToBase64(planFile);
-        }
-
-        setParsingStep('الذكاء الاصطناعي يحلل الجداول، يوزع Classwork و Homework، وينقل Quiz والاختبارات والملاحظات إلى Tomorrow...');
-        response = await fetch('/api/parse-weekly-plan-pdf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            pdfBase64: base64,
-            planText: extractedText,
-            block: planBlock,
-            week: planWeek,
-            targetClass: planClass,
-          }),
-        });
-      } else {
-        setParsingStep('الذكاء الاصطناعي يحلل جدول الخطة، يفصل Classwork مع الروابط، يحدد Homework، وينقل الكويزات والملاحظات إلى Tomorrow...');
-        response = await fetch('/api/parse-weekly-plan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            planText: planTextInput,
-            classId: planClass,
-            block: planBlock,
-            week: planWeek,
-          }),
-        });
       }
 
-      if (!response || !response.ok) {
-        throw new Error(`خطأ في استجابة الخادم (${response ? response.status : 'no response'})`);
-      }
+      setParsingStep('الذكاء الاصطناعي يحلل الجداول، يوزع Classwork و Homework، وينقل Quiz والاختبارات والملاحظات إلى Tomorrow...');
+      const data = await parseWeeklyPlanWithAI(
+        availableText,
+        planClass,
+        planBlock,
+        planWeek,
+        planInputMode === 'pdf' ? (planFile || undefined) : undefined
+      );
 
-      const data = await response.json();
       const cw = data.classwork || [];
       const hw = data.homework || [];
       const notes = data.tomorrowNotes || [];
-
-      if (data.week && Number(data.week) !== planWeek) {
-        setPlanWeek(Number(data.week));
-      }
-      if (data.block && Number(data.block) !== planBlock) {
-        setPlanBlock(Number(data.block));
-      }
 
       setParsedResult({
         classwork: cw,
@@ -973,7 +1038,7 @@ Sunday:
                   </div>
 
                   {/* Parse Action Button */}
-                  <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                  <div className="pt-2 flex flex-col md:flex-row items-stretch md:items-center gap-3">
                     <button
                       id="admin-parse-plan-btn"
                       type="button"
@@ -983,7 +1048,7 @@ Sunday:
                         isParsingPlan
                       }
                       onClick={handleParseWeeklyPlan}
-                      className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2"
+                      className="px-6 py-2.5 rounded-xl text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 shrink-0"
                     >
                       {isParsingPlan ? (
                         <>
@@ -998,8 +1063,17 @@ Sunday:
                       )}
                     </button>
 
+                    <button
+                      type="button"
+                      disabled={isParsingPlan}
+                      onClick={handleLoadActiveData}
+                      className="px-6 py-2.5 rounded-xl text-xs font-black text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 shrink-0"
+                    >
+                      <span>✏️ تعديل / إضافة يدوية على الخطة الحالية</span>
+                    </button>
+
                     <p className="text-[11px] text-slate-500 leading-relaxed">
-                      * يقرأ الجداول بدقة، يضع أعمال الفصل في مكانها مع روابطها، والواجبات في مكانها، ويحول تلقائياً أي Quiz أو Test أو اختبار أو ملاحظات إلى قسم الغد (Tomorrow)، مع ضبط أسماء الملاحظات (ملاحظات للعربي والسوشيال، Remarque للفرنساوي، و Notes لباقي المواد).
+                      * اضغط على <strong>تعديل / إضافة يدوية</strong> لفتح لوحة التحكم والتعديل مباشرةً لـ Block {planBlock} الأسبوع {planWeek} دون الحاجة لرفع ملف.
                     </p>
                   </div>
 
@@ -1530,6 +1604,46 @@ Sunday:
                                       />
                                     </div>
                                   </div>
+
+                                  {/* Classwork PDF Attachment */}
+                                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <label className="block text-[11px] font-black text-slate-700">📄 شيت الحصة كملف PDF (اختياري)</label>
+                                      {formPdfUrl && (
+                                        <div className="flex items-center gap-1.5 text-xs text-rose-700 font-bold">
+                                          <a href={formPdfUrl} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
+                                            <span>عرض الملف المرفق</span>
+                                            <ExternalLink className="w-3 h-3" />
+                                          </a>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setFormPdfUrl('');
+                                              setHwSelectedFile(null);
+                                            }}
+                                            className="text-slate-400 hover:text-red-500 font-bold text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
+                                          >
+                                            إلغاء المرفق 🗑️
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    <input
+                                      type="file"
+                                      accept=".pdf"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) setHwSelectedFile(file);
+                                      }}
+                                      className="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-black file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer"
+                                    />
+                                    {hwSelectedFile && (
+                                      <p className="text-[10px] font-bold text-emerald-700">
+                                        ✨ ملف مجهز للرفع عند الحفظ: {hwSelectedFile.name} ({(hwSelectedFile.size / 1024).toFixed(1)} KB)
+                                      </p>
+                                    )}
+                                  </div>
                                 </>
                               )}
 
@@ -1605,6 +1719,46 @@ Sunday:
                                       className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
                                     />
                                   </div>
+
+                                  {/* Homework PDF Attachment */}
+                                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <label className="block text-[11px] font-black text-slate-700">📄 شيت الواجب كملف PDF (اختياري)</label>
+                                      {formPdfUrl && (
+                                        <div className="flex items-center gap-1.5 text-xs text-rose-700 font-bold">
+                                          <a href={formPdfUrl} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
+                                            <span>عرض الملف المرفق</span>
+                                            <ExternalLink className="w-3 h-3" />
+                                          </a>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setFormPdfUrl('');
+                                              setHwSelectedFile(null);
+                                            }}
+                                            className="text-slate-400 hover:text-red-500 font-bold text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
+                                          >
+                                            إلغاء المرفق 🗑️
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    <input
+                                      type="file"
+                                      accept=".pdf"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) setHwSelectedFile(file);
+                                      }}
+                                      className="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-black file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer"
+                                    />
+                                    {hwSelectedFile && (
+                                      <p className="text-[10px] font-bold text-emerald-700">
+                                        ✨ ملف مجهز للرفع عند الحفظ: {hwSelectedFile.name} ({(hwSelectedFile.size / 1024).toFixed(1)} KB)
+                                      </p>
+                                    )}
+                                  </div>
                                 </>
                               )}
 
@@ -1644,6 +1798,69 @@ Sunday:
                                       🚨 هل هذا اختبار / Quiz / إملاء / تقييم أسبوعي؟
                                     </label>
                                   </div>
+
+                                  <div className="grid grid-cols-2 gap-2.5">
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">رابط إضافي (اختياري)</label>
+                                      <input
+                                        type="url"
+                                        value={formLinkUrl}
+                                        onChange={(e) => setFormLinkUrl(e.target.value)}
+                                        placeholder="https://..."
+                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">اسم الرابط (Link Title)</label>
+                                      <input
+                                        type="text"
+                                        value={formLinkTitle}
+                                        onChange={(e) => setFormLinkTitle(e.target.value)}
+                                        placeholder="مثال: رابط كويز، لعبة تفاعلية"
+                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Tomorrow PDF Attachment */}
+                                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <label className="block text-[11px] font-black text-slate-700">📄 شيت التنبيه كملف PDF (اختياري)</label>
+                                      {formPdfUrl && (
+                                        <div className="flex items-center gap-1.5 text-xs text-rose-700 font-bold">
+                                          <a href={formPdfUrl} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
+                                            <span>عرض الملف المرفق</span>
+                                            <ExternalLink className="w-3 h-3" />
+                                          </a>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setFormPdfUrl('');
+                                              setHwSelectedFile(null);
+                                            }}
+                                            className="text-slate-400 hover:text-red-500 font-bold text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
+                                          >
+                                            إلغاء المرفق 🗑️
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    <input
+                                      type="file"
+                                      accept=".pdf"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) setHwSelectedFile(file);
+                                      }}
+                                      className="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-black file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer"
+                                    />
+                                    {hwSelectedFile && (
+                                      <p className="text-[10px] font-bold text-emerald-700">
+                                        ✨ ملف مجهز للرفع عند الحفظ: {hwSelectedFile.name} ({(hwSelectedFile.size / 1024).toFixed(1)} KB)
+                                      </p>
+                                    )}
+                                  </div>
                                 </>
                               )}
                             </div>
@@ -1663,11 +1880,21 @@ Sunday:
                               </button>
                               <button
                                 type="button"
+                                disabled={isUploadingHwPdf}
                                 onClick={handleSaveModalItem}
-                                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-md transition-colors cursor-pointer text-xs flex items-center gap-1.5"
+                                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-md transition-colors cursor-pointer text-xs flex items-center gap-1.5 disabled:opacity-50"
                               >
-                                <CheckCircle2 className="w-4 h-4" />
-                                حفظ التعديل في الخطة
+                                {isUploadingHwPdf ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <span>جاري رفع شيت الواجب...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    <span>حفظ التعديل في الخطة</span>
+                                  </>
+                                )}
                               </button>
                             </div>
                           </div>
@@ -1994,16 +2221,10 @@ Sunday:
                     <button
                       id="admin-submit-upload-btn"
                       type="button"
-                      disabled={
-                        materialUploadMode === 'pdf'
-                          ? !selectedFile || isUploading
-                          : !materialLinkTitle.trim() || !materialLinkUrl.trim() || isUploading
-                      }
+                      disabled={isUploading}
                       onClick={handleConfirmUpload}
                       className={`px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-sm flex items-center gap-2 transition-all cursor-pointer ${
-                        (materialUploadMode === 'pdf'
-                          ? !selectedFile || isUploading
-                          : !materialLinkTitle.trim() || !materialLinkUrl.trim() || isUploading)
+                        isUploading
                           ? 'bg-slate-300 cursor-not-allowed'
                           : materialUploadMode === 'pdf'
                           ? 'bg-emerald-600 hover:bg-emerald-700 active:scale-98'

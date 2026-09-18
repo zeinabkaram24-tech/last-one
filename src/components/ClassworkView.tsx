@@ -31,12 +31,21 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   onToggleClasswork,
 }) => {
   // Check if current class has ANY weekly plan entered for this Block and Week
-  const hasPlanForWeek = classworkList.some(
+  let hasPlanForWeek = classworkList.some(
     (c) =>
       (c.classId === currentClass || (c.classId as any) === 'ALL') &&
       (c.block || 1) === currentBlock &&
       (c.week || 1) === currentWeek
   );
+
+  // If there is a French class in the timetable for today, we always allow rendering
+  // so the French card can be displayed as a placeholder task card
+  const hasFrenchInTodayTimetable = (CLASS_TIMETABLES[currentClass][selectedDay] || []).some(
+    (s) => s.subject === 'French'
+  );
+  if (hasFrenchInTodayTimetable) {
+    hasPlanForWeek = true;
+  }
 
   // Filter to subjects with weekly plans (Arabic, French, Mathematics, Social Studies, English, ICT, Science)
   const rawTimetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
@@ -155,6 +164,28 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
         slotId: `active-tt-${selectedDay}-${slot.periodLabel}-${slot.subject}-${matched.id}`,
         cwEntry: matched,
       });
+    } else if (slot.subject === 'French') {
+      // ALWAYS include French slots even if there is no weekly plan entry!
+      // Generate a default placeholder classwork entry
+      const defaultFrenchEntry: ClassworkEntry = {
+        id: `cw-french-default-${selectedDay}-${slot.periodLabel}`,
+        classId: currentClass,
+        day: selectedDay,
+        period: slot.periods[0] || 1,
+        subject: 'French',
+        title: 'درس اللغة الفرنسية: أفراد العائلة 🇫🇷',
+        details: 'اضغط على الرابط بالأسفل لفتح شيت درس أفراد العائلة Les membres de la famille.',
+        completed: false,
+        block: currentBlock,
+        week: currentWeek,
+        linkUrl: currentBlock === 1 && currentWeek === 3 ? 'https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view' : undefined,
+        linkTitle: currentBlock === 1 && currentWeek === 3 ? 'شيت درس أفراد العائلة - Les membres de la famille 📄' : undefined,
+      };
+      activeTimetablePeriods.push({
+        ...slot,
+        slotId: `active-tt-${selectedDay}-${slot.periodLabel}-${slot.subject}-default`,
+        cwEntry: defaultFrenchEntry,
+      });
     }
   }
 
@@ -253,8 +284,15 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             const theme = getSubjectTheme(slot.subject);
             const cwEntry = slot.cwEntry || getCwEntryForSlot(slot);
 
-            const activeLinkUrl = cwEntry?.linkUrl;
-            const activeLinkTitle = cwEntry?.linkTitle || 'رابط الدرس 🔗';
+            let activeLinkUrl = cwEntry?.linkUrl;
+            let activeLinkTitle = cwEntry?.linkTitle || 'رابط الدرس 🔗';
+
+            if (isFrench && currentBlock === 1 && currentWeek === 3) {
+              if (!activeLinkUrl) {
+                activeLinkUrl = 'https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view';
+                activeLinkTitle = 'شيت درس أفراد العائلة - Les membres de la famille 📄';
+              }
+            }
 
             const handleToggleLesson = () => {
               if (cwEntry) {
@@ -362,6 +400,19 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                               <ExternalLink className={`w-3.5 h-3.5 ${isFrench ? 'text-white' : 'text-blue-700'}`} />
                               <span>{activeLinkTitle}</span>
                               {isFrench && <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Kahoot 🎯</span>}
+                            </a>
+                          </div>
+                        )}
+                        {cwEntry.pdfUrl && (
+                          <div className="pt-2">
+                            <a
+                              href={cwEntry.pdfUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-rose-50 text-rose-950 border border-rose-300 hover:bg-rose-100 transition-all shadow-2xs"
+                            >
+                              <BookOpen className="w-3.5 h-3.5 text-rose-700" />
+                              <span>📄 تحميل شيت الحصة (PDF)</span>
                             </a>
                           </div>
                         )}

@@ -266,6 +266,21 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       {hw.task}
                     </p>
 
+                    {/* PDF Worksheet if available */}
+                    {hw.pdfUrl && (
+                      <div className="pt-1">
+                        <a
+                          href={hw.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-black bg-rose-50 text-rose-950 border border-rose-300 hover:bg-rose-100 transition-all shadow-2xs"
+                        >
+                          <BookOpen className="w-3.5 h-3.5 text-rose-700" />
+                          <span>📄 تحميل شيت الواجب (PDF)</span>
+                        </a>
+                      </div>
+                    )}
+
                     {/* Link if available */}
                     {hw.linkUrl && (
                       <div className="pt-1">
@@ -273,10 +288,10 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                           href={hw.linkUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-black bg-blue-50 text-blue-950 border border-blue-200 hover:bg-blue-100 transition-colors shadow-2xs"
                         >
                           <ExternalLink className="w-3.5 h-3.5 text-blue-700" />
-                          <span>رابط الواجب / النشاط</span>
+                          <span>رابط الواجب / النشاط 🔗</span>
                         </a>
                       </div>
                     )}

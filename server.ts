@@ -358,7 +358,7 @@ function cleanAndParseJson(text: string): any {
 const modelCoolDown = new Map<string, number>();
 
 async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any): Promise<string> {
-  const baseModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
+  const baseModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
   const now = Date.now();
 
   // Prioritize healthy models that are NOT currently in a 503 high-demand cooldown

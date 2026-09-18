@@ -48,6 +48,7 @@ export interface ClassworkEntry {
   week?: number;
   linkUrl?: string;
   linkTitle?: string;
+  pdfUrl?: string;
 }
 
 export interface HomeworkEntry {
@@ -65,6 +66,7 @@ export interface HomeworkEntry {
   week?: number;
   isLinkTask?: boolean;
   linkUrl?: string;
+  pdfUrl?: string;
 }
 
 export interface TomorrowSpecialNote {
@@ -80,6 +82,9 @@ export interface TomorrowSpecialNote {
   week?: number;
   isQuiz?: boolean;
   categoryType?: 'note' | 'quiz';
+  linkUrl?: string;
+  linkTitle?: string;
+  pdfUrl?: string;
 }
 
 export interface TomorrowItem {

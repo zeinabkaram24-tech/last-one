@@ -119,10 +119,6 @@ export default function App() {
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
   const [selectedDay, setSelectedDay] = useState<SchoolDay>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.DAY);
-    if (saved && SCHOOL_DAYS.includes(saved as SchoolDay)) {
-      return saved as SchoolDay;
-    }
     const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
     const dayMap: Record<number, SchoolDay> = {
       0: 'Sunday',

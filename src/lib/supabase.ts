@@ -183,8 +183,27 @@ export function classworkToRow(entry: ClassworkEntry): Omit<ClassworkRow, 'creat
   };
 }
 
+// Helper to pack and unpack homework details to support storing pdfUrl in details column without DB schema change
+export function unpackHomeworkDetails(detailsStr?: string | null) {
+  if (!detailsStr) return { details: undefined, pdfUrl: undefined };
+  const parts = detailsStr.split('||PDF_URL:');
+  return {
+    details: parts[0]?.trim() || undefined,
+    pdfUrl: parts[1]?.trim() || undefined,
+  };
+}
+
+export function packHomeworkDetails(details?: string, pdfUrl?: string) {
+  let res = details?.trim() || '';
+  if (pdfUrl) {
+    res += ` ||PDF_URL:${pdfUrl.trim()}`;
+  }
+  return res || undefined;
+}
+
 // Convert from Row to HomeworkEntry
 export function rowToHomework(row: HomeworkRow): HomeworkEntry {
+  const unpacked = unpackHomeworkDetails(row.details);
   return {
     id: row.id,
     classId: row.class_id as ClassId,
@@ -192,7 +211,7 @@ export function rowToHomework(row: HomeworkRow): HomeworkEntry {
     dueDay: row.due_day as SchoolDay,
     subject: row.subject as SubjectName,
     task: row.task,
-    details: row.details || undefined,
+    details: unpacked.details,
     pages: row.pages || undefined,
     completed: Boolean(row.completed),
     priority: (row.priority as 'normal' | 'urgent') || 'normal',
@@ -200,6 +219,7 @@ export function rowToHomework(row: HomeworkRow): HomeworkEntry {
     week: row.week || 1,
     isLinkTask: Boolean(row.is_link_task),
     linkUrl: row.link_url || undefined,
+    pdfUrl: unpacked.pdfUrl,
   };
 }
 
@@ -212,7 +232,7 @@ export function homeworkToRow(entry: HomeworkEntry): Omit<HomeworkRow, 'created_
     due_day: entry.dueDay,
     subject: entry.subject,
     task: entry.task,
-    details: entry.details || null,
+    details: packHomeworkDetails(entry.details, entry.pdfUrl) || null,
     pages: entry.pages || null,
     completed: Boolean(entry.completed),
     priority: entry.priority || 'normal',
