@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Sparkles, BookOpen, ExternalLink, Pencil, Trash, Plus } from 'lucide-react';
-import { ClassId, SchoolDay, PeriodSlot, TomorrowSpecialNote } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Sparkles, BookOpen, ExternalLink, Pencil, Trash, Plus, AlertTriangle } from 'lucide-react';
+import { ClassId, SchoolDay, PeriodSlot, TomorrowSpecialNote, HomeworkEntry, ClassworkEntry } from '../types';
 import {
   CLASS_TIMETABLES,
   NEXT_SCHOOL_DAY,
@@ -16,6 +16,8 @@ interface TomorrowViewProps {
   selectedDay: SchoolDay;
   currentBlock?: number;
   currentWeek?: number;
+  homeworkList?: HomeworkEntry[];
+  classworkList?: ClassworkEntry[];
   isAdminEditMode?: boolean;
   onAddTomorrowNote?: () => void;
   onEditTomorrowNote?: (entry: TomorrowSpecialNote) => void;
@@ -36,6 +38,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   selectedDay,
   currentBlock = 1,
   currentWeek = 2,
+  homeworkList = [],
+  classworkList = [],
   isAdminEditMode = false,
   onAddTomorrowNote,
   onEditTomorrowNote,
@@ -62,37 +66,65 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   };
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
-    // Check local storage cached notes first for instant 0ms render
-    const storageKey = `nile_tomorrow_notes_${currentBlock}_${currentWeek}`;
-    try {
-      const rawStored = localStorage.getItem(storageKey);
-      if (rawStored) {
-        const parsed = JSON.parse(rawStored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const filtered = parsed.filter(
-            (n) => (n.classId === currentClass || n.classId === 'ALL') && n.targetDay === tomorrowDay
-          );
-          if (filtered.length > 0) {
-            return filtered.filter((n) => !isDisallowedTomorrowItem(n));
-          }
-        }
-      }
-    } catch {}
-
-    const raw =
+    const base =
       currentBlock === 1 && currentWeek === 2
         ? WEEK2_SPECIAL_NOTES.filter(
-            (n) => n.classId === currentClass && n.targetDay === tomorrowDay
+            (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
           )
         : currentBlock === 1 && currentWeek === 1
         ? SPECIAL_TEACHER_NOTES.filter(
             (n) =>
-              n.classId === currentClass &&
+              (n.classId === currentClass || (n.classId as any) === 'ALL') &&
               n.targetDay === tomorrowDay &&
               (n.week === 1 || !n.week)
           )
         : [];
-    return raw.filter((n) => !isDisallowedTomorrowItem(n));
+
+    // Check local storage cached notes first for instant 0ms render
+    const storageKey = `nile_tomorrow_notes_${currentBlock}_${currentWeek}`;
+    try {
+      const rawStored = localStorage.getItem(storageKey);
+      let parsedList: TomorrowSpecialNote[] = [];
+      if (rawStored) {
+        const parsed = JSON.parse(rawStored);
+        if (Array.isArray(parsed)) {
+          parsedList = parsed.filter(
+            (n) => (n.classId === currentClass || n.classId === 'ALL') && n.targetDay === tomorrowDay
+          );
+        }
+      }
+
+      // If tomorrowDay is Sunday, seamlessly merge Sunday notes from adjacent weeks (Thursday <-> Saturday repetition)
+      if (tomorrowDay === 'Sunday') {
+        const adjacentKeys = [
+          currentWeek > 1 ? `nile_tomorrow_notes_${currentBlock}_${currentWeek - 1}` : null,
+          currentWeek < 4 ? `nile_tomorrow_notes_${currentBlock}_${currentWeek + 1}` : null,
+        ].filter(Boolean) as string[];
+
+        adjacentKeys.forEach((key) => {
+          try {
+            const adjRaw = localStorage.getItem(key);
+            if (adjRaw) {
+              const adjParsed = JSON.parse(adjRaw);
+              if (Array.isArray(adjParsed)) {
+                adjParsed
+                  .filter((n) => (n.classId === currentClass || n.classId === 'ALL') && n.targetDay === 'Sunday')
+                  .forEach((n) => parsedList.push(n));
+              }
+            }
+          } catch {}
+        });
+      }
+
+      if (parsedList.length > 0) {
+        const map = new Map<string, TomorrowSpecialNote>();
+        base.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`, n));
+        parsedList.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`, n));
+        return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));
+      }
+    } catch {}
+
+    return base.filter((n) => !isDisallowedTomorrowItem(n));
   });
 
   useEffect(() => {
@@ -123,12 +155,24 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const getNoteBadgeInfo = (note: TomorrowSpecialNote) => {
     const quiz = isQuizOrTest(note);
+    const fullText = (note.note + ' ' + (note.arabicNote || '')).toLowerCase();
+    const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');
+
     if (quiz) {
       return {
-        label: '🚨 اختبار / Quiz',
+        label: isDictation ? '✍️ إملاء / Dictation' : '🚨 اختبار / Quiz',
         badgeClass: 'bg-rose-600 text-white font-black',
-        cardClass: 'bg-rose-50/70 border-rose-200/90 shadow-2xs',
-        subjectName: note.subject === 'Social Studies' ? 'الدراسات الاجتماعية' : note.subject === 'Arabic' ? 'اللغة العربية' : note.subject,
+        cardClass: 'bg-rose-50/85 border-rose-300 shadow-2xs ring-1 ring-rose-200',
+        subjectName:
+          note.subject === 'French'
+            ? 'French / لغة فرنسية'
+            : note.subject === 'Mathematics' || note.subject === 'Math'
+            ? 'Mathematics / رياضيات'
+            : note.subject === 'Social Studies'
+            ? 'الدراسات الاجتماعية'
+            : note.subject === 'Arabic'
+            ? 'اللغة العربية'
+            : note.subject,
       };
     }
     if (note.subject === 'French') {
@@ -155,8 +199,170 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     };
   };
 
+  // Automatically link and synchronize tests/quizzes/dictations from homework and classwork
+  const linkedAlerts = useMemo<TomorrowSpecialNote[]>(() => {
+    const alerts: TomorrowSpecialNote[] = [];
+    const checkText = (txt: string) => {
+      return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((txt || '').toLowerCase());
+    };
+
+    // 1. Linked from Homework:
+    // If any homework item for this class mentions a test/quiz/dictation and is due/assigned for tomorrowDay
+    homeworkList.forEach((h) => {
+      if (h.classId !== currentClass && (h.classId as any) !== 'ALL') return;
+      if (h.week && h.week !== currentWeek) return;
+
+      const isForTomorrow = h.dueDay === tomorrowDay || h.assignedDay === tomorrowDay;
+      const fullText = `${h.task} ${h.details || ''} ${h.subject}`;
+      if (isForTomorrow && checkText(fullText)) {
+        alerts.push({
+          id: `linked-hw-${h.id}`,
+          classId: currentClass,
+          targetDay: tomorrowDay,
+          subject: h.subject,
+          note: h.task,
+          arabicNote: h.details ? `${h.task} (${h.details})` : h.task,
+          bagItem: h.pages || undefined,
+          isQuiz: true,
+          categoryType: 'quiz',
+          block: currentBlock,
+          week: currentWeek,
+        });
+      }
+    });
+
+    // 2. Linked from Classwork:
+    // If any classwork on tomorrowDay mentions a test/quiz/dictation
+    classworkList.forEach((cw) => {
+      if (cw.classId !== currentClass && (cw.classId as any) !== 'ALL') return;
+      if (cw.day !== tomorrowDay) return;
+      if (cw.week && cw.week !== currentWeek) return;
+
+      const fullText = `${cw.title} ${cw.details || ''} ${cw.subject}`;
+      if (checkText(fullText)) {
+        alerts.push({
+          id: `linked-cw-${cw.id}`,
+          classId: currentClass,
+          targetDay: tomorrowDay,
+          subject: cw.subject,
+          note: cw.title,
+          arabicNote: cw.details ? `${cw.title} (${cw.details})` : cw.title,
+          bagItem: cw.pages || undefined,
+          isQuiz: true,
+          categoryType: 'quiz',
+          block: currentBlock,
+          week: currentWeek,
+        });
+      }
+    });
+
+    return alerts;
+  }, [homeworkList, classworkList, currentClass, tomorrowDay, currentWeek, currentBlock]);
+
+  // Merge tomorrowNotes with linkedAlerts without duplicates
+  const mergedNotes = useMemo<TomorrowSpecialNote[]>(() => {
+    const map = new Map<string, TomorrowSpecialNote>();
+
+    tomorrowNotes.forEach((n) => {
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      map.set(key, n);
+    });
+
+    linkedAlerts.forEach((la) => {
+      // If a quiz note for this subject already exists in tomorrowNotes, don't duplicate
+      const hasExistingSubjectQuiz = tomorrowNotes.some(
+        (n) => n.subject === la.subject && isQuizOrTest(n)
+      );
+      if (!hasExistingSubjectQuiz) {
+        map.set(la.id, la);
+      }
+    });
+
+    return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));
+  }, [tomorrowNotes, linkedAlerts]);
+
+  // Extract any quizzes/tests/dictations scheduled for tomorrow to show high-visibility alert banner
+  const upcomingQuizzes = useMemo(() => {
+    return mergedNotes.filter((n) => isQuizOrTest(n));
+  }, [mergedNotes]);
+
+  // Prioritize quizzes and tests to appear first in the notes list
+  const sortedNotes = useMemo(() => {
+    return [...mergedNotes].sort((a, b) => {
+      const aQuiz = isQuizOrTest(a) ? 1 : 0;
+      const bQuiz = isQuizOrTest(b) ? 1 : 0;
+      return bQuiz - aQuiz;
+    });
+  }, [mergedNotes]);
+
   return (
     <div className="space-y-4">
+      {/* 🚨 High-Priority Tomorrow Quiz Alert Banner */}
+      {upcomingQuizzes.length > 0 && (
+        <div className="bg-rose-500/10 border-2 border-rose-500/80 rounded-2xl p-3.5 sm:p-4 text-rose-950 shadow-2xs space-y-2.5 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span>
+            </span>
+            <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
+            <h4 className="text-sm font-black text-rose-950">
+              🚨 إنذار هام ومؤكد: يوجد اختبار / كويز غداً يوم {ARABIC_DAY_NAMES[tomorrowDay]}!
+            </h4>
+          </div>
+          <div className="space-y-1.5 pt-0.5">
+            {upcomingQuizzes.map((q, idx) => (
+              <div
+                key={q.id || `quiz-banner-${idx}`}
+                className="flex items-center justify-between gap-2 bg-white/95 border border-rose-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-black px-2 py-0.5 rounded-md bg-rose-600 text-white text-[11px] shadow-2xs">
+                    {q.subject === 'French'
+                      ? '🇫🇷 كويز لغة فرنسية'
+                      : q.subject === 'Mathematics' || q.subject === 'Math'
+                      ? '📐 اختبار رياضيات'
+                      : (q.note?.includes('إملاء') || q.arabicNote?.includes('إملاء'))
+                      ? '✍️ إملاء لغة عربية'
+                      : `🚨 اختبار ${q.subject}`}
+                  </span>
+                  <span className="font-black text-slate-900">{q.arabicNote || q.note}</span>
+                </div>
+                {q.bagItem && (
+                  <span className="text-[11px] font-bold text-rose-900 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200 shrink-0">
+                    🎒 {q.bagItem}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Thursday <-> Saturday Continuity Card */}
+      {selectedDay === 'Saturday' && (
+        <div className="bg-sky-50 border-2 border-sky-200/90 rounded-2xl px-3.5 sm:p-4 text-sky-950 shadow-2xs flex items-center gap-2.5 animate-fade-in">
+          <span className="text-xl shrink-0">🔁</span>
+          <div className="text-xs sm:text-sm">
+            <span className="font-black text-sky-950">تكرار تلقائي لملاحظات وتحضير يوم الخميس: </span>
+            <span className="font-medium text-sky-900">
+              تم استدعاء وتكرار ملاحظات وتجهيزات نهاية الأسبوع (الخميس) لتجهيز حقيبة يوم الأحد للأسبوع الجديد.
+            </span>
+          </div>
+        </div>
+      )}
+      {selectedDay === 'Thursday' && (
+        <div className="bg-indigo-50 border-2 border-indigo-200/90 rounded-2xl px-3.5 sm:p-4 text-indigo-950 shadow-2xs flex items-center gap-2.5 animate-fade-in">
+          <span className="text-xl shrink-0">🗓️</span>
+          <div className="text-xs sm:text-sm">
+            <span className="font-black text-indigo-950">تحضير يوم الأحد للأسبوع القادم: </span>
+            <span className="font-medium text-indigo-900">
+              هذه الملاحظات وتجهيزات الحقيبة تتكرر تلقائياً في تومورو يوم السبت للأسبوع الجديد لتسهيل المتابعة على أولياء الأمور.
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* 2x4 Grid of Subject Blocks (8 periods) */}
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex items-center justify-between pb-1 border-b border-slate-100">
@@ -214,7 +420,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           )}
         </div>
 
-        {tomorrowNotes.length === 0 ? (
+        {sortedNotes.length === 0 ? (
           <div className="py-4 px-3 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center">
             <p className="text-xs text-slate-400 font-semibold">
               لا توجد ملاحظات خاصة مسجلة ليوم {ARABIC_DAY_NAMES[tomorrowDay]} في الخطة الأسبوعية
@@ -222,7 +428,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           </div>
         ) : (
           <div className="space-y-2.5">
-            {tomorrowNotes.map((note, idx) => {
+            {sortedNotes.map((note, idx) => {
               const badgeInfo = getNoteBadgeInfo(note);
               return (
                 <div

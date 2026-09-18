@@ -811,6 +811,8 @@ export default function App() {
               selectedDay={selectedDay}
               currentBlock={currentBlock}
               currentWeek={currentWeek}
+              homeworkList={homeworkList}
+              classworkList={classworkList}
               isAdminEditMode={isAdminEditMode}
               onAddTomorrowNote={() => handleOpenAddModal('tomorrow')}
               onEditTomorrowNote={(entry) => handleOpenEditModal('tomorrow', entry)}

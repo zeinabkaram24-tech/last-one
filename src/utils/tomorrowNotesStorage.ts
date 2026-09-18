@@ -48,9 +48,27 @@ export async function getTomorrowNotesForDay(
     if (res.ok) {
       const data = await res.json();
       if (data && Array.isArray(data.tomorrowNotes)) {
+        // Match current week's notes
         const matching = data.tomorrowNotes.filter(
           (n: any) => Number(n.block || 1) === Number(block) && Number(n.week || 1) === Number(week)
         );
+
+        // Always repeat Thursday's Sunday preparation on next Saturday's Tomorrow:
+        // When targetDay is Sunday, merge Sunday notes from adjacent weeks (week-1 and week+1)
+        if (targetDay === 'Sunday') {
+          const crossWeekSundayNotes = data.tomorrowNotes.filter(
+            (n: any) =>
+              Number(n.block || 1) === Number(block) &&
+              (Number(n.week || 1) === Number(week - 1) || Number(n.week || 1) === Number(week + 1)) &&
+              n.targetDay === 'Sunday'
+          );
+          crossWeekSundayNotes.forEach((extra: TomorrowSpecialNote) => {
+            if (!matching.some((m: any) => m.id === extra.id || (m.subject === extra.subject && m.note === extra.note))) {
+              matching.push(extra);
+            }
+          });
+        }
+
         // If server returned tomorrowNotes, trust it as the source of truth
         if (data.tomorrowNotes.length > 0) {
           loadedNotes = matching;
@@ -71,6 +89,36 @@ export async function getTomorrowNotesForDay(
       const raw = localStorage.getItem(storageKey);
       if (raw) {
         loadedNotes = JSON.parse(raw);
+      }
+      // If targetDay is Sunday, also merge cached Sunday notes from adjacent weeks
+      if (targetDay === 'Sunday') {
+        const adjacentKeys = [
+          week > 1 ? `${LOCAL_STORAGE_PREFIX}${block}_${week - 1}` : null,
+          week < 4 ? `${LOCAL_STORAGE_PREFIX}${block}_${week + 1}` : null,
+        ].filter(Boolean) as string[];
+
+        const extraSundayNotes: TomorrowSpecialNote[] = [];
+        adjacentKeys.forEach((key) => {
+          try {
+            const adjRaw = localStorage.getItem(key);
+            if (adjRaw) {
+              const parsed = JSON.parse(adjRaw);
+              if (Array.isArray(parsed)) {
+                parsed
+                  .filter((n) => n.targetDay === 'Sunday')
+                  .forEach((n) => extraSundayNotes.push(n));
+              }
+            }
+          } catch {}
+        });
+
+        if (extraSundayNotes.length > 0) {
+          const currentList = loadedNotes || [];
+          const map = new Map<string, TomorrowSpecialNote>();
+          currentList.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`, n));
+          extraSundayNotes.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`, n));
+          loadedNotes = Array.from(map.values());
+        }
       }
     } catch (e) {
       console.warn('Could not parse cached tomorrow notes:', e);
@@ -93,27 +141,55 @@ export async function getTomorrowNotesForDay(
     }
   }
 
-  // 4. Filter if dynamic notes found
+  // Base official notes for Block/Week
+  const baseNotes: TomorrowSpecialNote[] =
+    block === 1 && week === 2
+      ? WEEK2_SPECIAL_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
+        )
+      : block === 1 && week === 1
+      ? SPECIAL_TEACHER_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay && (n.week === 1 || !n.week)
+        )
+      : [];
+
+  // When targetDay is Sunday, also merge Sunday base notes from Week 1 and Week 2 so preparations repeat
+  if (targetDay === 'Sunday') {
+    const additionalBase = [
+      ...WEEK2_SPECIAL_NOTES.filter(
+        (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === 'Sunday'
+      ),
+      ...SPECIAL_TEACHER_NOTES.filter(
+        (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === 'Sunday'
+      ),
+    ];
+    additionalBase.forEach((n) => {
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      if (!baseNotes.some((b) => (b.id && b.id === n.id) || `${b.targetDay}-${b.subject}-${(b.note || '').slice(0, 30)}` === key)) {
+        baseNotes.push(n);
+      }
+    });
+  }
+
+  // 4. Merge dynamic notes and base notes
   if (loadedNotes && Array.isArray(loadedNotes) && loadedNotes.length > 0) {
-    return loadedNotes.filter(
+    const dynamicNotes = loadedNotes.filter(
       (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
     );
+    const map = new Map<string, TomorrowSpecialNote>();
+    baseNotes.forEach((n) => {
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      map.set(key, n);
+    });
+    dynamicNotes.forEach((n) => {
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      map.set(key, n);
+    });
+    return Array.from(map.values());
   }
 
   // 5. Default Static Fallbacks (Block 1 Week 2 & Block 1 Week 1)
-  if (block === 1 && week === 2) {
-    return WEEK2_SPECIAL_NOTES.filter(
-      (n) => n.classId === classId && n.targetDay === targetDay
-    );
-  }
-
-  if (block === 1 && week === 1) {
-    return SPECIAL_TEACHER_NOTES.filter(
-      (n) => n.classId === classId && n.targetDay === targetDay && (n.week === 1 || !n.week)
-    );
-  }
-
-  return [];
+  return baseNotes;
 }
 
 // Save tomorrow notes for a specific block and week
@@ -138,6 +214,27 @@ export async function saveTomorrowNotes(
       finalNotes = Array.from(map.values());
     }
     localStorage.setItem(storageKey, JSON.stringify(finalNotes));
+
+    // Sunday notes seamless replication:
+    // If there are Sunday notes, replicate them to week+1 and week-1 cache so Thursday <-> Saturday always repeat
+    const sundayNotes = finalNotes.filter((n) => n.targetDay === 'Sunday');
+    if (sundayNotes.length > 0) {
+      const targetWeeks = [week > 1 ? week - 1 : null, week < 4 ? week + 1 : null].filter(Boolean) as number[];
+      targetWeeks.forEach((tw) => {
+        try {
+          const adjKey = `${LOCAL_STORAGE_PREFIX}${block}_${tw}`;
+          const adjRaw = localStorage.getItem(adjKey);
+          const adjList: TomorrowSpecialNote[] = adjRaw ? JSON.parse(adjRaw) : [];
+          const adjMap = new Map<string, TomorrowSpecialNote>();
+          adjList.forEach((n) => adjMap.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 20)}`, n));
+          sundayNotes.forEach((n) => {
+            const copy = { ...n, week: tw };
+            adjMap.set(copy.id || `${copy.targetDay}-${copy.subject}-${(copy.note || '').slice(0, 20)}`, copy);
+          });
+          localStorage.setItem(adjKey, JSON.stringify(Array.from(adjMap.values())));
+        } catch {}
+      });
+    }
   } catch (e) {
     console.warn('Could not cache tomorrow notes to localStorage:', e);
   }
@@ -149,6 +246,17 @@ export async function saveTomorrowNotes(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tomorrowNotes: notes, mode }),
     });
+
+    // Also sync Sunday notes for adjacent week to server if present
+    const sundayNotes = notes.filter((n) => n.targetDay === 'Sunday');
+    if (sundayNotes.length > 0 && week < 4) {
+      const nextWeekSundayNotes = sundayNotes.map((n) => ({ ...n, week: week + 1 }));
+      await fetch('/api/planner-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tomorrowNotes: nextWeekSundayNotes, mode: 'merge' }),
+      });
+    }
   } catch (e) {
     console.warn('Failed to sync tomorrow notes to /api/planner-data:', e);
   }

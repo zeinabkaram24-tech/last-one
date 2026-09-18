@@ -4,7 +4,6 @@ import {
   Circle,
   ExternalLink,
   BookOpen,
-  AlertTriangle,
   AlertCircle,
   Pencil,
   Trash,
@@ -87,24 +86,6 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   });
   const dayHomework = Array.from(uniqueHwMap.values());
 
-  // Check if tomorrow (next school day) has any scheduled Quiz or Test in classwork
-  const nextDay = NEXT_SCHOOL_DAY[selectedDay];
-  const upcomingTestsAndQuizzes = (classworkList || []).filter((cw) => {
-    if (cw.classId !== currentClass) return false;
-    if (cw.day !== nextDay) return false;
-    if ((cw.block || 1) !== currentBlock) return false;
-    if ((cw.week || 1) !== currentWeek) return false;
-    const text = `${cw.title} ${cw.details || ''}`.toLowerCase();
-    return (
-      text.includes('test') ||
-      text.includes('quiz') ||
-      text.includes('اختبار') ||
-      text.includes('كويز') ||
-      text.includes('امتحان') ||
-      text.includes('تقييم')
-    );
-  });
-
   const handleToggle = (id: string, currentlyCompleted: boolean) => {
     if (!currentlyCompleted) {
       triggerDoneCelebration();
@@ -176,39 +157,6 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
           </div>
         )}
       </div>
-
-      {/* Dynamic Hint Banner for Tomorrow's Tests & Quizzes */}
-      {upcomingTestsAndQuizzes.length > 0 && (
-        <div className="bg-amber-500/10 border-2 border-amber-400/80 rounded-2xl p-3.5 sm:p-4 text-amber-950 shadow-2xs space-y-2 animate-fade-in">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
-            <h4 className="text-sm font-black text-amber-950">
-              تنبيه مهم: يوجد اختبار / كويز غداً يوم {ARABIC_DAY_NAMES[nextDay]}!
-            </h4>
-          </div>
-          <div className="space-y-1.5 pt-0.5">
-            {upcomingTestsAndQuizzes.map((t) => (
-              <div
-                key={t.id}
-                className="flex items-center justify-between gap-2 bg-white/95 border border-amber-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
-              >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-950 border border-amber-300">
-                    {t.subject}
-                  </span>
-                  <span className="font-black text-slate-900">{t.title}</span>
-                </div>
-                <span className="text-[11px] font-black text-amber-900 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 shrink-0">
-                  الحصة {t.period}
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-amber-900 font-bold">
-            يرجى مراجعة الدروس اليوم والاستعداد الجيد للاختبار المقرر غداً.
-          </p>
-        </div>
-      )}
 
       {/* Selected Day Homework List */}
       {dayHomework.length === 0 ? (
