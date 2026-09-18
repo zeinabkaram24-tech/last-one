@@ -355,7 +355,6 @@ export async function parseWeeklyPlanWithAI(
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const targetClasses: string[] = classId === 'ALL' ? ['G2A', 'G2B', 'G2C'] : [classId];
     const timetableContext = {};
@@ -440,31 +439,48 @@ Return ONLY JSON block formatted like:
 }
 `;
 
+    const modelsToTry = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-flash'];
     let responseText = '';
-    
-    if (pdfFile) {
-      const b64Data = await fileToBase64(pdfFile);
-      const cleanB64 = b64Data.replace(/^data:application\/pdf;base64,/, '').trim();
-      
-      const parts: any[] = [
-        {
-          inlineData: {
-            data: cleanB64,
-            mimeType: 'application/pdf'
-          }
-        },
-        { text: systemPrompt + `\n\nFallback Extracted Text:\n${planText}` }
-      ];
-      
-      const response = await model.generateContent(parts);
-      responseText = response.response.text();
-    } else {
-      const response = await model.generateContent(systemPrompt + `\n\nPlan Text:\n${planText}`);
-      responseText = response.response.text();
+    let lastError: any = null;
+
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`[Smart Reader] Attempting generation with model: ${modelName}`);
+        const model = genAI.getGenerativeModel({ model: modelName });
+        
+        if (pdfFile) {
+          const b64Data = await fileToBase64(pdfFile);
+          const cleanB64 = b64Data.replace(/^data:application\/pdf;base64,/, '').trim();
+          
+          const parts: any[] = [
+            {
+              inlineData: {
+                data: cleanB64,
+                mimeType: 'application/pdf'
+              }
+            },
+            { text: systemPrompt + `\n\nFallback Extracted Text:\n${planText}` }
+          ];
+          
+          const response = await model.generateContent(parts);
+          responseText = response.response.text();
+        } else {
+          const response = await model.generateContent(systemPrompt + `\n\nPlan Text:\n${planText}`);
+          responseText = response.response.text();
+        }
+
+        if (responseText) {
+          console.log(`[Smart Reader] Successfully generated content using model: ${modelName}`);
+          break;
+        }
+      } catch (err: any) {
+        console.warn(`[Smart Reader] Model ${modelName} failed:`, err);
+        lastError = err;
+      }
     }
 
     if (!responseText) {
-      throw new Error('Gemini API returned an empty response.');
+      throw lastError || new Error('Gemini API returned an empty response for all attempted models.');
     }
 
     const rawParsed = cleanAndParseJson(responseText);
