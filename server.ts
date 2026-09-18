@@ -426,7 +426,7 @@ function cleanAndParseJson(text: string): any {
 const modelCoolDown = new Map<string, number>();
 
 async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any): Promise<string> {
-  const baseModels = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
+  const baseModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
   const now = Date.now();
 
   // Prioritize healthy models that are NOT currently in a 503 high-demand cooldown
@@ -448,11 +448,19 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         console.log(`[AI Planner] Generating with model ${model} (attempt ${attempt})...`);
-        const response = await ai.models.generateContent({
+        
+        // Use a Promise.race to enforce a strict 8-second timeout on the model request
+        const generatePromise = ai.models.generateContent({
           model,
           contents,
           config,
         });
+
+        const response = await Promise.race([
+          generatePromise,
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Generation Timeout')), 8000))
+        ]);
+
         if (response && response.text) {
           modelCoolDown.delete(model);
           return response.text;

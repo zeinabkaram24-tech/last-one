@@ -45,6 +45,7 @@ import {
   ClassworkRow,
   HomeworkRow,
   syncSupabaseConfigWithServer,
+  syncLocalDataToServer,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -219,6 +220,9 @@ export default function App() {
 
     async function initializeFromSupabase() {
       try {
+        // Sync local data to the server if there is any offline/unbacked local custom classwork/homework on the laptop
+        await syncLocalDataToServer();
+
         // Sync Supabase config from server first to replicate Laptop credentials on Mobile
         const configReplicated = await syncSupabaseConfigWithServer();
         if (configReplicated) {

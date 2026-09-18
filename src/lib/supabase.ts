@@ -103,15 +103,17 @@ export function updateSupabaseClient(url: string, key: string): SupabaseClient {
 
 export async function syncSupabaseConfigWithServer(): Promise<boolean> {
   try {
+    const localUrl = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL) || '';
+    const localKey = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY) || '';
+    
+    // 1. Check server-side Supabase credentials
     const res = await fetch('/api/supabase-config');
+    let hasUpdatedLocal = false;
     if (res.ok) {
       const srvConfig = await res.json();
       if (srvConfig && srvConfig.url && srvConfig.key) {
         const cleanedUrl = cleanSupabaseUrl(srvConfig.url);
         const cleanedKey = cleanSupabaseKey(srvConfig.key);
-        
-        const localUrl = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL) || '';
-        const localKey = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY) || '';
         
         if (cleanedUrl !== localUrl || cleanedKey !== localKey) {
           console.log('[Supabase Sync] Replicating Supabase config from centralized server...');
@@ -122,12 +124,53 @@ export async function syncSupabaseConfigWithServer(): Promise<boolean> {
           supabase = createClient(supabaseUrl, supabaseAnonKey);
           
           window.dispatchEvent(new Event('supabase_config_updated'));
-          return true;
+          hasUpdatedLocal = true;
+        }
+      } else if (localUrl && localKey && localUrl.trim() !== '' && !localUrl.includes('placeholder')) {
+        // If server is unconfigured, but laptop has config, upload it to the server
+        console.log('[Supabase Sync] Server has no config. Uploading local configuration to server...');
+        await fetch('/api/supabase-config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: localUrl, key: localKey }),
+        });
+      }
+    }
+
+    // 2. Upload any existing local custom classwork/homework to the centralized server backup file
+    // so that it propagates to mobile devices automatically
+    const localCw = getLocalCustomClasswork();
+    const localHw = getLocalCustomHomework();
+    if (localCw.length > 0 || localHw.length > 0) {
+      // Fetch current server data first
+      const dataRes = await fetch('/api/planner-data');
+      if (dataRes.ok) {
+        const srvData = await dataRes.json();
+        const serverCwEmpty = !srvData || !Array.isArray(srvData.classwork) || srvData.classwork.length === 0;
+        const serverHwEmpty = !srvData || !Array.isArray(srvData.homework) || srvData.homework.length === 0;
+        
+        if (serverCwEmpty && localCw.length > 0) {
+          console.log('[Sync] Uploading pre-existing local custom classwork to server...');
+          await fetch('/api/planner-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ classwork: localCw, mode: 'merge' }),
+          });
+        }
+        if (serverHwEmpty && localHw.length > 0) {
+          console.log('[Sync] Uploading pre-existing local custom homework to server...');
+          await fetch('/api/planner-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ homework: localHw, mode: 'merge' }),
+          });
         }
       }
     }
+    
+    return hasUpdatedLocal;
   } catch (e) {
-    console.warn('[Supabase Sync] Could not fetch shared Supabase config from server:', e);
+    console.warn('[Supabase Sync] Could not fetch/sync shared config:', e);
   }
   return false;
 }

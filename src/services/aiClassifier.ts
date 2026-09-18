@@ -348,7 +348,10 @@ export async function parseWeeklyPlanWithAI(
 ): Promise<ParsedWeeklyPlanResponse> {
   // 1. Attempt server-side API proxy first. This is secure and works perfectly outside AI Studio
   try {
-    console.log('[Smart Reader] Attempting server-side parsing API...');
+    console.log('[Smart Reader] Attempting server-side parsing API with a 12-second timeout...');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
     let response: Response;
     if (pdfFile) {
       const base64Data = await fileToBase64(pdfFile);
@@ -362,6 +365,7 @@ export async function parseWeeklyPlanWithAI(
           week,
           targetClass: classId,
         }),
+        signal: controller.signal,
       });
     } else {
       response = await fetch('/api/parse-weekly-plan', {
@@ -373,8 +377,11 @@ export async function parseWeeklyPlanWithAI(
           block,
           week,
         }),
+        signal: controller.signal,
       });
     }
+
+    clearTimeout(timeoutId);
 
     if (response.ok) {
       const serverData = await response.json();
