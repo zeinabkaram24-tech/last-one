@@ -399,6 +399,17 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
 export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkEntry> {
   saveLocalCustomClasswork([entry]);
 
+  // Centralized cross-device sync backup
+  try {
+    await fetch('/api/planner-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ classwork: [entry], mode: 'merge' }),
+    });
+  } catch (err) {
+    console.warn('Central server sync error in upsertClasswork:', err);
+  }
+
   if (!isSupabaseConfigured) {
     return entry;
   }
@@ -429,6 +440,17 @@ export async function updateClassworkCompletion(id: string, completed: boolean):
   if (target) {
     target.completed = completed;
     saveLocalCustomClasswork([target]);
+
+    // Centralized cross-device sync backup
+    try {
+      await fetch('/api/planner-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classwork: [target], mode: 'merge' }),
+      });
+    } catch (err) {
+      console.warn('Central server sync error in updateClassworkCompletion:', err);
+    }
   }
 
   if (!isSupabaseConfigured) return;
@@ -452,6 +474,17 @@ export async function deleteClasswork(id: string): Promise<void> {
     const local = getLocalCustomClasswork().filter((c) => c.id !== id);
     localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(local));
   } catch {}
+
+  // Centralized cross-device sync backup
+  try {
+    await fetch('/api/planner-data/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, type: 'classwork' }),
+    });
+  } catch (err) {
+    console.warn('Central server delete error in deleteClasswork:', err);
+  }
 
   if (!isSupabaseConfigured) return;
 
@@ -607,6 +640,17 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
 export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntry> {
   saveLocalCustomHomework([entry]);
 
+  // Centralized cross-device sync backup
+  try {
+    await fetch('/api/planner-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ homework: [entry], mode: 'merge' }),
+    });
+  } catch (err) {
+    console.warn('Central server sync error in upsertHomework:', err);
+  }
+
   if (!isSupabaseConfigured) {
     return entry;
   }
@@ -637,6 +681,17 @@ export async function updateHomeworkCompletion(id: string, completed: boolean): 
   if (target) {
     target.completed = completed;
     saveLocalCustomHomework([target]);
+
+    // Centralized cross-device sync backup
+    try {
+      await fetch('/api/planner-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ homework: [target], mode: 'merge' }),
+      });
+    } catch (err) {
+      console.warn('Central server sync error in updateHomeworkCompletion:', err);
+    }
   }
 
   if (!isSupabaseConfigured) return;
@@ -660,6 +715,17 @@ export async function deleteHomework(id: string): Promise<void> {
     const local = getLocalCustomHomework().filter((h) => h.id !== id);
     localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(local));
   } catch {}
+
+  // Centralized cross-device sync backup
+  try {
+    await fetch('/api/planner-data/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, type: 'homework' }),
+    });
+  } catch (err) {
+    console.warn('Central server delete error in deleteHomework:', err);
+  }
 
   if (!isSupabaseConfigured) return;
 

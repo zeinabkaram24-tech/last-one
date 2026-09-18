@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
 // @ts-ignore
-import { PDFParse } from 'pdf-parse';
+import pdf from 'pdf-parse';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import { CLASS_TIMETABLES } from './src/data/timetables';
@@ -255,6 +255,24 @@ app.post('/api/planner-data', (req, res) => {
     res.json({ success: true, count: { classwork: current.classwork.length, homework: current.homework.length } });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error saving planner data' });
+  }
+});
+
+app.post('/api/planner-data/delete', (req, res) => {
+  try {
+    const { id, type } = req.body; // type: 'classwork' | 'homework' | 'tomorrowNotes'
+    let current = getStoredPlannerData();
+    if (type === 'classwork') {
+      current.classwork = current.classwork.filter((c: any) => c.id !== id);
+    } else if (type === 'homework') {
+      current.homework = current.homework.filter((h: any) => h.id !== id);
+    } else if (type === 'tomorrowNotes') {
+      current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => n.id !== id);
+    }
+    saveStoredPlannerData(current);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Error deleting planner item' });
   }
 });
 
@@ -1099,9 +1117,8 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
       try {
         const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, '').trim();
         const buffer = Buffer.from(cleanBase64, 'base64');
-        if (PDFParse) {
-          const parser = new (PDFParse as any)({ data: buffer });
-          const parsedRes = await parser.getText();
+        if (pdf) {
+          const parsedRes = await pdf(buffer);
           if (parsedRes && parsedRes.text && parsedRes.text.trim().length > 0) {
             extractedPdfText = parsedRes.text.trim();
             console.log(`[Server PDF Parser] Successfully extracted ${extractedPdfText.length} characters from PDF!`);

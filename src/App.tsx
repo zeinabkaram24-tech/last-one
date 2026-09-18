@@ -459,14 +459,12 @@ export default function App() {
       return next;
     });
 
-    if (isSupabaseConfigured) {
-      try {
-        await upsertClasswork(entry);
-      } catch (e) {
-        console.error('Error saving classwork to Supabase:', e);
-      }
+    try {
+      await upsertClasswork(entry);
+    } catch (e) {
+      console.error('Error saving classwork:', e);
     }
-    showToast('تم حفظ الحصة بنجاح في قاعدة بيانات Supabase!');
+    showToast('تم حفظ الحصة بنجاح!');
   };
 
   // Homework handlers with Supabase CRUD
@@ -505,12 +503,10 @@ export default function App() {
       );
     }
 
-    if (isSupabaseConfigured) {
-      try {
-        await updateHomeworkCompletion(id, nextCompleted);
-      } catch (e) {
-        console.warn('Could not update homework completion in Supabase:', e);
-      }
+    try {
+      await updateHomeworkCompletion(id, nextCompleted);
+    } catch (e) {
+      console.warn('Could not update homework completion:', e);
     }
   };
 
@@ -525,14 +521,12 @@ export default function App() {
       return next;
     });
 
-    if (isSupabaseConfigured) {
-      try {
-        await upsertHomework(entry);
-      } catch (e) {
-        console.error('Error adding homework to Supabase:', e);
-      }
+    try {
+      await upsertHomework(entry);
+    } catch (e) {
+      console.error('Error adding homework:', e);
     }
-    showToast('تمت إضافة الواجب المنزلي بنجاح إلى Supabase!');
+    showToast('تمت إضافة الواجب المنزلي بنجاح!');
   };
 
   const handleDeleteHomework = async (id: string) => {
@@ -553,14 +547,12 @@ export default function App() {
       return next;
     });
 
-    if (isSupabaseConfigured) {
-      try {
-        await deleteHomework(id);
-      } catch (e) {
-        console.error('Error deleting homework from Supabase:', e);
-      }
+    try {
+      await deleteHomework(id);
+    } catch (e) {
+      console.error('Error deleting homework:', e);
     }
-    showToast('تم حذف الواجب من قاعدة بيانات Supabase.');
+    showToast('تم حذف الواجب بنجاح.');
   };
 
   const handleApplyWeeklyPlan = async (
@@ -629,12 +621,10 @@ export default function App() {
   const handleDeleteClasswork = async (id: string) => {
     if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذه الحصة؟')) {
       setClassworkList((prev) => prev.filter((c) => c.id !== id));
-      if (isSupabaseConfigured) {
-        try {
-          await deleteClasswork(id);
-        } catch (e) {
-          console.error('Error deleting classwork:', e);
-        }
+      try {
+        await deleteClasswork(id);
+      } catch (e) {
+        console.error('Error deleting classwork:', e);
       }
       showToast('تم حذف الحصة بنجاح.');
     }

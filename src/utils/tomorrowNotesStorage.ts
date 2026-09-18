@@ -36,37 +36,38 @@ export async function getTomorrowNotesForDay(
 ): Promise<TomorrowSpecialNote[]> {
   const storageKey = `${LOCAL_STORAGE_PREFIX}${block}_${week}`;
 
-  // 1. Check local cache
   let loadedNotes: TomorrowSpecialNote[] | null = null;
-  try {
-    const raw = localStorage.getItem(storageKey);
-    if (raw) {
-      loadedNotes = JSON.parse(raw);
-    }
-  } catch (e) {
-    console.warn('Could not parse cached tomorrow notes:', e);
-  }
 
-  // 2. Check server /api/planner-data (Centralized cross-device sync)
-  if (!loadedNotes) {
-    try {
-      const res = await fetch('/api/planner-data');
-      if (res.ok) {
-        const data = await res.json();
-        if (data && Array.isArray(data.tomorrowNotes) && data.tomorrowNotes.length > 0) {
-          const matching = data.tomorrowNotes.filter(
-            (n: any) => Number(n.block || 1) === Number(block) && Number(n.week || 1) === Number(week)
-          );
-          if (matching.length > 0) {
-            loadedNotes = matching;
-            try {
-              localStorage.setItem(storageKey, JSON.stringify(matching));
-            } catch {}
-          }
+  // 1. Check server /api/planner-data first (Centralized cross-device sync)
+  try {
+    const res = await fetch('/api/planner-data');
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.tomorrowNotes) && data.tomorrowNotes.length > 0) {
+        const matching = data.tomorrowNotes.filter(
+          (n: any) => Number(n.block || 1) === Number(block) && Number(n.week || 1) === Number(week)
+        );
+        if (matching.length > 0) {
+          loadedNotes = matching;
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(matching));
+          } catch {}
         }
       }
+    }
+  } catch (e) {
+    console.warn('Could not fetch tomorrow notes from /api/planner-data, checking local cache:', e);
+  }
+
+  // 2. Fallback to local cache if offline or empty
+  if (!loadedNotes) {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        loadedNotes = JSON.parse(raw);
+      }
     } catch (e) {
-      console.warn('Could not fetch tomorrow notes from /api/planner-data:', e);
+      console.warn('Could not parse cached tomorrow notes:', e);
     }
   }
 
