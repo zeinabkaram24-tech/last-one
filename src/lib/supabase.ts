@@ -175,6 +175,40 @@ export async function syncSupabaseConfigWithServer(): Promise<boolean> {
   return false;
 }
 
+export async function syncLocalDataToServer(): Promise<void> {
+  try {
+    const localCw = getLocalCustomClasswork();
+    const localHw = getLocalCustomHomework();
+    if (localCw.length > 0 || localHw.length > 0) {
+      const dataRes = await fetch('/api/planner-data');
+      if (dataRes.ok) {
+        const srvData = await dataRes.json();
+        const serverCwEmpty = !srvData || !Array.isArray(srvData.classwork) || srvData.classwork.length === 0;
+        const serverHwEmpty = !srvData || !Array.isArray(srvData.homework) || srvData.homework.length === 0;
+        
+        if (serverCwEmpty && localCw.length > 0) {
+          console.log('[Sync] Uploading pre-existing local custom classwork to server...');
+          await fetch('/api/planner-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ classwork: localCw, mode: 'merge' }),
+          });
+        }
+        if (serverHwEmpty && localHw.length > 0) {
+          console.log('[Sync] Uploading pre-existing local custom homework to server...');
+          await fetch('/api/planner-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ homework: localHw, mode: 'merge' }),
+          });
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[Sync] Local data upload failed:', e);
+  }
+}
+
 // Database Row Types (snake_case in Supabase)
 export interface ClassworkRow {
   id: string;

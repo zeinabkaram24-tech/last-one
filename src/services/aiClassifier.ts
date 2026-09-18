@@ -385,16 +385,13 @@ export async function parseWeeklyPlanWithAI(
 
     if (response.ok) {
       const serverData = await response.json();
-      // Only accept if successfully parsed via AI (not falling back to static/heuristic mode)
-      if (serverData && serverData.success && !serverData.fallbackMode) {
-        console.log('[Smart Reader] Server-side parsing completed successfully via Gemini API on backend!');
+      if (serverData && serverData.success) {
+        console.log('[Smart Reader] Server-side parsing completed successfully (AI or heuristic)!');
         return {
           classwork: serverData.classwork || [],
           homework: serverData.homework || [],
           tomorrowNotes: serverData.tomorrowNotes || [],
         };
-      } else {
-        console.warn('[Smart Reader] Server-side API returned fallback/heuristic mode, trying direct client-side Gemini fallback...');
       }
     } else {
       console.warn('[Smart Reader] Server-side API returned non-OK status:', response.status);
@@ -407,8 +404,8 @@ export async function parseWeeklyPlanWithAI(
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
   if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
-    alert('تنبيه: مفتاح الـ API الخاص بـ Gemini (VITE_GEMINI_API_KEY) غير موجود في المتغيرات الافتراضية. يرجى تهيئة المفتاح في الإعدادات أو تشغيل التطبيق في البيئة الافتراضية لربط القارئ الذكي.');
-    throw new Error('VITE_GEMINI_API_KEY is missing or undefined.');
+    console.warn('[Smart Reader] VITE_GEMINI_API_KEY is not defined. Falling back to fast client-side heuristic parser.');
+    return fallbackClientParser(planText, classId, block, week);
   }
 
   try {
@@ -547,7 +544,8 @@ Return ONLY JSON block formatted like:
 
   } catch (err: any) {
     console.error('Gemini API error detailed:', err);
-    throw new Error(err.message || 'خطأ غير متوقع أثناء الاتصال بـ Gemini API');
+    console.warn('[Smart Reader] Client Gemini API call threw an error. Falling back to client-side heuristic parser.');
+    return fallbackClientParser(planText, classId, block, week);
   }
 }
 
