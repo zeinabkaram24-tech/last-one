@@ -18,6 +18,21 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/materials', express.static(path.join(process.cwd(), 'public', 'materials')));
 
+app.get('/materials/:fileName', (req, res, next) => {
+  const fileName = path.basename(req.params.fileName);
+  const pubPath = path.join(process.cwd(), 'public', 'materials', fileName);
+  const upPath = path.join(process.cwd(), 'uploads', 'materials', fileName);
+  const target = fs.existsSync(pubPath) ? pubPath : (fs.existsSync(upPath) ? upPath : null);
+
+  if (target) {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+    res.removeHeader('X-Frame-Options');
+    return res.sendFile(target);
+  }
+  next();
+});
+
 // Directories for server-side persistence
 const DATA_DIR = path.join(process.cwd(), 'data');
 const MATERIALS_DIR = path.join(process.cwd(), 'uploads', 'materials');

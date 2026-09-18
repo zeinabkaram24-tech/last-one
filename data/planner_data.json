@@ -938,32 +938,6 @@
       "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
-      "id": "tn-b1-w3-G2A-Sat-social-submit-reminder",
-      "classId": "G2A",
-      "targetDay": "Saturday",
-      "subject": "Social Studies",
-      "note": "تذكير: تسليم واجب الدراسات الاجتماعية غداً أول حصة في الأسبوع (يوم الأحد)",
-      "arabicNote": "تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية غداً (الأحد) أول حصة في الأسبوع",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 3,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
-    },
-    {
-      "id": "tn-b1-w3-G2C-Sat-social-submit-reminder",
-      "classId": "G2C",
-      "targetDay": "Saturday",
-      "subject": "Social Studies",
-      "note": "تذكير: تسليم واجب الدراسات الاجتماعية غداً أول حصة في الأسبوع (يوم الأحد)",
-      "arabicNote": "تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية غداً (الأحد) أول حصة في الأسبوع",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 3,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
-    },
-    {
       "id": "tn-b1-w3-G2A-Sun-social-submit-due",
       "classId": "G2A",
       "targetDay": "Sunday",
