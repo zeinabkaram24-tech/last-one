@@ -41,7 +41,10 @@ export async function getTomorrowNotesForDay(
 
   // 1. Check server /api/planner-data first (Centralized cross-device sync)
   try {
-    const res = await fetch('/api/planner-data');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const res = await fetch('/api/planner-data', { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (res.ok) {
       const data = await res.json();
       if (data && Array.isArray(data.tomorrowNotes)) {

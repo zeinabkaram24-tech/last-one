@@ -62,6 +62,23 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   };
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
+    // Check local storage cached notes first for instant 0ms render
+    const storageKey = `nile_tomorrow_notes_${currentBlock}_${currentWeek}`;
+    try {
+      const rawStored = localStorage.getItem(storageKey);
+      if (rawStored) {
+        const parsed = JSON.parse(rawStored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const filtered = parsed.filter(
+            (n) => (n.classId === currentClass || n.classId === 'ALL') && n.targetDay === tomorrowDay
+          );
+          if (filtered.length > 0) {
+            return filtered.filter((n) => !isDisallowedTomorrowItem(n));
+          }
+        }
+      }
+    } catch {}
+
     const raw =
       currentBlock === 1 && currentWeek === 2
         ? WEEK2_SPECIAL_NOTES.filter(

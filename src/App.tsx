@@ -47,6 +47,8 @@ import {
   syncSupabaseConfigWithServer,
   syncLocalDataToServer,
   saveActiveSupabaseConfig,
+  getLocalCustomClasswork,
+  getLocalCustomHomework,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -58,34 +60,38 @@ const STORAGE_KEYS = {
 };
 
 function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
+  const cached = getLocalCustomClasswork();
+  const source = cached && cached.length > 0 ? cached : INITIAL_CLASSWORK;
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
-    return INITIAL_CLASSWORK.map((c) => ({
+    return source.map((c) => ({
       ...c,
       completed: set.has(c.id),
     }));
   }
   const guestProgress = getGuestProgress();
   const guestSet = new Set(guestProgress.completedClassworkIds);
-  return INITIAL_CLASSWORK.map((c) => ({
+  return source.map((c) => ({
     ...c,
     completed: guestSet.has(c.id),
   }));
 }
 
 function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
+  const cached = getLocalCustomHomework();
+  const source = cached && cached.length > 0 ? cached : INITIAL_HOMEWORK;
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedHomeworkIds);
-    return INITIAL_HOMEWORK.map((h) => ({
+    return source.map((h) => ({
       ...h,
       completed: set.has(h.id),
     }));
   }
   const guestProgress = getGuestProgress();
   const guestSet = new Set(guestProgress.completedHomeworkIds);
-  return INITIAL_HOMEWORK.map((h) => ({
+  return source.map((h) => ({
     ...h,
     completed: guestSet.has(h.id),
   }));
@@ -221,31 +227,28 @@ export default function App() {
 
     async function initializeFromSupabase() {
       try {
-        // Sync local data to the server if there is any offline/unbacked local custom classwork/homework on the laptop
-        await syncLocalDataToServer();
-
-        // Sync Supabase config from server first to replicate Laptop credentials on Mobile
-        const configReplicated = await syncSupabaseConfigWithServer();
-        if (configReplicated) {
-          console.log('[Supabase Sync] Synchronized credentials from Express server successfully!');
-        }
-
         if (isSupabaseConfigured) {
           setSupabaseStatus('connecting');
-          const seedResult = await seedInitialDataIfEmpty();
-          if (seedResult.seeded) {
-            console.log('✅ Initial data automatically seeded into Supabase tables.');
-          }
         } else {
           setSupabaseStatus('unconfigured');
         }
 
-        // Fetch classwork, homework, and planner settings from centralized server / Supabase
+        // Fetch classwork, homework, and planner settings IMMEDIATELY in parallel
         const [cwData, hwData, settings] = await Promise.all([
           fetchAllClasswork(),
           fetchAllHomework(),
           fetchPlannerSettings(),
         ]);
+
+        // Background non-blocking tasks: credentials sync, local data sync, and lazy seeding
+        Promise.allSettled([
+          syncLocalDataToServer(),
+          syncSupabaseConfigWithServer(),
+        ]).then(() => {
+          if (isSupabaseConfigured && (!cwData || cwData.length === 0) && (!hwData || hwData.length === 0)) {
+            seedInitialDataIfEmpty().catch(() => {});
+          }
+        }).catch(() => {});
 
         if (!isMounted) return;
 
