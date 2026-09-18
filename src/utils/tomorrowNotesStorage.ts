@@ -37,18 +37,21 @@ export async function getTomorrowNotesForDay(
   const storageKey = `${LOCAL_STORAGE_PREFIX}${block}_${week}`;
 
   let loadedNotes: TomorrowSpecialNote[] | null = null;
+  let fetchedFromServer = false;
 
   // 1. Check server /api/planner-data first (Centralized cross-device sync)
   try {
     const res = await fetch('/api/planner-data');
     if (res.ok) {
       const data = await res.json();
-      if (data && Array.isArray(data.tomorrowNotes) && data.tomorrowNotes.length > 0) {
+      if (data && Array.isArray(data.tomorrowNotes)) {
         const matching = data.tomorrowNotes.filter(
           (n: any) => Number(n.block || 1) === Number(block) && Number(n.week || 1) === Number(week)
         );
-        if (matching.length > 0) {
+        // If server returned tomorrowNotes, trust it as the source of truth
+        if (data.tomorrowNotes.length > 0) {
           loadedNotes = matching;
+          fetchedFromServer = true;
           try {
             localStorage.setItem(storageKey, JSON.stringify(matching));
           } catch {}
@@ -59,8 +62,8 @@ export async function getTomorrowNotesForDay(
     console.warn('Could not fetch tomorrow notes from /api/planner-data, checking local cache:', e);
   }
 
-  // 2. Fallback to local cache if offline or empty
-  if (!loadedNotes) {
+  // 2. Fallback to local cache only if not fetched from server
+  if (!fetchedFromServer && !loadedNotes) {
     try {
       const raw = localStorage.getItem(storageKey);
       if (raw) {
@@ -71,8 +74,8 @@ export async function getTomorrowNotesForDay(
     }
   }
 
-  // 3. If still not found, check Supabase planner_settings
-  if (!loadedNotes) {
+  // 3. If still not found and not fetched from server, check Supabase planner_settings
+  if (!fetchedFromServer && !loadedNotes) {
     try {
       const settings = await fetchPlannerSettings();
       const settingKey = `tomorrow_notes_${block}_${week}`;

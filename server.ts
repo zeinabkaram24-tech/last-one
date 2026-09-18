@@ -254,19 +254,22 @@ app.post('/api/planner-data', (req, res) => {
       }
 
       if (Array.isArray(tomorrowNotes) && tomorrowNotes.length > 0) {
-        const targetKeys = new Set(
-          tomorrowNotes.map((n: any) => `${n.block || 1}-${n.week || 1}-${n.classId}-${normalizeSubject(n.subject)}`)
-        );
+        // When replacing tomorrow notes for a specific block and week
+        const incomingBlock = tomorrowNotes[0].block || 1;
+        const incomingWeek = tomorrowNotes[0].week || 2;
+        const incomingClassId = tomorrowNotes[0].classId || 'G2B';
+
         current.tomorrowNotes = current.tomorrowNotes.filter(
-          (n: any) => !targetKeys.has(`${n.block || 1}-${n.week || 1}-${n.classId}-${normalizeSubject(n.subject)}`)
+          (n: any) => !(Number(n.block || 1) === Number(incomingBlock) && Number(n.week || 1) === Number(incomingWeek) && n.classId === incomingClassId)
         );
+
         const notesMap = new Map<string, any>();
         current.tomorrowNotes.forEach((n: any) => {
-          const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
+          const key = n.id || `${n.classId}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${n.note.slice(0, 20)}`;
           notesMap.set(key, n);
         });
         tomorrowNotes.forEach((n: any) => {
-          const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
+          const key = n.id || `${n.classId}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${n.note.slice(0, 20)}`;
           notesMap.set(key, n);
         });
         current.tomorrowNotes = Array.from(notesMap.values());
@@ -290,11 +293,11 @@ app.post('/api/planner-data', (req, res) => {
       if (Array.isArray(tomorrowNotes)) {
         const notesMap = new Map<string, any>();
         current.tomorrowNotes.forEach((n: any) => {
-          const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
+          const key = n.id || `${n.classId}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${n.note.slice(0, 20)}`;
           notesMap.set(key, n);
         });
         tomorrowNotes.forEach((n: any) => {
-          const key = `${n.classId}-${n.targetDay}-${n.block}-${n.week}-${n.subject}`;
+          const key = n.id || `${n.classId}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${n.note.slice(0, 20)}`;
           notesMap.set(key, n);
         });
         current.tomorrowNotes = Array.from(notesMap.values());
@@ -726,6 +729,7 @@ function postProcessParsedPlan(
       seenNoteKeys.add(dedupeKey);
 
       tomorrowNotes.push({
+        id: `tomorrow-b${block}-w${itemWeek}-${classId}-${normSub.toLowerCase()}-${targetDay}-${Math.random().toString(36).substring(2, 7)}`,
         classId,
         targetDay,
         subject: normSub,

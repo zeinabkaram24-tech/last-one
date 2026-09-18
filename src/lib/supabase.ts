@@ -447,8 +447,12 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
             uniqueMap.set(item.id, item);
           }
         });
-        // Return pure Supabase cloud data without merging localStorage or baseline!
-        return Array.from(uniqueMap.values());
+        const finalData = Array.from(uniqueMap.values());
+        // Sync local cache
+        try {
+          localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(finalData));
+        } catch {}
+        return finalData;
       }
     } catch (err) {
       console.warn('Network exception fetching classwork from Supabase (falling back):', err);
@@ -458,6 +462,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   // Fallback ONLY if Supabase is unconfigured or returns offline/empty
   const localCustom = getLocalCustomClasswork();
   let baseItems = [...INITIAL_CLASSWORK];
+  let fetchedFromServer = false;
 
   // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
   try {
@@ -477,10 +482,20 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
         baseItems.forEach((c) => srvMap.set(c.id, c));
         srvData.classwork.forEach((c: ClassworkEntry) => srvMap.set(c.id, c));
         baseItems = Array.from(srvMap.values());
+        fetchedFromServer = true;
+
+        // Sync local cache to match server data
+        try {
+          localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(srvData.classwork));
+        } catch {}
       }
     }
   } catch (err) {
     // Server fetch fallback
+  }
+
+  if (fetchedFromServer) {
+    return baseItems;
   }
 
   // Also filter out any base items that have been replaced in localCustom
@@ -675,8 +690,12 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
             uniqueMap.set(item.id, item);
           }
         });
-        // Return pure Supabase cloud data without merging localStorage or baseline!
-        return Array.from(uniqueMap.values());
+        const finalData = Array.from(uniqueMap.values());
+        // Sync local cache
+        try {
+          localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(finalData));
+        } catch {}
+        return finalData;
       }
     } catch (err) {
       console.warn('Network exception fetching homework from Supabase (falling back):', err);
@@ -686,6 +705,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   // Fallback ONLY if Supabase is unconfigured or returns offline/empty
   const localCustom = getLocalCustomHomework();
   let baseItems = [...INITIAL_HOMEWORK];
+  let fetchedFromServer = false;
 
   // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
   try {
@@ -705,20 +725,16 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         baseItems.forEach((h) => srvMap.set(h.id, h));
         srvData.homework.forEach((h: HomeworkEntry) => srvMap.set(h.id, h));
         baseItems = Array.from(srvMap.values());
+        fetchedFromServer = true;
+
+        // Sync local cache
+        try {
+          localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(srvData.homework));
+        } catch {}
       }
     }
   } catch (err) {
     // Server fetch fallback
-  }
-
-  // Also filter out any base items that have been replaced in localCustom
-  if (localCustom.length > 0) {
-    const localKeys = new Set(
-      localCustom.map((h) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-    );
-    baseItems = baseItems.filter(
-      (h) => !localKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-    );
   }
 
   // Ensure Tuesday Week 2 Arabic homework is page 47
@@ -744,6 +760,20 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
 
     return item;
   });
+
+  if (fetchedFromServer) {
+    return normalizedBase;
+  }
+
+  // Also filter out any base items that have been replaced in localCustom
+  if (localCustom.length > 0) {
+    const localKeys = new Set(
+      localCustom.map((h) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
+    );
+    baseItems = baseItems.filter(
+      (h) => !localKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
+    );
+  }
 
   // Deduplicate and merge custom local homework over base items ONLY in offline fallback
   const map = new Map<string, HomeworkEntry>();
