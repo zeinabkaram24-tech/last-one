@@ -13,6 +13,7 @@ import { StudentAuthModal } from './components/StudentAuthModal';
 import { AdminAuthModal } from './components/AdminAuthModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { MaterialsModal } from './components/MaterialsModal';
+import { PdfViewerModal } from './components/PdfViewerModal';
 import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 import { InteractiveEditorModal } from './components/InteractiveEditorModal';
 import { notifyTomorrowNotesListeners, saveTomorrowNotes } from './utils/tomorrowNotesStorage';
@@ -1003,6 +1004,9 @@ export default function App() {
         currentBlock={currentBlock}
         currentWeek={currentWeek}
       />
+
+      {/* Guaranteed In-App PDF Viewer Modal */}
+      <PdfViewerModal />
 
       {/* Supabase Cloud Connection & Persistent Credentials Modal */}
       <SupabaseConfigModal

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Sparkles, BookOpen, ExternalLink, Pencil, Trash, Plus } from 'lucide-react';
+import { Sparkles, BookOpen, ExternalLink, Pencil, Trash, Plus, AlertTriangle } from 'lucide-react';
 import { ClassId, SchoolDay, PeriodSlot, TomorrowSpecialNote, HomeworkEntry, ClassworkEntry } from '../types';
 import {
   CLASS_TIMETABLES,
@@ -49,44 +49,40 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Tomorrow's target day based on the active selected day
   const tomorrowDay: SchoolDay = NEXT_SCHOOL_DAY[selectedDay] || 'Sunday';
 
-  // Effective week for notes: On Saturday, always take notes from Thursday of the previous week (currentWeek - 1)
-  const effectiveWeek = selectedDay === 'Saturday' ? Math.max(1, currentWeek - 1) : currentWeek;
-
-  // Tomorrow's timetable periods (8 periods)
+  // Tomorrow's timetable periods (the 8 periods)
   const targetPeriods: PeriodSlot[] = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
 
-  // Helper to determine whether an item is a Quiz, Test, Exam, or Dictation
+  // Helper to determine whether an item is a Quiz or Test
   const isQuizOrTest = (n: TomorrowSpecialNote) => {
     if (n.isQuiz || n.categoryType === 'quiz') return true;
-    const text = (n.note + ' ' + (n.arabicNote || '')).toLowerCase();
+    const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
     return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(text);
   };
 
-  // Strictly filter out any unauthorized whiteboard, marker, 100 chart, or math notebook notes
-  const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
-    const combined = (
-      (n.note || '') + ' ' +
-      (n.arabicNote || '') + ' ' +
-      (n.bagItem || '')
-    ).toLowerCase();
-
-    if (
-      combined.includes('white board') ||
-      combined.includes('whiteboard') ||
-      combined.includes('سبورة بيضاء') ||
-      combined.includes('لوحة بيضاء') ||
-      combined.includes('100 chart') ||
-      combined.includes('مخطط المائة') ||
-      combined.includes('مخطط الـ 100') ||
-      combined.includes('كشكول الماس')
-    ) {
-      return true;
-    }
-
-    if (isQuizOrTest(n) || n.bagItem) return false;
-    const trimmed = combined.trim();
-    return trimmed.startsWith('hw:') || trimmed.startsWith('homework:') || trimmed.startsWith('واجب:');
+  // User mandate: strictly remove any fabricated math supplies notes (whiteboard, 100 chart, markers, etc.)
+  const isFabricatedMathNote = (n: TomorrowSpecialNote) => {
+    const text = ((n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.bagItem || '')).toLowerCase();
+    return (
+      text.includes('white board') ||
+      text.includes('whiteboard') ||
+      text.includes('سبورة بيضاء') ||
+      text.includes('100 chart') ||
+      text.includes('مخطط المائة') ||
+      text.includes('مخطط الـ 100') ||
+      (text.includes('كشكول الماث') && !n.isQuiz)
+    );
   };
+
+  // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items / quizzes, strictly excluding plain homework)
+  const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
+    if (isFabricatedMathNote(n)) return true;
+    if (isQuizOrTest(n) || n.bagItem) return false;
+    const lower = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase().trim();
+    return lower.startsWith('hw:') || lower.startsWith('homework:') || lower.startsWith('واجب:');
+  };
+
+  // Saturday rule: On Saturday (preparing for Sunday), take notes from previous week's Thursday
+  const effectiveWeek = tomorrowDay === 'Sunday' && currentWeek > 1 ? currentWeek - 1 : currentWeek;
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
     const base =
@@ -103,6 +99,28 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           )
         : [];
 
+    // Check local storage cached notes first for instant 0ms render
+    const storageKey = `nile_tomorrow_notes_${currentBlock}_${effectiveWeek}`;
+    try {
+      const rawStored = localStorage.getItem(storageKey);
+      let parsedList: TomorrowSpecialNote[] = [];
+      if (rawStored) {
+        const parsed = JSON.parse(rawStored);
+        if (Array.isArray(parsed)) {
+          parsedList = parsed.filter(
+            (n) => (n.classId === currentClass || n.classId === 'ALL') && n.targetDay === tomorrowDay
+          );
+        }
+      }
+
+      if (parsedList.length > 0) {
+        const map = new Map<string, TomorrowSpecialNote>();
+        base.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`, n));
+        parsedList.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`, n));
+        return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));
+      }
+    } catch {}
+
     return base.filter((n) => !isDisallowedTomorrowItem(n));
   });
 
@@ -112,7 +130,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       try {
         const notes = await getTomorrowNotesForDay(
           currentBlock,
-          effectiveWeek,
+          currentWeek,
           currentClass,
           tomorrowDay
         );
@@ -130,105 +148,77 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       isMounted = false;
       unsubscribe();
     };
-  }, [currentBlock, effectiveWeek, currentClass, tomorrowDay]);
+  }, [currentBlock, currentWeek, currentClass, tomorrowDay]);
 
-  // Badge and styling information for each note
-  // Strictly enforce:
-  // 1. Tests/exams/quizzes/dictations MUST be in RED.
-  // 2. Arabic dictation is strictly labeled "إملاء" (without "Dictation").
-  // 3. English dictation is labeled "Dictation".
   const getNoteBadgeInfo = (note: TomorrowSpecialNote) => {
     const quiz = isQuizOrTest(note);
-    const fullText = (note.note + ' ' + (note.arabicNote || '')).toLowerCase();
-
-    const isArabicSubject = note.subject === 'Arabic' || fullText.includes('لغة عربية') || fullText.includes('عربي');
-    const isEnglishSubject = note.subject === 'English' || fullText.includes('english') || fullText.includes('إنجليزي');
-
-    const hasDictationWord = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');
+    const fullText = ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase();
+    const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');
+    const isArabic = note.subject === 'Arabic' || fullText.includes('عربي') || fullText.includes('عربية');
+    const isEnglish = note.subject === 'English' || fullText.includes('english');
 
     if (quiz) {
-      let badgeLabel = '🚨 اختبار';
-      if (hasDictationWord) {
-        if (isEnglishSubject) {
-          badgeLabel = '✍️ Dictation';
-        } else {
-          // Strictly "إملاء" for Arabic per user requirement
-          badgeLabel = '✍️ إملاء';
-        }
-      } else if (fullText.includes('كويز') || fullText.includes('quiz')) {
-        badgeLabel = '🚨 كويز';
-      } else if (fullText.includes('امتحان')) {
-        badgeLabel = '🚨 امتحان';
+      // User directive: Arabic dictation is strictly 'إملاء' (NO 'Dictation'), English dictation is 'Dictation'
+      let label = '🚨 اختبار';
+      if (isDictation) {
+        label = isArabic ? '✍️ إملاء' : isEnglish ? '✍️ Dictation' : '✍️ إملاء';
+      } else if (note.subject === 'French') {
+        label = '🇫🇷 كويز فرنسي';
+      } else if (note.subject === 'Mathematics' || note.subject === 'Math') {
+        label = '📐 اختبار رياضيات';
+      } else if (fullText.includes('quiz') || fullText.includes('كويز')) {
+        label = '🚨 كويز';
       }
 
       return {
-        isAlert: true,
-        label: badgeLabel,
+        label,
         badgeClass: 'bg-rose-600 text-white font-black shadow-xs',
-        cardClass: 'bg-rose-50 border-2 border-rose-300 ring-1 ring-rose-200 text-rose-950',
-        textColor: 'text-rose-950',
-        bagItemClass: 'text-rose-950 bg-white border border-rose-200',
+        cardClass: 'bg-rose-50 border-2 border-rose-500 text-rose-950 font-bold shadow-xs',
         subjectName:
           note.subject === 'French'
-            ? 'French / لغة فرنسية'
+            ? 'لغة فرنسية'
             : note.subject === 'Mathematics' || note.subject === 'Math'
-            ? 'Mathematics / رياضيات'
+            ? 'رياضيات'
             : note.subject === 'Social Studies'
             ? 'الدراسات الاجتماعية'
             : note.subject === 'Arabic'
             ? 'اللغة العربية'
-            : note.subject === 'English'
-            ? 'اللغة الإنجليزية'
             : note.subject,
+        isAlert: true,
       };
     }
 
     if (note.subject === 'French') {
       return {
-        isAlert: false,
         label: 'Remarque',
-        badgeClass: 'bg-purple-100 text-purple-950 font-black border border-purple-200',
-        cardClass: 'bg-purple-50/50 border border-purple-200/80 shadow-2xs text-slate-900',
-        textColor: 'text-slate-900',
-        bagItemClass: 'text-purple-950 bg-white border border-purple-200',
+        badgeClass: 'bg-purple-100 text-purple-950 font-black',
+        cardClass: 'bg-purple-50/50 border border-purple-200/80 shadow-2xs',
         subjectName: 'French',
-      };
-    }
-
-    if (note.subject === 'Arabic' || note.subject === 'Social Studies') {
-      const isArabic = note.subject === 'Arabic';
-      return {
         isAlert: false,
-        label: 'ملاحظات',
-        badgeClass: isArabic
-          ? 'bg-emerald-100 text-emerald-950 font-black border border-emerald-200'
-          : 'bg-amber-100 text-amber-950 font-black border border-amber-200',
-        cardClass: isArabic
-          ? 'bg-emerald-50/40 border border-emerald-200/80 shadow-2xs text-slate-900'
-          : 'bg-amber-50/50 border border-amber-200/80 shadow-2xs text-slate-900',
-        textColor: 'text-slate-900',
-        bagItemClass: isArabic
-          ? 'text-emerald-950 bg-white border border-emerald-200'
-          : 'text-amber-950 bg-white border border-amber-200',
-        subjectName: isArabic ? 'اللغة العربية' : 'الدراسات الاجتماعية',
       };
     }
-
+    if (note.subject === 'Arabic' || note.subject === 'Social Studies') {
+      return {
+        label: 'ملاحظات',
+        badgeClass: note.subject === 'Arabic' ? 'bg-emerald-100 text-emerald-950 font-black' : 'bg-amber-100 text-amber-950 font-black',
+        cardClass: note.subject === 'Arabic' ? 'bg-emerald-50/40 border border-emerald-200/80 shadow-2xs' : 'bg-amber-50/50 border border-amber-200/80 shadow-2xs',
+        subjectName: note.subject === 'Social Studies' ? 'الدراسات الاجتماعية' : 'اللغة العربية',
+        isAlert: false,
+      };
+    }
     return {
-      isAlert: false,
-      label: 'Notes',
-      badgeClass: 'bg-blue-100 text-blue-950 font-black border border-blue-200',
-      cardClass: 'bg-slate-50 border border-slate-200 shadow-2xs text-slate-900',
-      textColor: 'text-slate-900',
-      bagItemClass: 'text-slate-900 bg-white border border-slate-200',
+      label: 'ملاحظات',
+      badgeClass: 'bg-blue-100 text-blue-950 font-black',
+      cardClass: 'bg-slate-50 border border-slate-200 shadow-2xs',
       subjectName: note.subject,
+      isAlert: false,
     };
   };
 
-  // Automatically link tests/quizzes/dictations from homework and classwork
-  // Strictly for Block 1 Week 3 per user instructions
+  // Automatically link and synchronize tests/quizzes/dictations from homework and classwork (strictly for Block 1 Week 3 per instructions)
   const linkedAlerts = useMemo<TomorrowSpecialNote[]>(() => {
-    if (currentBlock !== 1 || effectiveWeek !== 3) {
+    // Only apply for Block 1 Week 3
+    if (currentBlock !== 1 || currentWeek !== 3) {
       return [];
     }
 
@@ -238,9 +228,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     };
 
     // 1. Linked from Homework:
+    // If any homework item for this class mentions a test/quiz/dictation and is due/assigned for tomorrowDay
     homeworkList.forEach((h) => {
       if (h.classId !== currentClass && (h.classId as any) !== 'ALL') return;
-      if (h.week && h.week !== effectiveWeek) return;
+      if (h.week && h.week !== currentWeek) return;
 
       const isForTomorrow = h.dueDay === tomorrowDay || h.assignedDay === tomorrowDay;
       const fullText = `${h.task} ${h.details || ''} ${h.subject}`;
@@ -256,17 +247,18 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           isQuiz: true,
           categoryType: 'quiz',
           block: currentBlock,
-          week: effectiveWeek,
+          week: currentWeek,
           pdfUrl: h.pdfUrl,
         });
       }
     });
 
     // 2. Linked from Classwork:
+    // If any classwork on tomorrowDay mentions a test/quiz/dictation
     classworkList.forEach((cw) => {
       if (cw.classId !== currentClass && (cw.classId as any) !== 'ALL') return;
       if (cw.day !== tomorrowDay) return;
-      if (cw.week && cw.week !== effectiveWeek) return;
+      if (cw.week && cw.week !== currentWeek) return;
 
       const fullText = `${cw.title} ${cw.details || ''} ${cw.subject}`;
       if (checkText(fullText)) {
@@ -281,13 +273,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           isQuiz: true,
           categoryType: 'quiz',
           block: currentBlock,
-          week: effectiveWeek,
+          week: currentWeek,
         });
       }
     });
 
     return alerts;
-  }, [homeworkList, classworkList, currentClass, tomorrowDay, effectiveWeek, currentBlock]);
+  }, [homeworkList, classworkList, currentClass, tomorrowDay, currentWeek, currentBlock]);
 
   // Merge tomorrowNotes with linkedAlerts without duplicates
   const mergedNotes = useMemo<TomorrowSpecialNote[]>(() => {
@@ -299,6 +291,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     });
 
     linkedAlerts.forEach((la) => {
+      // If a quiz note for this subject already exists in tomorrowNotes, don't duplicate
       const hasExistingSubjectQuiz = tomorrowNotes.some(
         (n) => n.subject === la.subject && isQuizOrTest(n)
       );
@@ -310,7 +303,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));
   }, [tomorrowNotes, linkedAlerts]);
 
-  // Sort notes: Tests, exams, quizzes, and dictation appear at the top of the notes section
+  // Prioritize quizzes and tests to appear first in the notes list
   const sortedNotes = useMemo(() => {
     return [...mergedNotes].sort((a, b) => {
       const aQuiz = isQuizOrTest(a) ? 1 : 0;
@@ -320,11 +313,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   }, [mergedNotes]);
 
   return (
-    <div className="space-y-4" dir="rtl">
-      {/* 
-        Rule 1 & 2: The very FIRST element is the Timetable box (جدول حصص الغد).
-        No duplicate banners above. All alerts and notes go directly underneath in the notes section.
-      */}
+    <div className="space-y-4">
+      {/* First: 2x4 Grid of Subject Blocks (8 periods) - جدول حصص الغد أولاً */}
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex items-center justify-between pb-1 border-b border-slate-100">
           <span className="text-sm font-black text-slate-900">
@@ -363,22 +353,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         )}
       </div>
 
-      {/* 
-        Rule 3: Notes & Alerts Section Directly Underneath the Table.
-        - Tests, exams, quizzes, and dictation are styled in RED.
-        - Arabic dictation is labeled "إملاء" only.
-        - No duplication.
-      */}
+      {/* Second: Block for Notes Underneath (ملاحظات وتحذيرات حصص الغد - كويزات واختبارات باللون الأحمر) */}
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex items-center justify-between pb-1 border-b border-slate-100 flex-wrap gap-2">
-          <div className="flex items-center gap-2 text-slate-900 font-black text-xs sm:text-sm">
-            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>الملاحظات ليوم {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})</span>
-            {selectedDay === 'Saturday' && (
-              <span className="text-[11px] font-semibold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
-                (تكرار تجهيز يوم الخميس)
-              </span>
-            )}
+          <div className="flex items-center gap-2 text-amber-950 font-black text-xs sm:text-sm">
+            <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>الملاحظات والإنذارات ليوم {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})</span>
           </div>
           {isAdminEditMode && onAddTomorrowNote && (
             <button
@@ -392,7 +372,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         </div>
 
         {sortedNotes.length === 0 ? (
-          <div className="py-5 px-3 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center">
+          <div className="py-4 px-3 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center">
             <p className="text-xs text-slate-400 font-semibold">
               لا توجد ملاحظات خاصة مسجلة ليوم {ARABIC_DAY_NAMES[tomorrowDay]} في الخطة الأسبوعية
             </p>
@@ -404,18 +384,17 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
               return (
                 <div
                   key={note.id || `${note.subject}-${note.targetDay}-${idx}`}
-                  className={`rounded-xl p-3 sm:p-3.5 transition-all space-y-2 text-xs ${badgeInfo.cardClass}`}
+                  className={`rounded-2xl p-3.5 sm:p-4 transition-all space-y-2 text-xs ${badgeInfo.cardClass}`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                      <span className={`px-2.5 py-0.5 rounded-md text-[11px] shrink-0 ${badgeInfo.badgeClass}`}>
+                  <div className="flex items-start justify-between gap-3 text-slate-900">
+                    <div className="flex items-start gap-2.5 flex-1">
+                      <span className={`px-2.5 py-1 rounded-lg text-[11px] shrink-0 ${badgeInfo.badgeClass}`}>
                         {badgeInfo.label} • {badgeInfo.subjectName}
                       </span>
-                      <span className={`font-bold leading-relaxed pt-0.5 ${badgeInfo.textColor}`}>
+                      <span className={`leading-relaxed text-xs sm:text-sm ${badgeInfo.isAlert ? 'font-black text-rose-950' : 'font-bold text-slate-900'}`}>
                         {note.arabicNote || note.note}
                       </span>
                     </div>
-
                     {isAdminEditMode && (
                       <div className="flex items-center gap-1 shrink-0">
                         <button
@@ -439,30 +418,30 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                       </div>
                     )}
                   </div>
-
                   {note.bagItem && (
-                    <div className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg inline-block ${badgeInfo.bagItemClass}`}>
-                      🎒 الأدوات المطلوبة: {note.bagItem}
+                    <div className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg inline-block ${
+                      badgeInfo.isAlert
+                        ? 'text-rose-900 bg-white border border-rose-200'
+                        : 'text-amber-950 bg-white border border-amber-200/90'
+                    }`}>
+                      الأدوات المطلوبة: {note.bagItem}
                     </div>
                   )}
-
                   {note.linkUrl && (
-                    <div className="pt-0.5 flex">
+                    <div className="pt-1 flex">
                       <a
                         href={note.linkUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-black bg-blue-50 text-blue-950 border border-blue-200 hover:bg-blue-100 transition-colors shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black bg-blue-50 text-blue-950 border border-blue-200 hover:bg-blue-100 transition-colors shadow-2xs"
                       >
                         <ExternalLink className="w-3 h-3 text-blue-700" />
                         <span>{note.linkTitle || 'رابط مرفق 🔗'}</span>
                       </a>
                     </div>
                   )}
-
-                  {/* Clean PDF Attachment Row */}
                   {note.pdfUrl && (
-                    <div className="pt-1">
+                    <div className="pt-2">
                       <AttachmentPdfCard
                         pdfUrl={note.pdfUrl}
                         subject={note.subject}

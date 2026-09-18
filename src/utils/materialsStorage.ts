@@ -338,16 +338,21 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
   };
 }
 
-// Open PDF or Link directly in a new browser tab (supports linkUrl, storageUrl, server endpoint, and dataUrl)
+// Open PDF or Link directly in our guaranteed In-App Viewer Modal with fallback
 export function openPdfItem(item: MaterialItem): void {
   try {
+    // 1. Dispatch custom event to open In-App PDF Viewer Modal (guaranteed in iframe sandbox)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('open_pdf_viewer_modal', { detail: item }));
+    }
+
     const targetUrl =
       item.linkUrl ||
       item.storageUrl ||
       (item.id && item.type !== 'link' ? `/api/materials/${item.id}/file` : null);
 
     if (targetUrl) {
-      // 1. Direct window.open attempt
+      // 2. Direct window.open attempt (as secondary or if popup allowed)
       try {
         const opened = window.open(targetUrl, '_blank', 'noopener,noreferrer');
         if (opened && !opened.closed && typeof opened.closed !== 'undefined') {
@@ -356,43 +361,6 @@ export function openPdfItem(item: MaterialItem): void {
       } catch (err) {
         console.warn('Direct window.open failed:', err);
       }
-
-      // 2. Fallback via synthetic anchor click (bypasses iframe pop-up blockers)
-      try {
-        const a = document.createElement('a');
-        a.href = targetUrl;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        return;
-      } catch (err) {
-        console.warn('Anchor fallback click failed:', err);
-      }
-    }
-
-    if (!item.fileData) {
-      if (targetUrl) {
-        window.open(targetUrl, '_blank');
-      }
-      return;
-    }
-
-    const blob = dataUrlToBlob(item.fileData);
-    const blobUrl = URL.createObjectURL(blob);
-
-    // Attempt direct window.open first
-    const newWin = window.open(blobUrl, '_blank');
-    if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
-      // Fallback via anchor click if window.open was intercepted
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
     }
   } catch (e) {
     console.error('Error opening PDF:', e);

@@ -27,6 +27,19 @@ export function subscribeToTomorrowNotes(callback: () => void): () => void {
   };
 }
 
+export function isDisallowedMathNote(n: TomorrowSpecialNote): boolean {
+  const text = ((n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.bagItem || '')).toLowerCase();
+  return (
+    text.includes('white board') ||
+    text.includes('whiteboard') ||
+    text.includes('سبورة بيضاء') ||
+    text.includes('100 chart') ||
+    text.includes('مخطط المائة') ||
+    text.includes('مخطط الـ 100') ||
+    (text.includes('كشكول الماث') && !n.isQuiz)
+  );
+}
+
 // Get tomorrow notes for a specific day, class, block, and week
 export async function getTomorrowNotesForDay(
   block: number,
@@ -34,7 +47,10 @@ export async function getTomorrowNotesForDay(
   classId: ClassId,
   targetDay: SchoolDay
 ): Promise<TomorrowSpecialNote[]> {
-  const storageKey = `${LOCAL_STORAGE_PREFIX}${block}_${week}`;
+  // Saturday / Sunday rule per user instruction:
+  // On Saturday (preparing for Sunday), take notes from previous week's Thursday (e.g. Week 2 Saturday takes from Week 1)
+  const effectiveWeek = targetDay === 'Sunday' && week > 1 ? week - 1 : week;
+  const storageKey = `${LOCAL_STORAGE_PREFIX}${block}_${effectiveWeek}`;
 
   let loadedNotes: TomorrowSpecialNote[] | null = null;
   let fetchedFromServer = false;
@@ -48,29 +64,12 @@ export async function getTomorrowNotesForDay(
     if (res.ok) {
       const data = await res.json();
       if (data && Array.isArray(data.tomorrowNotes)) {
-        // Match current week's notes
+        // Match effective week's notes
         const matching = data.tomorrowNotes.filter(
-          (n: any) => Number(n.block || 1) === Number(block) && Number(n.week || 1) === Number(week)
+          (n: any) => Number(n.block || 1) === Number(block) && Number(n.week || 1) === Number(effectiveWeek)
         );
 
-        // Always repeat Thursday's Sunday preparation on next Saturday's Tomorrow:
-        // When targetDay is Sunday, merge Sunday notes from adjacent weeks (week-1 and week+1)
-        if (targetDay === 'Sunday') {
-          const crossWeekSundayNotes = data.tomorrowNotes.filter(
-            (n: any) =>
-              Number(n.block || 1) === Number(block) &&
-              (Number(n.week || 1) === Number(week - 1) || Number(n.week || 1) === Number(week + 1)) &&
-              n.targetDay === 'Sunday'
-          );
-          crossWeekSundayNotes.forEach((extra: TomorrowSpecialNote) => {
-            if (!matching.some((m: any) => m.id === extra.id || (m.subject === extra.subject && m.note === extra.note))) {
-              matching.push(extra);
-            }
-          });
-        }
-
-        // If server returned tomorrowNotes, trust it as the source of truth
-        if (data.tomorrowNotes.length > 0) {
+        if (matching.length > 0) {
           loadedNotes = matching;
           fetchedFromServer = true;
           try {
@@ -90,36 +89,6 @@ export async function getTomorrowNotesForDay(
       if (raw) {
         loadedNotes = JSON.parse(raw);
       }
-      // If targetDay is Sunday, also merge cached Sunday notes from adjacent weeks
-      if (targetDay === 'Sunday') {
-        const adjacentKeys = [
-          week > 1 ? `${LOCAL_STORAGE_PREFIX}${block}_${week - 1}` : null,
-          week < 4 ? `${LOCAL_STORAGE_PREFIX}${block}_${week + 1}` : null,
-        ].filter(Boolean) as string[];
-
-        const extraSundayNotes: TomorrowSpecialNote[] = [];
-        adjacentKeys.forEach((key) => {
-          try {
-            const adjRaw = localStorage.getItem(key);
-            if (adjRaw) {
-              const parsed = JSON.parse(adjRaw);
-              if (Array.isArray(parsed)) {
-                parsed
-                  .filter((n) => n.targetDay === 'Sunday')
-                  .forEach((n) => extraSundayNotes.push(n));
-              }
-            }
-          } catch {}
-        });
-
-        if (extraSundayNotes.length > 0) {
-          const currentList = loadedNotes || [];
-          const map = new Map<string, TomorrowSpecialNote>();
-          currentList.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`, n));
-          extraSundayNotes.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`, n));
-          loadedNotes = Array.from(map.values());
-        }
-      }
     } catch (e) {
       console.warn('Could not parse cached tomorrow notes:', e);
     }
@@ -129,7 +98,7 @@ export async function getTomorrowNotesForDay(
   if (!fetchedFromServer && !loadedNotes) {
     try {
       const settings = await fetchPlannerSettings();
-      const settingKey = `tomorrow_notes_${block}_${week}`;
+      const settingKey = `tomorrow_notes_${block}_${effectiveWeek}`;
       if (settings[settingKey]) {
         loadedNotes = JSON.parse(settings[settingKey]);
         if (loadedNotes && Array.isArray(loadedNotes)) {
@@ -141,37 +110,20 @@ export async function getTomorrowNotesForDay(
     }
   }
 
-  // Base official notes for Block/Week
+  // Base official notes for Block/EffectiveWeek
   const baseNotes: TomorrowSpecialNote[] =
-    block === 1 && week === 2
+    block === 1 && effectiveWeek === 2
       ? WEEK2_SPECIAL_NOTES.filter(
           (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
         )
-      : block === 1 && week === 1
+      : block === 1 && effectiveWeek === 1
       ? SPECIAL_TEACHER_NOTES.filter(
           (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay && (n.week === 1 || !n.week)
         )
       : [];
 
-  // When targetDay is Sunday, also merge Sunday base notes from Week 1 and Week 2 so preparations repeat
-  if (targetDay === 'Sunday') {
-    const additionalBase = [
-      ...WEEK2_SPECIAL_NOTES.filter(
-        (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === 'Sunday'
-      ),
-      ...SPECIAL_TEACHER_NOTES.filter(
-        (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === 'Sunday'
-      ),
-    ];
-    additionalBase.forEach((n) => {
-      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-      if (!baseNotes.some((b) => (b.id && b.id === n.id) || `${b.targetDay}-${b.subject}-${(b.note || '').slice(0, 30)}` === key)) {
-        baseNotes.push(n);
-      }
-    });
-  }
-
   // 4. Merge dynamic notes and base notes
+  let result: TomorrowSpecialNote[] = baseNotes;
   if (loadedNotes && Array.isArray(loadedNotes) && loadedNotes.length > 0) {
     const dynamicNotes = loadedNotes.filter(
       (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
@@ -185,11 +137,11 @@ export async function getTomorrowNotesForDay(
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       map.set(key, n);
     });
-    return Array.from(map.values());
+    result = Array.from(map.values());
   }
 
-  // 5. Default Static Fallbacks (Block 1 Week 2 & Block 1 Week 1)
-  return baseNotes;
+  // Filter out any fabricated math items
+  return result.filter((n) => !isDisallowedMathNote(n));
 }
 
 // Save tomorrow notes for a specific block and week
