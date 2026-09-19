@@ -2021,5 +2021,22 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     priority: "normal",
     block: 1,
     week: 3
-  }
+  },
+  // BLOCK 1 - WEEK 3 ENGLISH DICTATION LIST FOR ALL CLASSES & DAYS
+  ...["G2A", "G2B", "G2C"].flatMap((cls) => 
+    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"].map((day) => ({
+      id: `hw-b1-w3-${cls}-dictation-list-${day}`,
+      classId: cls as "G2A" | "G2B" | "G2C",
+      assignedDay: day as any,
+      dueDay: (day === "Thursday" ? "Sunday" : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"][["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"].indexOf(day) + 1]) as any,
+      subject: "English" as any,
+      task: "Dictation list (قائمة كلمات الإملاء)",
+      details: "Block 1 – W3 Dictation list:\n\nWords:\n• Teacher  • Desk  • Chair  • Computer  • Door  • Whiteboard  • Window\n• Pen  • Pencil  • Sharpener  • Eraser  • Table  • Notebook  • Glue\n• Scissors  • Book  • Bookshelf  • Backpack  • Ruler  • Cupboard  • Bookcase\n\nNote: Always start with capital letters.\nPrepared by: Mr. Mostafa Mohammed\nLearning Outcome: R7 use with some support a simple picture dictionary",
+      pages: "Study Sheet (1 of 1)",
+      completed: false,
+      priority: "normal" as any,
+      block: 1,
+      week: 3
+    } as HomeworkEntry))
+  )
 ];

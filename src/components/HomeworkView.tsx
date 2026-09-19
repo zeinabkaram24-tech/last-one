@@ -232,6 +232,12 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                           <span>{hw.pages}</span>
                         </span>
                       )}
+
+                      {(hw.task.toLowerCase().includes('dictation list') || hw.task.includes('كلمات الإملاء')) && (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-black bg-indigo-50 text-indigo-900 border border-indigo-200 shadow-2xs">
+                          <span>Dictation list 📝</span>
+                        </span>
+                      )}
                     </div>
 
                     {/* Task Description */}
@@ -242,6 +248,38 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                     >
                       {hw.task}
                     </p>
+
+                    {/* Elegant Word Cards Grid for Dictation Lists */}
+                    {(hw.task.toLowerCase().includes('dictation list') || hw.task.includes('كلمات الإملاء')) && (
+                      <div className="mt-3 p-3 bg-slate-50/50 rounded-xl border border-slate-150/80 space-y-2">
+                        <div className="flex items-center justify-between text-[11px] font-black text-slate-600 border-b border-slate-100 pb-1.5">
+                          <span className="flex items-center gap-1">🗣️ English Dictation Words:</span>
+                          <span className="text-indigo-700 font-black">21 Words • ٢١ كلمة</span>
+                        </div>
+                        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1.5">
+                          {[
+                            "Teacher", "Desk", "Chair", "Computer", "Door", "Whiteboard", "Window",
+                            "Pen", "Pencil", "Sharpener", "Eraser", "Table", "Notebook", "Glue",
+                            "Scissors", "Book", "Bookshelf", "Backpack", "Ruler", "Cupboard", "Bookcase"
+                          ].map((word) => (
+                            <div
+                              key={word}
+                              className={`px-2.5 py-1.5 text-center rounded-lg border text-xs font-black tracking-wide font-mono transition-all duration-200 hover:scale-[1.03] shadow-3xs ${
+                                hw.completed
+                                  ? 'bg-slate-100/50 border-slate-200 text-slate-400 line-through'
+                                  : 'bg-white border-slate-200 text-slate-800 hover:border-indigo-400 hover:bg-indigo-50/40 hover:text-indigo-950'
+                              }`}
+                            >
+                              {word}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-bold flex justify-between pt-1">
+                          <span>⚠️ Note: Always start with capital letters.</span>
+                          <span>Outcome: R7 picture dictionary</span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* PDF Worksheet if available (using Materials files system) */}
                     {hw.pdfUrl && (
