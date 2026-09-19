@@ -76,6 +76,58 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items / quizzes, strictly excluding plain homework)
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (isFabricatedMathNote(n)) return true;
+
+    // These rules ONLY apply when we are in Week 3
+    if (currentWeek === 3) {
+      // Strict Mathematics/Math rule: Completely disallow Maths notes/alerts/submissions on any day
+      if (n.subject === 'Mathematics' || n.subject === 'Math') {
+        return true;
+      }
+
+      // Strict English rule: ONLY allow dictation ("dictation" or "إملاء") on Monday (Sunday looked ahead), completely block all other English notes/alerts/submissions on any day
+      if (n.subject === 'English') {
+        const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isDictation = fullText.includes('dictation') || fullText.includes('إملاء');
+        if (tomorrowDay === 'Monday' && isDictation) {
+          // Allowed!
+        } else {
+          return true; // Disallowed
+        }
+      }
+
+      // Strict Arabic rule: ONLY allow dictation ("إملاء") notes for Arabic, disallow any other Arabic notes
+      if (n.subject === 'Arabic') {
+        const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');
+        if (!isDictation) {
+          return true;
+        }
+      }
+
+      // Strict user rule for Sunday (Saturday-Tomorrow view):
+      // No notes allowed for Sunday unless:
+      // 1. It's a quiz or test (and French/Maths/English are strictly excluded on Sunday).
+      // 2. It's a Social Studies homework submission for G2A or G2C (which have Social Studies on Sunday).
+      // 3. It's a specific requirement/material requested for Sunday (has a non-empty bagItem).
+      if (tomorrowDay === 'Sunday') {
+        if (n.subject === 'French') {
+          return true; // French is completely disallowed on Sunday
+        }
+
+        const isQuiz = isQuizOrTest(n);
+        const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isSocialStudiesSubmission =
+          n.subject === 'Social Studies' &&
+          (currentClass === 'G2A' || currentClass === 'G2C') &&
+          (fullText.includes('تسليم') || fullText.includes('submission') || fullText.includes('واجب'));
+        const hasBagItem = !!n.bagItem;
+
+        if (!isQuiz && !isSocialStudiesSubmission && !hasBagItem) {
+          return true; // Disallowed
+        }
+      }
+    }
+
     if (isQuizOrTest(n) || n.bagItem) return false;
     const lower = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase().trim();
     if (lower.includes('تسليم') || lower.includes('submission') || lower.includes('استلام') || lower.includes('شيت') || lower.includes('sheet')) return false;
@@ -514,7 +566,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                       </div>
                     )}
                   </div>
-                  {note.bagItem && (
+                  {note.bagItem &&
+                    !(
+                      ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('إملاء') ||
+                      ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictation')
+                    ) && (
                     <div className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg inline-block ${
                       badgeInfo.isAlert
                         ? 'text-rose-900 bg-white border border-rose-200'
