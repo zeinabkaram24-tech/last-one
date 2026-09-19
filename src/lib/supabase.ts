@@ -535,11 +535,6 @@ export async function updateClassworkCompletion(id: string, completed: boolean):
 }
 
 export async function deleteClasswork(id: string): Promise<void> {
-  try {
-    const local = getLocalCustomClasswork().filter((c) => c.id !== id);
-    localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(local));
-  } catch {}
-
   // Centralized cross-device sync backup
   try {
     await fetch('/api/planner-data/delete', {
@@ -795,11 +790,6 @@ export async function updateHomeworkCompletion(id: string, completed: boolean): 
 }
 
 export async function deleteHomework(id: string): Promise<void> {
-  try {
-    const local = getLocalCustomHomework().filter((h) => h.id !== id);
-    localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(local));
-  } catch {}
-
   // Centralized cross-device sync backup
   try {
     await fetch('/api/planner-data/delete', {

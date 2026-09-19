@@ -56,6 +56,14 @@ import {
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
+// In-memory app state to completely bypass localStorage as requested
+const IN_MEMORY_APP_STATE: Record<string, string> = {};
+const appStorage = {
+  getItem: (key: string) => IN_MEMORY_APP_STATE[key] || null,
+  setItem: (key: string, val: string) => { IN_MEMORY_APP_STATE[key] = val; },
+  removeItem: (key: string) => { delete IN_MEMORY_APP_STATE[key]; }
+};
+
 const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
   DAY: 'nile_planner_selected_day_v3',
@@ -114,19 +122,19 @@ export default function App() {
   const [currentClass, setCurrentClass] = useState<ClassId>(() => {
     const profile = getActiveUserProfile();
     if (profile?.classId) return profile.classId;
-    const saved = localStorage.getItem(STORAGE_KEYS.CLASS);
+    const saved = appStorage.getItem(STORAGE_KEYS.CLASS);
     return saved === 'G2A' || saved === 'G2B' || saved === 'G2C' ? saved : 'G2B';
   });
 
   // Current Block (1, 2, 3, 4)
   const [currentBlock, setCurrentBlock] = useState<number>(() => {
-    const saved = localStorage.getItem('nile_planner_block');
+    const saved = appStorage.getItem('nile_planner_block');
     return saved ? Number(saved) : 1;
   });
 
   // Current Week (1, 2, 3, 4)
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.WEEK);
+    const saved = appStorage.getItem(STORAGE_KEYS.WEEK);
     return saved ? Number(saved) : 3;
   });
 
@@ -204,21 +212,21 @@ export default function App() {
 
   // Persistence & Sync effects for class, week, day
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
+    appStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
     if (isSupabaseConfigured) {
       savePlannerSetting('current_class', currentClass);
     }
   }, [currentClass]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.WEEK, String(currentWeek));
+    appStorage.setItem(STORAGE_KEYS.WEEK, String(currentWeek));
     if (isSupabaseConfigured) {
       savePlannerSetting('current_week', String(currentWeek));
     }
   }, [currentWeek]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.DAY, selectedDay);
+    appStorage.setItem(STORAGE_KEYS.DAY, selectedDay);
     if (isSupabaseConfigured) {
       savePlannerSetting('selected_day', selectedDay);
     }
@@ -693,7 +701,7 @@ export default function App() {
       const storageKey = `nile_tomorrow_notes_${block}_${week}`;
       let existing: TomorrowSpecialNote[] = [];
       try {
-        const raw = localStorage.getItem(storageKey);
+        const raw = appStorage.getItem(storageKey);
         if (raw) existing = JSON.parse(raw);
       } catch {}
 
@@ -721,7 +729,7 @@ export default function App() {
       const storageKey = `nile_tomorrow_notes_${currentBlock}_${currentWeek}`;
       let existing: TomorrowSpecialNote[] = [];
       try {
-        const raw = localStorage.getItem(storageKey);
+        const raw = appStorage.getItem(storageKey);
         if (raw) existing = JSON.parse(raw);
       } catch {}
 
@@ -770,7 +778,7 @@ export default function App() {
         currentClass={currentClass}
         onSelectClass={(c) => {
           setCurrentClass(c);
-          localStorage.setItem(STORAGE_KEYS.CLASS, c);
+          appStorage.setItem(STORAGE_KEYS.CLASS, c);
           if (isSupabaseConfigured) {
             savePlannerSetting('current_class', c).catch(() => {});
           }
@@ -778,7 +786,7 @@ export default function App() {
         currentBlock={currentBlock}
         onSelectBlock={(b) => {
           setCurrentBlock(b);
-          localStorage.setItem('nile_planner_block', String(b));
+          appStorage.setItem('nile_planner_block', String(b));
           if (isSupabaseConfigured) {
             savePlannerSetting('current_block', String(b)).catch(() => {});
           }
@@ -787,7 +795,7 @@ export default function App() {
         currentWeek={currentWeek}
         onSelectWeek={(w) => {
           setCurrentWeek(w);
-          localStorage.setItem(STORAGE_KEYS.WEEK, String(w));
+          appStorage.setItem(STORAGE_KEYS.WEEK, String(w));
           if (isSupabaseConfigured) {
             savePlannerSetting('current_week', String(w)).catch(() => {});
           }
@@ -1018,11 +1026,11 @@ export default function App() {
           try {
             if (updatedBlock) {
               setCurrentBlock(updatedBlock);
-              localStorage.setItem('nile_planner_block', String(updatedBlock));
+              appStorage.setItem('nile_planner_block', String(updatedBlock));
             }
             if (updatedWeek) {
               setCurrentWeek(updatedWeek);
-              localStorage.setItem(STORAGE_KEYS.WEEK, String(updatedWeek));
+              appStorage.setItem(STORAGE_KEYS.WEEK, String(updatedWeek));
             }
             const [cwData, hwData] = await Promise.all([
               fetchAllClasswork(),

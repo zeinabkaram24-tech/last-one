@@ -137,23 +137,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Support both currentWeek and previous week if applicable
   const effectiveWeek = tomorrowDay === 'Sunday' && currentWeek > 1 ? currentWeek - 1 : currentWeek;
 
-  const [deletedNoteIds, setDeletedNoteIds] = useState<string[]>(() => {
-    try {
-      const raw = localStorage.getItem('nile_deleted_tomorrow_note_ids');
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
+  // In-memory cache for deleted note IDs to avoid localStorage completely as requested
+  const [deletedNoteIds, setDeletedNoteIds] = useState<string[]>([]);
 
   const handleDeleteTomorrowNote = (noteId: string) => {
-    setDeletedNoteIds((prev) => {
-      const next = [...prev, noteId];
-      try {
-        localStorage.setItem('nile_deleted_tomorrow_note_ids', JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setDeletedNoteIds((prev) => [...prev, noteId]);
     setTomorrowNotes((prev) => prev.filter((n) => n.id !== noteId && `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}` !== noteId));
     onDeleteTomorrowNote?.(noteId);
   };
@@ -172,34 +160,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
               (n.week === 1 || !n.week)
           )
         : [];
-
-    // Check local storage cached notes for currentWeek and effectiveWeek
-    const storageKeyCurrent = `nile_tomorrow_notes_${currentBlock}_${currentWeek}`;
-    const storageKeyEffective = `nile_tomorrow_notes_${currentBlock}_${effectiveWeek}`;
-    try {
-      const rawCurrent = localStorage.getItem(storageKeyCurrent);
-      const rawEffective = localStorage.getItem(storageKeyEffective);
-      let parsedList: TomorrowSpecialNote[] = [];
-      [rawCurrent, rawEffective].forEach((raw) => {
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            parsed.forEach((n) => {
-              if ((n.classId === currentClass || n.classId === 'ALL') && n.targetDay === tomorrowDay) {
-                parsedList.push(n);
-              }
-            });
-          }
-        }
-      });
-
-      if (parsedList.length > 0) {
-        const map = new Map<string, TomorrowSpecialNote>();
-        base.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`, n));
-        parsedList.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`, n));
-        return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));
-      }
-    } catch {}
 
     return base.filter((n) => !isDisallowedTomorrowItem(n));
   });

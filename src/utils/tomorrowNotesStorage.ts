@@ -3,7 +3,8 @@ import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES } from '../data/defaultWeekl
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { fetchPlannerSettings, savePlannerSetting } from '../lib/supabase';
 
-const LOCAL_STORAGE_PREFIX = 'nile_tomorrow_notes_';
+// In-memory fallback cache to completely replace localStorage as requested
+const IN_MEMORY_NOTES_CACHE: Record<string, string> = {};
 const LISTENERS: Array<() => void> = [];
 
 export function notifyTomorrowNotesListeners() {
@@ -48,8 +49,8 @@ export async function getTomorrowNotesForDay(
   targetDay: SchoolDay
 ): Promise<TomorrowSpecialNote[]> {
   const effectiveWeek = targetDay === 'Sunday' && week > 1 ? week - 1 : week;
-  const storageKey = `${LOCAL_STORAGE_PREFIX}${block}_${week}`;
-  const effectiveStorageKey = `${LOCAL_STORAGE_PREFIX}${block}_${effectiveWeek}`;
+  const storageKey = `nile_tomorrow_notes_${block}_${week}`;
+  const effectiveStorageKey = `nile_tomorrow_notes_${block}_${effectiveWeek}`;
 
   let loadedNotes: TomorrowSpecialNote[] | null = null;
   let fetchedFromServer = false;
@@ -74,7 +75,7 @@ export async function getTomorrowNotesForDay(
           loadedNotes = matching;
           fetchedFromServer = true;
           try {
-            localStorage.setItem(storageKey, JSON.stringify(matching));
+            IN_MEMORY_NOTES_CACHE[storageKey] = JSON.stringify(matching);
           } catch {}
         }
       }
@@ -86,7 +87,7 @@ export async function getTomorrowNotesForDay(
   // 2. Fallback to local cache only if not fetched from server
   if (!fetchedFromServer && !loadedNotes) {
     try {
-      const raw = localStorage.getItem(storageKey) || localStorage.getItem(effectiveStorageKey);
+      const raw = IN_MEMORY_NOTES_CACHE[storageKey] || IN_MEMORY_NOTES_CACHE[effectiveStorageKey];
       if (raw) {
         loadedNotes = JSON.parse(raw);
       }
@@ -105,7 +106,7 @@ export async function getTomorrowNotesForDay(
       if (targetSetting) {
         loadedNotes = JSON.parse(targetSetting);
         if (loadedNotes && Array.isArray(loadedNotes)) {
-          localStorage.setItem(storageKey, JSON.stringify(loadedNotes));
+          IN_MEMORY_NOTES_CACHE[storageKey] = JSON.stringify(loadedNotes);
         }
       }
     } catch (e) {
@@ -154,31 +155,30 @@ export async function saveTomorrowNotes(
   notes: TomorrowSpecialNote[],
   mode: 'merge' | 'replace' = 'merge'
 ): Promise<void> {
-  const storageKey = `${LOCAL_STORAGE_PREFIX}${block}_${week}`;
+  const storageKey = `nile_tomorrow_notes_${block}_${week}`;
   const settingKey = `tomorrow_notes_${block}_${week}`;
 
-  // 1. Cache locally
+  // 1. Cache locally in memory
   try {
     let finalNotes = notes;
     if (mode === 'merge') {
-      const existingRaw = localStorage.getItem(storageKey);
+      const existingRaw = IN_MEMORY_NOTES_CACHE[storageKey];
       const existing: TomorrowSpecialNote[] = existingRaw ? JSON.parse(existingRaw) : [];
       const map = new Map<string, TomorrowSpecialNote>();
       existing.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 20)}`, n));
       notes.forEach((n) => map.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 20)}`, n));
       finalNotes = Array.from(map.values());
     }
-    localStorage.setItem(storageKey, JSON.stringify(finalNotes));
+    IN_MEMORY_NOTES_CACHE[storageKey] = JSON.stringify(finalNotes);
 
     // Sunday notes seamless replication:
-    // If there are Sunday notes, replicate them to week+1 and week-1 cache so Thursday <-> Saturday always repeat
     const sundayNotes = finalNotes.filter((n) => n.targetDay === 'Sunday');
     if (sundayNotes.length > 0) {
       const targetWeeks = [week > 1 ? week - 1 : null, week < 4 ? week + 1 : null].filter(Boolean) as number[];
       targetWeeks.forEach((tw) => {
         try {
-          const adjKey = `${LOCAL_STORAGE_PREFIX}${block}_${tw}`;
-          const adjRaw = localStorage.getItem(adjKey);
+          const adjKey = `nile_tomorrow_notes_${block}_${tw}`;
+          const adjRaw = IN_MEMORY_NOTES_CACHE[adjKey];
           const adjList: TomorrowSpecialNote[] = adjRaw ? JSON.parse(adjRaw) : [];
           const adjMap = new Map<string, TomorrowSpecialNote>();
           adjList.forEach((n) => adjMap.set(n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 20)}`, n));
@@ -186,12 +186,12 @@ export async function saveTomorrowNotes(
             const copy = { ...n, week: tw };
             adjMap.set(copy.id || `${copy.targetDay}-${copy.subject}-${(copy.note || '').slice(0, 20)}`, copy);
           });
-          localStorage.setItem(adjKey, JSON.stringify(Array.from(adjMap.values())));
+          IN_MEMORY_NOTES_CACHE[adjKey] = JSON.stringify(Array.from(adjMap.values()));
         } catch {}
       });
     }
   } catch (e) {
-    console.warn('Could not cache tomorrow notes to localStorage:', e);
+    console.warn('Could not cache tomorrow notes in memory:', e);
   }
 
   // 2. Sync to centralized server endpoint

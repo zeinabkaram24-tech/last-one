@@ -18,13 +18,16 @@ export interface StudentProgressData {
   lastActive: number;
 }
 
+// Global in-memory storage to completely eliminate localStorage usage
+const IN_MEMORY_STUDENT_STORAGE: Record<string, string> = {};
+
 export function normalizeStudentName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
 export function getActiveUserProfile(): UserProfile | null {
   try {
-    const raw = localStorage.getItem(PROFILE_KEY);
+    const raw = IN_MEMORY_STUDENT_STORAGE[PROFILE_KEY];
     if (!raw) return null;
     return JSON.parse(raw);
   } catch (e) {
@@ -36,9 +39,9 @@ export function getActiveUserProfile(): UserProfile | null {
 export function setActiveUserProfile(profile: UserProfile | null): void {
   try {
     if (!profile) {
-      localStorage.removeItem(PROFILE_KEY);
+      delete IN_MEMORY_STUDENT_STORAGE[PROFILE_KEY];
     } else {
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      IN_MEMORY_STUDENT_STORAGE[PROFILE_KEY] = JSON.stringify(profile);
       if (profile.mode === 'student' && profile.studentName) {
         addKnownStudent(profile.studentName, profile.classId);
       }
@@ -50,7 +53,7 @@ export function setActiveUserProfile(profile: UserProfile | null): void {
 
 export function getKnownStudents(): { name: string; classId?: ClassId; lastActive: number }[] {
   try {
-    const raw = localStorage.getItem(KNOWN_STUDENTS_KEY);
+    const raw = IN_MEMORY_STUDENT_STORAGE[KNOWN_STUDENTS_KEY];
     if (!raw) return [];
     return JSON.parse(raw);
   } catch (e) {
@@ -76,7 +79,7 @@ export function addKnownStudent(name: string, classId?: ClassId): void {
         lastActive: Date.now(),
       });
     }
-    localStorage.setItem(KNOWN_STUDENTS_KEY, JSON.stringify(list.slice(0, 10)));
+    IN_MEMORY_STUDENT_STORAGE[KNOWN_STUDENTS_KEY] = JSON.stringify(list.slice(0, 10));
   } catch (e) {
     console.error('Error adding known student', e);
   }
@@ -87,8 +90,8 @@ export function removeKnownStudent(name: string): void {
     const list = getKnownStudents().filter(
       (s) => normalizeStudentName(s.name) !== normalizeStudentName(name)
     );
-    localStorage.setItem(KNOWN_STUDENTS_KEY, JSON.stringify(list));
-    localStorage.removeItem(PROGRESS_PREFIX + normalizeStudentName(name));
+    IN_MEMORY_STUDENT_STORAGE[KNOWN_STUDENTS_KEY] = JSON.stringify(list);
+    delete IN_MEMORY_STUDENT_STORAGE[PROGRESS_PREFIX + normalizeStudentName(name)];
   } catch (e) {
     console.error('Error removing known student', e);
   }
@@ -97,7 +100,7 @@ export function removeKnownStudent(name: string): void {
 export function getStudentProgress(studentName: string): StudentProgressData {
   const norm = normalizeStudentName(studentName);
   try {
-    const raw = localStorage.getItem(PROGRESS_PREFIX + norm);
+    const raw = IN_MEMORY_STUDENT_STORAGE[PROGRESS_PREFIX + norm];
     if (raw) {
       return JSON.parse(raw);
     }
@@ -132,7 +135,7 @@ export function saveStudentProgress(
   };
 
   try {
-    localStorage.setItem(PROGRESS_PREFIX + norm, JSON.stringify(data));
+    IN_MEMORY_STUDENT_STORAGE[PROGRESS_PREFIX + norm] = JSON.stringify(data);
     addKnownStudent(cleanName, classId);
     // Sync with Supabase in background
     if (isSupabaseConfigured) {
@@ -168,7 +171,7 @@ const GUEST_PROGRESS_KEY = 'nile_planner_guest_progress_v2';
 
 export function getGuestProgress(): { completedClassworkIds: string[]; completedHomeworkIds: string[] } {
   try {
-    const raw = localStorage.getItem(GUEST_PROGRESS_KEY);
+    const raw = IN_MEMORY_STUDENT_STORAGE[GUEST_PROGRESS_KEY];
     if (raw) {
       const parsed = JSON.parse(raw);
       return {
@@ -187,14 +190,11 @@ export function saveGuestProgress(
   completedHomeworkIds: string[]
 ): void {
   try {
-    localStorage.setItem(
-      GUEST_PROGRESS_KEY,
-      JSON.stringify({
-        completedClassworkIds,
-        completedHomeworkIds,
-        updatedAt: Date.now(),
-      })
-    );
+    IN_MEMORY_STUDENT_STORAGE[GUEST_PROGRESS_KEY] = JSON.stringify({
+      completedClassworkIds,
+      completedHomeworkIds,
+      updatedAt: Date.now(),
+    });
   } catch (e) {
     console.error('Error saving guest progress', e);
   }

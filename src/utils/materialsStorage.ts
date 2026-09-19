@@ -39,12 +39,13 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-// Fallback in localStorage if IndexedDB has issues
+// In-memory fallback if IndexedDB has issues
 const FALLBACK_KEY = 'school_materials_fallback';
+const IN_MEMORY_MATERIALS_FALLBACK: Record<string, string> = {};
 
 function getFallbackMaterials(): MaterialItem[] {
   try {
-    const raw = localStorage.getItem(FALLBACK_KEY);
+    const raw = IN_MEMORY_MATERIALS_FALLBACK[FALLBACK_KEY];
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -53,9 +54,9 @@ function getFallbackMaterials(): MaterialItem[] {
 
 function saveFallbackMaterials(items: MaterialItem[]) {
   try {
-    localStorage.setItem(FALLBACK_KEY, JSON.stringify(items));
+    IN_MEMORY_MATERIALS_FALLBACK[FALLBACK_KEY] = JSON.stringify(items);
   } catch (e) {
-    console.warn('LocalStorage quota might be exceeded for fallback:', e);
+    console.warn('In-memory cache failed:', e);
   }
 }
 
