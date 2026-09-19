@@ -125,7 +125,7 @@ export default function App() {
   // Current Week (1, 2, 3, 4)
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 2;
+    return saved ? Number(saved) : 3;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)

@@ -1129,7 +1129,7 @@ export async function seedInitialDataIfEmpty(): Promise<{
       if ((settiingsCount ?? 0) === 0) {
         const settingsToSeed = [
           { key: 'current_class', value: initialData.nile_planner_current_class_v3 || 'G2B' },
-          { key: 'current_week', value: initialData.nile_planner_current_week_v3 || '2' },
+          { key: 'current_week', value: initialData.nile_planner_current_week_v3 || '3' },
           { key: 'selected_day', value: initialData.nile_planner_selected_day_v3 || 'Sunday' },
           { key: 'current_block', value: '1' },
         ];
