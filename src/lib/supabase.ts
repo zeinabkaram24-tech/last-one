@@ -352,11 +352,34 @@ export function homeworkToRow(entry: HomeworkEntry): Omit<HomeworkRow, 'created_
 const LOCAL_STORAGE_CUSTOM_CLASSWORK = 'nile_planner_custom_classwork';
 const LOCAL_STORAGE_CUSTOM_HOMEWORK = 'nile_planner_custom_homework';
 
-// Instantly purge these keys from localStorage to ensure they disappear from DevTools
+// Instantly purge all historical planner/notes/materials keys from localStorage to ensure they vanish from DevTools
 if (typeof window !== 'undefined') {
   try {
-    localStorage.removeItem(LOCAL_STORAGE_CUSTOM_CLASSWORK);
-    localStorage.removeItem(LOCAL_STORAGE_CUSTOM_HOMEWORK);
+    const keysToRemove = [
+      'nile_planner_custom_classwork',
+      'nile_planner_custom_homework',
+      'nile_planner_custom_classwork_v2',
+      'nile_planner_custom_homework_v2',
+      'nile_planner_guest_progress_v2',
+      'school_materials_fallback',
+      'nile_deleted_tomorrow_note_ids',
+      'nile_planner_current_class_v3',
+      'nile_planner_selected_day_v3',
+      'nile_planner_current_week_v3',
+      'nile_planner_block',
+      'nile_tomorrow_notes_1_1',
+      'nile_tomorrow_notes_1_2',
+      'nile_tomorrow_notes_1_3',
+      'nile_tomorrow_notes_1_4',
+      'nile_tomorrow_notes_2_1',
+      'nile_tomorrow_notes_2_2',
+      'nile_tomorrow_notes_2_3',
+      'nile_tomorrow_notes_2_4'
+    ];
+    keysToRemove.forEach(k => {
+      localStorage.removeItem(k);
+      sessionStorage.removeItem(k);
+    });
   } catch {}
 }
 
@@ -1154,7 +1177,7 @@ export function rowToMaterial(row: MaterialRow): MaterialItem {
 }
 
 /**
- * Upload a PDF file directly to Supabase Storage ('school_materials' bucket)
+ * Upload a PDF file directly to Supabase Storage ('materials' bucket)
  * Returns the public URL if successful.
  */
 export async function uploadPdfToSupabaseStorage(
@@ -1164,7 +1187,7 @@ export async function uploadPdfToSupabaseStorage(
   if (!isSupabaseConfigured) return null;
 
   try {
-    const bucketName = 'school_materials';
+    const bucketName = 'materials';
     const cleanName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `${Date.now()}_${cleanName}`;
 
@@ -1246,11 +1269,11 @@ export async function deleteMaterialFromSupabase(id: string, storageUrl?: string
     // 1. Delete from database
     await supabase.from('materials').delete().eq('id', id);
 
-    // 2. If storageUrl points to school_materials, attempt file deletion
-    if (storageUrl && storageUrl.includes('school_materials')) {
-      const parts = storageUrl.split('/school_materials/');
+    // 2. If storageUrl points to materials, attempt file deletion
+    if (storageUrl && (storageUrl.includes('school_materials') || storageUrl.includes('materials'))) {
+      const parts = storageUrl.split(storageUrl.includes('school_materials') ? '/school_materials/' : '/materials/');
       if (parts[1]) {
-        await supabase.storage.from('school_materials').remove([parts[1]]);
+        await supabase.storage.from('materials').remove([parts[1]]);
       }
     }
   } catch (err) {
