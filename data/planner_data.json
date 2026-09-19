@@ -1392,45 +1392,6 @@
       "categoryType": "note",
       "block": 1,
       "week": 3
-    },
-    {
-      "id": "tn-b1-w3-G2C-Tue-science-note",
-      "classId": "G2C",
-      "targetDay": "Tuesday",
-      "subject": "Science",
-      "note": "Submit Science Homework: Solve Page 36 in the workbook / booklet.",
-      "arabicNote": "تسليم واجب الساينس: حل صفحة 36 في كتاب التدريبات / البوكليت.",
-      "bagItem": "Science workbook / booklet p. 36 (واجب الساينس ص 36)",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 3
-    },
-    {
-      "id": "tn-b1-w3-G2A-Thu-science-note",
-      "classId": "G2A",
-      "targetDay": "Thursday",
-      "subject": "Science",
-      "note": "Submit Science Homework: Solve Page 38 in the workbook / booklet.",
-      "arabicNote": "تسليم واجب الساينس: حل صفحة 38 في كتاب التدريبات / البوكليت.",
-      "bagItem": "Science workbook / booklet p. 38 (واجب الساينس ص 38)",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 3
-    },
-    {
-      "id": "tn-b1-w3-G2B-Thu-science-note",
-      "classId": "G2B",
-      "targetDay": "Thursday",
-      "subject": "Science",
-      "note": "Submit Science Homework: Solve Page 38 in the workbook / booklet.",
-      "arabicNote": "تسليم واجب الساينس: حل صفحة 38 في كتاب التدريبات / البوكليت.",
-      "bagItem": "Science workbook / booklet p. 38 (واجب الساينس ص 38)",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 3
     }
   ]
 }

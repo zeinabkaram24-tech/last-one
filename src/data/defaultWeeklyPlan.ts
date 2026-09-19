@@ -1480,6 +1480,124 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
 export const INITIAL_CLASSWORK: ClassworkEntry[] = [
   ...WEEK1_CLASSWORK.map((c) => ({ ...c, block: 1, week: 1 })),
   ...WEEK2_CLASSWORK.map((c) => ({ ...c, block: 1, week: 2 })),
+  // BLOCK 1 - WEEK 3 SCIENCE CLASSWORK
+  {
+    id: "cw-b1-w3-G2A-Sunday-p5-science",
+    classId: "G2A",
+    day: "Sunday",
+    period: 5,
+    subject: "Science",
+    title: "Unit 2: Getting to know plants - Living and non-living things",
+    details: "Introduction to Unit 2. Discuss the characteristics of living things and non-living things.",
+    pages: "Discussion & Activities",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2B-Sunday-p4-science",
+    classId: "G2B",
+    day: "Sunday",
+    period: 4,
+    subject: "Science",
+    title: "Unit 2: Getting to know plants - Living and non-living things",
+    details: "Introduction to Unit 2. Discuss the characteristics of living things and non-living things.",
+    pages: "Discussion & Activities",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2C-Monday-p5-science",
+    classId: "G2C",
+    day: "Monday",
+    period: 5,
+    subject: "Science",
+    title: "Unit 2: Getting to know plants - Living and non-living things",
+    details: "Introduction to Unit 2. Discuss the characteristics of living things and non-living things.",
+    pages: "Discussion & Activities",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2C-Tuesday-p3-science",
+    classId: "G2C",
+    day: "Tuesday",
+    period: 3,
+    subject: "Science",
+    title: "Unit 2: Getting to know plants - Parts of plants",
+    details: "Identify and describe the main parts of plants: roots, stem, leaves, and flowers.",
+    pages: "Page : 37",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2A-Wednesday-p2-science",
+    classId: "G2A",
+    day: "Wednesday",
+    period: 2,
+    subject: "Science",
+    title: "Unit 2: Getting to know plants - Parts of plants",
+    details: "Identify and label the main parts of plants: root, stem, leaves, flower.",
+    pages: "Discussion & Activities",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2B-Wednesday-p7-science",
+    classId: "G2B",
+    day: "Wednesday",
+    period: 7,
+    subject: "Science",
+    title: "Unit 2: Getting to know plants - Parts of plants",
+    details: "Identify and label the main parts of plants: root, stem, leaves, flower.",
+    pages: "Discussion & Activities",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2A-Thursday-p8-science",
+    classId: "G2A",
+    day: "Thursday",
+    period: 8,
+    subject: "Science",
+    title: "Unit 2: Getting to know plants - The needs of plants",
+    details: "Learn about the essential needs of plants to grow and survive: water, light, air, and nutrients.",
+    pages: "Page : 39",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2B-Thursday-p7-science",
+    classId: "G2B",
+    day: "Thursday",
+    period: 7,
+    subject: "Science",
+    title: "Unit 2: Getting to know plants - The needs of plants",
+    details: "Learn about the essential needs of plants to grow and survive: water, light, air, and nutrients.",
+    pages: "Page : 39",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2C-Thursday-p2-science",
+    classId: "G2C",
+    day: "Thursday",
+    period: 2,
+    subject: "Science",
+    title: "Unit 2: Getting to know plants - The needs of plants",
+    details: "Learn about the essential needs of plants to grow and survive: water, light, air, and nutrients.",
+    pages: "Page : 39",
+    completed: false,
+    block: 1,
+    week: 3
+  }
 ];
 
 // -------------------------------------------------------------
@@ -1861,4 +1979,47 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
 export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...WEEK1_BASE_HOMEWORK.map((h) => ({ ...h, block: 1, week: 1 })),
   ...ALL_LINK_AND_WEEK2_HOMEWORK.map((h) => ({ ...h, block: 1, week: 2 })),
+  // BLOCK 1 - WEEK 3 SCIENCE HOMEWORK
+  {
+    id: "hw-b1-w3-G2C-science-Mon-p36",
+    classId: "G2C",
+    assignedDay: "Monday",
+    dueDay: "Tuesday",
+    subject: "Science",
+    task: "Workbook / Booklet: Page 36",
+    details: "Unit 2: Getting to know plants - Solve Page 36 about Living and non-living things.",
+    pages: "Page 36",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 3
+  },
+  {
+    id: "hw-b1-w3-G2A-science-Wed-p38",
+    classId: "G2A",
+    assignedDay: "Wednesday",
+    dueDay: "Thursday",
+    subject: "Science",
+    task: "Workbook / Booklet: Page 38",
+    details: "Unit 2: Getting to know plants - Solve Page 38 about Parts of plants.",
+    pages: "Page 38",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 3
+  },
+  {
+    id: "hw-b1-w3-G2B-science-Wed-p38",
+    classId: "G2B",
+    assignedDay: "Wednesday",
+    dueDay: "Thursday",
+    subject: "Science",
+    task: "Workbook / Booklet: Page 38",
+    details: "Unit 2: Getting to know plants - Solve Page 38 about Parts of plants.",
+    pages: "Page 38",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 3
+  }
 ];
