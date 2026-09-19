@@ -8,6 +8,7 @@ import {
   Pencil,
   Trash,
   Plus,
+  Volume2,
 } from 'lucide-react';
 import { ClassId, SchoolDay, HomeworkEntry, ClassworkEntry } from '../types';
 import { SUBJECT_METADATA } from '../data/timetables';
@@ -286,16 +287,32 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                           </div>
                           <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                             {words.map((word) => (
-                              <div
+                              <button
                                 key={word}
-                                className={`px-2.5 py-1.5 text-center rounded-xl border text-sm font-semibold tracking-wide font-sans transition-all duration-200 hover:scale-[1.05] shadow-3xs ${
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if ('speechSynthesis' in window) {
+                                    // Cancel any ongoing pronunciation
+                                    window.speechSynthesis.cancel();
+                                    const utterance = new SpeechSynthesisUtterance(word);
+                                    utterance.lang = 'en-US';
+                                    utterance.rate = 0.85; // Natural speed for kids to learn pronunciation
+                                    window.speechSynthesis.speak(utterance);
+                                  }
+                                }}
+                                title="Click to listen / اضغط للاستماع للنطق"
+                                className={`px-2 py-1.5 flex items-center justify-center gap-1.5 rounded-xl border text-sm font-bold tracking-wider font-mono transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] shadow-3xs cursor-pointer ${
                                   hw.completed
                                     ? 'bg-slate-100/50 border-slate-200 text-slate-400 line-through'
-                                    : 'bg-white border-slate-200/80 text-slate-700 hover:border-indigo-300 hover:bg-indigo-50/20 hover:text-indigo-900 hover:shadow-xs'
+                                    : 'bg-indigo-50/50 border-indigo-100/80 text-indigo-900 hover:border-indigo-400 hover:bg-indigo-100/60 hover:text-indigo-950 hover:shadow-xs'
                                 }`}
                               >
-                                {word}
-                              </div>
+                                <span>{word}</span>
+                                {!hw.completed && (
+                                  <Volume2 className="w-3.5 h-3.5 text-indigo-400 hover:text-indigo-600 transition-colors shrink-0" />
+                                )}
+                              </button>
                             ))}
                           </div>
                           <div className="text-[10px] text-slate-500 font-bold flex justify-between pt-1 border-t border-slate-100/50 mt-1">
