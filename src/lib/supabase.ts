@@ -342,74 +342,30 @@ export function homeworkToRow(entry: HomeworkEntry): Omit<HomeworkRow, 'created_
 const LOCAL_STORAGE_CUSTOM_CLASSWORK = 'nile_planner_custom_classwork';
 const LOCAL_STORAGE_CUSTOM_HOMEWORK = 'nile_planner_custom_homework';
 
-export function getLocalCustomClasswork(): ClassworkEntry[] {
-  if (typeof window === 'undefined') return [];
+// Instantly purge these keys from localStorage to ensure they disappear from DevTools
+if (typeof window !== 'undefined') {
   try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_CUSTOM_CLASSWORK);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+    localStorage.removeItem(LOCAL_STORAGE_CUSTOM_CLASSWORK);
+    localStorage.removeItem(LOCAL_STORAGE_CUSTOM_HOMEWORK);
+  } catch {}
+}
+
+export function getLocalCustomClasswork(): ClassworkEntry[] {
+  // Completely disabled local storage fallback as requested - reading exclusively from server/Supabase
+  return [];
 }
 
 export function saveLocalCustomClasswork(entries: ClassworkEntry[], mode: 'merge' | 'replace' = 'merge') {
-  if (typeof window === 'undefined') return;
-  try {
-    const existing = getLocalCustomClasswork();
-    let updated: ClassworkEntry[];
-    if (mode === 'replace') {
-      const targetKeys = new Set(
-        entries.map((c) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
-      );
-      updated = existing.filter(
-        (c) => !targetKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
-      );
-      updated = [...updated, ...entries];
-    } else {
-      const map = new Map<string, ClassworkEntry>();
-      existing.forEach((e) => map.set(e.id, e));
-      entries.forEach((e) => map.set(e.id, e));
-      updated = Array.from(map.values());
-    }
-    localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(updated));
-  } catch (e) {
-    console.warn('Failed to save custom classwork to localStorage:', e);
-  }
+  // Completely disabled local storage persistence - saving exclusively to cloud/Supabase
 }
 
 export function getLocalCustomHomework(): HomeworkEntry[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_CUSTOM_HOMEWORK);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  // Completely disabled local storage fallback as requested - reading exclusively from server/Supabase
+  return [];
 }
 
 export function saveLocalCustomHomework(entries: HomeworkEntry[], mode: 'merge' | 'replace' = 'merge') {
-  if (typeof window === 'undefined') return;
-  try {
-    const existing = getLocalCustomHomework();
-    let updated: HomeworkEntry[];
-    if (mode === 'replace') {
-      const targetKeys = new Set(
-        entries.map((h) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-      );
-      updated = existing.filter(
-        (h) => !targetKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-      );
-      updated = [...updated, ...entries];
-    } else {
-      const map = new Map<string, HomeworkEntry>();
-      existing.forEach((e) => map.set(e.id, e));
-      entries.forEach((e) => map.set(e.id, e));
-      updated = Array.from(map.values());
-    }
-    localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(updated));
-  } catch (e) {
-    console.warn('Failed to save custom homework to localStorage:', e);
-  }
+  // Completely disabled local storage persistence - saving exclusively to cloud/Supabase
 }
 
 // =========================================================================
@@ -432,10 +388,6 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
         // We do not overlay INITIAL_CLASSWORK, so that deleted records stay deleted.
         if (data.length > 0) {
           const finalData = (data as ClassworkRow[]).map(rowToClasswork);
-          // Sync local cache for offline fallback
-          try {
-            localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(finalData));
-          } catch {}
           return finalData;
         }
       }
@@ -468,11 +420,6 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
         srvData.classwork.forEach((c: ClassworkEntry) => srvMap.set(c.id, c));
         baseItems = Array.from(srvMap.values());
         fetchedFromServer = true;
-
-        // Sync local cache to match server data
-        try {
-          localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(srvData.classwork));
-        } catch {}
       }
     }
   } catch (err) {
@@ -677,10 +624,6 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
             }
           });
 
-          // Sync local cache for offline fallback
-          try {
-            localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(finalData));
-          } catch {}
           return finalData;
         }
       }
@@ -713,11 +656,6 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         srvData.homework.forEach((h: HomeworkEntry) => srvMap.set(h.id, h));
         baseItems = Array.from(srvMap.values());
         fetchedFromServer = true;
-
-        // Sync local cache
-        try {
-          localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(srvData.homework));
-        } catch {}
       }
     }
   } catch (err) {
