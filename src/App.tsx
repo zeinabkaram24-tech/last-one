@@ -698,23 +698,45 @@ export default function App() {
     } else if (type === 'tomorrow') {
       const block = data.block || currentBlock;
       const week = data.week || currentWeek;
-      const storageKey = `nile_tomorrow_notes_${block}_${week}`;
-      let existing: TomorrowSpecialNote[] = [];
-      try {
-        const raw = appStorage.getItem(storageKey);
-        if (raw) existing = JSON.parse(raw);
-      } catch {}
-
-      const idx = existing.findIndex((n) => n.id === data.id);
-      let next: TomorrowSpecialNote[];
-      if (idx >= 0) {
-        next = [...existing];
-        next[idx] = data;
+      
+      const isQuiz = data.isQuiz || data.categoryType === 'quiz' || /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((data.note + ' ' + (data.arabicNote || '')).toLowerCase());
+      
+      if (isQuiz) {
+        const hwEntry: HomeworkEntry = {
+          id: data.id || `tomorrow-hw-${Date.now()}`,
+          classId: data.classId || currentClass,
+          assignedDay: 'Sunday',
+          dueDay: data.targetDay,
+          subject: data.subject,
+          task: data.arabicNote || data.note || '',
+          details: data.bagItem || undefined,
+          completed: false,
+          priority: 'urgent',
+          block,
+          week,
+          linkUrl: data.linkUrl || undefined,
+        };
+        await handleAddHomework(hwEntry);
       } else {
-        next = [data, ...existing];
+        const cwEntry: ClassworkEntry = {
+          id: data.id || `tomorrow-cw-${Date.now()}`,
+          classId: data.classId || currentClass,
+          day: data.targetDay,
+          period: 1,
+          subject: data.subject,
+          title: data.note || '',
+          details: data.arabicNote || data.note || '',
+          pages: data.bagItem || undefined,
+          completed: false,
+          block,
+          week,
+          linkUrl: data.linkUrl || undefined,
+          linkTitle: data.linkTitle || undefined,
+        };
+        await handleSaveClasswork(cwEntry);
       }
 
-      await saveTomorrowNotes(block, week, next, 'replace');
+      await saveTomorrowNotes(block, week, [data], 'merge');
       showToast('تم حفظ التنبيه بنجاح!');
     }
     setIsEditorModalOpen(false);
@@ -726,24 +748,30 @@ export default function App() {
     } else if (type === 'homework') {
       await handleDeleteHomework(id);
     } else if (type === 'tomorrow') {
-      const storageKey = `nile_tomorrow_notes_${currentBlock}_${currentWeek}`;
-      let existing: TomorrowSpecialNote[] = [];
-      try {
-        const raw = appStorage.getItem(storageKey);
-        if (raw) existing = JSON.parse(raw);
-      } catch {}
+      setClassworkList((prev) => prev.filter((c) => c.id !== id));
+      setHomeworkList((prev) => prev.filter((h) => h.id !== id));
 
-      const next = existing.filter((n) => n.id !== id);
-      await saveTomorrowNotes(currentBlock, currentWeek, next, 'replace');
       try {
+        await Promise.all([
+          supabase.from('classwork').delete().eq('id', id),
+          supabase.from('homework').delete().eq('id', id)
+        ]);
+
         await fetch('/api/planner-data/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, type: 'tomorrowNotes' }),
+          body: JSON.stringify({ id, type: 'classwork' }),
+        });
+        await fetch('/api/planner-data/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, type: 'homework' }),
         });
       } catch (e) {
-        console.error('Error deleting tomorrow note:', e);
+        console.error('Error deleting tomorrow note from db:', e);
       }
+
+      notifyTomorrowNotesListeners();
       showToast('تم حذف التنبيه بنجاح.');
     }
   };
