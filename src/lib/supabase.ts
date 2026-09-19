@@ -36,7 +36,17 @@ export const DEFAULT_SUPABASE_URL = 'https://umryrjwmlkdbjmgmnbkt.supabase.co';
 export const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag';
 
 export function getActiveSupabaseConfig(): { url: string; key: string } {
-  // Always default directly to the central shared school database for all devices and users
+  if (typeof window !== 'undefined') {
+    const savedUrl = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL);
+    const savedKey = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY);
+    if (savedUrl && savedKey && savedUrl.trim() !== '' && savedKey.trim() !== '') {
+      return {
+        url: cleanSupabaseUrl(savedUrl),
+        key: cleanSupabaseKey(savedKey),
+      };
+    }
+  }
+  // Fall back to environment variable or central default if not saved locally
   const url = (import.meta.env.VITE_SUPABASE_URL as string) || DEFAULT_SUPABASE_URL;
   const key = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || DEFAULT_SUPABASE_ANON_KEY;
   return {
