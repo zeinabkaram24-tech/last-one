@@ -1150,6 +1150,35 @@ export async function seedInitialDataIfEmpty(): Promise<{
   }
 }
 
+export async function forceSyncBaselineToSupabase(): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  console.log('[Sync] Aligning Supabase cloud database with codebase changes...');
+  try {
+    // Upsert all INITIAL_CLASSWORK in chunks of 50
+    const cwRows = INITIAL_CLASSWORK.map(classworkToRow);
+    for (let i = 0; i < cwRows.length; i += 50) {
+      const chunk = cwRows.slice(i, i + 50);
+      const { error: cwErr } = await supabase.from('classwork').upsert(chunk, { onConflict: 'id' });
+      if (cwErr) {
+        console.warn('[Sync] Error upserting classwork chunk:', cwErr.message);
+      }
+    }
+    
+    // Upsert all INITIAL_HOMEWORK in chunks of 50
+    const hwRows = INITIAL_HOMEWORK.map(homeworkToRow);
+    for (let i = 0; i < hwRows.length; i += 50) {
+      const chunk = hwRows.slice(i, i + 50);
+      const { error: hwErr } = await supabase.from('homework').upsert(chunk, { onConflict: 'id' });
+      if (hwErr) {
+        console.warn('[Sync] Error upserting homework chunk:', hwErr.message);
+      }
+    }
+    console.log('[Sync] Cloud database successfully aligned with codebase!');
+  } catch (err) {
+    console.warn('[Sync] Failed to automatically align baseline to Supabase:', err);
+  }
+}
+
 // =============================================================================
 // Materials & PDF Cloud Storage Functions (Supabase Storage + Database)
 // =============================================================================

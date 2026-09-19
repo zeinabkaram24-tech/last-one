@@ -39,6 +39,7 @@ import {
   deleteHomework,
   bulkInsertHomework,
   seedInitialDataIfEmpty,
+  forceSyncBaselineToSupabase,
   fetchPlannerSettings,
   savePlannerSetting,
   rowToClasswork,
@@ -230,6 +231,8 @@ export default function App() {
       try {
         if (isSupabaseConfigured) {
           setSupabaseStatus('connecting');
+          // Force-sync updated local codebase baseline data to Supabase first
+          await forceSyncBaselineToSupabase().catch(() => {});
         } else {
           setSupabaseStatus('unconfigured');
         }
