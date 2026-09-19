@@ -24,6 +24,7 @@ import {
   saveStudentProgress,
   getGuestProgress,
   saveGuestProgress,
+  syncStudentProgressFromDb,
 } from './utils/studentStorage';
 import {
   isSupabaseConfigured,
@@ -256,16 +257,29 @@ export default function App() {
 
         if (!isMounted) return;
 
+        const profile = getActiveUserProfile();
+        let progress: any = null;
+        if (profile?.mode === 'student' && profile.studentName) {
+          if (isSupabaseConfigured) {
+            try {
+              progress = await syncStudentProgressFromDb(profile.studentName);
+            } catch (err) {
+              console.warn('Error fetching student progress from Supabase:', err);
+              progress = getStudentProgress(profile.studentName);
+            }
+          } else {
+            progress = getStudentProgress(profile.studentName);
+          }
+        }
+
         // Apply classwork with student or guest completion checks
         if (cwData && cwData.length > 0) {
           const uniqueCwMap = new Map<string, ClassworkEntry>();
           cwData.forEach((c) => uniqueCwMap.set(c.id, c));
           const dedupedCw = Array.from(uniqueCwMap.values());
 
-          const profile = getActiveUserProfile();
           if (profile?.mode === 'student' && profile.studentName) {
-            const progress = getStudentProgress(profile.studentName);
-            const cwSet = new Set(progress.completedClassworkIds);
+            const cwSet = new Set(progress ? progress.completedClassworkIds : []);
             setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
           } else {
             const guestProgress = getGuestProgress();
@@ -280,7 +294,6 @@ export default function App() {
           hwData.forEach((h) => uniqueHwMap.set(h.id, h));
           const dedupedHw = Array.from(uniqueHwMap.values());
 
-          const profile = getActiveUserProfile();
           const normalizedHw = dedupedHw.map((h) => {
             if (
               (h.id === 'hw-w2-ar-tue-g2a-wb' ||
@@ -300,8 +313,7 @@ export default function App() {
           });
 
           if (profile?.mode === 'student' && profile.studentName) {
-            const progress = getStudentProgress(profile.studentName);
-            const hwSet = new Set(progress.completedHomeworkIds);
+            const hwSet = new Set(progress ? progress.completedHomeworkIds : []);
             setHomeworkList(normalizedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
           } else {
             const guestProgress = getGuestProgress();
@@ -319,6 +331,12 @@ export default function App() {
         }
         if (settings.current_week) {
           setCurrentWeek(Number(settings.current_week) || 2);
+        }
+        if (settings.selected_day) {
+          setSelectedDay(settings.selected_day as SchoolDay);
+        }
+        if (settings.current_block) {
+          setCurrentBlock(Number(settings.current_block) || 1);
         }
 
         if (isSupabaseConfigured) {
@@ -378,7 +396,7 @@ export default function App() {
   };
 
   // Handle switching user profile (Student vs Guest)
-  const handleSelectProfile = (newProfile: UserProfile) => {
+  const handleSelectProfile = async (newProfile: UserProfile) => {
     setUserProfile(newProfile);
     setActiveUserProfile(newProfile);
 
@@ -387,7 +405,14 @@ export default function App() {
     }
 
     if (newProfile.mode === 'student' && newProfile.studentName) {
-      const progress = getStudentProgress(newProfile.studentName);
+      let progress = getStudentProgress(newProfile.studentName);
+      if (isSupabaseConfigured) {
+        try {
+          progress = await syncStudentProgressFromDb(newProfile.studentName);
+        } catch (e) {
+          console.warn('Could not sync student progress on login:', e);
+        }
+      }
       const cwSet = new Set(progress.completedClassworkIds);
       const hwSet = new Set(progress.completedHomeworkIds);
 

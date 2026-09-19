@@ -427,29 +427,17 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
       );
       const { data, error } = res;
 
-      if (!error && data && Array.isArray(data) && data.length > 0) {
-        // Start with default baseline items
-        const uniqueMap = new Map<string, ClassworkEntry>();
-        INITIAL_CLASSWORK.forEach((item) => {
-          if (item && item.id) {
-            uniqueMap.set(item.id, { ...item });
-          }
-        });
-
-        // Overlay edits/new entries from Supabase
-        (data as ClassworkRow[]).forEach((row) => {
-          const item = rowToClasswork(row);
-          if (item && item.id) {
-            uniqueMap.set(item.id, item);
-          }
-        });
-
-        const finalData = Array.from(uniqueMap.values());
-        // Sync local cache
-        try {
-          localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(finalData));
-        } catch {}
-        return finalData;
+      if (!error && data && Array.isArray(data)) {
+        // If there's data in the table, it is the ABSOLUTE source of truth.
+        // We do not overlay INITIAL_CLASSWORK, so that deleted records stay deleted.
+        if (data.length > 0) {
+          const finalData = (data as ClassworkRow[]).map(rowToClasswork);
+          // Sync local cache for offline fallback
+          try {
+            localStorage.setItem(LOCAL_STORAGE_CUSTOM_CLASSWORK, JSON.stringify(finalData));
+          } catch {}
+          return finalData;
+        }
       }
     } catch (err) {
       console.warn('Network exception fetching classwork from Supabase (falling back):', err);
@@ -664,20 +652,14 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
       );
       const { data, error } = res;
 
-      if (!error && data && Array.isArray(data) && data.length > 0) {
-        // Start with default baseline items
-        const uniqueMap = new Map<string, HomeworkEntry>();
-        INITIAL_HOMEWORK.forEach((item) => {
-          if (item && item.id) {
-            uniqueMap.set(item.id, { ...item });
-          }
-        });
-
-        // Overlay edits/new entries from Supabase
-        (data as HomeworkRow[]).forEach((row) => {
-          const item = rowToHomework(row);
-          if (item && item.id) {
-            // Ensure Tuesday Week 2 Arabic homework is page 47
+      if (!error && data && Array.isArray(data)) {
+        // If there's data in the table, it is the ABSOLUTE source of truth.
+        // We do not overlay INITIAL_HOMEWORK, so that deleted records stay deleted.
+        if (data.length > 0) {
+          const finalData = (data as HomeworkRow[]).map(rowToHomework);
+          
+          // Ensure Tuesday Week 2 Arabic homework is page 47 (if any exist)
+          finalData.forEach(item => {
             const isTargetArabicHw =
               item.id === 'hw-w2-ar-tue-g2a-wb' ||
               item.id === 'hw-w2-ar-tue-g2b-wb' ||
@@ -686,23 +668,21 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
 
             if (
               isTargetArabicHw &&
+              item.task &&
               (item.task.includes('46') || (item.pages && item.pages.includes('46')) || (item.details && item.details.includes('46')))
             ) {
               item.task = item.task.replace(/46/g, '47');
               if (item.pages) item.pages = item.pages.replace(/46/g, '47');
               if (item.details) item.details = item.details.replace(/46/g, '47');
             }
+          });
 
-            uniqueMap.set(item.id, item);
-          }
-        });
-
-        const finalData = Array.from(uniqueMap.values());
-        // Sync local cache
-        try {
-          localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(finalData));
-        } catch {}
-        return finalData;
+          // Sync local cache for offline fallback
+          try {
+            localStorage.setItem(LOCAL_STORAGE_CUSTOM_HOMEWORK, JSON.stringify(finalData));
+          } catch {}
+          return finalData;
+        }
       }
     } catch (err) {
       console.warn('Network exception fetching homework from Supabase (falling back):', err);
