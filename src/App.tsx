@@ -768,23 +768,40 @@ export default function App() {
       {/* Interactive Navigation Bar */}
       <Navbar
         currentClass={currentClass}
-        onSelectClass={setCurrentClass}
+        onSelectClass={(c) => {
+          setCurrentClass(c);
+          localStorage.setItem(STORAGE_KEYS.CLASS, c);
+          if (isSupabaseConfigured) {
+            savePlannerSetting('current_class', c).catch(() => {});
+          }
+        }}
         currentBlock={currentBlock}
         onSelectBlock={(b) => {
           setCurrentBlock(b);
           localStorage.setItem('nile_planner_block', String(b));
+          if (isSupabaseConfigured) {
+            savePlannerSetting('current_block', String(b)).catch(() => {});
+          }
           showToast(`Switched to Block ${b}`);
         }}
         currentWeek={currentWeek}
         onSelectWeek={(w) => {
           setCurrentWeek(w);
           localStorage.setItem(STORAGE_KEYS.WEEK, String(w));
+          if (isSupabaseConfigured) {
+            savePlannerSetting('current_week', String(w)).catch(() => {});
+          }
           showToast(`Switched to Week ${w}`);
         }}
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         selectedDay={selectedDay}
-        onSelectDay={setSelectedDay}
+        onSelectDay={(d) => {
+          setSelectedDay(d);
+          if (isSupabaseConfigured) {
+            savePlannerSetting('selected_day', d).catch(() => {});
+          }
+        }}
         onPrint={handlePrint}
         pendingHomeworkCount={pendingHomeworkCount}
         userProfile={userProfile}
@@ -868,6 +885,9 @@ export default function App() {
               selectedDay={selectedDay}
               onSelectDay={(d) => {
                 setSelectedDay(d);
+                if (isSupabaseConfigured) {
+                  savePlannerSetting('selected_day', d).catch(() => {});
+                }
                 setActiveTab('classwork');
               }}
             />
