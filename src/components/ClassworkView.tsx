@@ -26,7 +26,7 @@ interface ClassworkViewProps {
   isAdminEditMode?: boolean;
   onEditClasswork?: (entry: ClassworkEntry) => void;
   onDeleteClasswork?: (id: string) => void;
-  onAddClasswork?: () => void;
+  onAddClasswork?: (prefilledData?: any) => void;
 }
 
 export const ClassworkView: React.FC<ClassworkViewProps> = ({
@@ -196,6 +196,12 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
         ...slot,
         slotId: `active-tt-${selectedDay}-${slot.periodLabel}-${slot.subject}-default`,
         cwEntry: defaultFrenchEntry,
+      });
+    } else if (isAdminEditMode) {
+      activeTimetablePeriods.push({
+        ...slot,
+        slotId: `active-tt-${selectedDay}-${slot.periodLabel}-${slot.subject}-empty`,
+        cwEntry: undefined,
       });
     }
   }
@@ -458,49 +464,73 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
                   {/* Actions (Check completion & Admin Controls) */}
                   <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 w-full sm:w-auto justify-end">
-                    {isAdminEditMode && cwEntry && (
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => onEditClasswork?.(cwEntry)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 text-xs font-black rounded-lg transition-all cursor-pointer"
-                          title="تعديل تفاصيل الحصة"
-                        >
-                          <Pencil className="w-3.5 h-3.5 text-amber-700" />
-                          <span>تعديل</span>
-                        </button>
+                    {isAdminEditMode && (
+                      cwEntry ? (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => onEditClasswork?.(cwEntry)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 text-xs font-black rounded-lg transition-all cursor-pointer"
+                            title="تعديل تفاصيل الحصة"
+                          >
+                            <Pencil className="w-3.5 h-3.5 text-amber-700" />
+                            <span>تعديل</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              onDeleteClasswork?.(cwEntry.id);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-black rounded-lg transition-all cursor-pointer"
+                            title="حذف الحصة نهائياً"
+                          >
+                            <Trash className="w-3.5 h-3.5 text-rose-700" />
+                            <span>حذف</span>
+                          </button>
+                        </div>
+                      ) : (
                         <button
                           onClick={() => {
-                            onDeleteClasswork?.(cwEntry.id);
+                            if (onAddClasswork) {
+                              onAddClasswork({
+                                classId: currentClass,
+                                subject: slot.subject,
+                                day: selectedDay,
+                                period: slot.periods[0] || 1,
+                                block: currentBlock,
+                                week: currentWeek,
+                              });
+                            }
                           }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-black rounded-lg transition-all cursor-pointer"
-                          title="حذف الحصة نهائياً"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-lg transition-all cursor-pointer shadow-xs"
+                          title="إضافة تفاصيل لهذه الحصة"
                         >
-                          <Trash className="w-3.5 h-3.5 text-rose-700" />
-                          <span>حذف</span>
+                          <Plus className="w-3.5 h-3.5 text-white" />
+                          <span>إضافة تفاصيل</span>
                         </button>
-                      </div>
+                      )
                     )}
 
-                    <button
-                      onClick={handleToggleLesson}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        cwEntry?.completed
-                          ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
-                          : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 shadow-2xs'
-                      }`}
-                    >
-                      {cwEntry?.completed ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                          <span>Done</span>
-                        </>
-                      ) : (
-                        <>
-                          <Circle className="w-4 h-4 text-slate-400" />
-                          <span>Mark Done</span>
-                        </>
-                      )}
-                    </button>
+                    {cwEntry && (
+                      <button
+                        onClick={handleToggleLesson}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          cwEntry?.completed
+                            ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
+                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 shadow-2xs'
+                        }`}
+                      >
+                        {cwEntry?.completed ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                            <span>Done</span>
+                          </>
+                        ) : (
+                          <>
+                            <Circle className="w-4 h-4 text-slate-400" />
+                            <span>Mark Done</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

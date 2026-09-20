@@ -54,7 +54,7 @@ import {
   getLocalCustomHomework,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
-import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
 
 // In-memory app state to completely bypass localStorage as requested
 const IN_MEMORY_APP_STATE: Record<string, string> = {};
@@ -782,10 +782,10 @@ export default function App() {
     }
   };
 
-  const handleOpenAddModal = (type: 'classwork' | 'homework' | 'tomorrow') => {
+  const handleOpenAddModal = (type: 'classwork' | 'homework' | 'tomorrow', prefilledData?: any) => {
     setEditorItemType(type);
     setEditorModalMode('add');
-    setSelectedEditorItem(null);
+    setSelectedEditorItem(prefilledData || null);
     setIsEditorModalOpen(true);
   };
 
@@ -884,7 +884,7 @@ export default function App() {
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
               isAdminEditMode={isAdminEditMode}
-              onAddClasswork={() => handleOpenAddModal('classwork')}
+              onAddClasswork={(prefilledData) => handleOpenAddModal('classwork', prefilledData)}
               onEditClasswork={(entry) => handleOpenEditModal('classwork', entry)}
               onDeleteClasswork={(id) => handleDeleteInteractiveItem('classwork', id)}
             />

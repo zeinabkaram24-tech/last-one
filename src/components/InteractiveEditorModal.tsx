@@ -115,32 +115,32 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
         }
       } else {
         // Defaults for Add Mode
-        setClassId(currentClass);
-        setSubject('Arabic');
-        setBlock(currentBlock);
-        setWeek(currentWeek);
-        setTitle('');
-        setDetails('');
-        setPages('');
-        setDay(selectedDay === 'Saturday' ? 'Sunday' : selectedDay);
-        setPeriod(1);
-        setAssignedDay(selectedDay === 'Saturday' ? 'Sunday' : selectedDay);
+        setClassId(initialData?.classId || currentClass);
+        setSubject(initialData?.subject || 'Arabic');
+        setBlock(initialData?.block || currentBlock);
+        setWeek(initialData?.week || currentWeek);
+        setTitle(initialData?.title || '');
+        setDetails(initialData?.details || '');
+        setPages(initialData?.pages || '');
+        setDay(initialData?.day || (selectedDay === 'Saturday' ? 'Sunday' : selectedDay));
+        setPeriod(initialData?.period || 1);
+        setAssignedDay(initialData?.assignedDay || (selectedDay === 'Saturday' ? 'Sunday' : selectedDay));
         
         // set next day for due day
         const dayOrder: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday'];
-        const currentIdx = dayOrder.indexOf(selectedDay);
+        const currentIdx = dayOrder.indexOf(initialData?.day || selectedDay);
         const nextDayVal = dayOrder[(currentIdx + 1) % dayOrder.length];
-        setDueDay(nextDayVal);
-        setPriority('normal');
+        setDueDay(initialData?.dueDay || nextDayVal);
+        setPriority(initialData?.priority || 'normal');
 
-        setArabicNote('');
-        setBagItem('');
-        setIsQuiz(false);
-        setTargetDay(selectedDay === 'Saturday' ? 'Sunday' : selectedDay);
+        setArabicNote(initialData?.arabicNote || initialData?.note || '');
+        setBagItem(initialData?.bagItem || '');
+        setIsQuiz(initialData?.isQuiz || false);
+        setTargetDay(initialData?.targetDay || (selectedDay === 'Saturday' ? 'Sunday' : selectedDay));
         
-        setLinkUrl('');
-        setLinkTitle('');
-        setFileBase64('');
+        setLinkUrl(initialData?.linkUrl || '');
+        setLinkTitle(initialData?.linkTitle || '');
+        setFileBase64(initialData?.pdfUrl || '');
         setFileName('');
       }
     }
