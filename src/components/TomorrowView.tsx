@@ -55,8 +55,28 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Helper to determine whether an item is a Quiz or Test
   const isQuizOrTest = (n: TomorrowSpecialNote) => {
     if (n.subject === 'Social Studies') return false;
-    if (n.isQuiz || n.categoryType === 'quiz') return true;
     const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+    
+    // Explicitly exclude any homework, homework submissions, tools, or materials tasks
+    if (
+      text.includes('واجب') ||
+      text.includes('هوم ورك') ||
+      text.includes('هومورك') ||
+      text.includes('تسليم') ||
+      text.includes('submission') ||
+      text.includes('homework') ||
+      text.includes('tools') ||
+      text.includes('أدوات') ||
+      text.includes('حقيبة') ||
+      text.includes('كشكول') ||
+      text.includes('bag') ||
+      text.includes('sheet') ||
+      text.includes('شيت')
+    ) {
+      return false;
+    }
+
+    if (n.isQuiz || n.categoryType === 'quiz') return true;
     return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(text);
   };
 
@@ -78,6 +98,16 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (tomorrowDay === 'Saturday') return true;
     if (isFabricatedMathNote(n)) return true;
+
+    // Filter out community notes / "مجتمع الصف الثاني"
+    const lowerText = ((n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.bagItem || '')).toLowerCase();
+    if (
+      lowerText.includes('مجتمع الصف الثاني') ||
+      lowerText.includes('مجتمع الصف الدراسي') ||
+      lowerText.includes('مجتمع')
+    ) {
+      return true;
+    }
 
     // These rules ONLY apply when we are in Week 3
     if (currentWeek === 3) {
@@ -192,6 +222,26 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     };
   }, [currentBlock, currentWeek, currentClass, tomorrowDay]);
 
+  const getNoteDisplayArabic = (n: TomorrowSpecialNote) => {
+    const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+    const isDictation = text.includes('إملاء') || text.includes('dictation') || text.includes('تسميع');
+    if (isDictation) {
+      return "إملاء كشكول الطالب، إحضار كشكول الطالب";
+    }
+    if (n.subject === 'Science' && (text.includes('tools') || text.includes('أدوات') || text.includes('حقيبة') || text.includes('crochet'))) {
+      return "يرجى إحضار أدوات الساينس لحصة الغد: دفتر تلوين بألوان مختلفة، ومقص، وأقلام تلوين، وخيط كروشيه صغير.";
+    }
+    return n.arabicNote || n.note;
+  };
+
+  const getNoteDisplayBagItem = (n: TomorrowSpecialNote) => {
+    const text = ((n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.bagItem || '')).toLowerCase();
+    if (n.subject === 'Science' && (text.includes('tools') || text.includes('أدوات') || text.includes('حقيبة') || text.includes('crochet'))) {
+      return "دفتر تلوين بألوان مختلفة، ومقص، وأقلام تلوين، وخيط كروشيه صغير";
+    }
+    return n.bagItem;
+  };
+
   const getNoteBadgeInfo = (note: TomorrowSpecialNote) => {
     const quiz = isQuizOrTest(note);
     const fullText = ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase();
@@ -199,11 +249,47 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     const isArabic = note.subject === 'Arabic' || fullText.includes('عربي') || fullText.includes('عربية');
     const isEnglish = note.subject === 'English' || fullText.includes('english');
 
+    // Is it a homework submission task?
+    const isSubmission =
+      fullText.includes('تسليم') ||
+      fullText.includes('submission') ||
+      fullText.includes('استلام') ||
+      fullText.includes('واجب') ||
+      fullText.includes('homework') ||
+      fullText.includes('hw:');
+
+    // Arabic translation helper for subject names
+    const getArabicSubjectName = (subj: string) => {
+      const s = subj.toLowerCase();
+      if (s.includes('science') || s.includes('ساينس') || s.includes('علوم')) return 'الساينس (Science)';
+      if (s.includes('social') || s.includes('دراسات')) return 'الدراسات الاجتماعية';
+      if (s.includes('math') || s.includes('رياضيات')) return 'الماث (Math)';
+      if (s.includes('french') || s.includes('فرنش')) return 'اللغة الفرنسية';
+      if (s.includes('arabic') || s.includes('عربي')) return 'اللغة العربية';
+      if (s.includes('religion') || s.includes('دين')) return 'التربية الدينية';
+      if (s.includes('ict') || s.includes('تكنولوجيا')) return 'ICT';
+      if (s.includes('art') || s.includes('رسم')) return 'التربية الفنية';
+      if (s.includes('music') || s.includes('موسيقى')) return 'الموسيقى';
+      return subj;
+    };
+
+    const arabName = getArabicSubjectName(note.subject);
+
+    if (isSubmission) {
+      return {
+        label: 'تسليم هوم ورك 📋',
+        badgeClass: 'bg-indigo-600 text-white font-black shadow-2xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px]',
+        cardClass: 'bg-indigo-50/70 border-2 border-indigo-300 text-indigo-950 font-bold shadow-2xs',
+        subjectName: arabName,
+        isAlert: false,
+      };
+    }
+
     if (quiz) {
       // User directive: Arabic dictation is strictly 'إملاء' (NO 'Dictation'), English dictation is 'Dictation'
       let label = '🚨 اختبار';
       if (isDictation) {
-        label = isArabic ? '✍️ إملاء' : isEnglish ? '✍️ Dictation' : '✍️ إملاء';
+        label = isArabic ? '✍️ إملاء كشكول الطالب' : isEnglish ? '✍️ Dictation' : '✍️ إملاء كشكول الطالب';
       } else if (note.subject === 'French') {
         label = '🇫🇷 كويز فرنسي';
       } else if (note.subject === 'Mathematics' || note.subject === 'Math') {
@@ -216,16 +302,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         label,
         badgeClass: 'bg-rose-600 text-white font-black shadow-xs',
         cardClass: 'bg-rose-50 border-2 border-rose-500 text-rose-950 font-bold shadow-xs',
-        subjectName:
-          note.subject === 'French'
-            ? 'لغة فرنسية'
-            : note.subject === 'Mathematics' || note.subject === 'Math'
-            ? 'رياضيات'
-            : note.subject === 'Social Studies'
-            ? 'الدراسات الاجتماعية'
-            : note.subject === 'Arabic'
-            ? 'اللغة العربية'
-            : note.subject,
+        subjectName: arabName,
         isAlert: true,
       };
     }
@@ -240,13 +317,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       };
     }
     if (note.subject === 'Social Studies') {
-      const isSubmission =
-        fullText.includes('تسليم') ||
-        fullText.includes('submission') ||
-        fullText.includes('استلام') ||
-        fullText.includes('واجب');
       return {
-        label: isSubmission ? 'تسليم واجب 📋' : 'ملاحظات',
+        label: 'ملاحظات',
         badgeClass: 'bg-amber-100 text-amber-950 font-black border border-amber-300',
         cardClass: 'bg-amber-50/80 border-2 border-amber-300/90 shadow-2xs text-amber-950',
         subjectName: 'الدراسات الاجتماعية',
@@ -266,7 +338,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       label: 'ملاحظات',
       badgeClass: 'bg-blue-100 text-blue-950 font-black',
       cardClass: 'bg-slate-50 border border-slate-200 shadow-2xs',
-      subjectName: note.subject,
+      subjectName: arabName,
       isAlert: false,
     };
   };
@@ -544,7 +616,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                         {badgeInfo.label} • {badgeInfo.subjectName}
                       </span>
                       <span className={`leading-relaxed text-xs sm:text-sm ${badgeInfo.isAlert ? 'font-black text-rose-950' : 'font-bold text-slate-900'}`}>
-                        {note.arabicNote || note.note}
+                        {getNoteDisplayArabic(note)}
                       </span>
                     </div>
                     {isAdminEditMode && (
@@ -568,7 +640,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                       </div>
                     )}
                   </div>
-                  {note.bagItem &&
+                  {getNoteDisplayBagItem(note) &&
                     !(
                       ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('إملاء') ||
                       ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictation')
@@ -578,7 +650,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                         ? 'text-rose-900 bg-white border border-rose-200'
                         : 'text-amber-950 bg-white border border-amber-200/90'
                     }`}>
-                      الأدوات المطلوبة: {note.bagItem}
+                      الأدوات المطلوبة: {getNoteDisplayBagItem(note)}
                     </div>
                   )}
                   {note.linkUrl && (

@@ -1125,6 +1125,21 @@ export default function App() {
           }
         }}
       />
+      {isAdminEditMode && (
+        <div className="fixed bottom-6 right-6 z-50 print:hidden">
+          <button
+            onClick={() => {
+              setIsAdminEditMode(false);
+              showToast('تم الخروج من وضع التعديل المباشر والعودة كزائر 📋');
+            }}
+            className="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white px-5 py-3 rounded-full font-black text-xs sm:text-sm shadow-xl flex items-center gap-2 border border-rose-500 transition-all cursor-pointer animate-bounce hover:animate-none"
+            title="الخروج من التفعيل المباشر والعودة لوضع الزائر"
+          >
+            <Shield className="w-4 h-4 text-white animate-pulse" />
+            <span>الخروج من وضع التعديل المباشر ❌</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

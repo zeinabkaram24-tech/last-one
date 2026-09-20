@@ -202,12 +202,30 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
           {dayHomework.map((hw) => {
             const meta = SUBJECT_METADATA[hw.subject];
             const theme = getSubjectTheme(hw.subject);
+            const checkText = ((hw.task || '') + ' ' + (hw.details || '')).toLowerCase();
+            const isHomeworkOrTools =
+              checkText.includes('واجب') ||
+              checkText.includes('هوم ورك') ||
+              checkText.includes('هومورك') ||
+              checkText.includes('تسليم') ||
+              checkText.includes('submission') ||
+              checkText.includes('homework') ||
+              checkText.includes('tools') ||
+              checkText.includes('أدوات') ||
+              checkText.includes('حقيبة') ||
+              checkText.includes('كشكول') ||
+              checkText.includes('bag') ||
+              checkText.includes('sheet') ||
+              checkText.includes('شيت');
+
             const isTestOrQuiz =
-              hw.task.toLowerCase().includes('test') ||
-              hw.task.toLowerCase().includes('quiz') ||
-              hw.task.includes('اختبار') ||
-              hw.task.includes('كويز') ||
-              hw.task.includes('امتحان');
+              !isHomeworkOrTools && (
+                hw.task.toLowerCase().includes('test') ||
+                hw.task.toLowerCase().includes('quiz') ||
+                hw.task.includes('اختبار') ||
+                hw.task.includes('كويز') ||
+                hw.task.includes('امتحان')
+              );
 
             return (
               <div
