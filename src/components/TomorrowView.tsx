@@ -54,6 +54,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Helper to determine whether an item is a Quiz or Test
   const isQuizOrTest = (n: TomorrowSpecialNote) => {
+    if (n.subject === 'Social Studies') return false;
     if (n.isQuiz || n.categoryType === 'quiz') return true;
     const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
     return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(text);
@@ -367,7 +368,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     let injectFrenchQuiz = false;
     if (currentClass === 'G2A' && tomorrowDay === 'Wednesday') injectFrenchQuiz = true;
     if (currentClass === 'G2B' && tomorrowDay === 'Monday') injectFrenchQuiz = true;
-    if (currentClass === 'G2C' && tomorrowDay === 'Wednesday') injectFrenchQuiz = true;
+    if (currentClass === 'G2C' && tomorrowDay === 'Tuesday') injectFrenchQuiz = true;
 
     if (injectFrenchQuiz) {
       const fQuizId = `french-quiz-${currentClass}-${tomorrowDay}`;
@@ -376,8 +377,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         classId: currentClass,
         targetDay: tomorrowDay,
         subject: 'French',
-        note: 'Quiz de français (un, deux, trois + les jours de la semaine)',
-        arabicNote: 'كويز فرنسي (الأعداد من 1 لـ 3 + أيام الأسبوع)',
+        note: 'French Quiz',
+        arabicNote: 'كويز فرنش',
         isQuiz: true,
         categoryType: 'quiz',
         block: currentBlock,

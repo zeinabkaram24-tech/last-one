@@ -330,6 +330,96 @@ app.post('/api/planner-data/delete', (req, res) => {
   }
 });
 
+// Voice-command natural language parser endpoint
+app.post('/api/parse-voice-command', async (req, res) => {
+  try {
+    const { command, itemType, currentClass, currentBlock, currentWeek, selectedDay } = req.body;
+    if (!command) {
+      return res.status(400).json({ error: 'Command text is required' });
+    }
+
+    const ai = getGenAI();
+    if (!ai) {
+      console.log('No GEMINI_API_KEY set, using smart heuristic fallback.');
+      return res.json({
+        success: true,
+        data: {
+          title: command,
+          task: command,
+          arabicNote: command,
+          note: command
+        }
+      });
+    }
+
+    const prompt = `
+You are an expert AI Voice Command Parser for a primary school planner.
+Parse the following voice command or dictation text: "${command}"
+Into a structured JSON object to fill out a task creation/editing form.
+The form item type is currently set to: "${itemType}" (can be 'classwork', 'homework', or 'tomorrow').
+
+Current context:
+- Default Class ID: "${currentClass || 'G2B'}"
+- Default Block: ${currentBlock || 1}
+- Default Week: ${currentWeek || 3}
+- Default/Selected Day: "${selectedDay || 'Sunday'}"
+
+Valid options to map:
+- Subjects: "Arabic", "English", "Mathematics", "Science", "French", "Social Studies", "Religion", "ICT", "Arts", "Music", "PE"
+- Class IDs: "G2A", "G2B", "G2C", "ALL"
+- Days of the week (must capitalize first letter): "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"
+- Blocks: 1, 2, 3, 4
+- Weeks: 1, 2, 3, 4
+
+Response format MUST be strictly a JSON block containing only the fields that were specified or can be intelligently inferred from the command:
+
+For all types:
+- subject (match closest from valid subjects, translate from Arabic if spoken in Arabic e.g. "ساينس" or "علوم" -> "Science", "رياضيات" or "ماث" -> "Mathematics", "عربي" -> "Arabic", "دين" -> "Religion", "فرنش" or "فرنساوي" -> "French", "دراسات" -> "Social Studies", "رسم" or "ارت" -> "Arts", "تكنولوجيا" or "اي سي تي" -> "ICT")
+- classId (match closest e.g. "كلاس ايه" -> "G2A", "كلاس بي" -> "G2B", "كلاس سي" -> "G2C", "كل الصفوف" -> "ALL")
+- block (number)
+- week (number)
+
+For 'classwork' type:
+- title (string, e.g. "درس الجمع")
+- details (string)
+- pages (string, e.g. "ص 12")
+- day (one of valid days)
+- period (number 1-8)
+
+For 'homework' type:
+- title (string - maps to "task", e.g. "حل صفحة 22")
+- details (string)
+- pages (string, e.g. "ص 22")
+- assignedDay (one of valid days)
+- dueDay (one of valid days)
+- priority (either "normal" or "urgent")
+
+For 'tomorrow' type (tomorrow notes):
+- arabicNote (string)
+- bagItem (string)
+- isQuiz (boolean)
+- targetDay (one of valid days)
+
+Return ONLY valid JSON. If a value is not mentioned, use the defaults if helpful or omit it. Do not include any markdown backticks or explanation. Just JSON.
+`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json'
+      }
+    });
+
+    const responseText = response.text || '';
+    const parsed = JSON.parse(responseText.trim());
+    res.json({ success: true, data: parsed });
+  } catch (err: any) {
+    console.error('Error parsing voice command:', err);
+    res.status(500).json({ error: err.message || 'Error parsing voice command' });
+  }
+});
+
 // Third session mapping for French and ICT as strictly requested
 const THIRD_SESSION_MAP: Record<string, { French: string; ICT: string }> = {
   G2A: { French: 'Thursday', ICT: 'Wednesday' },
