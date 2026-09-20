@@ -54,6 +54,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Helper to determine whether an item is a Quiz or Test
   const isQuizOrTest = (n: TomorrowSpecialNote) => {
+    if (!n) return false;
     if (n.subject === 'Social Studies') return false;
     const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
     
@@ -82,6 +83,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // User mandate: strictly remove any fabricated math supplies notes (whiteboard, 100 chart, markers, etc.)
   const isFabricatedMathNote = (n: TomorrowSpecialNote) => {
+    if (!n) return false;
     const text = ((n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.bagItem || '')).toLowerCase();
     return (
       text.includes('white board') ||
@@ -96,6 +98,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items / quizzes, strictly excluding plain homework)
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
+    if (!n) return true;
     if (tomorrowDay === 'Saturday') return true;
     if (isFabricatedMathNote(n)) return true;
 
@@ -223,6 +226,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   }, [currentBlock, currentWeek, currentClass, tomorrowDay]);
 
   const getNoteDisplayArabic = (n: TomorrowSpecialNote) => {
+    if (!n) return '';
     const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
     const isDictation = text.includes('إملاء') || text.includes('dictation') || text.includes('تسميع');
     if (isDictation) {
@@ -235,6 +239,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   };
 
   const getNoteDisplayBagItem = (n: TomorrowSpecialNote) => {
+    if (!n) return '';
     const text = ((n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.bagItem || '')).toLowerCase();
     if (n.subject === 'Science' && (text.includes('tools') || text.includes('أدوات') || text.includes('حقيبة') || text.includes('crochet'))) {
       return "دفتر تلوين بألوان مختلفة، ومقص، وأقلام تلوين، وخيط كروشيه صغير";
@@ -243,6 +248,15 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   };
 
   const getNoteBadgeInfo = (note: TomorrowSpecialNote) => {
+    if (!note) {
+      return {
+        label: 'ملاحظات',
+        badgeClass: 'bg-blue-100 text-blue-950 font-black',
+        cardClass: 'bg-slate-50 border border-slate-200 shadow-2xs',
+        subjectName: '',
+        isAlert: false,
+      };
+    }
     const quiz = isQuizOrTest(note);
     const fullText = ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase();
     const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');

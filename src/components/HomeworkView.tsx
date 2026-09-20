@@ -220,11 +220,11 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
             const isTestOrQuiz =
               !isHomeworkOrTools && (
-                hw.task.toLowerCase().includes('test') ||
-                hw.task.toLowerCase().includes('quiz') ||
-                hw.task.includes('اختبار') ||
-                hw.task.includes('كويز') ||
-                hw.task.includes('امتحان')
+                (hw.task || '').toLowerCase().includes('test') ||
+                (hw.task || '').toLowerCase().includes('quiz') ||
+                (hw.task || '').includes('اختبار') ||
+                (hw.task || '').includes('كويز') ||
+                (hw.task || '').includes('امتحان')
               );
 
             return (

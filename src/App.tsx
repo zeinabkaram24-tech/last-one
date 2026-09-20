@@ -210,6 +210,12 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (isAdminEditMode) {
+      showToast('🛠️ تم تفعيل وضع التعديل المباشر! يمكنك الآن إضافة وتعديل وحذف أي عنصر مباشرة من الصفحة.');
+    }
+  }, [isAdminEditMode]);
+
   // Persistence & Sync effects for class, week, day
   useEffect(() => {
     appStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
