@@ -382,6 +382,15 @@ export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
     }
   }
 
+  let localList: string[] = [];
+  try {
+    const raw = appStorage.getItem('nile_deleted_tomorrow_note_ids_v3');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) localList = parsed;
+    }
+  } catch {}
+
   try {
     const { data, error } = await supabase
       .from('planner_settings')
@@ -389,19 +398,25 @@ export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
       .eq('key', 'deleted_tomorrow_note_ids')
       .maybeSingle();
     if (!error && data && data.value) {
-      return JSON.parse(data.value);
+      const dbList = JSON.parse(data.value);
+      if (Array.isArray(dbList)) {
+        const combined = Array.from(new Set([...localList, ...dbList]));
+        appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(combined));
+        return combined;
+      }
     }
   } catch (e) {
     console.warn('Error fetching deleted tomorrow note ids:', e);
   }
-  return [];
+  return localList;
 }
 
 export async function saveDeletedTomorrowNoteId(noteId: string): Promise<void> {
   const currentList = await getDeletedTomorrowNoteIds();
   if (!currentList.includes(noteId)) {
     currentList.push(noteId);
-    
+    appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(currentList));
+
     if (isSupabaseConfigured) {
       try {
         await supabase

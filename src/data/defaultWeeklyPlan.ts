@@ -2019,6 +2019,51 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     block: 1,
     week: 3
   },
+  {
+    id: "hw-b1-w3-G2A-social-Wed-1",
+    classId: "G2A",
+    assignedDay: "Wednesday",
+    dueDay: "Sunday",
+    subject: "Social Studies",
+    task: "إكمال واجب الدرس المنزلي",
+    details: "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع (الأحد) - حل شيت الواجب المرفق",
+    pages: "شيت الواجب المنزلي",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 3,
+    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+  },
+  {
+    id: "hw-b1-w3-G2B-social-Wed-1",
+    classId: "G2B",
+    assignedDay: "Wednesday",
+    dueDay: "Monday",
+    subject: "Social Studies",
+    task: "إكمال واجب الدرس المنزلي",
+    details: "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع (الاثنين) - حل شيت الواجب المرفق",
+    pages: "شيت الواجب المنزلي",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 3,
+    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+  },
+  {
+    id: "hw-b1-w3-G2C-social-Wed-1",
+    classId: "G2C",
+    assignedDay: "Wednesday",
+    dueDay: "Sunday",
+    subject: "Social Studies",
+    task: "إكمال واجب الدرس المنزلي",
+    details: "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع (الأحد) - حل شيت الواجب المرفق",
+    pages: "شيت الواجب المنزلي",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 3,
+    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+  },
   // BLOCK 1 - WEEK 3 ENGLISH DICTATION LIST FOR ALL CLASSES & DAYS
   ...["G2A", "G2B", "G2C"].flatMap((cls) => 
     ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"].map((day) => ({

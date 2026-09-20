@@ -40,8 +40,18 @@ import {
   printPdfItem,
   downloadPdfItem,
 } from '../utils/materialsStorage';
-import { uploadPdfToSupabaseStorage, bulkInsertClasswork, bulkInsertHomework, getLocalCustomClasswork, getLocalCustomHomework } from '../lib/supabase';
-import { saveTomorrowNotes } from '../utils/tomorrowNotesStorage';
+import {
+  uploadPdfToSupabaseStorage,
+  bulkInsertClasswork,
+  bulkInsertHomework,
+  getLocalCustomClasswork,
+  getLocalCustomHomework,
+  upsertClasswork,
+  upsertHomework,
+  deleteClasswork,
+  deleteHomework,
+} from '../lib/supabase';
+import { saveTomorrowNotes, saveDeletedTomorrowNoteId } from '../utils/tomorrowNotesStorage';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_CLASSWORK, ALL_LINK_AND_WEEK2_HOMEWORK, WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { fileToBase64, extractTextFromPdf } from '../utils/pdfExtractor';
@@ -224,20 +234,35 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const handleDeleteItem = (type: 'classwork' | 'homework' | 'tomorrow', index: number) => {
     if (!parsedResult) return;
     if (type === 'classwork') {
+      const item = parsedResult.classwork[index];
+      if (item?.id) {
+        deleteClasswork(item.id);
+      }
       setParsedResult({
         ...parsedResult,
         classwork: parsedResult.classwork.filter((_, i) => i !== index),
       });
+      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
     } else if (type === 'homework') {
+      const item = parsedResult.homework[index];
+      if (item?.id) {
+        deleteHomework(item.id);
+      }
       setParsedResult({
         ...parsedResult,
         homework: parsedResult.homework.filter((_, i) => i !== index),
       });
+      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
     } else if (type === 'tomorrow') {
+      const item = parsedResult.tomorrowNotes[index];
+      if (item?.id) {
+        saveDeletedTomorrowNoteId(item.id);
+      }
       setParsedResult({
         ...parsedResult,
         tomorrowNotes: parsedResult.tomorrowNotes.filter((_, i) => i !== index),
       });
+      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
     }
   };
 
@@ -293,6 +318,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         pdfUrl: finalPdfUrl.trim() || undefined,
       };
 
+      // Persist immediately to Supabase and local storage
+      upsertClasswork(entry);
+
       if (isAddingNewItem) {
         setParsedResult({
           ...parsedResult,
@@ -304,6 +332,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           classwork: parsedResult.classwork.map((c, i) => (i === editingItemIndex ? entry : c)),
         });
       }
+      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
     } else if (editingItemType === 'homework') {
       const entry: HomeworkEntry = {
         id: isAddingNewItem || editingItemIndex === null
@@ -325,6 +354,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         pdfUrl: finalPdfUrl.trim() || undefined,
       };
 
+      // Persist immediately to Supabase and local storage
+      upsertHomework(entry);
+
       if (isAddingNewItem) {
         setParsedResult({
           ...parsedResult,
@@ -336,6 +368,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           homework: parsedResult.homework.map((h, i) => (i === editingItemIndex ? entry : h)),
         });
       }
+      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
     } else if (editingItemType === 'tomorrow') {
       const entry: TomorrowSpecialNote = {
         id: isAddingNewItem || editingItemIndex === null
@@ -356,6 +389,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         pdfUrl: finalPdfUrl.trim() || undefined,
       };
 
+      // Persist immediately to Supabase and local storage
+      saveTomorrowNotes(planBlock, planWeek, [entry], 'merge');
+
       if (isAddingNewItem) {
         setParsedResult({
           ...parsedResult,
@@ -367,7 +403,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           tomorrowNotes: parsedResult.tomorrowNotes.map((n, i) => (i === editingItemIndex ? entry : n)),
         });
       }
+      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
     }
+
+    setSuccessMessage('تم الحفظ والتثبيت بنجاح ✅');
+    setTimeout(() => setSuccessMessage(null), 3000);
 
     setEditingItemType(null);
     setEditingItemIndex(null);

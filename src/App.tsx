@@ -56,12 +56,25 @@ import {
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
 
-// In-memory app state to completely bypass localStorage as requested
-const IN_MEMORY_APP_STATE: Record<string, string> = {};
+// Real local app storage with fallback for browser environment
 const appStorage = {
-  getItem: (key: string) => IN_MEMORY_APP_STATE[key] || null,
-  setItem: (key: string, val: string) => { IN_MEMORY_APP_STATE[key] = val; },
-  removeItem: (key: string) => { delete IN_MEMORY_APP_STATE[key]; }
+  getItem: (key: string) => {
+    try {
+      return typeof window !== 'undefined' ? window.localStorage?.getItem(key) : null;
+    } catch {
+      return null;
+    }
+  },
+  setItem: (key: string, val: string) => {
+    try {
+      if (typeof window !== 'undefined') window.localStorage?.setItem(key, val);
+    } catch {}
+  },
+  removeItem: (key: string) => {
+    try {
+      if (typeof window !== 'undefined') window.localStorage?.removeItem(key);
+    } catch {}
+  }
 };
 
 const STORAGE_KEYS = {
@@ -72,7 +85,16 @@ const STORAGE_KEYS = {
 
 function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
   const cached = getLocalCustomClasswork();
-  const source = cached && cached.length > 0 ? cached : INITIAL_CLASSWORK;
+  let deletedSet = new Set<string>();
+  try {
+    const raw = appStorage.getItem('nile_deleted_planner_item_ids_v3');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) deletedSet = new Set(parsed);
+    }
+  } catch {}
+
+  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK).filter(c => !deletedSet.has(c.id));
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
@@ -91,7 +113,16 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
 
 function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
   const cached = getLocalCustomHomework();
-  const source = cached && cached.length > 0 ? cached : INITIAL_HOMEWORK;
+  let deletedSet = new Set<string>();
+  try {
+    const raw = appStorage.getItem('nile_deleted_planner_item_ids_v3');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) deletedSet = new Set(parsed);
+    }
+  } catch {}
+
+  const source = (cached && cached.length > 0 ? cached : INITIAL_HOMEWORK).filter(h => !deletedSet.has(h.id));
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedHomeworkIds);
@@ -140,6 +171,11 @@ export default function App() {
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
   const [selectedDay, setSelectedDay] = useState<SchoolDay>(() => {
+    const saved = appStorage.getItem(STORAGE_KEYS.DAY);
+    const validDays: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+    if (saved && validDays.includes(saved as SchoolDay)) {
+      return saved as SchoolDay;
+    }
     const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
     const dayMap: Record<number, SchoolDay> = {
       0: 'Sunday',
@@ -336,20 +372,28 @@ export default function App() {
           }
         }
 
-        // Apply settings if found in DB
+        // Apply settings if found in DB only if user has no local choice saved
+        const localClass = appStorage.getItem(STORAGE_KEYS.CLASS);
         if (
+          !localClass &&
           settings.current_class &&
           (settings.current_class === 'G2A' || settings.current_class === 'G2B' || settings.current_class === 'G2C')
         ) {
           setCurrentClass(settings.current_class as ClassId);
         }
-        if (settings.current_week) {
-          setCurrentWeek(Number(settings.current_week) || 2);
+        const localWeek = appStorage.getItem(STORAGE_KEYS.WEEK);
+        if (!localWeek && settings.current_week) {
+          setCurrentWeek(Number(settings.current_week) || 3);
         }
-        if (settings.selected_day) {
-          setSelectedDay(settings.selected_day as SchoolDay);
+        const localDay = appStorage.getItem(STORAGE_KEYS.DAY);
+        if (!localDay && settings.selected_day) {
+          const validDays: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+          if (validDays.includes(settings.selected_day as SchoolDay)) {
+            setSelectedDay(settings.selected_day as SchoolDay);
+          }
         }
-        if (settings.current_block) {
+        const localBlock = appStorage.getItem('nile_planner_block');
+        if (!localBlock && settings.current_block) {
           setCurrentBlock(Number(settings.current_block) || 1);
         }
 
@@ -782,15 +826,26 @@ export default function App() {
     } else if (type === 'homework') {
       await handleDeleteHomework(id);
     } else if (type === 'tomorrow') {
-      setClassworkList((prev) => prev.filter((c) => c.id !== id));
-      setHomeworkList((prev) => prev.filter((h) => h.id !== id));
+      let actualHwId: string | null = null;
+      if (id.startsWith('linked-hw-due-')) {
+        actualHwId = id.replace('linked-hw-due-', '');
+      } else if (id.startsWith('linked-hw-')) {
+        actualHwId = id.replace('linked-hw-', '');
+      }
+
+      setClassworkList((prev) => prev.filter((c) => c.id !== id && c.id !== actualHwId));
+      setHomeworkList((prev) => prev.filter((h) => h.id !== id && h.id !== actualHwId));
 
       try {
         await saveDeletedTomorrowNoteId(id);
+        if (actualHwId) {
+          await deleteHomework(actualHwId);
+        }
         
         await Promise.all([
           supabase.from('classwork').delete().eq('id', id),
-          supabase.from('homework').delete().eq('id', id)
+          supabase.from('homework').delete().eq('id', id),
+          actualHwId ? supabase.from('homework').delete().eq('id', actualHwId) : Promise.resolve(),
         ]);
 
         await fetch('/api/planner-data/delete', {
@@ -803,6 +858,13 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, type: 'homework' }),
         });
+        if (actualHwId) {
+          await fetch('/api/planner-data/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: actualHwId, type: 'homework' }),
+          });
+        }
       } catch (e) {
         console.error('Error deleting tomorrow note from db:', e);
       }
