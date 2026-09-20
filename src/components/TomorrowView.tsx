@@ -75,6 +75,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items / quizzes, strictly excluding plain homework)
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
+    if (tomorrowDay === 'Saturday') return true;
     if (isFabricatedMathNote(n)) return true;
 
     // These rules ONLY apply when we are in Week 3
@@ -355,8 +356,34 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Merge tomorrowNotes with linkedAlerts without duplicates
   const mergedNotes = useMemo<TomorrowSpecialNote[]>(() => {
+    if (tomorrowDay === 'Saturday') {
+      return [];
+    }
+
     const map = new Map<string, TomorrowSpecialNote>();
     let hasArabicDictation = false;
+
+    // Automatically inject French Quiz warning
+    let injectFrenchQuiz = false;
+    if (currentClass === 'G2A' && tomorrowDay === 'Wednesday') injectFrenchQuiz = true;
+    if (currentClass === 'G2B' && tomorrowDay === 'Monday') injectFrenchQuiz = true;
+    if (currentClass === 'G2C' && tomorrowDay === 'Wednesday') injectFrenchQuiz = true;
+
+    if (injectFrenchQuiz) {
+      const fQuizId = `french-quiz-${currentClass}-${tomorrowDay}`;
+      map.set(fQuizId, {
+        id: fQuizId,
+        classId: currentClass,
+        targetDay: tomorrowDay,
+        subject: 'French',
+        note: 'Quiz de français (un, deux, trois + les jours de la semaine)',
+        arabicNote: 'كويز فرنسي (الأعداد من 1 لـ 3 + أيام الأسبوع)',
+        isQuiz: true,
+        categoryType: 'quiz',
+        block: currentBlock,
+        week: currentWeek,
+      });
+    }
 
     // Filter out deleted notes from base tomorrowNotes
     const activeBaseNotes = tomorrowNotes.filter((n) => {
@@ -411,7 +438,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     });
 
     return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));
-  }, [tomorrowNotes, linkedAlerts, deletedNoteIds]);
+  }, [tomorrowNotes, linkedAlerts, deletedNoteIds, tomorrowDay, currentClass, currentBlock, currentWeek]);
 
   // Prioritize quizzes and tests to appear first in the notes list
   const sortedNotes = useMemo(() => {
@@ -421,6 +448,20 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return bQuiz - aQuiz;
     });
   }, [mergedNotes]);
+
+  if (tomorrowDay === 'Saturday') {
+    return (
+      <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-2xs text-center space-y-3">
+        <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
+          <Sparkles className="w-8 h-8" />
+        </div>
+        <h3 className="text-lg font-black text-slate-800">عطلة نهاية الأسبوع السعيدة 🎉</h3>
+        <p className="text-sm text-slate-500 font-bold max-w-md mx-auto leading-relaxed">
+          يوم السبت عطلة رسمية. لا توجد حصص دراسية، واجبات منزلية، أو تنبيهات مجدولة للغد السبت. استمتع بيومك!
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
