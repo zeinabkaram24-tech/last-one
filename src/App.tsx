@@ -792,6 +792,34 @@ export default function App() {
       }));
 
       await saveTomorrowNotes(block, week, entriesToSave, 'merge');
+
+      // If note is a quiz, dictation, test, exam, or evaluation -> automatically add to Homework as urgent item for studying
+      const fullText = `${data.note || ''} ${data.arabicNote || ''} ${data.subject || ''} ${data.bagItem || ''}`;
+      const isQuizOrDictation =
+        data.isQuiz ||
+        data.categoryType === 'quiz' ||
+        /quiz|test|dictation|إملاء|تسميع|اختبار|امتحان|كويز|تقييم|exam|assessment/i.test(fullText);
+
+      if (isQuizOrDictation) {
+        for (const cls of classesToAdd) {
+          const hwEntry: HomeworkEntry = {
+            id: (data.classId as any) === 'ALL' ? `tn-hw-${data.id || Date.now()}-${cls}` : `tn-hw-${data.id || Date.now()}`,
+            classId: cls,
+            assignedDay: data.targetDay || selectedDay,
+            dueDay: data.targetDay || selectedDay,
+            subject: data.subject || 'General',
+            task: data.arabicNote || data.note || 'اختبار / إملاء',
+            details: data.bagItem ? `مذاكرة للاختبار/الإملاء (المطلوب: ${data.bagItem})` : 'تنبيه مذاكرة وتجهيز للاختبار أو الإملاء',
+            completed: false,
+            priority: 'urgent',
+            block,
+            week,
+            linkUrl: data.linkUrl || undefined,
+          };
+          await handleAddHomework(hwEntry);
+        }
+      }
+
       notifyTomorrowNotesListeners();
       showToast('تم حفظ التنبيه بنجاح!');
     }
