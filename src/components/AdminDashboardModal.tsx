@@ -257,6 +257,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       const item = parsedResult.tomorrowNotes[index];
       if (item?.id) {
         saveDeletedTomorrowNoteId(item.id);
+        fetch('/api/planner-data/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: item.id, type: 'tomorrowNotes' }),
+        }).catch(() => {});
       }
       setParsedResult({
         ...parsedResult,

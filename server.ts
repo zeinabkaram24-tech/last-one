@@ -293,13 +293,19 @@ app.post('/api/planner-data', (req, res) => {
 
       if (Array.isArray(tomorrowNotes)) {
         const notesMap = new Map<string, any>();
+        const getNoteContentKey = (n: any) => {
+          const normText = (n.arabicNote || n.note || '').replace(/[🚨📝🎒]/g, '').trim().slice(0, 25);
+          return `${n.classId || 'ALL'}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${normText}`;
+        };
+
         current.tomorrowNotes.forEach((n: any) => {
-          const key = n.id || `${n.classId}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${n.note.slice(0, 20)}`;
-          notesMap.set(key, n);
+          const contentKey = getNoteContentKey(n);
+          notesMap.set(contentKey, n);
         });
         tomorrowNotes.forEach((n: any) => {
-          const key = n.id || `${n.classId}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${n.note.slice(0, 20)}`;
-          notesMap.set(key, n);
+          const contentKey = getNoteContentKey(n);
+          // Incoming note takes precedence or updates existing
+          notesMap.set(contentKey, n);
         });
         current.tomorrowNotes = Array.from(notesMap.values());
       }

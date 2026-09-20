@@ -1210,20 +1210,6 @@
       "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
-      "id": "tn-b1-w2-G2C-Sun-social-submit-due",
-      "classId": "G2C",
-      "targetDay": "Sunday",
-      "subject": "Social Studies",
-      "note": "تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)",
-      "arabicNote": "تذكير: تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع",
-      "bagItem": "Social Studies Homework Sheet (شيت واجب الدراسات الاجتماعية)",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 4,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
-    },
-    {
       "id": "tn-b1-w3-G2B-Sun-social-submit-reminder",
       "classId": "G2B",
       "targetDay": "Sunday",
@@ -1569,20 +1555,6 @@
       "categoryType": "note",
       "block": 1,
       "week": 3
-    },
-    {
-      "id": "tn-b1-w2-G2A-Sun-social-submit-due",
-      "classId": "G2A",
-      "targetDay": "Sunday",
-      "subject": "Social Studies",
-      "note": "تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)",
-      "arabicNote": "تذكير: تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع",
-      "bagItem": "Social Studies Homework Sheet (شيت واجب الدراسات الاجتماعية)",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 4,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
     },
     {
       "id": "tn-b1-w3-G2A-Wed-french-quiz",

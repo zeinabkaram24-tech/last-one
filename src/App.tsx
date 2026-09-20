@@ -826,47 +826,17 @@ export default function App() {
     } else if (type === 'homework') {
       await handleDeleteHomework(id);
     } else if (type === 'tomorrow') {
-      let actualHwId: string | null = null;
-      if (id.startsWith('linked-hw-due-')) {
-        actualHwId = id.replace('linked-hw-due-', '');
-      } else if (id.startsWith('linked-hw-')) {
-        actualHwId = id.replace('linked-hw-', '');
-      }
-
-      setClassworkList((prev) => prev.filter((c) => c.id !== id && c.id !== actualHwId));
-      setHomeworkList((prev) => prev.filter((h) => h.id !== id && h.id !== actualHwId));
-
       try {
         await saveDeletedTomorrowNoteId(id);
-        if (actualHwId) {
-          await deleteHomework(actualHwId);
-        }
-        
-        await Promise.all([
-          supabase.from('classwork').delete().eq('id', id),
-          supabase.from('homework').delete().eq('id', id),
-          actualHwId ? supabase.from('homework').delete().eq('id', actualHwId) : Promise.resolve(),
-        ]);
 
+        // Only delete from tomorrowNotes persistence, never delete the underlying homework or classwork
         await fetch('/api/planner-data/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, type: 'classwork' }),
-        });
-        await fetch('/api/planner-data/delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, type: 'homework' }),
-        });
-        if (actualHwId) {
-          await fetch('/api/planner-data/delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: actualHwId, type: 'homework' }),
-          });
-        }
+          body: JSON.stringify({ id, type: 'tomorrowNotes' }),
+        }).catch(() => {});
       } catch (e) {
-        console.error('Error deleting tomorrow note from db:', e);
+        console.error('Error deleting tomorrow note:', e);
       }
 
       notifyTomorrowNotesListeners();

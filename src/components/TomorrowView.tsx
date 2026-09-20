@@ -175,10 +175,80 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // In-memory cache for deleted note IDs to avoid localStorage completely as requested
   const [deletedNoteIds, setDeletedNoteIds] = useState<string[]>([]);
 
-  const handleDeleteTomorrowNote = (noteId: string) => {
-    setDeletedNoteIds((prev) => [...prev, noteId]);
-    setTomorrowNotes((prev) => prev.filter((n) => n.id !== noteId && `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}` !== noteId));
-    onDeleteTomorrowNote?.(noteId);
+  const getSemanticKey = (n: TomorrowSpecialNote): string => {
+    const normSubject = (n.subject || '').trim().toLowerCase();
+    const text = (n.arabicNote || n.note || '').toLowerCase().replace(/[🚨📝🎒]/g, '').trim();
+
+    // 1. Social studies homework submission
+    if (normSubject.includes('social') || normSubject.includes('دراسات')) {
+      if (text.includes('واجب') || text.includes('تسليم') || text.includes('شيت')) {
+        return `social-hw-submission-${n.targetDay}`;
+      }
+    }
+
+    // 2. Science booklet submission or tools
+    if (normSubject.includes('science') || normSubject.includes('علوم') || normSubject.includes('ساينس')) {
+      if (text.includes('بوكلت') || text.includes('بوكليت') || text.includes('تسليم') || text.includes('تجميع') || n.id?.includes('hw-submit')) {
+        return `science-booklet-submission-${n.targetDay}`;
+      }
+      if (text.includes('أدوات') || text.includes('tools') || text.includes('خيط') || text.includes('كروشيه')) {
+        return `science-tools-${n.targetDay}`;
+      }
+    }
+
+    // 3. French Quiz
+    if (normSubject.includes('french') || normSubject.includes('فرنش') || normSubject.includes('فرنسي')) {
+      if (text.includes('quiz') || text.includes('كويز') || text.includes('اختبار')) {
+        return `french-quiz-${n.targetDay}`;
+      }
+    }
+
+    // 4. Arabic specific tasks
+    if (normSubject.includes('arabic') || normSubject.includes('عربي')) {
+      if (text.includes('إملاء') || text.includes('dictation')) {
+        return `arabic-dictation-${n.targetDay}`;
+      }
+      if (text.includes('تسميع') || text.includes('آيات') || text.includes('recitation')) {
+        return `arabic-recitation-${n.targetDay}`;
+      }
+      if (text.includes('مهنة أبي') || text.includes('نص استماع')) {
+        return `arabic-listening-${n.targetDay}`;
+      }
+      if (text.includes('المكتبة') || text.includes('مكتبة')) {
+        return `arabic-library-${n.targetDay}`;
+      }
+    }
+
+    // 5. Mathematics tests
+    if (normSubject.includes('math') || normSubject.includes('رياضيات')) {
+      if (text.includes('test') || text.includes('اختبار') || text.includes('unit 1')) {
+        return `math-test-${n.targetDay}`;
+      }
+    }
+
+    // Default: group by subject and normalized first words
+    const cleanWordSeq = text.replace(/[^a-z0-9\u0600-\u06FF]/gi, ' ').split(/\s+/).filter(Boolean).slice(0, 4).join('-');
+    return `${normSubject}-${cleanWordSeq || n.id || 'note'}-${n.targetDay}`;
+  };
+
+  const handleDeleteTomorrowNote = (noteOrId: TomorrowSpecialNote | string) => {
+    const note = typeof noteOrId === 'object' ? noteOrId : tomorrowNotes.find((n) => n.id === noteOrId);
+    const noteId = typeof noteOrId === 'string' ? noteOrId : noteOrId?.id;
+    const semKey = note ? getSemanticKey(note) : '';
+    const idsToDelete = [noteId, ...(note?.linkedIds || []), semKey].filter(Boolean) as string[];
+
+    setDeletedNoteIds((prev) => [...prev, ...idsToDelete]);
+    setTomorrowNotes((prev) =>
+      prev.filter((n) => {
+        if (noteId && n.id === noteId) return false;
+        if (note?.linkedIds && n.id && note.linkedIds.includes(n.id)) return false;
+        if (semKey && getSemanticKey(n) === semKey) return false;
+        return true;
+      })
+    );
+    if (noteId) {
+      onDeleteTomorrowNote?.(noteId);
+    }
   };
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
@@ -450,6 +520,48 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     const map = new Map<string, TomorrowSpecialNote>();
     let hasArabicDictation = false;
 
+    const addOrMergeNote = (n: TomorrowSpecialNote, isHighPriority: boolean = false) => {
+      if (isDisallowedTomorrowItem(n)) return;
+      const semKey = getSemanticKey(n);
+
+      // Check if this note, its IDs, or its semantic key is deleted
+      const noteIds = [n.id, ...(n.linkedIds || [])].filter(Boolean) as string[];
+      if (noteIds.some((id) => deletedNoteIds.includes(id)) || deletedNoteIds.includes(semKey)) {
+        return;
+      }
+
+      const isArabic = n.subject === 'Arabic';
+      const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isDictation = text.includes('إملاء') || text.includes('dictation') || text.includes('تسميع');
+      if (isArabic && isDictation) {
+        if (hasArabicDictation && !map.has(semKey)) return; // Strict rule: dictation is ONE task per day
+        hasArabicDictation = true;
+      }
+
+      if (map.has(semKey)) {
+        const existing = map.get(semKey)!;
+        // Merge them cleanly without duplicating:
+        const merged: TomorrowSpecialNote = {
+          ...existing,
+          ...(isHighPriority ? n : {}),
+          id: (isHighPriority && n.id) ? n.id : existing.id || n.id,
+          pdfUrl: existing.pdfUrl || n.pdfUrl,
+          bagItem: existing.bagItem || n.bagItem,
+          linkUrl: existing.linkUrl || n.linkUrl,
+          linkTitle: existing.linkTitle || n.linkTitle,
+          arabicNote: isHighPriority && n.arabicNote ? n.arabicNote : (existing.arabicNote || n.arabicNote),
+          note: isHighPriority && n.note ? n.note : (existing.note || n.note),
+          linkedIds: Array.from(new Set([...(existing.linkedIds || []), ...(n.linkedIds || []), existing.id, n.id].filter(Boolean) as string[])),
+        };
+        map.set(semKey, merged);
+      } else {
+        map.set(semKey, {
+          ...n,
+          linkedIds: n.id ? [n.id] : [],
+        });
+      }
+    };
+
     // Automatically inject French Quiz warning
     let injectFrenchQuiz = false;
     if (currentClass === 'G2A' && tomorrowDay === 'Wednesday') injectFrenchQuiz = true;
@@ -458,7 +570,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
     if (injectFrenchQuiz) {
       const fQuizId = `french-quiz-${currentClass}-${tomorrowDay}`;
-      map.set(fQuizId, {
+      addOrMergeNote({
         id: fQuizId,
         classId: currentClass,
         targetDay: tomorrowDay,
@@ -472,39 +584,14 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       });
     }
 
-    // Filter out deleted notes from base tomorrowNotes
-    const activeBaseNotes = tomorrowNotes.filter((n) => {
-      if (isDisallowedTomorrowItem(n)) return false;
-      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-      if (deletedNoteIds.includes(key) || (n.id && deletedNoteIds.includes(n.id))) return false;
-      return true;
-    });
-
+    // Process linked alerts first
     linkedAlerts.forEach((la) => {
-      const key = la.id || `${la.targetDay}-${la.subject}-${(la.note || '').slice(0, 30)}`;
-      if (deletedNoteIds.includes(key) || (la.id && deletedNoteIds.includes(la.id))) return;
-
-      const isArabic = la.subject === 'Arabic';
-      const text = ((la.note || '') + ' ' + (la.arabicNote || '')).toLowerCase();
-      const isDictation = text.includes('إملاء') || text.includes('dictation') || text.includes('تسميع');
-      if (isArabic && isDictation) {
-        if (hasArabicDictation) return; // Strict user rule: dictation is ONE task per day
-        hasArabicDictation = true;
-      }
-
-      map.set(key, la);
+      addOrMergeNote(la, false);
     });
 
-    // Custom or edited notes take absolute precedence over auto-generated alerts
-    activeBaseNotes.forEach((n) => {
-      const isArabic = n.subject === 'Arabic';
-      const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      const isDictation = text.includes('إملاء') || text.includes('dictation') || text.includes('تسميع');
-      if (isArabic && isDictation) {
-        hasArabicDictation = true;
-      }
-      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-      map.set(key, n);
+    // Custom or stored notes take precedence and enrich
+    tomorrowNotes.forEach((n) => {
+      addOrMergeNote(n, true);
     });
 
     return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));
@@ -627,7 +714,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            handleDeleteTomorrowNote(note.id || `${note.targetDay}-${note.subject}-${(note.note || '').slice(0, 30)}`);
+                            handleDeleteTomorrowNote(note);
                           }}
                           className="p-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-md transition-colors cursor-pointer"
                           title="حذف الملاحظة"
