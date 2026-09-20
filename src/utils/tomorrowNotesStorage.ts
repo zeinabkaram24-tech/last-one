@@ -254,7 +254,12 @@ export async function getTomorrowNotesForDay(
     const filtered = merged.filter((n) => {
       if (isDisallowedMathNote(n)) return false;
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-      if (deletedIds.includes(key) || (n.id && deletedIds.includes(n.id))) {
+      const semKey = getSemanticKey(n);
+      if (
+        deletedIds.includes(key) ||
+        (n.id && deletedIds.includes(n.id)) ||
+        (semKey && deletedIds.includes(semKey))
+      ) {
         return false;
       }
       return true;
@@ -375,7 +380,12 @@ export async function getTomorrowNotesForDay(
 }
 
 export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
-  let localList: string[] = ['tn-b1-w3-G2C-Mon-science-hw-submit', 'science-booklet-submission-Monday'];
+  let localList: string[] = [
+    'tn-b1-w3-G2C-Mon-science-hw-submit',
+    'science-booklet-submission-Monday',
+    'tn-b1-w3-G2C-Mon-science-collection',
+    'science-booklet-submission-Sunday'
+  ];
   try {
     const raw = appStorage.getItem('nile_deleted_tomorrow_note_ids_v3');
     if (raw) {
@@ -462,6 +472,29 @@ export async function saveDeletedTomorrowNoteId(noteId: string): Promise<void> {
   notifyTomorrowNotesListeners();
 }
 
+export async function removeDeletedTomorrowNoteId(noteId: string): Promise<void> {
+  if (!noteId) return;
+  let currentList = await getDeletedTomorrowNoteIds();
+  if (currentList.includes(noteId)) {
+    currentList = currentList.filter((id) => id !== noteId);
+    appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(currentList));
+    IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(currentList);
+    if (isSupabaseConfigured) {
+      try {
+        await supabase
+          .from('planner_settings')
+          .upsert({
+            key: 'deleted_tomorrow_note_ids',
+            value: JSON.stringify(currentList),
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'key' });
+      } catch (e) {
+        console.warn('Error removing deleted tomorrow note id from Supabase:', e);
+      }
+    }
+  }
+}
+
 // Save tomorrow notes directly inside classwork or homework table
 export async function saveTomorrowNotes(
   block: number,
@@ -469,6 +502,16 @@ export async function saveTomorrowNotes(
   notes: TomorrowSpecialNote[],
   mode: 'merge' | 'replace' = 'merge'
 ): Promise<void> {
+  for (const note of notes) {
+    if (note.id) {
+      await removeDeletedTomorrowNoteId(note.id);
+    }
+    const semKey = getSemanticKey(note);
+    if (semKey) {
+      await removeDeletedTomorrowNoteId(semKey);
+    }
+  }
+
   saveLocalCustomTomorrowNotes(notes, mode);
 
   try {
@@ -540,3 +583,60 @@ export async function saveTomorrowNotes(
 
   notifyTomorrowNotesListeners();
 }
+
+export function getSemanticKey(n: TomorrowSpecialNote): string {
+  const normSubject = (n.subject || '').trim().toLowerCase();
+  const text = (n.arabicNote || n.note || '').toLowerCase().replace(/[🚨📝🎒]/g, '').trim();
+
+  // 1. Social studies homework submission
+  if (normSubject.includes('social') || normSubject.includes('دراسات')) {
+    if (text.includes('واجب') || text.includes('تسليم') || text.includes('شيت')) {
+      return `social-hw-submission-${n.targetDay}`;
+    }
+  }
+
+  // 2. Science booklet submission or tools
+  if (normSubject.includes('science') || normSubject.includes('علوم') || normSubject.includes('ساينس')) {
+    if (text.includes('بوكلت') || text.includes('بوكليت') || text.includes('تسليم') || text.includes('تجميع') || n.id?.includes('hw-submit')) {
+      return `science-booklet-submission-${n.targetDay}`;
+    }
+    if (text.includes('أدوات') || text.includes('tools') || text.includes('خيط') || text.includes('كروشيه')) {
+      return `science-tools-${n.targetDay}`;
+    }
+  }
+
+  // 3. French Quiz
+  if (normSubject.includes('french') || normSubject.includes('فرنش') || normSubject.includes('فرنسي')) {
+    if (text.includes('quiz') || text.includes('كويز') || text.includes('اختبار')) {
+      return `french-quiz-${n.targetDay}`;
+    }
+  }
+
+  // 4. Arabic specific tasks
+  if (normSubject.includes('arabic') || normSubject.includes('عربي')) {
+    if (text.includes('إملاء') || text.includes('dictation')) {
+      return `arabic-dictation-${n.targetDay}`;
+    }
+    if (text.includes('تسميع') || text.includes('آيات') || text.includes('recitation')) {
+      return `arabic-recitation-${n.targetDay}`;
+    }
+    if (text.includes('مهنة أبي') || text.includes('نص استماع')) {
+      return `arabic-listening-${n.targetDay}`;
+    }
+    if (text.includes('المكتبة') || text.includes('مكتبة')) {
+      return `arabic-library-${n.targetDay}`;
+    }
+  }
+
+  // 5. Mathematics tests
+  if (normSubject.includes('math') || normSubject.includes('رياضيات')) {
+    if (text.includes('test') || text.includes('اختبار') || text.includes('unit 1')) {
+      return `math-test-${n.targetDay}`;
+    }
+  }
+
+  // Default: group by subject and normalized first words
+  const cleanWordSeq = text.replace(/[^a-z0-9\u0600-\u06FF]/gi, ' ').split(/\s+/).filter(Boolean).slice(0, 4).join('-');
+  return `${normSubject}-${cleanWordSeq || n.id || 'note'}-${n.targetDay}`;
+}
+

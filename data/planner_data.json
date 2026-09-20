@@ -725,6 +725,68 @@
       "day": "Monday",
       "period": 7,
       "completed": false
+    },
+    {
+      "id": "tomorrow-1789896616828",
+      "classId": "G2B",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "Science",
+      "title": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه",
+      "details": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه",
+      "completed": false,
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tomorrow-1789896947607",
+      "classId": "G2A",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Science",
+      "title": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه",
+      "details": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه",
+      "completed": false,
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tomorrow-1789894984953",
+      "classId": "G2A",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "Science",
+      "title": "(المواد المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.)",
+      "details": "(المواد المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.)",
+      "pages": "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn",
+      "completed": false,
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tomorrow-1789897144639",
+      "classId": "G2A",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "Science",
+      "title": "تسليم الواجب",
+      "details": "تسليم الواجب",
+      "pages": "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn",
+      "completed": false,
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tomorrow-1789897201193",
+      "classId": "G2A",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "Science",
+      "title": "تسليم البوكليت",
+      "details": "تسليم البوكليت",
+      "completed": false,
+      "block": 1,
+      "week": 3
     }
   ],
   "homework": [
@@ -1555,19 +1617,7 @@
       "block": 1,
       "week": 3
     },
-    {
-      "id": "tn-b1-w3-G2C-Mon-science-collection",
-      "classId": "G2C",
-      "targetDay": "Sunday",
-      "subject": "Science",
-      "note": "Booklet Collection: Bring Unit 1 Science Booklet for collection and correction.",
-      "arabicNote": "تذكير لكلاس C: تسليم بوكليت الساينس للوحدة الأولى (Unit 1 Booklet) للتصحيح.",
-      "bagItem": "Unit 1 Science Booklet (بوكليت الساينس للوحدة الأولى)",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 3
-    },
+
     {
       "id": "tn-b1-w3-G2A-Wed-french-quiz",
       "classId": "G2A",
@@ -1618,17 +1668,16 @@
       "week": 3
     },
     {
-      "id": "tn-b1-w3-G2A-Mon-science-tools",
+      "id": "tomorrow-1789896947607",
       "classId": "G2A",
-      "targetDay": "Tuesday",
       "subject": "Science",
-      "note": "Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.",
-      "arabicNote": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
-      "bagItem": "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه",
+      "block": 1,
+      "week": 3,
+      "note": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه",
+      "arabicNote": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه",
       "isQuiz": false,
       "categoryType": "note",
-      "block": 1,
-      "week": 3
+      "targetDay": "Tuesday"
     },
     {
       "id": "tn-b1-w3-G2A-Wed-science-tools",
@@ -1647,19 +1696,6 @@
       "id": "tn-b1-w3-G2B-Sat-science-tools",
       "classId": "G2B",
       "targetDay": "Sunday",
-      "subject": "Science",
-      "note": "Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.",
-      "arabicNote": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
-      "bagItem": "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 3
-    },
-    {
-      "id": "tn-b1-w3-G2B-Tue-science-tools",
-      "classId": "G2B",
-      "targetDay": "Wednesday",
       "subject": "Science",
       "note": "Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.",
       "arabicNote": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
@@ -1810,16 +1846,16 @@
       "targetDay": "Sunday"
     },
     {
-      "id": "tomorrow-1789892798773",
+      "id": "tn-b1-w3-ALL-mon-eng-dictation",
       "classId": "ALL",
+      "targetDay": "Monday",
       "subject": "English",
-      "block": 1,
-      "week": 3,
       "note": "Dictation",
       "arabicNote": "ديكتيشن",
       "isQuiz": true,
       "categoryType": "quiz",
-      "targetDay": "Monday"
+      "block": 1,
+      "week": 3
     },
     {
       "id": "tn-b1-w3-G2A-mon-eng-dictation",
@@ -1858,14 +1894,15 @@
       "week": 3
     },
     {
-      "id": "tn-b1-w3-ALL-mon-eng-dictation",
-      "classId": "ALL",
-      "targetDay": "Monday",
-      "subject": "English",
-      "note": "Dictation",
-      "arabicNote": "ديكتيشن",
-      "isQuiz": true,
-      "categoryType": "quiz",
+      "id": "tn-b1-w3-G2A-Tue-science-tools",
+      "classId": "G2A",
+      "targetDay": "Tuesday",
+      "subject": "Science",
+      "note": "Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.",
+      "arabicNote": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
+      "bagItem": "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه",
+      "isQuiz": false,
+      "categoryType": "note",
       "block": 1,
       "week": 3
     },
@@ -1894,10 +1931,41 @@
       "categoryType": "note",
       "block": 1,
       "week": 3
+    },
+    {
+      "id": "tomorrow-1789896616828",
+      "classId": "G2B",
+      "subject": "Science",
+      "block": 1,
+      "week": 3,
+      "note": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه",
+      "arabicNote": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه",
+      "isQuiz": false,
+      "categoryType": "note",
+      "targetDay": "Wednesday"
+    },
+    {
+      "id": "tomorrow-1789897201193",
+      "classId": "G2A",
+      "subject": "Science",
+      "block": 1,
+      "week": 3,
+      "note": "تسليم البوكليت",
+      "arabicNote": "تسليم البوكليت",
+      "isQuiz": false,
+      "categoryType": "note",
+      "targetDay": "Sunday"
     }
   ],
   "deletedTomorrowNoteIds": [
+    "tn-b1-w3-G2C-Mon-science-collection",
     "tn-b1-w3-G2C-Mon-science-hw-submit",
-    "science-booklet-submission-Monday"
+    "science-booklet-submission-Monday",
+    "tn-b1-w3-G2B-Tue-science-tools",
+    "science-tools-Tuesday",
+    "tomorrow-1789894984953",
+    "science-tools-Sunday",
+    "tomorrow-1789897144639",
+    "science-booklet-submission-Sunday"
   ]
 }

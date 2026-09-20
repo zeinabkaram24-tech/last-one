@@ -51,7 +51,7 @@ import {
   deleteClasswork,
   deleteHomework,
 } from '../lib/supabase';
-import { saveTomorrowNotes, saveDeletedTomorrowNoteId } from '../utils/tomorrowNotesStorage';
+import { saveTomorrowNotes, saveDeletedTomorrowNoteId, getSemanticKey, notifyTomorrowNotesListeners } from '../utils/tomorrowNotesStorage';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_CLASSWORK, ALL_LINK_AND_WEEK2_HOMEWORK, WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { fileToBase64, extractTextFromPdf } from '../utils/pdfExtractor';
@@ -231,43 +231,63 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setHwSelectedFile(null);
   };
 
-  const handleDeleteItem = (type: 'classwork' | 'homework' | 'tomorrow', index: number) => {
+  const handleDeleteItem = async (type: 'classwork' | 'homework' | 'tomorrow', index: number) => {
     if (!parsedResult) return;
     if (type === 'classwork') {
       const item = parsedResult.classwork[index];
       if (item?.id) {
-        deleteClasswork(item.id);
+        await deleteClasswork(item.id);
+        await fetch('/api/planner-data/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: item.id, type: 'classwork' }),
+        }).catch(() => {});
       }
       setParsedResult({
         ...parsedResult,
         classwork: parsedResult.classwork.filter((_, i) => i !== index),
       });
-      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
+      if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
     } else if (type === 'homework') {
       const item = parsedResult.homework[index];
       if (item?.id) {
-        deleteHomework(item.id);
+        await deleteHomework(item.id);
+        await fetch('/api/planner-data/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: item.id, type: 'homework' }),
+        }).catch(() => {});
       }
       setParsedResult({
         ...parsedResult,
         homework: parsedResult.homework.filter((_, i) => i !== index),
       });
-      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
+      if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
     } else if (type === 'tomorrow') {
       const item = parsedResult.tomorrowNotes[index];
-      if (item?.id) {
-        saveDeletedTomorrowNoteId(item.id);
-        fetch('/api/planner-data/delete', {
+      if (item) {
+        const itemIds = [
+          item.id,
+          ...(item.linkedIds || []),
+          getSemanticKey(item),
+        ].filter(Boolean) as string[];
+
+        for (const idToDelete of itemIds) {
+          await saveDeletedTomorrowNoteId(idToDelete);
+        }
+
+        await fetch('/api/planner-data/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: item.id, type: 'tomorrowNotes' }),
+          body: JSON.stringify({ ids: itemIds, type: 'tomorrowNotes' }),
         }).catch(() => {});
       }
       setParsedResult({
         ...parsedResult,
         tomorrowNotes: parsedResult.tomorrowNotes.filter((_, i) => i !== index),
       });
-      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
+      notifyTomorrowNotesListeners();
+      if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
     }
   };
 
@@ -324,7 +344,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       };
 
       // Persist immediately to Supabase and local storage
-      upsertClasswork(entry);
+      await upsertClasswork(entry);
 
       if (isAddingNewItem) {
         setParsedResult({
@@ -337,7 +357,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           classwork: parsedResult.classwork.map((c, i) => (i === editingItemIndex ? entry : c)),
         });
       }
-      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
+      if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
     } else if (editingItemType === 'homework') {
       const entry: HomeworkEntry = {
         id: isAddingNewItem || editingItemIndex === null
@@ -360,7 +380,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       };
 
       // Persist immediately to Supabase and local storage
-      upsertHomework(entry);
+      await upsertHomework(entry);
 
       if (isAddingNewItem) {
         setParsedResult({
@@ -373,7 +393,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           homework: parsedResult.homework.map((h, i) => (i === editingItemIndex ? entry : h)),
         });
       }
-      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
+      if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
     } else if (editingItemType === 'tomorrow') {
       const entry: TomorrowSpecialNote = {
         id: isAddingNewItem || editingItemIndex === null
@@ -387,6 +407,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         bagItem: formBagItem.trim() || undefined,
         isQuiz: formIsQuiz,
         categoryType: formIsQuiz ? 'quiz' : 'note',
+        isCustom: true,
         block: planBlock,
         week: planWeek,
         linkUrl: formLinkUrl.trim() || undefined,
@@ -395,7 +416,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       };
 
       // Persist immediately to Supabase and local storage
-      saveTomorrowNotes(planBlock, planWeek, [entry], 'merge');
+      await saveTomorrowNotes(planBlock, planWeek, [entry], 'merge');
+      notifyTomorrowNotesListeners();
 
       if (isAddingNewItem) {
         setParsedResult({
@@ -408,7 +430,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           tomorrowNotes: parsedResult.tomorrowNotes.map((n, i) => (i === editingItemIndex ? entry : n)),
         });
       }
-      if (onPlanUpdated) onPlanUpdated(planBlock, planWeek);
+      if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
     }
 
     setSuccessMessage('تم الحفظ والتثبيت بنجاح ✅');

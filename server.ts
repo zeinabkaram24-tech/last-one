@@ -224,6 +224,11 @@ app.get('/api/planner-data', (req, res) => {
       const delSet = new Set(data.deletedTomorrowNoteIds);
       data.tomorrowNotes = (data.tomorrowNotes || []).filter((n: any) => !delSet.has(n.id));
     }
+    if (Array.isArray(data.deletedPlannerItemIds) && data.deletedPlannerItemIds.length > 0) {
+      const delSet = new Set(data.deletedPlannerItemIds);
+      data.classwork = (data.classwork || []).filter((c: any) => !delSet.has(c.id));
+      data.homework = (data.homework || []).filter((h: any) => !delSet.has(h.id));
+    }
     res.json(data);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to read planner data' });
@@ -291,6 +296,10 @@ app.post('/api/planner-data', (req, res) => {
         current.classwork.forEach((cw: any) => cwMap.set(cw.id, cw));
         classwork.forEach((cw: any) => cwMap.set(cw.id, cw));
         current.classwork = Array.from(cwMap.values());
+        if (current.deletedPlannerItemIds) {
+          const addedIds = new Set(classwork.map((cw: any) => cw.id).filter(Boolean));
+          current.deletedPlannerItemIds = current.deletedPlannerItemIds.filter((id: string) => !addedIds.has(id));
+        }
       }
 
       if (Array.isArray(homework)) {
@@ -298,6 +307,10 @@ app.post('/api/planner-data', (req, res) => {
         current.homework.forEach((hw: any) => hwMap.set(hw.id, hw));
         homework.forEach((hw: any) => hwMap.set(hw.id, hw));
         current.homework = Array.from(hwMap.values());
+        if (current.deletedPlannerItemIds) {
+          const addedIds = new Set(homework.map((hw: any) => hw.id).filter(Boolean));
+          current.deletedPlannerItemIds = current.deletedPlannerItemIds.filter((id: string) => !addedIds.has(id));
+        }
       }
 
       if (Array.isArray(tomorrowNotes)) {
@@ -317,6 +330,10 @@ app.post('/api/planner-data', (req, res) => {
           notesMap.set(contentKey, n);
         });
         current.tomorrowNotes = Array.from(notesMap.values());
+        if (current.deletedTomorrowNoteIds) {
+          const addedIds = new Set(tomorrowNotes.map((n: any) => n.id).filter(Boolean));
+          current.deletedTomorrowNoteIds = current.deletedTomorrowNoteIds.filter((id: string) => !addedIds.has(id));
+        }
       }
     }
 
@@ -332,15 +349,25 @@ app.post('/api/planner-data/delete', (req, res) => {
     const { id, ids, type } = req.body; // type: 'classwork' | 'homework' | 'tomorrowNotes'
     const targetIds: string[] = Array.isArray(ids) ? ids : id ? [id] : [];
     let current = getStoredPlannerData();
+    if (!current.deletedPlannerItemIds) current.deletedPlannerItemIds = [];
+    if (!current.deletedTomorrowNoteIds) current.deletedTomorrowNoteIds = [];
+
     if (type === 'classwork') {
       current.classwork = current.classwork.filter((c: any) => !targetIds.includes(c.id));
+      targetIds.forEach((tId) => {
+        if (!current.deletedPlannerItemIds.includes(tId)) {
+          current.deletedPlannerItemIds.push(tId);
+        }
+      });
     } else if (type === 'homework') {
       current.homework = current.homework.filter((h: any) => !targetIds.includes(h.id));
+      targetIds.forEach((tId) => {
+        if (!current.deletedPlannerItemIds.includes(tId)) {
+          current.deletedPlannerItemIds.push(tId);
+        }
+      });
     } else if (type === 'tomorrowNotes') {
       current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => !targetIds.includes(n.id));
-      if (!current.deletedTomorrowNoteIds) {
-        current.deletedTomorrowNoteIds = [];
-      }
       targetIds.forEach((tId) => {
         if (!current.deletedTomorrowNoteIds.includes(tId)) {
           current.deletedTomorrowNoteIds.push(tId);

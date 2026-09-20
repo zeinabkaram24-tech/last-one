@@ -544,6 +544,9 @@ export default function App() {
   };
 
   const handleSaveClasswork = async (entry: ClassworkEntry) => {
+    try {
+      await removeDeletedPlannerItemId(entry.id);
+    } catch {}
     setClassworkList((prev) => {
       const idx = prev.findIndex((c) => c.id === entry.id);
       let next: ClassworkEntry[];
@@ -551,7 +554,7 @@ export default function App() {
         next = [...prev];
         next[idx] = entry;
       } else {
-        next = [...prev, entry];
+        next = [entry, ...prev];
       }
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         const completedCwIds = next.filter((c) => c.completed).map((c) => c.id);
@@ -613,6 +616,9 @@ export default function App() {
   };
 
   const handleAddHomework = async (entry: HomeworkEntry) => {
+    try {
+      await removeDeletedPlannerItemId(entry.id);
+    } catch {}
     setHomeworkList((prev) => {
       const idx = prev.findIndex((h) => h.id === entry.id);
       let next: HomeworkEntry[];
@@ -748,11 +754,28 @@ export default function App() {
   };
 
   const handleSaveInteractiveItem = async (type: 'classwork' | 'homework' | 'tomorrow', data: any) => {
+    if (data.classId && (data.classId as any) !== 'ALL') {
+      setCurrentClass(data.classId as ClassId);
+    }
+    if (data.block) {
+      setCurrentBlock(Number(data.block));
+    }
+    if (data.week) {
+      setCurrentWeek(Number(data.week));
+    }
+
     if (type === 'classwork') {
+      if (data.day) setSelectedDay(data.day);
+      setActiveTab('classwork');
       await handleSaveClasswork(data);
     } else if (type === 'homework') {
+      if (data.assignedDay || data.dueDay) setSelectedDay(data.assignedDay || data.dueDay);
+      setActiveTab('homework');
       await handleAddHomework(data);
     } else if (type === 'tomorrow') {
+      if (data.targetDay) setSelectedDay(data.targetDay);
+      setActiveTab('tomorrow');
+
       let linkedHwId: string | null = null;
       if (typeof data.id === 'string') {
         if (data.id.startsWith('linked-hw-due-')) {
@@ -823,7 +846,8 @@ export default function App() {
         }
       }
 
-      await saveTomorrowNotes(block, week, [data], 'merge');
+      await saveTomorrowNotes(block, week, [{ ...data, isCustom: true }], 'merge');
+      notifyTomorrowNotesListeners();
       showToast('تم حفظ التنبيه بنجاح!');
     }
     setIsEditorModalOpen(false);

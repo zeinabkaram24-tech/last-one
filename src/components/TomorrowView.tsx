@@ -100,6 +100,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
     if (tomorrowDay === 'Saturday') return true;
+    // User or admin manually added notes must always be displayed
+    if (n.isCustom || (n.id && (n.id.includes('manual') || n.id.includes('tomorrow-') || n.id.includes('note-')))) {
+      return false;
+    }
     if (isFabricatedMathNote(n)) return true;
 
     // Filter out community notes / "مجتمع الصف الثاني"

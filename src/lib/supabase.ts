@@ -613,6 +613,16 @@ export async function getDeletedPlannerItemIds(): Promise<string[]> {
     }
   } catch {}
 
+  try {
+    const res = await fetch('/api/planner-data');
+    if (res.ok) {
+      const srvData = await res.json();
+      if (Array.isArray(srvData.deletedPlannerItemIds)) {
+        localList = Array.from(new Set([...localList, ...srvData.deletedPlannerItemIds]));
+      }
+    }
+  } catch {}
+
   if (!isSupabaseConfigured) return localList;
 
   try {

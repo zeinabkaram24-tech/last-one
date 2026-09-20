@@ -81,6 +81,30 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
   // --- PREPARING FOR WEDNESDAY (Packed on Tuesday night) ---
   {
     classId: 'G2A',
+    targetDay: 'Tuesday',
+    subject: 'Science',
+    note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
+    arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
+    bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
+  },
+  {
+    classId: 'G2B',
+    targetDay: 'Tuesday',
+    subject: 'Science',
+    note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
+    arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
+    bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
+  },
+  {
+    classId: 'G2C',
+    targetDay: 'Tuesday',
+    subject: 'Science',
+    note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
+    arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
+    bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
+  },
+  {
+    classId: 'G2A',
     targetDay: 'Wednesday',
     subject: 'French',
     note: 'French Quiz',
