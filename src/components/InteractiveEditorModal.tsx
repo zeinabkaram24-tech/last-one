@@ -174,21 +174,17 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
         setDueDay(initialData?.dueDay || nextDayVal);
         setPriority(initialData?.priority || 'normal');
 
-        const defaultTomorrowTargetDay: SchoolDay =
-          selectedDay === 'Sunday'
-            ? 'Monday'
-            : selectedDay === 'Monday'
-            ? 'Tuesday'
-            : selectedDay === 'Tuesday'
-            ? 'Wednesday'
-            : selectedDay === 'Wednesday'
-            ? 'Thursday'
-            : 'Sunday';
-
         setArabicNote(initialData?.arabicNote || initialData?.note || '');
         setBagItem(initialData?.bagItem || '');
         setIsQuiz(initialData?.isQuiz || false);
-        setTargetDay(initialData?.targetDay || (itemType === 'tomorrow' ? defaultTomorrowTargetDay : (selectedDay === 'Saturday' ? 'Sunday' : selectedDay)));
+        setTargetDay(
+          initialData?.targetDay ||
+            (itemType === 'tomorrow'
+              ? NEXT_SCHOOL_DAY[selectedDay] || 'Sunday'
+              : selectedDay === 'Saturday'
+              ? 'Sunday'
+              : selectedDay)
+        );
         
         setLinkUrl(initialData?.linkUrl || '');
         setLinkTitle(initialData?.linkTitle || '');

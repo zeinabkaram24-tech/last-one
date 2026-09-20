@@ -765,88 +765,33 @@ export default function App() {
     }
 
     if (type === 'classwork') {
-      if (data.day) setSelectedDay(data.day);
       setActiveTab('classwork');
       await handleSaveClasswork(data);
     } else if (type === 'homework') {
-      if (data.assignedDay || data.dueDay) setSelectedDay(data.assignedDay || data.dueDay);
       setActiveTab('homework');
       await handleAddHomework(data);
     } else if (type === 'tomorrow') {
-      if (data.targetDay) setSelectedDay(data.targetDay);
       setActiveTab('tomorrow');
-
-      let linkedHwId: string | null = null;
-      if (typeof data.id === 'string') {
-        if (data.id.startsWith('linked-hw-due-')) {
-          linkedHwId = data.id.replace('linked-hw-due-', '');
-        } else if (data.id.startsWith('linked-hw-')) {
-          linkedHwId = data.id.replace('linked-hw-', '');
-        }
-      }
-      if (linkedHwId) {
-        const linkedHw = homeworkList.find((h) => h.id === linkedHwId);
-        if (linkedHw) {
-          const updatedHw: HomeworkEntry = {
-            ...linkedHw,
-            task: data.arabicNote || data.note || linkedHw.task,
-            details: data.details || linkedHw.details,
-            pages: data.bagItem || linkedHw.pages,
-          };
-          await handleAddHomework(updatedHw);
-        }
-      }
 
       const block = data.block || currentBlock;
       const week = data.week || currentWeek;
-      
-      const isQuiz = data.isQuiz || data.categoryType === 'quiz' || /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((data.note + ' ' + (data.arabicNote || '')).toLowerCase());
-      
+
       const classesToAdd: ClassId[] =
         (data.classId as any) === 'ALL'
           ? ['G2A', 'G2B', 'G2C']
           : [data.classId || currentClass];
 
-      if (isQuiz) {
-        for (const cls of classesToAdd) {
-          const hwEntry: HomeworkEntry = {
-            id: (data.classId as any) === 'ALL' ? `${data.id || `tomorrow-hw-${Date.now()}`}-${cls}` : (data.id || `tomorrow-hw-${Date.now()}`),
-            classId: cls,
-            assignedDay: 'Sunday',
-            dueDay: data.targetDay,
-            subject: data.subject,
-            task: data.arabicNote || data.note || '',
-            details: data.bagItem || undefined,
-            completed: false,
-            priority: 'urgent',
-            block,
-            week,
-            linkUrl: data.linkUrl || undefined,
-          };
-          await handleAddHomework(hwEntry);
-        }
-      } else {
-        for (const cls of classesToAdd) {
-          const cwEntry: ClassworkEntry = {
-            id: (data.classId as any) === 'ALL' ? `${data.id || `tomorrow-cw-${Date.now()}`}-${cls}` : (data.id || `tomorrow-cw-${Date.now()}`),
-            classId: cls,
-            day: data.targetDay,
-            period: 1,
-            subject: data.subject,
-            title: data.note || '',
-            details: data.arabicNote || data.note || '',
-            pages: data.bagItem || undefined,
-            completed: false,
-            block,
-            week,
-            linkUrl: data.linkUrl || undefined,
-            linkTitle: data.linkTitle || undefined,
-          };
-          await handleSaveClasswork(cwEntry);
-        }
-      }
+      const entriesToSave: TomorrowSpecialNote[] = classesToAdd.map((cls) => ({
+        ...data,
+        id:
+          (data.classId as any) === 'ALL'
+            ? `${data.id || `tomorrow-note-${Date.now()}`}-${cls}`
+            : data.id || `tomorrow-note-${Date.now()}`,
+        classId: cls,
+        isCustom: true,
+      }));
 
-      await saveTomorrowNotes(block, week, [{ ...data, isCustom: true }], 'merge');
+      await saveTomorrowNotes(block, week, entriesToSave, 'merge');
       notifyTomorrowNotesListeners();
       showToast('تم حفظ التنبيه بنجاح!');
     }
@@ -895,24 +840,6 @@ export default function App() {
   };
 
   const handleOpenEditModal = (type: 'classwork' | 'homework' | 'tomorrow', item: any) => {
-    if (type === 'tomorrow' && typeof item?.id === 'string') {
-      let linkedHwId: string | null = null;
-      if (item.id.startsWith('linked-hw-due-')) {
-        linkedHwId = item.id.replace('linked-hw-due-', '');
-      } else if (item.id.startsWith('linked-hw-')) {
-        linkedHwId = item.id.replace('linked-hw-', '');
-      }
-      if (linkedHwId) {
-        const linkedHw = homeworkList.find((h) => h.id === linkedHwId);
-        if (linkedHw) {
-          setEditorItemType('homework');
-          setEditorModalMode('edit');
-          setSelectedEditorItem(linkedHw);
-          setIsEditorModalOpen(true);
-          return;
-        }
-      }
-    }
     setEditorItemType(type);
     setEditorModalMode('edit');
     setSelectedEditorItem(item);
@@ -1038,7 +965,7 @@ export default function App() {
               homeworkList={homeworkList}
               classworkList={classworkList}
               isAdminEditMode={isAdminEditMode}
-              onAddTomorrowNote={() => handleOpenAddModal('tomorrow', { targetDay: NEXT_SCHOOL_DAY[selectedDay] || 'Sunday' })}
+              onAddTomorrowNote={(prefilled) => handleOpenAddModal('tomorrow', prefilled || { targetDay: NEXT_SCHOOL_DAY[selectedDay] || 'Sunday' })}
               onEditTomorrowNote={(entry) => handleOpenEditModal('tomorrow', entry)}
               onDeleteTomorrowNote={(id) => handleDeleteInteractiveItem('tomorrow', id)}
             />

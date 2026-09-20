@@ -9,7 +9,7 @@ import {
 import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
-import { getTomorrowNotesForDay, subscribeToTomorrowNotes, getDeletedTomorrowNoteIds, saveDeletedTomorrowNoteId } from '../utils/tomorrowNotesStorage';
+import { getTomorrowNotesForDay, subscribeToTomorrowNotes, getDeletedTomorrowNoteIds, getDeletedTomorrowNoteIdsSync, saveDeletedTomorrowNoteId } from '../utils/tomorrowNotesStorage';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
 
 interface TomorrowViewProps {
@@ -20,7 +20,7 @@ interface TomorrowViewProps {
   homeworkList?: HomeworkEntry[];
   classworkList?: ClassworkEntry[];
   isAdminEditMode?: boolean;
-  onAddTomorrowNote?: () => void;
+  onAddTomorrowNote?: (prefilled?: Partial<TomorrowSpecialNote>) => void;
   onEditTomorrowNote?: (entry: TomorrowSpecialNote) => void;
   onDeleteTomorrowNote?: (id: string) => void;
 }
@@ -100,8 +100,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
     if (tomorrowDay === 'Saturday') return true;
-    // User or admin manually added notes must always be displayed
-    if (n.isCustom || (n.id && (n.id.includes('manual') || n.id.includes('tomorrow-') || n.id.includes('note-')))) {
+    // User or admin manually added notes or special tn- notes must always be displayed
+    if (n.isCustom || (n.id && (n.id.includes('manual') || n.id.includes('tomorrow-') || n.id.includes('note-') || n.id.includes('tn-') || n.id.includes('custom')))) {
       return false;
     }
     if (isFabricatedMathNote(n)) return true;
@@ -156,24 +156,18 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
 
       // Strict user rule for Sunday (Saturday-Tomorrow view):
-      // No notes allowed for Sunday unless:
-      // 1. It's a quiz or test (and French/Maths/English are strictly excluded on Sunday).
-      // 2. It's a Social Studies homework submission for G2A or G2C (which have Social Studies on Sunday).
-      // 3. It's a specific requirement/material requested for Sunday (has a non-empty bagItem).
+      // Allow quizzes, tests, French, Social Studies, or notes with materials
       if (tomorrowDay === 'Sunday') {
-        if (n.subject === 'French') {
-          return true; // French is completely disallowed on Sunday
-        }
-
         const isQuiz = isQuizOrTest(n);
         const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isFrench = n.subject === 'French';
         const isSocialStudiesSubmission =
           n.subject === 'Social Studies' &&
           (currentClass === 'G2A' || currentClass === 'G2C') &&
           (fullText.includes('تسليم') || fullText.includes('submission') || fullText.includes('واجب'));
         const hasBagItem = !!n.bagItem;
 
-        if (!isQuiz && !isSocialStudiesSubmission && !hasBagItem) {
+        if (!isQuiz && !isFrench && !isSocialStudiesSubmission && !hasBagItem) {
           return true; // Disallowed
         }
       }
@@ -188,8 +182,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Support both currentWeek and previous week if applicable
   const effectiveWeek = tomorrowDay === 'Sunday' && currentWeek > 1 ? currentWeek - 1 : currentWeek;
 
-  // In-memory cache for deleted note IDs to avoid localStorage completely as requested
-  const [deletedNoteIds, setDeletedNoteIds] = useState<string[]>([]);
+  // Synchronous initialization for deleted note IDs to prevent initial frame flickering
+  const [deletedNoteIds, setDeletedNoteIds] = useState<string[]>(() => getDeletedTomorrowNoteIdsSync());
 
   const getSemanticKey = (n: TomorrowSpecialNote): string => {
     const normSubject = (n.subject || '').trim().toLowerCase();
@@ -325,14 +319,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (isEnglish && isDictation) {
       return 'ديكتيشن';
     }
-    // Always respect user-edited or custom note text directly
-    if (n.arabicNote && n.arabicNote.trim()) {
-      return n.arabicNote.trim();
-    }
-    if (n.note && n.note.trim()) {
-      return n.note.trim();
-    }
-    return '';
+    // Always respect user-edited or custom note text directly, cleaning out any appended English text
+    let display = (n.arabicNote && n.arabicNote.trim()) ? n.arabicNote.trim() : (n.note && n.note.trim()) ? n.note.trim() : '';
+    display = display.replace(/Required Materials:.*$/i, '').replace(/Required:.*$/i, '').replace(/\(Tools:.*$/i, '').trim();
+    return display;
   };
 
   const getNoteDisplayBagItem = (n: TomorrowSpecialNote) => {
@@ -341,7 +331,19 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('إملاء')) {
       return '';
     }
-    return n.bagItem || '';
+    let item = n.bagItem || '';
+    if (item.includes('Colored sheets') || item.includes('colored sheets') || item.includes('chrochet') || item.includes('crochet')) {
+      if (item.includes('بوكليت') || item.includes('Booklet') || item.includes('Workbook') || item.includes('كتاب')) {
+        return 'بوكليت الساينس، أدوات الساينس المطلوبة (ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه)';
+      }
+      return 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه';
+    }
+    if (item.includes('Workbook') || item.includes('Booklet')) {
+      return item.replace(/Science Workbook \/ Booklet/gi, 'كتاب أو بوكليت الساينس')
+                 .replace(/Booklet/gi, 'بوكليت')
+                 .replace(/Workbook/gi, 'كتاب التمارين');
+    }
+    return item;
   };
 
   const getNoteBadgeInfo = (note: TomorrowSpecialNote) => {
@@ -468,11 +470,14 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
       const fullText = `${h.task} ${h.details || ''} ${h.subject}`;
       const isForTomorrow = h.dueDay === tomorrowDay || h.assignedDay === tomorrowDay;
+      const hwAlertId = `linked-hw-${h.id}`;
+      const hwDueAlertId = `linked-hw-due-${h.id}`;
+      if (deletedNoteIds.includes(hwAlertId) || deletedNoteIds.includes(hwDueAlertId)) return;
 
       // A) Tests, quizzes, dictations
       if (isForTomorrow && checkText(fullText)) {
         alerts.push({
-          id: `linked-hw-${h.id}`,
+          id: hwAlertId,
           classId: currentClass,
           targetDay: tomorrowDay,
           subject: h.subject,
@@ -491,7 +496,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         const isSocial = h.subject === 'Social Studies';
         const isScience = h.subject === 'Science';
         alerts.push({
-          id: `linked-hw-due-${h.id}`,
+          id: hwDueAlertId,
           classId: currentClass,
           targetDay: tomorrowDay,
           subject: h.subject,
@@ -521,11 +526,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (cw.classId !== currentClass && (cw.classId as any) !== 'ALL') return;
       if (cw.day !== tomorrowDay) return;
       if (cw.week && cw.week !== currentWeek) return;
+      const cwAlertId = `linked-cw-${cw.id}`;
+      if (deletedNoteIds.includes(cwAlertId)) return;
 
       const fullText = `${cw.title} ${cw.details || ''} ${cw.subject}`;
       if (checkText(fullText)) {
         alerts.push({
-          id: `linked-cw-${cw.id}`,
+          id: cwAlertId,
           classId: currentClass,
           targetDay: tomorrowDay,
           subject: cw.subject,
@@ -597,7 +604,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     // Automatically inject French Quiz warning
     let injectFrenchQuiz = false;
     if (currentClass === 'G2A' && tomorrowDay === 'Wednesday') injectFrenchQuiz = true;
-    if (currentClass === 'G2B' && tomorrowDay === 'Monday') injectFrenchQuiz = true;
+    if (currentClass === 'G2B' && (tomorrowDay === 'Monday' || tomorrowDay === 'Sunday')) injectFrenchQuiz = true;
     if (currentClass === 'G2C' && tomorrowDay === 'Tuesday') injectFrenchQuiz = true;
 
     if (injectFrenchQuiz) {
@@ -719,7 +726,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           </div>
           {isAdminEditMode && onAddTomorrowNote && (
             <button
-              onClick={onAddTomorrowNote}
+              onClick={() => onAddTomorrowNote({ targetDay: tomorrowDay })}
               className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black rounded-lg transition-all shadow-xs cursor-pointer"
             >
               <Plus className="w-3 h-3 text-emerald-100" />

@@ -237,11 +237,23 @@ export async function getTomorrowNotesForDay(
       }
     } catch {}
 
-    // Merge base notes and dynamic notes
+    // Merge base notes, local custom notes, and dynamic notes
     const map = new Map<string, TomorrowSpecialNote>();
     baseNotes.forEach((n) => {
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       map.set(key, n);
+    });
+
+    localCustom.forEach((n) => {
+      if (
+        (n.classId === classId || (n.classId as any) === 'ALL') &&
+        n.targetDay === targetDay &&
+        (n.block || 1) === block &&
+        (n.week || 1) === week
+      ) {
+        const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+        map.set(key, { ...n, isCustom: true });
+      }
     });
 
     dynamicNotes.forEach((n) => {
@@ -263,44 +275,6 @@ export async function getTomorrowNotesForDay(
         return false;
       }
       return true;
-    });
-
-    // Enrich any Science tomorrow note with the required materials as requested by the user
-    filtered.forEach((note) => {
-      if (note.subject === 'Science') {
-        const materialText = "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn";
-        const arabicMaterialText = "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.";
-        
-        note.bagItem = note.bagItem && (note.bagItem.includes('crochet') || note.bagItem.includes('chrochet') || note.bagItem.includes('كروشيه'))
-          ? note.bagItem
-          : note.bagItem 
-            ? `${note.bagItem} — Required: ${materialText}` 
-            : materialText;
-        
-        note.note = note.note && (note.note.includes('crochet') || note.note.includes('chrochet') || note.note.includes('كروشيه'))
-          ? note.note
-          : note.note 
-            ? `${note.note} (Tools: ${materialText})` 
-            : `Science Tools: ${materialText}`;
-        
-        note.arabicNote = note.arabicNote && (note.arabicNote.includes('كروشيه') || note.arabicNote.includes('crochet'))
-          ? note.arabicNote
-          : note.arabicNote 
-            ? `${note.arabicNote} (المواد المطلوبة: ${arabicMaterialText})` 
-            : `أدوات الساينس المطلوبة: ${arabicMaterialText}`;
-      } else if (
-        note.subject === 'Science' &&
-        (note.note?.toLowerCase().includes('submission') ||
-          note.note?.includes('تسليم') ||
-          note.arabicNote?.includes('تسليم') ||
-          note.note?.toLowerCase().includes('submit') ||
-          note.id?.includes('hw-submit'))
-      ) {
-        // Enforce exact format requested by user: strictly "تسليم بوكلت الساينس"
-        note.note = 'تسليم بوكلت الساينس';
-        note.arabicNote = 'تسليم بوكلت الساينس';
-        note.bagItem = 'بوكليت الساينس';
-      }
     });
 
     // Add specific Science Homework submission reminders for Class B and A on Wednesday/Thursday:
@@ -328,6 +302,77 @@ export async function getTomorrowNotesForDay(
             week: 3,
           });
         }
+      }
+    }
+
+    if (targetDay === 'Sunday') {
+      const sciSubId = `tn-b1-w3-${classId}-Sun-science-hw-submit`;
+      const semKey = `science-booklet-submission-Sunday`;
+      const hasSciSub = filtered.some(
+        (n) => n.subject === 'Science' && (n.arabicNote?.includes('تسليم') || n.note?.includes('تسليم') || n.note?.includes('submission'))
+      );
+      if (!hasSciSub && !deletedIds.includes(sciSubId) && !deletedIds.includes(semKey)) {
+        filtered.push({
+          id: sciSubId,
+          classId: classId,
+          targetDay: 'Sunday',
+          subject: 'Science',
+          note: 'تسليم بوكلت الساينس',
+          arabicNote: 'تسليم بوكلت الساينس',
+          bagItem: 'بوكليت الساينس',
+          isQuiz: false,
+          categoryType: 'note',
+          block: 1,
+          week: 3,
+          isCustom: true
+        });
+      }
+
+      if (classId === 'G2B') {
+        const fQuizId = `tn-b1-w3-G2B-Sun-french-quiz`;
+        const semKeyF = `french-quiz-Sunday`;
+        const hasFQuiz = filtered.some(
+          (n) => n.subject === 'French' && (n.note?.toLowerCase().includes('quiz') || n.arabicNote?.includes('كويز'))
+        );
+        if (!hasFQuiz && !deletedIds.includes(fQuizId) && !deletedIds.includes(semKeyF)) {
+          filtered.push({
+            id: fQuizId,
+            classId: 'G2B',
+            targetDay: 'Sunday',
+            subject: 'French',
+            note: 'French Quiz',
+            arabicNote: 'كويز فرنش',
+            isQuiz: true,
+            categoryType: 'quiz',
+            block: 1,
+            week: 3,
+            isCustom: true
+          });
+        }
+      }
+    }
+
+    if (targetDay === 'Monday' && classId === 'G2A') {
+      const sciToolsId = `tn-b1-w3-G2A-Mon-science-tools`;
+      const semKey = `science-tools-Monday`;
+      const hasSciTools = filtered.some(
+        (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools') || n.arabicNote?.includes('كروشيه'))
+      );
+      if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKey)) {
+        filtered.push({
+          id: sciToolsId,
+          classId: 'G2A',
+          targetDay: 'Monday',
+          subject: 'Science',
+          note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
+          arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
+          bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
+          isQuiz: false,
+          categoryType: 'note',
+          block: 1,
+          week: 3,
+          isCustom: true
+        });
       }
     }
 
@@ -379,7 +424,7 @@ export async function getTomorrowNotesForDay(
   }
 }
 
-export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
+export function getDeletedTomorrowNoteIdsSync(): string[] {
   let localList: string[] = [
     'tn-b1-w3-G2C-Mon-science-hw-submit',
     'science-booklet-submission-Monday',
@@ -405,6 +450,12 @@ export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
       }
     }
   } catch {}
+
+  return localList;
+}
+
+export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
+  let localList = getDeletedTomorrowNoteIdsSync();
 
   if (isSupabaseConfigured) {
     try {

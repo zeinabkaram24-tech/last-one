@@ -787,6 +787,66 @@
       "completed": false,
       "block": 1,
       "week": 3
+    },
+    {
+      "id": "tomorrow-1789897875484",
+      "classId": "G2A",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Science",
+      "title": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
+      "details": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
+      "completed": false,
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tomorrow-1789897983644",
+      "classId": "G2A",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Science",
+      "title": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
+      "details": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
+      "completed": false,
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tomorrow-1789898195341",
+      "classId": "G2A",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Science",
+      "title": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
+      "details": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
+      "completed": false,
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tomorrow-1789898508748",
+      "classId": "G2A",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "Science",
+      "title": "تسليم هومورك",
+      "details": "تسليم هومورك",
+      "completed": false,
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tomorrow-1789898873638",
+      "classId": "G2A",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Science",
+      "title": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
+      "details": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
+      "completed": false,
+      "block": 1,
+      "week": 3
     }
   ],
   "homework": [
@@ -1266,6 +1326,42 @@
       "priority": "urgent",
       "block": 1,
       "week": 3
+    },
+    {
+      "id": "tomorrow-1789899736660",
+      "classId": "G2B",
+      "assignedDay": "Sunday",
+      "dueDay": "Monday",
+      "subject": "French",
+      "task": "quiz",
+      "completed": false,
+      "priority": "urgent",
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tomorrow-1789899812713",
+      "classId": "G2B",
+      "assignedDay": "Sunday",
+      "dueDay": "Tuesday",
+      "subject": "French",
+      "task": "quiz",
+      "completed": false,
+      "priority": "urgent",
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tomorrow-1789899843481",
+      "classId": "G2B",
+      "assignedDay": "Sunday",
+      "dueDay": "Monday",
+      "subject": "French",
+      "task": "quiz",
+      "completed": false,
+      "priority": "urgent",
+      "block": 1,
+      "week": 3
     }
   ],
   "tomorrowNotes": [
@@ -1388,19 +1484,6 @@
       "week": 3
     },
     {
-      "id": "tn-b1-w3-G2A-Wed-social-hw",
-      "classId": "G2A",
-      "targetDay": "Wednesday",
-      "subject": "Social Studies",
-      "note": "يتم إرسال الواجب المنزلي يوم الأربعاء، والاستلام أول حصة في الأسبوع (يوم الأحد)",
-      "arabicNote": "يتم إرسال الواجب المنزلي لمادة الدراسات الاجتماعية اليوم الأربعاء، ويسلّم أول حصة الأسبوع القادم (الأحد)",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 3,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
-    },
-    {
       "id": "tn-b1-w3-G2A-Sat-social-submit-reminder",
       "classId": "G2A",
       "targetDay": "Saturday",
@@ -1412,19 +1495,6 @@
       "block": 1,
       "week": 3,
       "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
-    },
-    {
-      "id": "tn-b1-w3-G2A-Mon-arabic-prep",
-      "classId": "G2A",
-      "targetDay": "Monday",
-      "subject": "Arabic",
-      "note": "إحضار كراسة نشاط الوحدة الأولى ص 16-18 لدرس ظرف الزمان والمكان",
-      "arabicNote": "إحضار كراسة نشاط الوحدة الأولى ص 16-18 لدرس ظرف الزمان وظرف المكان",
-      "bagItem": "كراسة نشاط الوحدة الأولى ص 16-18 وكراسة الطالب (تسليم نشيد مدرستي بيتي الثاني)",
-      "isQuiz": false,
-      "categoryType": "note",
-      "block": 1,
-      "week": 3
     },
     {
       "id": "tn-b1-w3-G2A-Tue-arabic-prep",
@@ -1441,15 +1511,16 @@
     {
       "id": "tn-b1-w3-G2A-Wed-arabic-dictation",
       "classId": "G2A",
-      "targetDay": "Wednesday",
       "subject": "Arabic",
-      "note": "إملاء أسبوعي في مادة اللغة العربية في كراسة الطالب",
-      "arabicNote": "📝 إملاء أسبوعي في كراسة الطالب - مراجعة الكلمات والظواهر اللغوية المقررة وإحضار كراسة النشاط ص 37-38",
-      "bagItem": "كراسة الطالب للإملاء + كراسة النشاط ص 37-38",
+      "block": 1,
+      "week": 3,
+      "note": "📝 إملاء أسبوعي في كراسة الطالب -",
+      "arabicNote": "📝 إملاء أسبوعي في كراسة الطالب -",
+      "bagItem": "كراسة الطالب",
       "isQuiz": true,
       "categoryType": "quiz",
-      "block": 1,
-      "week": 3
+      "targetDay": "Wednesday",
+      "isCustom": true
     },
     {
       "id": "tn-b1-w3-G2A-Thu-arabic-prep",
@@ -1617,7 +1688,6 @@
       "block": 1,
       "week": 3
     },
-
     {
       "id": "tn-b1-w3-G2A-Wed-french-quiz",
       "classId": "G2A",
@@ -1655,29 +1725,31 @@
       "week": 3
     },
     {
-      "id": "tn-b1-w3-G2A-Sun-science-tools",
+      "id": "tn-b1-w3-G2A-Mon-science-tools-custom",
       "classId": "G2A",
-      "targetDay": "Monday",
       "subject": "Science",
+      "block": 1,
+      "week": 3,
       "note": "Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.",
       "arabicNote": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
       "bagItem": "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه",
       "isQuiz": false,
       "categoryType": "note",
-      "block": 1,
-      "week": 3
+      "targetDay": "Monday",
+      "isCustom": true
     },
     {
-      "id": "tomorrow-1789896947607",
+      "id": "tomorrow-1789898873638",
       "classId": "G2A",
       "subject": "Science",
       "block": 1,
       "week": 3,
-      "note": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه",
-      "arabicNote": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه",
+      "note": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
+      "arabicNote": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
       "isQuiz": false,
       "categoryType": "note",
-      "targetDay": "Tuesday"
+      "targetDay": "Tuesday",
+      "isCustom": true
     },
     {
       "id": "tn-b1-w3-G2A-Wed-science-tools",
@@ -1784,6 +1856,19 @@
       "week": 3
     },
     {
+      "id": "tn-b1-w3-G2B-Sun-french-quiz",
+      "classId": "G2B",
+      "targetDay": "Sunday",
+      "subject": "French",
+      "note": "French Quiz",
+      "arabicNote": "كويز فرنش",
+      "isQuiz": true,
+      "categoryType": "quiz",
+      "block": 1,
+      "week": 3,
+      "isCustom": true
+    },
+    {
       "id": "tn-b1-w3-G2A-Wed-arabic-recitation",
       "classId": "G2A",
       "targetDay": "Wednesday",
@@ -1820,30 +1905,32 @@
       "week": 3
     },
     {
+      "id": "tn-b1-w3-G2A-Sun-science-hw-submit",
+      "classId": "G2A",
+      "subject": "Science",
+      "block": 1,
+      "week": 3,
+      "note": "تسليم بوكلت الساينس",
+      "arabicNote": "تسليم بوكلت الساينس",
+      "bagItem": "بوكليت الساينس",
+      "isQuiz": false,
+      "categoryType": "note",
+      "targetDay": "Sunday",
+      "isCustom": true
+    },
+    {
       "id": "tn-b1-w3-G2B-Sun-science-hw-submit",
       "classId": "G2B",
       "subject": "Science",
       "block": 1,
       "week": 3,
-      "note": "تسليم البوكلت",
-      "arabicNote": "تسليم البوكلت",
-      "bagItem": "Science Workbook / Booklet (كتاب أو بوكليت الساينس) — Required: Colored sheets with different colors , glue , colored pencils , a little chrochet yarn",
+      "note": "تسليم بوكلت الساينس",
+      "arabicNote": "تسليم بوكلت الساينس",
+      "bagItem": "بوكليت الساينس",
       "isQuiz": false,
       "categoryType": "note",
-      "targetDay": "Sunday"
-    },
-    {
-      "id": "cw-b1-w3-G2B-Sunday-p4-science",
-      "classId": "G2B",
-      "subject": "Science",
-      "block": 1,
-      "week": 3,
-      "note": "تذكير: تسليم واجب الساينس (كتاب التمارين/البوكليت ) للمعلمة. (المواد المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.)",
-      "arabicNote": "تذكير: تسليم واجب الساينس (كتاب التمارين/البوكليت ) للمعلمة. (المواد المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.)",
-      "bagItem": "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn",
-      "isQuiz": false,
-      "categoryType": "note",
-      "targetDay": "Sunday"
+      "targetDay": "Sunday",
+      "isCustom": true
     },
     {
       "id": "tn-b1-w3-ALL-mon-eng-dictation",
@@ -1890,19 +1977,6 @@
       "arabicNote": "ديكتيشن",
       "isQuiz": true,
       "categoryType": "quiz",
-      "block": 1,
-      "week": 3
-    },
-    {
-      "id": "tn-b1-w3-G2A-Tue-science-tools",
-      "classId": "G2A",
-      "targetDay": "Tuesday",
-      "subject": "Science",
-      "note": "Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.",
-      "arabicNote": "أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.",
-      "bagItem": "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه",
-      "isQuiz": false,
-      "categoryType": "note",
       "block": 1,
       "week": 3
     },
@@ -1955,17 +2029,75 @@
       "isQuiz": false,
       "categoryType": "note",
       "targetDay": "Sunday"
+    },
+    {
+      "id": "tomorrow-1789898508748",
+      "classId": "G2A",
+      "subject": "Science",
+      "block": 1,
+      "week": 3,
+      "note": "تسليم هومورك",
+      "arabicNote": "تسليم هومورك",
+      "isQuiz": false,
+      "categoryType": "note",
+      "targetDay": "Sunday",
+      "isCustom": true
+    },
+    {
+      "id": "tomorrow-1789899843481",
+      "classId": "G2B",
+      "subject": "French",
+      "block": 1,
+      "week": 3,
+      "note": "quiz",
+      "arabicNote": "quiz",
+      "isQuiz": true,
+      "categoryType": "quiz",
+      "targetDay": "Monday",
+      "isCustom": true
     }
   ],
   "deletedTomorrowNoteIds": [
     "tn-b1-w3-G2C-Mon-science-collection",
     "tn-b1-w3-G2C-Mon-science-hw-submit",
     "science-booklet-submission-Monday",
-    "tn-b1-w3-G2B-Tue-science-tools",
-    "science-tools-Tuesday",
     "tomorrow-1789894984953",
     "science-tools-Sunday",
     "tomorrow-1789897144639",
-    "science-booklet-submission-Sunday"
+    "science-booklet-submission-Sunday",
+    "cw-b1-w3-G2A-Wednesday-p4-r4780",
+    "social studies-مشاعري-في-الصف-Wednesday",
+    "linked-hw-due-hw-manual-1789699542527",
+    "mathematics-تذكير-تسليم-واجب-mathematics-Tuesday",
+    "hw-manual-1789699542527",
+    "linked-hw-due-hw-manual-1789700067111",
+    "mathematics-تذكير-تسليم-واجب-mathematics-Wednesday",
+    "hw-manual-1789700067111",
+    "linked-hw-due-hw-manual-1789726417509",
+    "english-تذكير-تسليم-واجب-english-Sunday",
+    "hw-manual-1789726417509",
+    "linked-hw-due-hw-manual-1789700131599",
+    "mathematics-تذكير-تسليم-واجب-mathematics-Monday",
+    "hw-manual-1789700131599",
+    "cw-b1-w3-G2A-Tuesday-p6-french1",
+    "french-le-premier-cours-les-Tuesday",
+    "tn-b1-w3-G2A-Wed-social-hw",
+    "social-hw-submission-Wednesday",
+    "tn-b1-w3-G2A-Mon-arabic-prep",
+    "arabic-إحضار-كراسة-نشاط-الوحدة-Monday",
+    "cw-b1-w3-G2A-Sunday-p5-science",
+    "science-introduction-to-unit-2-Monday",
+    "cw-b1-w3-G2C-Monday-p3-french2",
+    "french-quiz-Monday",
+    "linked-hw-tomorrow-1789899736660",
+    "french-quiz-Sunday",
+    "tomorrow-1789899736660",
+    "tomorrow-1789899812713",
+    "linked-hw-tomorrow-1789899812713",
+    "french-quiz-Tuesday"
+  ],
+  "deletedPlannerItemIds": [
+    "homework-1789888292062",
+    "tn-b1-w3-G2A-Wed-arabic-dictation"
   ]
 }
