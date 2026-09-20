@@ -1,9 +1,42 @@
 import { ClassId, SchoolDay } from '../types';
 import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
-import { supabase, isSupabaseConfigured, unpackHomeworkDetails } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
 
-// In-memory fallback cache to completely replace localStorage as requested
+const LOCAL_CUSTOM_TOMORROW_KEY = 'tomorrow_special_notes_custom_v3';
+
+export function getLocalCustomTomorrowNotes(): TomorrowSpecialNote[] {
+  try {
+    const raw = appStorage.getItem(LOCAL_CUSTOM_TOMORROW_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
+}
+
+export function saveLocalCustomTomorrowNotes(notes: TomorrowSpecialNote[], mode: 'merge' | 'replace' = 'merge') {
+  try {
+    if (mode === 'replace') {
+      appStorage.setItem(LOCAL_CUSTOM_TOMORROW_KEY, JSON.stringify(notes));
+      return;
+    }
+    const current = getLocalCustomTomorrowNotes();
+    const map = new Map<string, TomorrowSpecialNote>();
+    current.forEach((n) => {
+      const key = n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      map.set(key, n);
+    });
+    notes.forEach((n) => {
+      const key = n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      map.set(key, n);
+    });
+    appStorage.setItem(LOCAL_CUSTOM_TOMORROW_KEY, JSON.stringify(Array.from(map.values())));
+  } catch {}
+}
+
+// In-memory fallback cache
 const IN_MEMORY_NOTES_CACHE: Record<string, string> = {};
 const LISTENERS: Array<() => void> = [];
 
@@ -62,8 +95,38 @@ export async function getTomorrowNotesForDay(
         )
       : [];
 
+  // Load custom notes from localStorage
+  const localCustom = getLocalCustomTomorrowNotes().filter(
+    (n) =>
+      (n.classId === classId || (n.classId as any) === 'ALL') &&
+      n.targetDay === targetDay &&
+      (n.block || 1) === block &&
+      (n.week || 1) === week
+  );
+
+  const deletedIds = await getDeletedTomorrowNoteIds();
+
   if (!isSupabaseConfigured) {
-    return baseNotes.filter((n) => !isDisallowedMathNote(n));
+    const map = new Map<string, TomorrowSpecialNote>();
+    baseNotes.forEach((n) => {
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      map.set(key, n);
+    });
+    // Custom notes override base notes
+    localCustom.forEach((n) => {
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      map.set(key, n);
+    });
+    const merged = Array.from(map.values());
+    const filtered = merged.filter((n) => {
+      if (isDisallowedMathNote(n)) return false;
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      if (deletedIds.includes(key) || (n.id && deletedIds.includes(n.id))) {
+        return false;
+      }
+      return true;
+    });
+    return filtered;
   }
 
   try {
@@ -365,55 +428,67 @@ export async function saveTomorrowNotes(
   notes: TomorrowSpecialNote[],
   mode: 'merge' | 'replace' = 'merge'
 ): Promise<void> {
-  if (!isSupabaseConfigured) return;
+  saveLocalCustomTomorrowNotes(notes, mode);
 
   try {
-    for (const note of notes) {
-      const isQuiz = note.isQuiz || note.categoryType === 'quiz' || /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((note.note + ' ' + (note.arabicNote || '')).toLowerCase());
-      const targetId = note.id || `tomorrow-${isQuiz ? 'hw' : 'cw'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      const classId = (note.classId as any) === 'ALL' ? 'G2B' : note.classId;
-
-      if (isQuiz) {
-        // Prepare row for homework table
-        const row = {
-          id: targetId,
-          class_id: classId,
-          assigned_day: 'Sunday',
-          due_day: note.targetDay,
-          subject: note.subject,
-          task: note.arabicNote || note.note || '',
-          details: note.bagItem || null,
-          completed: false,
-          priority: 'urgent',
-          block: note.block || block,
-          week: note.week || week,
-          link_url: note.linkUrl || null,
-        };
-
-        await supabase.from('homework').upsert(row, { onConflict: 'id' });
-      } else {
-        // Prepare row for classwork table
-        const row = {
-          id: targetId,
-          class_id: classId,
-          day: note.targetDay,
-          period: 1,
-          subject: note.subject,
-          title: note.note || '',
-          details: note.arabicNote || note.note || '',
-          pages: note.bagItem || null,
-          completed: false,
-          block: note.block || block,
-          week: note.week || week,
-          link_url: note.linkUrl || null,
-          link_title: note.linkTitle || null,
-        };
-
-        await supabase.from('classwork').upsert(row, { onConflict: 'id' });
-      }
-    }
+    await fetch('/api/planner-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tomorrowNotes: notes, mode }),
+    });
   } catch (err) {
-    console.error('Error saving tomorrow notes as classwork/homework entries:', err);
+    console.warn('Central server sync error in saveTomorrowNotes:', err);
+  }
+
+  if (isSupabaseConfigured) {
+    try {
+      for (const note of notes) {
+        const isQuiz = note.isQuiz || note.categoryType === 'quiz' || /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((note.note + ' ' + (note.arabicNote || '')).toLowerCase());
+        const targetId = note.id || `tomorrow-${isQuiz ? 'hw' : 'cw'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        const classId = (note.classId as any) === 'ALL' ? 'G2B' : note.classId;
+
+        if (isQuiz) {
+          // Prepare row for homework table
+          const row = {
+            id: targetId,
+            class_id: classId,
+            assigned_day: 'Sunday',
+            due_day: note.targetDay,
+            subject: note.subject,
+            task: note.arabicNote || note.note || '',
+            details: note.bagItem || null,
+            completed: false,
+            priority: 'urgent',
+            block: note.block || block,
+            week: note.week || week,
+            link_url: note.linkUrl || null,
+          };
+
+          await supabase.from('homework').upsert(row, { onConflict: 'id' });
+        } else {
+          // Prepare row for classwork table
+          const row = {
+            id: targetId,
+            class_id: classId,
+            day: note.targetDay,
+            period: 1,
+            subject: note.subject,
+            title: note.note || '',
+            details: note.arabicNote || note.note || '',
+            pages: note.bagItem || null,
+            completed: false,
+            block: note.block || block,
+            week: note.week || week,
+            link_url: note.linkUrl || null,
+            link_title: note.linkTitle || null,
+          };
+
+          await supabase.from('classwork').upsert(row, { onConflict: 'id' });
+        }
+      }
+    } catch (err) {
+      console.error('Error saving tomorrow notes as classwork/homework entries in Supabase:', err);
+    }
   }
 
   notifyTomorrowNotesListeners();

@@ -420,6 +420,134 @@ Return ONLY valid JSON. If a value is not mentioned, use the defaults if helpful
   }
 });
 
+// Direct Audio Recording Voice Parser using Gemini 3.5 Flash Multimodal Audio
+app.post('/api/parse-voice-audio', async (req, res) => {
+  try {
+    const { audioBase64, mimeType = 'audio/webm', itemType, currentClass, currentBlock, currentWeek, selectedDay } = req.body;
+    if (!audioBase64) {
+      return res.status(400).json({ error: 'Audio data is required' });
+    }
+
+    const ai = getGenAI();
+    if (!ai) {
+      return res.status(500).json({ error: 'Gemini AI is not configured.' });
+    }
+
+    const cleanBase64 = audioBase64.includes(',') ? audioBase64.split(',')[1] : audioBase64;
+    const cleanMime = (mimeType || 'audio/webm').split(';')[0];
+
+    const prompt = `
+You are an expert voice command and dictation parser for an Egyptian International primary school weekly planner.
+The user just spoke an audio voice command in Arabic or English to create or edit a school task or lesson.
+The user is working on: "${itemType}" (one of: 'classwork', 'homework', 'tomorrow').
+Context:
+- Default Class ID: "${currentClass || 'G2B'}"
+- Default Block: ${currentBlock || 1}
+- Default Week: ${currentWeek || 3}
+- Default/Selected Day: "${selectedDay || 'Sunday'}"
+
+Valid options:
+- Subjects: "Arabic", "English", "Mathematics", "Science", "French", "Social Studies", "Religion", "ICT", "Arts", "Music", "PE"
+- Class IDs: "G2A", "G2B", "G2C", "ALL"
+- Days: "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"
+
+First, transcribe the spoken words into exact Arabic or English text into the "transcript" field.
+Then, parse what was said into a structured JSON object:
+- transcript: string (what the user actually said)
+- subject: string (one of valid subjects, translating Arabic spoken names e.g. "ساينس" -> "Science", "عربي" -> "Arabic", "رياضيات" -> "Mathematics")
+- classId: string (one of valid class IDs if mentioned, e.g. "كلاس ايه" -> "G2A", "كلاس بي" -> "G2B", "كلاس سي" -> "G2C", "كل الصفوف" -> "ALL")
+- block: number (if mentioned)
+- week: number (if mentioned)
+
+For 'classwork':
+- title: string
+- details: string
+- pages: string
+- day: valid day
+- period: number 1-8
+
+For 'homework':
+- title: string (the homework task, e.g. "حل صفحة 30")
+- details: string
+- pages: string
+- assignedDay: valid day
+- dueDay: valid day
+- priority: "normal" | "urgent"
+
+For 'tomorrow':
+- arabicNote: string
+- bagItem: string
+- isQuiz: boolean
+- targetDay: valid day
+
+Return ONLY valid JSON with no markdown backticks.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash',
+      contents: [
+        {
+          inlineData: {
+            mimeType: cleanMime,
+            data: cleanBase64,
+          },
+        },
+        {
+          text: prompt,
+        },
+      ],
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const responseText = response.text || '{}';
+    const parsed = JSON.parse(responseText.trim());
+    res.json({ success: true, data: parsed, transcript: parsed.transcript || '' });
+  } catch (err: any) {
+    console.error('Error parsing voice audio:', err);
+    res.status(500).json({ error: err.message || 'Error parsing voice audio' });
+  }
+});
+
+// Single Field Speech-to-Text Transcription using Gemini 3.5 Flash Audio
+app.post('/api/transcribe-audio', async (req, res) => {
+  try {
+    const { audioBase64, mimeType = 'audio/webm' } = req.body;
+    if (!audioBase64) {
+      return res.status(400).json({ error: 'Audio data is required' });
+    }
+
+    const ai = getGenAI();
+    if (!ai) {
+      return res.status(500).json({ error: 'Gemini AI is not configured.' });
+    }
+
+    const cleanBase64 = audioBase64.includes(',') ? audioBase64.split(',')[1] : audioBase64;
+    const cleanMime = (mimeType || 'audio/webm').split(';')[0];
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash',
+      contents: [
+        {
+          inlineData: {
+            mimeType: cleanMime,
+            data: cleanBase64,
+          },
+        },
+        {
+          text: 'Transcribe this school teacher audio recording accurately into text. The speech is in Arabic or English or mixed. Return ONLY the exact transcribed text string without quotes or preamble.',
+        },
+      ],
+    });
+
+    const transcript = (response.text || '').trim();
+    res.json({ success: true, transcript });
+  } catch (err: any) {
+    console.error('Error transcribing audio:', err);
+    res.status(500).json({ error: err.message || 'Error transcribing audio' });
+  }
+});
+
 // Third session mapping for French and ICT as strictly requested
 const THIRD_SESSION_MAP: Record<string, { French: string; ICT: string }> = {
   G2A: { French: 'Thursday', ICT: 'Wednesday' },

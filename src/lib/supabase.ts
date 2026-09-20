@@ -383,7 +383,7 @@ if (typeof window !== 'undefined') {
   } catch {}
 }
 
-const appStorage = {
+export const appStorage = {
   getItem: (k: string) => {
     try {
       return typeof window !== 'undefined' ? window.localStorage?.getItem(k) : null;

@@ -227,30 +227,19 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const getNoteDisplayArabic = (n: TomorrowSpecialNote) => {
     if (!n) return '';
-    const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-    const isDictation = text.includes('إملاء') || text.includes('dictation') || text.includes('تسميع');
-    if (isDictation) {
-      return "إملاء كشكول الطالب، إحضار كشكول الطالب";
+    // Always respect user-edited or custom note text directly
+    if (n.arabicNote && n.arabicNote.trim()) {
+      return n.arabicNote.trim();
     }
-    if (n.subject === 'Science' && (text.includes('tools') || text.includes('أدوات') || text.includes('حقيبة') || text.includes('crochet'))) {
-      return "يرجى إحضار أدوات الساينس لحصة الغد: دفتر تلوين بألوان مختلفة، ومقص، وأقلام تلوين، وخيط كروشيه صغير.";
+    if (n.note && n.note.trim()) {
+      return n.note.trim();
     }
-    if (n.subject === 'Science' && (text.includes('تسليم') || text.includes('submission') || text.includes('submit') || text.includes('بوكلت') || text.includes('booklet') || text.includes('واجب') || text.includes('hw-submit'))) {
-      return "تسليم بوكلت الـ science";
-    }
-    return n.arabicNote || n.note;
+    return '';
   };
 
   const getNoteDisplayBagItem = (n: TomorrowSpecialNote) => {
     if (!n) return '';
-    const text = ((n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.bagItem || '')).toLowerCase();
-    if (n.subject === 'Science' && (text.includes('tools') || text.includes('أدوات') || text.includes('حقيبة') || text.includes('crochet'))) {
-      return "دفتر تلوين بألوان مختلفة، ومقص، وأقلام تلوين، وخيط كروشيه صغير";
-    }
-    if (n.subject === 'Science' && (text.includes('تسليم') || text.includes('submission') || text.includes('submit') || text.includes('بوكلت') || text.includes('booklet') || text.includes('واجب') || text.includes('hw-submit'))) {
-      return "بوكليت الـ science";
-    }
-    return n.bagItem;
+    return n.bagItem || '';
   };
 
   const getNoteBadgeInfo = (note: TomorrowSpecialNote) => {
@@ -491,18 +480,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true;
     });
 
-    activeBaseNotes.forEach((n) => {
-      const isArabic = n.subject === 'Arabic';
-      const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      const isDictation = text.includes('إملاء') || text.includes('dictation') || text.includes('تسميع');
-      if (isArabic && isDictation) {
-        if (hasArabicDictation) return; // Strict user rule: dictation is ONE task per day
-        hasArabicDictation = true;
-      }
-      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-      map.set(key, n);
-    });
-
     linkedAlerts.forEach((la) => {
       const key = la.id || `${la.targetDay}-${la.subject}-${(la.note || '').slice(0, 30)}`;
       if (deletedNoteIds.includes(key) || (la.id && deletedNoteIds.includes(la.id))) return;
@@ -515,24 +492,19 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         hasArabicDictation = true;
       }
 
-      // If a quiz note for this subject already exists in map, don't duplicate
-      const hasExistingSubjectQuiz = Array.from(map.values()).some(
-        (n) => n.subject === la.subject && isQuizOrTest(n)
-      );
-      if (isQuizOrTest(la) && hasExistingSubjectQuiz) {
-        return;
-      }
-
-      // If a submission note for this subject already exists in map, don't duplicate
-      const isSubmission = ((la.note || '') + ' ' + (la.arabicNote || '')).includes('تسليم');
-      const hasExistingSubmission = Array.from(map.values()).some(
-        (n) => n.subject === la.subject && ((n.note || '') + ' ' + (n.arabicNote || '')).includes('تسليم')
-      );
-      if (isSubmission && hasExistingSubmission) {
-        return;
-      }
-
       map.set(key, la);
+    });
+
+    // Custom or edited notes take absolute precedence over auto-generated alerts
+    activeBaseNotes.forEach((n) => {
+      const isArabic = n.subject === 'Arabic';
+      const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isDictation = text.includes('إملاء') || text.includes('dictation') || text.includes('تسميع');
+      if (isArabic && isDictation) {
+        hasArabicDictation = true;
+      }
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      map.set(key, n);
     });
 
     return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));

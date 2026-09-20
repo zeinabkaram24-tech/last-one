@@ -74,18 +74,57 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
   const [fileName, setFileName] = useState('');
   const [uploadProgress, setUploadProgress] = useState(false);
 
-  // Voice Recognition states
-  const [isListeningGlobal, setIsListeningGlobal] = useState(false);
+  // Voice Recognition & Audio Recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTarget, setRecordingTarget] = useState<string | null>(null);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [globalTranscript, setGlobalTranscript] = useState('');
   const [isParsingGlobal, setIsParsingGlobal] = useState(false);
   const [recognitionError, setRecognitionError] = useState<string | null>(null);
-  const [activeDictationField, setActiveDictationField] = useState<string | null>(null);
+  const [manualVoiceCommand, setManualVoiceCommand] = useState('');
   const hasInitializedRef = useRef(false);
 
-  // Initialize form with initialData or defaults ONLY once when opened
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const timerRef = useRef<any>(null);
+  const speechRecognitionRef = useRef<any>(null);
+
+  // Helper to cleanup any active stream / timer
+  const cleanupRecording = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (speechRecognitionRef.current) {
+      try {
+        speechRecognitionRef.current.stop();
+      } catch {}
+      speechRecognitionRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch {}
+      });
+      streamRef.current = null;
+    }
+    setIsRecording(false);
+    setRecordingTarget(null);
+    setRecordingSeconds(0);
+  };
+
+  // Cleanup on close or unmount
   useEffect(() => {
-    if (isOpen && !hasInitializedRef.current) {
-      hasInitializedRef.current = true;
+    if (!isOpen) {
+      cleanupRecording();
+    }
+  }, [isOpen]);
+
+  // Initialize form with initialData or defaults whenever modal opens or item changes
+  useEffect(() => {
+    if (isOpen) {
       if (mode === 'edit' && initialData) {
         setClassId(initialData.classId || currentClass);
         setSubject(initialData.subject || 'Arabic');
@@ -145,63 +184,76 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
         setFileBase64(initialData?.pdfUrl || '');
         setFileName('');
       }
-    } else if (!isOpen) {
-      hasInitializedRef.current = false;
+    } else {
+      cleanupRecording();
+      setManualVoiceCommand('');
+      setGlobalTranscript('');
+      setRecognitionError(null);
     }
   }, [isOpen, mode, itemType, initialData, currentClass, currentBlock, currentWeek, selectedDay]);
 
-  if (!isOpen) return null;
+  // Close on Escape key press
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
-  // Voice recognition instance setup helper
+  // Voice recognition instance setup helper for live transcription preview
   const getSpeechRecognition = () => {
     return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
   };
 
-  const startGlobalVoiceRecognition = () => {
-    const SpeechRecognitionClass = getSpeechRecognition();
-    if (!SpeechRecognitionClass) {
-      alert('التعرف على الصوت غير مدعوم في هذا المتصفح. يرجى استخدام متصفح Google Chrome أو Microsoft Edge لتفعيل الإدخال الصوتي.');
-      return;
-    }
-
-    try {
-      setRecognitionError(null);
-      setGlobalTranscript('');
-      const rec = new SpeechRecognitionClass();
-      rec.continuous = false;
-      rec.interimResults = false;
-      rec.lang = 'ar-EG'; // default Arabic recognition with mixed English capability
-
-      rec.onstart = () => {
-        setIsListeningGlobal(true);
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result as string);
       };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
 
-      rec.onresult = async (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setGlobalTranscript(transcript);
-        setIsListeningGlobal(false);
-        await parseVoiceCommandWithGemini(transcript);
-      };
+  const applyParsedData = (data: any) => {
+    if (!data) return;
+    if (data.subject) setSubject(data.subject);
+    if (data.classId) setClassId(data.classId);
+    if (data.block) setBlock(Number(data.block));
+    if (data.week) setWeek(Number(data.week));
 
-      rec.onerror = (e: any) => {
-        console.error('Global voice recognition error:', e);
-        setRecognitionError('حدث خطأ في التعرف على الصوت. يرجى التحدث بوضوح وتأكد من تفعيل صلاحية الميكروفون للموقع.');
-        setIsListeningGlobal(false);
-      };
-
-      rec.onend = () => {
-        setIsListeningGlobal(false);
-      };
-
-      rec.start();
-    } catch (err) {
-      console.error(err);
-      setIsListeningGlobal(false);
+    if (itemType === 'classwork') {
+      if (data.title) setTitle(data.title);
+      if (data.details) setDetails(data.details);
+      if (data.pages) setPages(data.pages);
+      if (data.day) setDay(data.day);
+      if (data.period) setPeriod(Number(data.period));
+    } else if (itemType === 'homework') {
+      if (data.title) setTitle(data.title);
+      if (data.task) setTitle(data.task);
+      if (data.details) setDetails(data.details);
+      if (data.pages) setPages(data.pages);
+      if (data.assignedDay) setAssignedDay(data.assignedDay);
+      if (data.dueDay) setDueDay(data.dueDay);
+      if (data.priority) setPriority(data.priority);
+    } else if (itemType === 'tomorrow') {
+      if (data.arabicNote) setArabicNote(data.arabicNote);
+      if (data.note) setArabicNote(data.note);
+      if (data.bagItem) setBagItem(data.bagItem);
+      if (data.isQuiz !== undefined) setIsQuiz(!!data.isQuiz);
+      if (data.targetDay) setTargetDay(data.targetDay);
     }
   };
 
   const parseVoiceCommandWithGemini = async (text: string) => {
+    if (!text || !text.trim()) return;
     setIsParsingGlobal(true);
+    setRecognitionError(null);
     try {
       const response = await fetch('/api/parse-voice-command', {
         method: 'POST',
@@ -220,35 +272,10 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
 
       const res = await response.json();
       if (res.success && res.data) {
-        const data = res.data;
-        if (data.subject) setSubject(data.subject);
-        if (data.classId) setClassId(data.classId);
-        if (data.block) setBlock(Number(data.block));
-        if (data.week) setWeek(Number(data.week));
-
-        if (itemType === 'classwork') {
-          if (data.title) setTitle(data.title);
-          if (data.details) setDetails(data.details);
-          if (data.pages) setPages(data.pages);
-          if (data.day) setDay(data.day);
-          if (data.period) setPeriod(Number(data.period));
-        } else if (itemType === 'homework') {
-          if (data.title) setTitle(data.title);
-          if (data.task) setTitle(data.task);
-          if (data.details) setDetails(data.details);
-          if (data.pages) setPages(data.pages);
-          if (data.assignedDay) setAssignedDay(data.assignedDay);
-          if (data.dueDay) setDueDay(data.dueDay);
-          if (data.priority) setPriority(data.priority);
-        } else if (itemType === 'tomorrow') {
-          if (data.arabicNote) setArabicNote(data.arabicNote);
-          if (data.note) setArabicNote(data.note);
-          if (data.bagItem) setBagItem(data.bagItem);
-          if (data.isQuiz !== undefined) setIsQuiz(!!data.isQuiz);
-          if (data.targetDay) setTargetDay(data.targetDay);
-        }
+        applyParsedData(res.data);
+        setGlobalTranscript(text);
+        setManualVoiceCommand('');
       } else {
-        alert('لم يكتمل التحليل التلقائي بنجاح. تم وضع النص بالكامل في حقل التفاصيل.');
         if (itemType === 'tomorrow') {
           setArabicNote(text);
         } else {
@@ -267,42 +294,181 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
     }
   };
 
-  const startFieldDictation = (fieldName: string, currentValue: string, setter: (val: string) => void) => {
-    const SpeechRecognitionClass = getSpeechRecognition();
-    if (!SpeechRecognitionClass) {
-      alert('التعرف على الصوت غير مدعوم في هذا المتصفح.');
+  const processRecordedAudio = async (
+    blob: Blob,
+    mimeType: string,
+    target: string,
+    currentValue?: string,
+    setter?: (val: string) => void
+  ) => {
+    try {
+      const base64Audio = await blobToBase64(blob);
+
+      if (target === 'global') {
+        setIsParsingGlobal(true);
+        setRecognitionError(null);
+        const response = await fetch('/api/parse-voice-audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            audioBase64: base64Audio,
+            mimeType,
+            itemType,
+            currentClass,
+            currentBlock,
+            currentWeek,
+            selectedDay,
+          }),
+        });
+
+        const res = await response.json();
+        if (res.success && res.data) {
+          applyParsedData(res.data);
+          if (res.transcript) {
+            setGlobalTranscript(res.transcript);
+          }
+        } else if (res.transcript) {
+          setGlobalTranscript(res.transcript);
+          await parseVoiceCommandWithGemini(res.transcript);
+        } else {
+          setRecognitionError('تعذر تحليل التسجيل الصوتي بدقة، يرجى المحاولة والتحدث بوضوح.');
+        }
+      } else {
+        // Field dictation transcription
+        const response = await fetch('/api/transcribe-audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            audioBase64: base64Audio,
+            mimeType,
+          }),
+        });
+
+        const res = await response.json();
+        if (res.success && res.transcript && setter) {
+          const text = res.transcript.trim();
+          setter(currentValue ? `${currentValue} ${text}` : text);
+        }
+      }
+    } catch (err: any) {
+      console.error('Audio processing error:', err);
+      setRecognitionError('حدث خطأ أثناء الاتصال بخدمة الذكاء الاصطناعي لمعالجة الصوت.');
+    } finally {
+      if (target === 'global') {
+        setIsParsingGlobal(false);
+      }
+    }
+  };
+
+  const startVoiceRecording = async (
+    target: 'global' | string,
+    currentValue?: string,
+    setter?: (val: string) => void
+  ) => {
+    // If clicking on active recording -> STOP it!
+    if (isRecording) {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      } else {
+        cleanupRecording();
+      }
+      return;
+    }
+
+    setRecognitionError(null);
+    if (target === 'global') {
+      setGlobalTranscript('');
+    }
+
+    // Check mediaDevices support
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setRecognitionError('متصفحك لا يدعم تسجيل الصوت المباشر عبر الميكروفون. يمكنك كتابة الأمر في المربع أدناه وتطبيقه بالذكاء الاصطناعي.');
       return;
     }
 
     try {
-      const rec = new SpeechRecognitionClass();
-      rec.continuous = false;
-      rec.interimResults = false;
-      rec.lang = 'ar-EG';
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      audioChunksRef.current = [];
 
-      rec.onstart = () => {
-        setActiveDictationField(fieldName);
+      let mimeType = 'audio/webm';
+      if (typeof MediaRecorder !== 'undefined') {
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          mimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+          mimeType = 'audio/webm';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4';
+        } else if (MediaRecorder.isTypeSupported('audio/aac')) {
+          mimeType = 'audio/aac';
+        }
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
 
-      rec.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setter(currentValue ? `${currentValue} ${transcript}` : transcript);
-        setActiveDictationField(null);
+      mediaRecorder.onstop = async () => {
+        const finalMime = mediaRecorder.mimeType || mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: finalMime });
+        cleanupRecording();
+        if (audioBlob.size > 0) {
+          await processRecordedAudio(audioBlob, finalMime, target, currentValue, setter);
+        }
       };
 
-      rec.onerror = (e: any) => {
-        console.error('Field dictation error:', e);
-        setActiveDictationField(null);
-      };
+      mediaRecorder.start(250);
+      setIsRecording(true);
+      setRecordingTarget(target);
+      setRecordingSeconds(0);
 
-      rec.onend = () => {
-        setActiveDictationField(null);
-      };
+      // Start timer
+      timerRef.current = setInterval(() => {
+        setRecordingSeconds((prev) => {
+          if (prev >= 20) {
+            // Auto stop after 20 seconds
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+              mediaRecorderRef.current.stop();
+            }
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 1000);
 
-      rec.start();
-    } catch (err) {
-      console.error(err);
-      setActiveDictationField(null);
+      // Try parallel SpeechRecognition for live visual preview if supported
+      const SpeechRecognitionClass = getSpeechRecognition();
+      if (SpeechRecognitionClass) {
+        try {
+          const rec = new SpeechRecognitionClass();
+          rec.continuous = true;
+          rec.interimResults = true;
+          rec.lang = 'ar-EG';
+          rec.onresult = (e: any) => {
+            const transcript = Array.from(e.results)
+              .map((r: any) => r[0].transcript)
+              .join(' ');
+            if (target === 'global') {
+              setGlobalTranscript(transcript);
+            }
+          };
+          speechRecognitionRef.current = rec;
+          rec.start();
+        } catch {}
+      }
+    } catch (err: any) {
+      console.warn('Microphone permission / access error:', err);
+      cleanupRecording();
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setRecognitionError('يرجى السماح بصلاحية استخدام الميكروفون للموقع من إعدادات المتصفح، أو استخدم المربع أدناه لكتابة الأمر وتطبيقه بالذكاء الاصطناعي.');
+      } else {
+        setRecognitionError('تعذر تشغيل الميكروفون. يمكنك كتابة التعديل أو الأمر في المربع أدناه وتطبيقه بالذكاء الاصطناعي.');
+      }
     }
   };
 
@@ -333,7 +499,7 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
 
     const baseData: any = {
       id: mode === 'edit' && initialData?.id ? initialData.id : `${itemType}-${Date.now()}`,
-      classId: mode === 'edit' && initialData?.classId ? initialData.classId : (classId === 'ALL' ? currentClass : classId),
+      classId: classId === 'ALL' ? 'ALL' : (classId || currentClass),
       subject,
       block,
       week,
@@ -354,7 +520,7 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
         pages: pages.trim() || undefined,
         day,
         period,
-        completed: mode === 'edit' ? initialData.completed : false,
+        completed: mode === 'edit' && initialData?.completed !== undefined ? initialData.completed : false,
       });
     } else if (itemType === 'homework') {
       if (!title.trim()) {
@@ -369,7 +535,7 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
         assignedDay,
         dueDay,
         priority,
-        completed: mode === 'edit' ? initialData.completed : false,
+        completed: mode === 'edit' && initialData?.completed !== undefined ? initialData.completed : false,
       });
     } else if (itemType === 'tomorrow') {
       if (!arabicNote.trim()) {
@@ -390,8 +556,17 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
     onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+    >
       <div 
         className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-150"
         dir="rtl"
@@ -478,41 +653,42 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
           </div>
 
           {/* Global AI Voice Smart Assistant Card */}
-          <div className="bg-gradient-to-br from-indigo-50/50 to-indigo-100/40 p-4 rounded-2xl border border-indigo-100/80 shadow-xs space-y-2.5">
+          <div className="bg-gradient-to-br from-indigo-50/70 to-indigo-100/50 p-4 rounded-2xl border border-indigo-200/80 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm">🎙️</span>
-                <span className="text-xs font-black text-indigo-950">مساعد الإدخال الذكي بالصوت (AI Voice)</span>
+                <span className="text-base">🎙️</span>
+                <span className="text-xs font-black text-indigo-950">المساعد الصوتي الذكي (AI Voice Smart Assistant)</span>
               </div>
-              <span className="text-[10px] bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full font-black animate-pulse">جديد ✨</span>
+              <span className="text-[10px] bg-indigo-200/80 text-indigo-900 px-2.5 py-0.5 rounded-full font-black animate-pulse">شغال الآن ✨</span>
             </div>
             
-            <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
-              تحدث بأمر كامل لإضافة أو تعديل المهمة وسيقوم الذكاء الاصطناعي بملء جميع الخيارات فوراً! (مثال: "ضيف واجب رياضيات صفحة 12 لكلاس بي الأسبوع التالت")
+            <p className="text-[11px] text-slate-600 font-bold leading-relaxed">
+              انقر على الميكروفون وتحدث بصوتك مباشرة بالأمر الكامل، أو اكتب نص الأمر أدناه وسيقوم الذكاء الاصطناعي بتعبئة كافة الخيارات تلقائياً! (مثال: "ضيف واجب رياضيات صفحة 12 لكلاس بي الأسبوع التالت").
             </p>
 
-            <div className="flex items-center gap-3">
+            {/* Voice record button */}
+            <div>
               <button
                 type="button"
-                onClick={startGlobalVoiceRecognition}
-                disabled={isListeningGlobal || isParsingGlobal}
-                className={`w-full py-2.5 px-4 rounded-xl font-black text-xs flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer ${
-                  isListeningGlobal
-                    ? 'bg-rose-600 text-white animate-pulse'
+                onClick={() => startVoiceRecording('global')}
+                disabled={isParsingGlobal}
+                className={`w-full py-3 px-4 rounded-xl font-black text-xs flex items-center justify-center gap-2.5 transition-all shadow-xs cursor-pointer ${
+                  isRecording && recordingTarget === 'global'
+                    ? 'bg-rose-600 text-white animate-pulse shadow-rose-200 shadow-md ring-2 ring-rose-400'
                     : isParsingGlobal
-                    ? 'bg-slate-100 text-slate-400 border border-slate-200'
+                    ? 'bg-indigo-50 text-indigo-600 border border-indigo-200'
                     : 'bg-indigo-600 hover:bg-indigo-700 text-white hover:scale-[1.01]'
                 }`}
               >
-                {isListeningGlobal ? (
+                {isRecording && recordingTarget === 'global' ? (
                   <>
-                    <MicOff className="w-4 h-4" />
-                    <span>جاري الاستماع... تحدث الآن 🎧</span>
+                    <MicOff className="w-4 h-4 animate-bounce text-white" />
+                    <span>جاري التسجيل الصوتي ({recordingSeconds} ثوانٍ) - انقر هنا للإيقاف والتحليل ⏹️</span>
                   </>
                 ) : isParsingGlobal ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
-                    <span>جاري التحليل والفهم بالذكاء الاصطناعي...</span>
+                    <span>جاري تحليل الصوت وتعبئة البيانات بالذكاء الاصطناعي...</span>
                   </>
                 ) : (
                   <>
@@ -523,15 +699,43 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
               </button>
             </div>
 
+            {/* Direct text input alternative for instant reliability */}
+            <div className="flex items-center gap-2 pt-1 border-t border-indigo-100">
+              <input
+                type="text"
+                value={manualVoiceCommand}
+                onChange={(e) => setManualVoiceCommand(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    parseVoiceCommandWithGemini(manualVoiceCommand);
+                  }
+                }}
+                placeholder="أو اكتب الأمر هنا (مثال: واجب عربي صفحة 47 لكلاس A)..."
+                className="flex-1 text-xs p-2.5 bg-white border border-indigo-200 rounded-xl focus:border-indigo-500 font-bold placeholder:text-slate-400"
+              />
+              <button
+                type="button"
+                disabled={!manualVoiceCommand.trim() || isParsingGlobal}
+                onClick={() => parseVoiceCommandWithGemini(manualVoiceCommand)}
+                className="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-black shrink-0 cursor-pointer flex items-center gap-1"
+              >
+                <span>تطبيق بالذكاء الاصطناعي</span>
+                <Sparkles className="w-3 h-3" />
+              </button>
+            </div>
+
             {globalTranscript && (
-              <div className="bg-white/80 p-2.5 rounded-xl border border-indigo-50/60 text-[11px] font-bold text-slate-700">
-                <span className="font-black text-indigo-950 block mb-0.5">ما تم سماعه بالنص:</span>
+              <div className="bg-white/90 p-2.5 rounded-xl border border-indigo-100 text-[11px] font-bold text-slate-700">
+                <span className="font-black text-indigo-950 block mb-0.5">ما تم فهمه من الصوت:</span>
                 <span className="text-slate-600 italic">"{globalTranscript}"</span>
               </div>
             )}
 
             {recognitionError && (
-              <p className="text-[10px] font-bold text-rose-600">{recognitionError}</p>
+              <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-[11px] font-bold text-rose-700 leading-snug">
+                ⚠️ {recognitionError}
+              </div>
             )}
           </div>
 
@@ -569,15 +773,15 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                   <label className="block text-[11px] font-black text-slate-600">عنوان الدرس الرئيسي:</label>
                   <button
                     type="button"
-                    onClick={() => startFieldDictation('title', title, setTitle)}
-                    className={`p-1 px-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all ${
-                      activeDictationField === 'title'
-                        ? 'bg-rose-100 text-rose-700 animate-pulse'
+                    onClick={() => startVoiceRecording('title', title, setTitle)}
+                    className={`p-1 px-2 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      isRecording && recordingTarget === 'title'
+                        ? 'bg-rose-100 text-rose-700 animate-pulse border border-rose-300'
                         : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-100'
                     }`}
                   >
                     <Mic className="w-3 h-3" />
-                    <span>{activeDictationField === 'title' ? 'جاري الاستماع...' : 'إملاء صووت 🎙️'}</span>
+                    <span>{isRecording && recordingTarget === 'title' ? `جاري التسجيل (${recordingSeconds} ث)... انقر للإيقاف ⏹️` : 'إملاء صوتي 🎙️'}</span>
                   </button>
                 </div>
                 <input
@@ -594,15 +798,15 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                   <label className="block text-[11px] font-black text-slate-600">شرح/تفاصيل إضافية للدرس:</label>
                   <button
                     type="button"
-                    onClick={() => startFieldDictation('details', details, setDetails)}
-                    className={`p-1 px-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all ${
-                      activeDictationField === 'details'
-                        ? 'bg-rose-100 text-rose-700 animate-pulse'
+                    onClick={() => startVoiceRecording('details', details, setDetails)}
+                    className={`p-1 px-2 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      isRecording && recordingTarget === 'details'
+                        ? 'bg-rose-100 text-rose-700 animate-pulse border border-rose-300'
                         : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-100'
                     }`}
                   >
                     <Mic className="w-3 h-3" />
-                    <span>{activeDictationField === 'details' ? 'جاري الاستماع...' : 'إملاء صووت 🎙️'}</span>
+                    <span>{isRecording && recordingTarget === 'details' ? `جاري التسجيل (${recordingSeconds} ث)... انقر للإيقاف ⏹️` : 'إملاء صوتي 🎙️'}</span>
                   </button>
                 </div>
                 <textarea
@@ -618,15 +822,15 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                   <label className="block text-[11px] font-black text-slate-600">أرقام الصفحات في كتاب الطالب / البوكليت (اختياري):</label>
                   <button
                     type="button"
-                    onClick={() => startFieldDictation('pages', pages, setPages)}
-                    className={`p-1 px-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all ${
-                      activeDictationField === 'pages'
-                        ? 'bg-rose-100 text-rose-700 animate-pulse'
+                    onClick={() => startVoiceRecording('pages', pages, setPages)}
+                    className={`p-1 px-2 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      isRecording && recordingTarget === 'pages'
+                        ? 'bg-rose-100 text-rose-700 animate-pulse border border-rose-300'
                         : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-100'
                     }`}
                   >
                     <Mic className="w-3 h-3" />
-                    <span>{activeDictationField === 'pages' ? 'جاري الاستماع...' : 'إملاء صووت 🎙️'}</span>
+                    <span>{isRecording && recordingTarget === 'pages' ? `جاري التسجيل (${recordingSeconds} ث)... انقر للإيقاف ⏹️` : 'إملاء صوتي 🎙️'}</span>
                   </button>
                 </div>
                 <input
@@ -700,15 +904,15 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                   <label className="block text-[11px] font-black text-slate-600">محتوى وتفاصيل الواجب المطلوب:</label>
                   <button
                     type="button"
-                    onClick={() => startFieldDictation('title', title, setTitle)}
-                    className={`p-1 px-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all ${
-                      activeDictationField === 'title'
-                        ? 'bg-rose-100 text-rose-700 animate-pulse'
+                    onClick={() => startVoiceRecording('title', title, setTitle)}
+                    className={`p-1 px-2 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      isRecording && recordingTarget === 'title'
+                        ? 'bg-rose-100 text-rose-700 animate-pulse border border-rose-300'
                         : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-100'
                     }`}
                   >
                     <Mic className="w-3 h-3" />
-                    <span>{activeDictationField === 'title' ? 'جاري الاستماع...' : 'إملاء صووت 🎙️'}</span>
+                    <span>{isRecording && recordingTarget === 'title' ? `جاري التسجيل (${recordingSeconds} ث)... انقر للإيقاف ⏹️` : 'إملاء صوتي 🎙️'}</span>
                   </button>
                 </div>
                 <input
@@ -725,15 +929,15 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                   <label className="block text-[11px] font-black text-slate-600">أرقام صفحات الواجب أو تفاصيل إضافية (اختياري):</label>
                   <button
                     type="button"
-                    onClick={() => startFieldDictation('pages', pages, setPages)}
-                    className={`p-1 px-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all ${
-                      activeDictationField === 'pages'
-                        ? 'bg-rose-100 text-rose-700 animate-pulse'
+                    onClick={() => startVoiceRecording('pages', pages, setPages)}
+                    className={`p-1 px-2 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      isRecording && recordingTarget === 'pages'
+                        ? 'bg-rose-100 text-rose-700 animate-pulse border border-rose-300'
                         : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-100'
                     }`}
                   >
                     <Mic className="w-3 h-3" />
-                    <span>{activeDictationField === 'pages' ? 'جاري الاستماع...' : 'إملاء صووت 🎙️'}</span>
+                    <span>{isRecording && recordingTarget === 'pages' ? `جاري التسجيل (${recordingSeconds} ث)... انقر للإيقاف ⏹️` : 'إملاء صوتي 🎙️'}</span>
                   </button>
                 </div>
                 <input
@@ -750,15 +954,15 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                   <label className="block text-[11px] font-black text-slate-600">إرشادات حل الواجب للطلاب وأولياء الأمور:</label>
                   <button
                     type="button"
-                    onClick={() => startFieldDictation('details', details, setDetails)}
-                    className={`p-1 px-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all ${
-                      activeDictationField === 'details'
-                        ? 'bg-rose-100 text-rose-700 animate-pulse'
+                    onClick={() => startVoiceRecording('details', details, setDetails)}
+                    className={`p-1 px-2 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      isRecording && recordingTarget === 'details'
+                        ? 'bg-rose-100 text-rose-700 animate-pulse border border-rose-300'
                         : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-100'
                     }`}
                   >
                     <Mic className="w-3 h-3" />
-                    <span>{activeDictationField === 'details' ? 'جاري الاستماع...' : 'إملاء صووت 🎙️'}</span>
+                    <span>{isRecording && recordingTarget === 'details' ? `جاري التسجيل (${recordingSeconds} ث)... انقر للإيقاف ⏹️` : 'إملاء صوتي 🎙️'}</span>
                   </button>
                 </div>
                 <textarea
@@ -807,15 +1011,15 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                   <label className="block text-[11px] font-black text-slate-600">نص التنبيه والملاحظة (بالعربية):</label>
                   <button
                     type="button"
-                    onClick={() => startFieldDictation('arabicNote', arabicNote, setArabicNote)}
-                    className={`p-1 px-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all ${
-                      activeDictationField === 'arabicNote'
-                        ? 'bg-rose-100 text-rose-700 animate-pulse'
+                    onClick={() => startVoiceRecording('arabicNote', arabicNote, setArabicNote)}
+                    className={`p-1 px-2 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      isRecording && recordingTarget === 'arabicNote'
+                        ? 'bg-rose-100 text-rose-700 animate-pulse border border-rose-300'
                         : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-100'
                     }`}
                   >
                     <Mic className="w-3 h-3" />
-                    <span>{activeDictationField === 'arabicNote' ? 'جاري الاستماع...' : 'إملاء صووت 🎙️'}</span>
+                    <span>{isRecording && recordingTarget === 'arabicNote' ? `جاري التسجيل (${recordingSeconds} ث)... انقر للإيقاف ⏹️` : 'إملاء صوتي 🎙️'}</span>
                   </button>
                 </div>
                 <textarea
@@ -831,15 +1035,15 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                   <label className="block text-[11px] font-black text-slate-600">الأدوات والحقيبة المدرسية المطلوبة (اختياري):</label>
                   <button
                     type="button"
-                    onClick={() => startFieldDictation('bagItem', bagItem, setBagItem)}
-                    className={`p-1 px-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all ${
-                      activeDictationField === 'bagItem'
-                        ? 'bg-rose-100 text-rose-700 animate-pulse'
+                    onClick={() => startVoiceRecording('bagItem', bagItem, setBagItem)}
+                    className={`p-1 px-2 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      isRecording && recordingTarget === 'bagItem'
+                        ? 'bg-rose-100 text-rose-700 animate-pulse border border-rose-300'
                         : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-100'
                     }`}
                   >
                     <Mic className="w-3 h-3" />
-                    <span>{activeDictationField === 'bagItem' ? 'جاري الاستماع...' : 'إملاء صووت 🎙️'}</span>
+                    <span>{isRecording && recordingTarget === 'bagItem' ? `جاري التسجيل (${recordingSeconds} ث)... انقر للإيقاف ⏹️` : 'إملاء صوتي 🎙️'}</span>
                   </button>
                 </div>
                 <input
