@@ -417,13 +417,16 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
       const { data, error } = res;
 
       if (!error && data && Array.isArray(data)) {
-        // If there's data in the table, it is the ABSOLUTE source of truth.
-        // We do not overlay INITIAL_CLASSWORK, so that deleted records stay deleted.
-        if (data.length > 0) {
-          const finalData = (data as ClassworkRow[]).map(rowToClasswork);
-          const deletedIds = await getDeletedPlannerItemIds();
-          return finalData.filter((c) => !deletedIds.includes(c.id));
-        }
+        const dbItems = (data as ClassworkRow[]).map(rowToClasswork);
+        
+        // Merge the database custom items over the baseline INITIAL_CLASSWORK
+        const map = new Map<string, ClassworkEntry>();
+        INITIAL_CLASSWORK.forEach((c) => { if (c && c.id) map.set(c.id, c); });
+        dbItems.forEach((c) => { if (c && c.id) map.set(c.id, c); });
+
+        const merged = Array.from(map.values());
+        const deletedIds = await getDeletedPlannerItemIds();
+        return merged.filter((c) => !deletedIds.includes(c.id));
       }
     } catch (err) {
       console.warn('Network exception fetching classwork from Supabase (falling back):', err);
@@ -671,33 +674,35 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
       const { data, error } = res;
 
       if (!error && data && Array.isArray(data)) {
-        // If there's data in the table, it is the ABSOLUTE source of truth.
-        // We do not overlay INITIAL_HOMEWORK, so that deleted records stay deleted.
-        if (data.length > 0) {
-          const finalData = (data as HomeworkRow[]).map(rowToHomework);
-          
-          // Ensure Tuesday Week 2 Arabic homework is page 47 (if any exist)
-          finalData.forEach(item => {
-            const isTargetArabicHw =
-              item.id === 'hw-w2-ar-tue-g2a-wb' ||
-              item.id === 'hw-w2-ar-tue-g2b-wb' ||
-              item.id === 'hw-w2-ar-tue-g2c-wb' ||
-              (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
+        const dbItems = (data as HomeworkRow[]).map(rowToHomework);
+        
+        // Ensure Tuesday Week 2 Arabic homework is page 47 (if any exist)
+        dbItems.forEach(item => {
+          const isTargetArabicHw =
+            item.id === 'hw-w2-ar-tue-g2a-wb' ||
+            item.id === 'hw-w2-ar-tue-g2b-wb' ||
+            item.id === 'hw-w2-ar-tue-g2c-wb' ||
+            (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
 
-            if (
-              isTargetArabicHw &&
-              item.task &&
-              (item.task.includes('46') || (item.pages && item.pages.includes('46')) || (item.details && item.details.includes('46')))
-            ) {
-              item.task = item.task.replace(/46/g, '47');
-              if (item.pages) item.pages = item.pages.replace(/46/g, '47');
-              if (item.details) item.details = item.details.replace(/46/g, '47');
-            }
-          });
+          if (
+            isTargetArabicHw &&
+            item.task &&
+            (item.task.includes('46') || (item.pages && item.pages.includes('46')) || (item.details && item.details.includes('46')))
+          ) {
+            item.task = item.task.replace(/46/g, '47');
+            if (item.pages) item.pages = item.pages.replace(/46/g, '47');
+            if (item.details) item.details = item.details.replace(/46/g, '47');
+          }
+        });
 
-          const deletedIds = await getDeletedPlannerItemIds();
-          return finalData.filter((h) => !deletedIds.includes(h.id));
-        }
+        // Merge the database custom items over the baseline INITIAL_HOMEWORK
+        const map = new Map<string, HomeworkEntry>();
+        INITIAL_HOMEWORK.forEach((h) => { if (h && h.id) map.set(h.id, h); });
+        dbItems.forEach((h) => { if (h && h.id) map.set(h.id, h); });
+
+        const merged = Array.from(map.values());
+        const deletedIds = await getDeletedPlannerItemIds();
+        return merged.filter((h) => !deletedIds.includes(h.id));
       }
     } catch (err) {
       console.warn('Network exception fetching homework from Supabase (falling back):', err);

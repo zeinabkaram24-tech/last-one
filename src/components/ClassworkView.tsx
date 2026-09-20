@@ -339,7 +339,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             };
 
             return (
-              <React.Fragment key={cwEntry?.id || slot.slotId}>
+              <React.Fragment key={`${slot.slotId}-${cwEntry?.id || 'none'}`}>
                 {/* Period Card */}
               <div
                 className={`group rounded-2xl border transition-all p-3 sm:p-3.5 space-y-3 shadow-2xs ${
