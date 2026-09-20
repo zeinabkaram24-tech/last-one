@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Upload, Link2, FileText, Sparkles, BookOpen, ExternalLink, Calendar, HelpCircle, Mic, MicOff, Loader2 } from 'lucide-react';
 import { ClassId, SchoolDay, SubjectName, ClassworkEntry, HomeworkEntry, TomorrowSpecialNote } from '../types';
 
@@ -80,10 +80,12 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
   const [isParsingGlobal, setIsParsingGlobal] = useState(false);
   const [recognitionError, setRecognitionError] = useState<string | null>(null);
   const [activeDictationField, setActiveDictationField] = useState<string | null>(null);
+  const hasInitializedRef = useRef(false);
 
-  // Initialize form with initialData or defaults
+  // Initialize form with initialData or defaults ONLY once when opened
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
       if (mode === 'edit' && initialData) {
         setClassId(initialData.classId || currentClass);
         setSubject(initialData.subject || 'Arabic');
@@ -143,6 +145,8 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
         setFileBase64(initialData?.pdfUrl || '');
         setFileName('');
       }
+    } else if (!isOpen) {
+      hasInitializedRef.current = false;
     }
   }, [isOpen, mode, itemType, initialData, currentClass, currentBlock, currentWeek, selectedDay]);
 
@@ -328,8 +332,8 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
     e.preventDefault();
 
     const baseData: any = {
-      id: mode === 'edit' ? initialData.id : `${itemType}-${Date.now()}`,
-      classId: classId === 'ALL' ? currentClass : classId, // default to active class if ALL to ensure it saves correctly
+      id: mode === 'edit' && initialData?.id ? initialData.id : `${itemType}-${Date.now()}`,
+      classId: mode === 'edit' && initialData?.classId ? initialData.classId : (classId === 'ALL' ? currentClass : classId),
       subject,
       block,
       week,

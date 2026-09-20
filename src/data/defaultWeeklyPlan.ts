@@ -1980,8 +1980,8 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   {
     id: "hw-b1-w3-G2C-science-Mon-p36",
     classId: "G2C",
-    assignedDay: "Sunday",
-    dueDay: "Monday",
+    assignedDay: "Monday",
+    dueDay: "Tuesday",
     subject: "Science",
     task: "Workbook / Booklet: Page 36",
     details: "Unit 2: Getting to know plants - Solve Page 36 about Living and non-living things.",
@@ -1994,8 +1994,8 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   {
     id: "hw-b1-w3-G2A-science-Wed-p38",
     classId: "G2A",
-    assignedDay: "Tuesday",
-    dueDay: "Wednesday",
+    assignedDay: "Wednesday",
+    dueDay: "Thursday",
     subject: "Science",
     task: "Workbook / Booklet: Page 38",
     details: "Unit 2: Getting to know plants - Solve Page 38 about Parts of plants.",
@@ -2008,8 +2008,8 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   {
     id: "hw-b1-w3-G2B-science-Wed-p38",
     classId: "G2B",
-    assignedDay: "Tuesday",
-    dueDay: "Wednesday",
+    assignedDay: "Wednesday",
+    dueDay: "Thursday",
     subject: "Science",
     task: "Workbook / Booklet: Page 38",
     details: "Unit 2: Getting to know plants - Solve Page 38 about Parts of plants.",

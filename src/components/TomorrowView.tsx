@@ -235,6 +235,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (n.subject === 'Science' && (text.includes('tools') || text.includes('أدوات') || text.includes('حقيبة') || text.includes('crochet'))) {
       return "يرجى إحضار أدوات الساينس لحصة الغد: دفتر تلوين بألوان مختلفة، ومقص، وأقلام تلوين، وخيط كروشيه صغير.";
     }
+    if (n.subject === 'Science' && (text.includes('تسليم') || text.includes('submission') || text.includes('submit') || text.includes('بوكلت') || text.includes('booklet') || text.includes('واجب') || text.includes('hw-submit'))) {
+      return "تسليم بوكلت الـ science";
+    }
     return n.arabicNote || n.note;
   };
 
@@ -243,6 +246,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     const text = ((n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.bagItem || '')).toLowerCase();
     if (n.subject === 'Science' && (text.includes('tools') || text.includes('أدوات') || text.includes('حقيبة') || text.includes('crochet'))) {
       return "دفتر تلوين بألوان مختلفة، ومقص، وأقلام تلوين، وخيط كروشيه صغير";
+    }
+    if (n.subject === 'Science' && (text.includes('تسليم') || text.includes('submission') || text.includes('submit') || text.includes('بوكلت') || text.includes('booklet') || text.includes('واجب') || text.includes('hw-submit'))) {
+      return "بوكليت الـ science";
     }
     return n.bagItem;
   };
@@ -392,6 +398,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       // B) Due for submission tomorrow (e.g. Social Studies homework sheet due on Sunday for 2A & 2C)
       else if (h.dueDay === tomorrowDay) {
         const isSocial = h.subject === 'Social Studies';
+        const isScience = h.subject === 'Science';
         alerts.push({
           id: `linked-hw-due-${h.id}`,
           classId: currentClass,
@@ -399,11 +406,15 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           subject: h.subject,
           note: isSocial
             ? 'تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)'
+            : isScience
+            ? 'تسليم بوكلت الـ science'
             : `تسليم واجب ${h.subject}: ${h.task}`,
           arabicNote: isSocial
             ? 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع'
+            : isScience
+            ? 'تسليم بوكلت الـ science'
             : (h.details ? `تذكير: تسليم الواجب غداً (${h.details})` : `تذكير: تسليم واجب ${h.subject} غداً`),
-          bagItem: isSocial ? 'شيت واجب الدراسات الاجتماعية المرفق' : (h.pages || undefined),
+          bagItem: isSocial ? 'شيت واجب الدراسات الاجتماعية المرفق' : isScience ? 'بوكليت الـ science' : (h.pages || undefined),
           isQuiz: false,
           categoryType: 'note',
           block: currentBlock,

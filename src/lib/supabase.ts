@@ -383,22 +383,77 @@ if (typeof window !== 'undefined') {
   } catch {}
 }
 
+const appStorage = {
+  getItem: (k: string) => {
+    try {
+      return typeof window !== 'undefined' ? window.localStorage?.getItem(k) : null;
+    } catch {
+      return null;
+    }
+  },
+  setItem: (k: string, v: string) => {
+    try {
+      if (typeof window !== 'undefined') window.localStorage?.setItem(k, v);
+    } catch {}
+  },
+  removeItem: (k: string) => {
+    try {
+      if (typeof window !== 'undefined') window.localStorage?.removeItem(k);
+    } catch {}
+  },
+};
+
+const LOCAL_CUSTOM_HW_KEY = 'homework_planner_custom_entries_v3';
+const LOCAL_CUSTOM_CW_KEY = 'classwork_planner_custom_entries_v3';
+
 export function getLocalCustomClasswork(): ClassworkEntry[] {
-  // Completely disabled local storage fallback as requested - reading exclusively from server/Supabase
+  try {
+    const raw = appStorage.getItem(LOCAL_CUSTOM_CW_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
   return [];
 }
 
 export function saveLocalCustomClasswork(entries: ClassworkEntry[], mode: 'merge' | 'replace' = 'merge') {
-  // Completely disabled local storage persistence - saving exclusively to cloud/Supabase
+  try {
+    if (mode === 'replace') {
+      appStorage.setItem(LOCAL_CUSTOM_CW_KEY, JSON.stringify(entries));
+      return;
+    }
+    const current = getLocalCustomClasswork();
+    const map = new Map<string, ClassworkEntry>();
+    current.forEach((c) => { if (c && c.id) map.set(c.id, c); });
+    entries.forEach((c) => { if (c && c.id) map.set(c.id, c); });
+    appStorage.setItem(LOCAL_CUSTOM_CW_KEY, JSON.stringify(Array.from(map.values())));
+  } catch {}
 }
 
 export function getLocalCustomHomework(): HomeworkEntry[] {
-  // Completely disabled local storage fallback as requested - reading exclusively from server/Supabase
+  try {
+    const raw = appStorage.getItem(LOCAL_CUSTOM_HW_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
   return [];
 }
 
 export function saveLocalCustomHomework(entries: HomeworkEntry[], mode: 'merge' | 'replace' = 'merge') {
-  // Completely disabled local storage persistence - saving exclusively to cloud/Supabase
+  try {
+    if (mode === 'replace') {
+      appStorage.setItem(LOCAL_CUSTOM_HW_KEY, JSON.stringify(entries));
+      return;
+    }
+    const current = getLocalCustomHomework();
+    const map = new Map<string, HomeworkEntry>();
+    current.forEach((h) => { if (h && h.id) map.set(h.id, h); });
+    entries.forEach((h) => { if (h && h.id) map.set(h.id, h); });
+    appStorage.setItem(LOCAL_CUSTOM_HW_KEY, JSON.stringify(Array.from(map.values())));
+  } catch {}
 }
 
 // =========================================================================
@@ -463,22 +518,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
     // Server fetch fallback
   }
 
-  if (fetchedFromServer) {
-    const deletedIds = await getDeletedPlannerItemIds();
-    return baseItems.filter((c) => !deletedIds.includes(c.id));
-  }
-
-  // Also filter out any base items that have been replaced in localCustom
-  if (localCustom.length > 0) {
-    const localKeys = new Set(
-      localCustom.map((c) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
-    );
-    baseItems = baseItems.filter(
-      (c) => !localKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
-    );
-  }
-
-  // Deduplicate and merge custom entries over baseline items ONLY in offline fallback
+  // Merge srvData and localCustom over baseItems
   const map = new Map<string, ClassworkEntry>();
   baseItems.forEach((c) => {
     if (c && c.id) map.set(c.id, c);
@@ -486,7 +526,6 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   localCustom.forEach((c) => {
     if (c && c.id) map.set(c.id, c);
   });
-  
   const finalMerged = Array.from(map.values());
   const deletedIds = await getDeletedPlannerItemIds();
   return finalMerged.filter((c) => !deletedIds.includes(c.id));
@@ -763,22 +802,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     return item;
   });
 
-  if (fetchedFromServer) {
-    const deletedIds = await getDeletedPlannerItemIds();
-    return normalizedBase.filter((h) => !deletedIds.includes(h.id));
-  }
-
-  // Also filter out any base items that have been replaced in localCustom
-  if (localCustom.length > 0) {
-    const localKeys = new Set(
-      localCustom.map((h) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-    );
-    baseItems = baseItems.filter(
-      (h) => !localKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-    );
-  }
-
-  // Deduplicate and merge custom local homework over base items ONLY in offline fallback
+  // Merge normalizedBase and localCustom
   const map = new Map<string, HomeworkEntry>();
   normalizedBase.forEach((h) => {
     if (h && h.id) map.set(h.id, h);

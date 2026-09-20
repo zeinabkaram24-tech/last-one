@@ -181,47 +181,64 @@ export async function getTomorrowNotesForDay(
           : note.arabicNote 
             ? `${note.arabicNote} (المواد المطلوبة: ${arabicMaterialText})` 
             : `أدوات الساينس المطلوبة: ${arabicMaterialText}`;
+      } else if (
+        note.subject === 'Science' &&
+        (note.note?.toLowerCase().includes('submission') ||
+          note.note?.includes('تسليم') ||
+          note.arabicNote?.includes('تسليم') ||
+          note.note?.toLowerCase().includes('submit') ||
+          note.id?.includes('hw-submit'))
+      ) {
+        // Enforce exact format requested by user: no page numbers, strictly "تسليم بوكلت الـ science"
+        note.note = 'تسليم بوكلت الـ science';
+        note.arabicNote = 'تسليم بوكلت الـ science';
+        note.bagItem = 'بوكليت الـ science';
       }
     });
 
-    // Add specific Science Homework submission reminders as requested by the user:
-    // - For Class A (G2A) & Class B (G2B): Submit Science Homework on Sunday (Reminder shown on Saturday night, targetDay is Sunday)
-    // - For Class C (G2C): Submit Science Homework on Monday (Reminder shown on Sunday night, targetDay is Monday)
-    if (targetDay === 'Sunday') {
-      if (classId === 'G2A' || classId === 'G2B') {
-        const hasSciRem = filtered.some(n => n.subject === 'Science' && n.note?.includes('Homework Submission'));
-        if (!hasSciRem) {
-          filtered.push({
-            id: `tn-b1-w3-${classId}-Sun-science-hw-submit`,
-            classId: classId,
-            targetDay: 'Sunday',
-            subject: 'Science',
-            note: 'Science Homework Submission: Submit Science Homework (Workbook/Booklet Page 38) tomorrow.',
-            arabicNote: 'تذكير: تسليم واجب الساينس (كتاب التمارين/البوكليت صفحة 38) للمعلمة.',
-            bagItem: 'Science Workbook / Booklet (كتاب أو بوكليت الساينس)',
-            isQuiz: false,
-            categoryType: 'note',
-            block: 1,
-            week: 3
-          });
-        }
-      }
-    } else if (targetDay === 'Monday') {
+    // Add specific Science Homework submission reminders for the 3 classes:
+    // Strictly without any page numbers as requested: "تسليم بوكلت الـ science"
+    // - For Class C (G2C): HW assigned Monday -> Submission on Tuesday
+    // - For Class A (G2A) & Class B (G2B): HW assigned Wednesday -> Submission on Thursday
+    if (targetDay === 'Tuesday' || targetDay === 'Monday') {
       if (classId === 'G2C') {
-        const hasSciRem = filtered.some(n => n.subject === 'Science' && n.note?.includes('Homework Submission'));
+        const hasSciRem = filtered.some(
+          (n) => n.subject === 'Science' && (n.note?.includes('تسليم') || n.arabicNote?.includes('تسليم') || n.id?.includes('hw-submit'))
+        );
         if (!hasSciRem) {
           filtered.push({
             id: `tn-b1-w3-G2C-Mon-science-hw-submit`,
             classId: 'G2C',
-            targetDay: 'Monday',
+            targetDay: targetDay,
             subject: 'Science',
-            note: 'Science Homework Submission: Submit Science Homework (Workbook Page 36) tomorrow.',
-            arabicNote: 'تذكير: تسليم واجب الساينس (كتاب التمارين صفحة 36) للمعلمة.',
-            bagItem: 'Science Workbook / Booklet (كتاب أو بوكليت الساينس)',
+            note: 'تسليم بوكلت الـ science',
+            arabicNote: 'تسليم بوكلت الـ science',
+            bagItem: 'بوكليت الـ science',
             isQuiz: false,
             categoryType: 'note',
             block: 1,
-            week: 3
+            week: 3,
+          });
+        }
+      }
+    } else if (targetDay === 'Thursday' || targetDay === 'Wednesday') {
+      if (classId === 'G2A' || classId === 'G2B') {
+        const hasSciRem = filtered.some(
+          (n) => n.subject === 'Science' && (n.note?.includes('تسليم') || n.arabicNote?.includes('تسليم') || n.id?.includes('hw-submit'))
+        );
+        if (!hasSciRem) {
+          filtered.push({
+            id: `tn-b1-w3-${classId}-Wed-science-hw-submit`,
+            classId: classId,
+            targetDay: targetDay,
+            subject: 'Science',
+            note: 'تسليم بوكلت الـ science',
+            arabicNote: 'تسليم بوكلت الـ science',
+            bagItem: 'بوكليت الـ science',
+            isQuiz: false,
+            categoryType: 'note',
+            block: 1,
+            week: 3,
           });
         }
       }
@@ -233,45 +250,57 @@ export async function getTomorrowNotesForDay(
     const fb = baseNotes.filter((n) => !isDisallowedMathNote(n));
     fb.forEach((note) => {
       if (note.subject === 'Science') {
-        const materialText = "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn";
-        const arabicMaterialText = "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.";
-        note.bagItem = materialText;
-        note.note = `Science Tools: ${materialText}`;
-        note.arabicNote = `أدوات الساينس المطلوبة: ${arabicMaterialText}`;
+        if (
+          note.note?.toLowerCase().includes('submission') ||
+          note.note?.includes('تسليم') ||
+          note.arabicNote?.includes('تسليم') ||
+          note.note?.toLowerCase().includes('submit') ||
+          note.id?.includes('hw-submit')
+        ) {
+          note.note = 'تسليم بوكلت الـ science';
+          note.arabicNote = 'تسليم بوكلت الـ science';
+          note.bagItem = 'بوكليت الـ science';
+        } else {
+          const materialText = "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn";
+          const arabicMaterialText = "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.";
+          note.bagItem = materialText;
+          note.note = `Science Tools: ${materialText}`;
+          note.arabicNote = `أدوات الساينس المطلوبة: ${arabicMaterialText}`;
+        }
       }
     });
 
     // Handle same dynamic science homework reminders in fallback
-    if (targetDay === 'Sunday') {
-      if (classId === 'G2A' || classId === 'G2B') {
-        fb.push({
-          id: `tn-b1-w3-${classId}-Sun-science-hw-submit`,
-          classId: classId,
-          targetDay: 'Sunday',
-          subject: 'Science',
-          note: 'Science Homework Submission: Submit Science Homework (Workbook/Booklet Page 38) tomorrow.',
-          arabicNote: 'تذكير: تسليم واجب الساينس (كتاب التمارين/البوكليت صفحة 38) للمعلمة.',
-          bagItem: 'Science Workbook / Booklet (كتاب أو بوكليت الساينس)',
-          isQuiz: false,
-          categoryType: 'note',
-          block: 1,
-          week: 3
-        });
-      }
-    } else if (targetDay === 'Monday') {
+    if (targetDay === 'Tuesday' || targetDay === 'Monday') {
       if (classId === 'G2C') {
         fb.push({
           id: `tn-b1-w3-G2C-Mon-science-hw-submit`,
           classId: 'G2C',
-          targetDay: 'Monday',
+          targetDay: targetDay,
           subject: 'Science',
-          note: 'Science Homework Submission: Submit Science Homework (Workbook Page 36) tomorrow.',
-          arabicNote: 'تذكير: تسليم واجب الساينس (كتاب التمارين صفحة 36) للمعلمة.',
-          bagItem: 'Science Workbook / Booklet (كتاب أو بوكليت الساينس)',
+          note: 'تسليم بوكلت الـ science',
+          arabicNote: 'تسليم بوكلت الـ science',
+          bagItem: 'بوكليت الـ science',
           isQuiz: false,
           categoryType: 'note',
           block: 1,
-          week: 3
+          week: 3,
+        });
+      }
+    } else if (targetDay === 'Thursday' || targetDay === 'Wednesday') {
+      if (classId === 'G2A' || classId === 'G2B') {
+        fb.push({
+          id: `tn-b1-w3-${classId}-Wed-science-hw-submit`,
+          classId: classId,
+          targetDay: targetDay,
+          subject: 'Science',
+          note: 'تسليم بوكلت الـ science',
+          arabicNote: 'تسليم بوكلت الـ science',
+          bagItem: 'بوكليت الـ science',
+          isQuiz: false,
+          categoryType: 'note',
+          block: 1,
+          week: 3,
         });
       }
     }

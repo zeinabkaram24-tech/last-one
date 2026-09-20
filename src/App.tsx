@@ -570,7 +570,14 @@ export default function App() {
 
   const handleAddHomework = async (entry: HomeworkEntry) => {
     setHomeworkList((prev) => {
-      const next = [entry, ...prev.filter((h) => h.id !== entry.id)];
+      const idx = prev.findIndex((h) => h.id === entry.id);
+      let next: HomeworkEntry[];
+      if (idx >= 0) {
+        next = [...prev];
+        next[idx] = { ...prev[idx], ...entry };
+      } else {
+        next = [entry, ...prev];
+      }
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = next.filter((h) => h.completed).map((h) => h.id);
@@ -584,7 +591,7 @@ export default function App() {
     } catch (e) {
       console.error('Error adding homework:', e);
     }
-    showToast('تمت إضافة الواجب المنزلي بنجاح!');
+    showToast('تم حفظ الواجب المنزلي بنجاح!');
   };
 
   const handleDeleteHomework = async (id: string) => {
@@ -702,6 +709,27 @@ export default function App() {
     } else if (type === 'homework') {
       await handleAddHomework(data);
     } else if (type === 'tomorrow') {
+      let linkedHwId: string | null = null;
+      if (typeof data.id === 'string') {
+        if (data.id.startsWith('linked-hw-due-')) {
+          linkedHwId = data.id.replace('linked-hw-due-', '');
+        } else if (data.id.startsWith('linked-hw-')) {
+          linkedHwId = data.id.replace('linked-hw-', '');
+        }
+      }
+      if (linkedHwId) {
+        const linkedHw = homeworkList.find((h) => h.id === linkedHwId);
+        if (linkedHw) {
+          const updatedHw: HomeworkEntry = {
+            ...linkedHw,
+            task: data.arabicNote || data.note || linkedHw.task,
+            details: data.details || linkedHw.details,
+            pages: data.bagItem || linkedHw.pages,
+          };
+          await handleAddHomework(updatedHw);
+        }
+      }
+
       const block = data.block || currentBlock;
       const week = data.week || currentWeek;
       
@@ -792,6 +820,24 @@ export default function App() {
   };
 
   const handleOpenEditModal = (type: 'classwork' | 'homework' | 'tomorrow', item: any) => {
+    if (type === 'tomorrow' && typeof item?.id === 'string') {
+      let linkedHwId: string | null = null;
+      if (item.id.startsWith('linked-hw-due-')) {
+        linkedHwId = item.id.replace('linked-hw-due-', '');
+      } else if (item.id.startsWith('linked-hw-')) {
+        linkedHwId = item.id.replace('linked-hw-', '');
+      }
+      if (linkedHwId) {
+        const linkedHw = homeworkList.find((h) => h.id === linkedHwId);
+        if (linkedHw) {
+          setEditorItemType('homework');
+          setEditorModalMode('edit');
+          setSelectedEditorItem(linkedHw);
+          setIsEditorModalOpen(true);
+          return;
+        }
+      }
+    }
     setEditorItemType(type);
     setEditorModalMode('edit');
     setSelectedEditorItem(item);
