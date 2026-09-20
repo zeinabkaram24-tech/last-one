@@ -838,11 +838,21 @@ export default function App() {
       try {
         await saveDeletedTomorrowNoteId(id);
 
+        let linkedHwId: string | null = null;
+        if (id.startsWith('linked-hw-due-')) {
+          linkedHwId = id.replace('linked-hw-due-', '');
+        } else if (id.startsWith('linked-hw-')) {
+          linkedHwId = id.replace('linked-hw-', '');
+        }
+        if (linkedHwId) {
+          await saveDeletedTomorrowNoteId(linkedHwId);
+        }
+
         // Only delete from tomorrowNotes persistence, never delete the underlying homework or classwork
         await fetch('/api/planner-data/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, type: 'tomorrowNotes' }),
+          body: JSON.stringify({ id, ids: linkedHwId ? [id, linkedHwId] : [id], type: 'tomorrowNotes' }),
         }).catch(() => {});
       } catch (e) {
         console.error('Error deleting tomorrow note:', e);

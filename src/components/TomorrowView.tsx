@@ -9,7 +9,7 @@ import {
 import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
-import { getTomorrowNotesForDay, subscribeToTomorrowNotes } from '../utils/tomorrowNotesStorage';
+import { getTomorrowNotesForDay, subscribeToTomorrowNotes, getDeletedTomorrowNoteIds, saveDeletedTomorrowNoteId } from '../utils/tomorrowNotesStorage';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
 
 interface TomorrowViewProps {
@@ -141,6 +141,16 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         }
       }
 
+      // Explicit user rule: Delete / disallow Science booklet submission for G2C on Monday
+      if (
+        (currentClass === 'G2C' || n.classId === 'G2C') &&
+        (tomorrowDay === 'Monday' || n.targetDay === 'Monday') &&
+        n.subject === 'Science' &&
+        ((n.note || '').includes('بوكلت') || (n.arabicNote || '').includes('بوكلت') || (n.id || '').includes('hw-submit'))
+      ) {
+        return true;
+      }
+
       // Strict user rule for Sunday (Saturday-Tomorrow view):
       // No notes allowed for Sunday unless:
       // 1. It's a quiz or test (and French/Maths/English are strictly excluded on Sunday).
@@ -239,7 +249,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     const semKey = note ? getSemanticKey(note) : '';
     const idsToDelete = [noteId, ...(note?.linkedIds || []), semKey].filter(Boolean) as string[];
 
-    setDeletedNoteIds((prev) => [...prev, ...idsToDelete]);
+    setDeletedNoteIds((prev) => Array.from(new Set([...prev, ...idsToDelete])));
     setTomorrowNotes((prev) =>
       prev.filter((n) => {
         if (noteId && n.id === noteId) return false;
@@ -248,9 +258,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         return true;
       })
     );
-    if (noteId) {
-      onDeleteTomorrowNote?.(noteId);
-    }
+
+    idsToDelete.forEach((id) => {
+      saveDeletedTomorrowNoteId(id).catch(() => {});
+      onDeleteTomorrowNote?.(id);
+    });
   };
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
@@ -275,13 +287,17 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     let isMounted = true;
     const loadNotes = async () => {
       try {
-        const notes = await getTomorrowNotesForDay(
-          currentBlock,
-          currentWeek,
-          currentClass,
-          tomorrowDay
-        );
+        const [deletedIds, notes] = await Promise.all([
+          getDeletedTomorrowNoteIds(),
+          getTomorrowNotesForDay(
+            currentBlock,
+            currentWeek,
+            currentClass,
+            tomorrowDay
+          )
+        ]);
         if (isMounted) {
+          setDeletedNoteIds((prev) => Array.from(new Set([...prev, ...deletedIds])));
           setTomorrowNotes(notes.filter((n) => !isDisallowedTomorrowItem(n)));
         }
       } catch (err) {

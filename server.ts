@@ -78,7 +78,7 @@ function saveStoredMaterials(items: any[]): void {
 }
 
 // Helper to read planner data
-function getStoredPlannerData(): { classwork: any[]; homework: any[]; tomorrowNotes: any[] } {
+function getStoredPlannerData(): { classwork: any[]; homework: any[]; tomorrowNotes: any[]; deletedTomorrowNoteIds?: string[] } {
   try {
     if (fs.existsSync(PLANNER_DATA_FILE)) {
       const raw = fs.readFileSync(PLANNER_DATA_FILE, 'utf-8');
@@ -87,10 +87,10 @@ function getStoredPlannerData(): { classwork: any[]; homework: any[]; tomorrowNo
   } catch (err) {
     console.warn('Error reading planner_data.json:', err);
   }
-  return { classwork: [], homework: [], tomorrowNotes: [] };
+  return { classwork: [], homework: [], tomorrowNotes: [], deletedTomorrowNoteIds: [] };
 }
 
-function saveStoredPlannerData(data: { classwork: any[]; homework: any[]; tomorrowNotes: any[] }): void {
+function saveStoredPlannerData(data: { classwork: any[]; homework: any[]; tomorrowNotes: any[]; deletedTomorrowNoteIds?: string[] }): void {
   try {
     fs.writeFileSync(PLANNER_DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {
@@ -218,7 +218,16 @@ app.delete('/api/materials/:id', (req, res) => {
 
 // Planner Data endpoints (Backup & sync across all devices)
 app.get('/api/planner-data', (req, res) => {
-  res.json(getStoredPlannerData());
+  try {
+    const data = getStoredPlannerData();
+    if (Array.isArray(data.deletedTomorrowNoteIds) && data.deletedTomorrowNoteIds.length > 0) {
+      const delSet = new Set(data.deletedTomorrowNoteIds);
+      data.tomorrowNotes = (data.tomorrowNotes || []).filter((n: any) => !delSet.has(n.id));
+    }
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to read planner data' });
+  }
 });
 
 app.post('/api/planner-data', (req, res) => {
@@ -320,14 +329,23 @@ app.post('/api/planner-data', (req, res) => {
 
 app.post('/api/planner-data/delete', (req, res) => {
   try {
-    const { id, type } = req.body; // type: 'classwork' | 'homework' | 'tomorrowNotes'
+    const { id, ids, type } = req.body; // type: 'classwork' | 'homework' | 'tomorrowNotes'
+    const targetIds: string[] = Array.isArray(ids) ? ids : id ? [id] : [];
     let current = getStoredPlannerData();
     if (type === 'classwork') {
-      current.classwork = current.classwork.filter((c: any) => c.id !== id);
+      current.classwork = current.classwork.filter((c: any) => !targetIds.includes(c.id));
     } else if (type === 'homework') {
-      current.homework = current.homework.filter((h: any) => h.id !== id);
+      current.homework = current.homework.filter((h: any) => !targetIds.includes(h.id));
     } else if (type === 'tomorrowNotes') {
-      current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => n.id !== id);
+      current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => !targetIds.includes(n.id));
+      if (!current.deletedTomorrowNoteIds) {
+        current.deletedTomorrowNoteIds = [];
+      }
+      targetIds.forEach((tId) => {
+        if (!current.deletedTomorrowNoteIds.includes(tId)) {
+          current.deletedTomorrowNoteIds.push(tId);
+        }
+      });
     }
     saveStoredPlannerData(current);
     res.json({ success: true });

@@ -291,52 +291,32 @@ export async function getTomorrowNotesForDay(
           note.note?.toLowerCase().includes('submit') ||
           note.id?.includes('hw-submit'))
       ) {
-        // Enforce exact format requested by user: no page numbers, strictly "تسليم بوكلت الـ science"
-        note.note = 'تسليم بوكلت الـ science';
-        note.arabicNote = 'تسليم بوكلت الـ science';
-        note.bagItem = 'بوكليت الـ science';
+        // Enforce exact format requested by user: strictly "تسليم بوكلت الساينس"
+        note.note = 'تسليم بوكلت الساينس';
+        note.arabicNote = 'تسليم بوكلت الساينس';
+        note.bagItem = 'بوكليت الساينس';
       }
     });
 
-    // Add specific Science Homework submission reminders for the 3 classes:
-    // Strictly without any page numbers as requested: "تسليم بوكلت الـ science"
-    // - For Class C (G2C): HW assigned Monday -> Submission on Tuesday
-    // - For Class A (G2A) & Class B (G2B): HW assigned Wednesday -> Submission on Thursday
-    if (targetDay === 'Tuesday' || targetDay === 'Monday') {
-      if (classId === 'G2C') {
-        const hasSciRem = filtered.some(
-          (n) => n.subject === 'Science' && (n.note?.includes('تسليم') || n.arabicNote?.includes('تسليم') || n.id?.includes('hw-submit'))
-        );
-        if (!hasSciRem) {
-          filtered.push({
-            id: `tn-b1-w3-G2C-Mon-science-hw-submit`,
-            classId: 'G2C',
-            targetDay: targetDay,
-            subject: 'Science',
-            note: 'تسليم بوكلت الـ science',
-            arabicNote: 'تسليم بوكلت الـ science',
-            bagItem: 'بوكليت الـ science',
-            isQuiz: false,
-            categoryType: 'note',
-            block: 1,
-            week: 3,
-          });
-        }
-      }
-    } else if (targetDay === 'Thursday' || targetDay === 'Wednesday') {
+    // Add specific Science Homework submission reminders for Class B and A on Wednesday/Thursday:
+    // Strictly without any page numbers as requested: "تسليم بوكلت الساينس"
+    // G2C Monday submission was removed per user request.
+    if (targetDay === 'Thursday' || targetDay === 'Wednesday') {
       if (classId === 'G2A' || classId === 'G2B') {
+        const remId = `tn-b1-w3-${classId}-Wed-science-hw-submit`;
+        const semKey = `science-booklet-submission-${targetDay}`;
         const hasSciRem = filtered.some(
           (n) => n.subject === 'Science' && (n.note?.includes('تسليم') || n.arabicNote?.includes('تسليم') || n.id?.includes('hw-submit'))
         );
-        if (!hasSciRem) {
+        if (!hasSciRem && !deletedIds.includes(remId) && !deletedIds.includes(semKey)) {
           filtered.push({
-            id: `tn-b1-w3-${classId}-Wed-science-hw-submit`,
+            id: remId,
             classId: classId,
             targetDay: targetDay,
             subject: 'Science',
-            note: 'تسليم بوكلت الـ science',
-            arabicNote: 'تسليم بوكلت الـ science',
-            bagItem: 'بوكليت الـ science',
+            note: 'تسليم بوكلت الساينس',
+            arabicNote: 'تسليم بوكلت الساينس',
+            bagItem: 'بوكليت الساينس',
             isQuiz: false,
             categoryType: 'note',
             block: 1,
@@ -359,11 +339,11 @@ export async function getTomorrowNotesForDay(
           note.note?.toLowerCase().includes('submit') ||
           note.id?.includes('hw-submit')
         ) {
-          note.note = 'تسليم بوكلت الـ science';
-          note.arabicNote = 'تسليم بوكلت الـ science';
-          note.bagItem = 'بوكليت الـ science';
+          note.note = 'تسليم بوكلت الساينس';
+          note.arabicNote = 'تسليم بوكلت الساينس';
+          note.bagItem = 'بوكليت الساينس';
         } else {
-          const materialText = "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn";
+          const materialText = "Colored sheets with different colors , glue , colored pencils , a little crochet yarn";
           const arabicMaterialText = "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.";
           note.bagItem = materialText;
           note.note = `Science Tools: ${materialText}`;
@@ -372,33 +352,16 @@ export async function getTomorrowNotesForDay(
       }
     });
 
-    // Handle same dynamic science homework reminders in fallback
-    if (targetDay === 'Tuesday' || targetDay === 'Monday') {
-      if (classId === 'G2C') {
-        fb.push({
-          id: `tn-b1-w3-G2C-Mon-science-hw-submit`,
-          classId: 'G2C',
-          targetDay: targetDay,
-          subject: 'Science',
-          note: 'تسليم بوكلت الـ science',
-          arabicNote: 'تسليم بوكلت الـ science',
-          bagItem: 'بوكليت الـ science',
-          isQuiz: false,
-          categoryType: 'note',
-          block: 1,
-          week: 3,
-        });
-      }
-    } else if (targetDay === 'Thursday' || targetDay === 'Wednesday') {
+    if (targetDay === 'Thursday' || targetDay === 'Wednesday') {
       if (classId === 'G2A' || classId === 'G2B') {
         fb.push({
           id: `tn-b1-w3-${classId}-Wed-science-hw-submit`,
           classId: classId,
           targetDay: targetDay,
           subject: 'Science',
-          note: 'تسليم بوكلت الـ science',
-          arabicNote: 'تسليم بوكلت الـ science',
-          bagItem: 'بوكليت الـ science',
+          note: 'تسليم بوكلت الساينس',
+          arabicNote: 'تسليم بوكلت الساينس',
+          bagItem: 'بوكليت الساينس',
           isQuiz: false,
           categoryType: 'note',
           block: 1,
@@ -412,64 +375,88 @@ export async function getTomorrowNotesForDay(
 }
 
 export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
-  if (!isSupabaseConfigured) {
-    try {
-      const cached = IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'];
-      return cached ? JSON.parse(cached) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  let localList: string[] = [];
+  let localList: string[] = ['tn-b1-w3-G2C-Mon-science-hw-submit', 'science-booklet-submission-Monday'];
   try {
     const raw = appStorage.getItem('nile_deleted_tomorrow_note_ids_v3');
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) localList = parsed;
+      if (Array.isArray(parsed)) {
+        localList = Array.from(new Set([...localList, ...parsed]));
+      }
     }
   } catch {}
 
   try {
-    const { data, error } = await supabase
-      .from('planner_settings')
-      .select('value')
-      .eq('key', 'deleted_tomorrow_note_ids')
-      .maybeSingle();
-    if (!error && data && data.value) {
-      const dbList = JSON.parse(data.value);
-      if (Array.isArray(dbList)) {
-        const combined = Array.from(new Set([...localList, ...dbList]));
-        appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(combined));
-        return combined;
+    const cached = IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'];
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed)) {
+        localList = Array.from(new Set([...localList, ...parsed]));
       }
     }
-  } catch (e) {
-    console.warn('Error fetching deleted tomorrow note ids:', e);
+  } catch {}
+
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('planner_settings')
+        .select('value')
+        .eq('key', 'deleted_tomorrow_note_ids')
+        .maybeSingle();
+      if (!error && data && data.value) {
+        const dbList = JSON.parse(data.value);
+        if (Array.isArray(dbList)) {
+          localList = Array.from(new Set([...localList, ...dbList]));
+        }
+      }
+    } catch (e) {
+      console.warn('Error fetching deleted tomorrow note ids from Supabase:', e);
+    }
   }
+
+  try {
+    const res = await fetch('/api/planner-data');
+    if (res.ok) {
+      const serverData = await res.json();
+      if (Array.isArray(serverData.deletedTomorrowNoteIds)) {
+        localList = Array.from(new Set([...localList, ...serverData.deletedTomorrowNoteIds]));
+      }
+    }
+  } catch {}
+
+  appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(localList));
+  IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(localList);
   return localList;
 }
 
 export async function saveDeletedTomorrowNoteId(noteId: string): Promise<void> {
+  if (!noteId) return;
   const currentList = await getDeletedTomorrowNoteIds();
   if (!currentList.includes(noteId)) {
     currentList.push(noteId);
-    appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(currentList));
+  }
+  appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(currentList));
+  IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(currentList);
 
-    if (isSupabaseConfigured) {
-      try {
-        await supabase
-          .from('planner_settings')
-          .upsert({
-            key: 'deleted_tomorrow_note_ids',
-            value: JSON.stringify(currentList),
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'key' });
-      } catch (e) {
-        console.warn('Error saving deleted tomorrow note id to Supabase:', e);
-      }
-    } else {
-      IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(currentList);
+  try {
+    await fetch('/api/planner-data/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: noteId, type: 'tomorrowNotes' }),
+    });
+  } catch {}
+
+  if (isSupabaseConfigured) {
+    try {
+      await supabase
+        .from('planner_settings')
+        .upsert({
+          key: 'deleted_tomorrow_note_ids',
+          value: JSON.stringify(currentList),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'key' });
+    } catch (e) {
+      console.warn('Error saving deleted tomorrow note id to Supabase:', e);
     }
   }
   notifyTomorrowNotesListeners();
