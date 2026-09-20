@@ -1148,25 +1148,75 @@ export async function seedInitialDataIfEmpty(): Promise<{
 
 export async function forceSyncBaselineToSupabase(): Promise<void> {
   if (!isSupabaseConfigured) return;
-  console.log('[Sync] Aligning Supabase cloud database with codebase changes...');
+  console.log('[Sync] Aligning Supabase cloud database with codebase changes (non-destructive)...');
   try {
-    // Upsert all INITIAL_CLASSWORK in chunks of 50
-    const cwRows = INITIAL_CLASSWORK.map(classworkToRow);
-    for (let i = 0; i < cwRows.length; i += 50) {
-      const chunk = cwRows.slice(i, i + 50);
-      const { error: cwErr } = await supabase.from('classwork').upsert(chunk, { onConflict: 'id' });
-      if (cwErr) {
-        console.warn('[Sync] Error upserting classwork chunk:', cwErr.message);
+    // 1. Fetch existing IDs from classwork
+    const { data: cwExisting, error: cwExistErr } = await supabase
+      .from('classwork')
+      .select('id');
+    
+    if (cwExistErr) {
+      console.warn('[Sync] Error fetching existing classwork IDs:', cwExistErr.message);
+    }
+    
+    const existingCwIds = new Set((cwExisting || []).map((r: any) => r.id));
+    const missingCw = INITIAL_CLASSWORK.filter((c) => c && c.id && !existingCwIds.has(c.id));
+    
+    if (missingCw.length > 0) {
+      console.log(`[Sync] Inserting ${missingCw.length} missing classwork baseline items...`);
+      const cwRows = missingCw.map(classworkToRow);
+      for (let i = 0; i < cwRows.length; i += 50) {
+        const chunk = cwRows.slice(i, i + 50);
+        const { error: cwErr } = await supabase.from('classwork').insert(chunk);
+        if (cwErr) {
+          console.warn('[Sync] Error inserting classwork chunk:', cwErr.message);
+        }
+      }
+    }
+
+    // Targeted force-update for Week 3 Science classwork entries to apply the required materials
+    const scienceCw = INITIAL_CLASSWORK.filter((c) => c && c.subject === 'Science' && c.week === 3);
+    if (scienceCw.length > 0) {
+      console.log(`[Sync] Force-upserting ${scienceCw.length} Science classwork entries to update materials...`);
+      const scienceRows = scienceCw.map(classworkToRow);
+      const { error: sciErr } = await supabase.from('classwork').upsert(scienceRows, { onConflict: 'id' });
+      if (sciErr) {
+        console.warn('[Sync] Error upserting Science classwork:', sciErr.message);
       }
     }
     
-    // Upsert all INITIAL_HOMEWORK in chunks of 50
-    const hwRows = INITIAL_HOMEWORK.map(homeworkToRow);
-    for (let i = 0; i < hwRows.length; i += 50) {
-      const chunk = hwRows.slice(i, i + 50);
-      const { error: hwErr } = await supabase.from('homework').upsert(chunk, { onConflict: 'id' });
-      if (hwErr) {
-        console.warn('[Sync] Error upserting homework chunk:', hwErr.message);
+    // 2. Fetch existing IDs from homework
+    const { data: hwExisting, error: hwExistErr } = await supabase
+      .from('homework')
+      .select('id');
+    
+    if (hwExistErr) {
+      console.warn('[Sync] Error fetching existing homework IDs:', hwExistErr.message);
+    }
+    
+    const existingHwIds = new Set((hwExisting || []).map((r: any) => r.id));
+    const missingHw = INITIAL_HOMEWORK.filter((h) => h && h.id && !existingHwIds.has(h.id));
+    
+    if (missingHw.length > 0) {
+      console.log(`[Sync] Inserting ${missingHw.length} missing homework baseline items...`);
+      const hwRows = missingHw.map(homeworkToRow);
+      for (let i = 0; i < hwRows.length; i += 50) {
+        const chunk = hwRows.slice(i, i + 50);
+        const { error: hwErr } = await supabase.from('homework').insert(chunk);
+        if (hwErr) {
+          console.warn('[Sync] Error inserting homework chunk:', hwErr.message);
+        }
+      }
+    }
+
+    // Targeted force-update for Week 3 Science homework entries to align with requested days/pages
+    const scienceHw = INITIAL_HOMEWORK.filter((h) => h && h.subject === 'Science' && h.week === 3);
+    if (scienceHw.length > 0) {
+      console.log(`[Sync] Force-upserting ${scienceHw.length} Science homework entries to update days and pages...`);
+      const scienceRows = scienceHw.map(homeworkToRow);
+      const { error: sciErr } = await supabase.from('homework').upsert(scienceRows, { onConflict: 'id' });
+      if (sciErr) {
+        console.warn('[Sync] Error upserting Science homework:', sciErr.message);
       }
     }
     console.log('[Sync] Cloud database successfully aligned with codebase!');

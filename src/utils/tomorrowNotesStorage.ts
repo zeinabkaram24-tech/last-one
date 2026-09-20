@@ -149,7 +149,7 @@ export async function getTomorrowNotesForDay(
 
     const deletedIds = await getDeletedTomorrowNoteIds();
     const merged = Array.from(map.values());
-    return merged.filter((n) => {
+    const filtered = merged.filter((n) => {
       if (isDisallowedMathNote(n)) return false;
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       if (deletedIds.includes(key) || (n.id && deletedIds.includes(n.id))) {
@@ -157,9 +157,126 @@ export async function getTomorrowNotesForDay(
       }
       return true;
     });
+
+    // Enrich any Science tomorrow note with the required materials as requested by the user
+    filtered.forEach((note) => {
+      if (note.subject === 'Science') {
+        const materialText = "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn";
+        const arabicMaterialText = "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.";
+        
+        note.bagItem = note.bagItem && (note.bagItem.includes('crochet') || note.bagItem.includes('chrochet') || note.bagItem.includes('كروشيه'))
+          ? note.bagItem
+          : note.bagItem 
+            ? `${note.bagItem} — Required: ${materialText}` 
+            : materialText;
+        
+        note.note = note.note && (note.note.includes('crochet') || note.note.includes('chrochet') || note.note.includes('كروشيه'))
+          ? note.note
+          : note.note 
+            ? `${note.note} (Tools: ${materialText})` 
+            : `Science Tools: ${materialText}`;
+        
+        note.arabicNote = note.arabicNote && (note.arabicNote.includes('كروشيه') || note.arabicNote.includes('crochet'))
+          ? note.arabicNote
+          : note.arabicNote 
+            ? `${note.arabicNote} (المواد المطلوبة: ${arabicMaterialText})` 
+            : `أدوات الساينس المطلوبة: ${arabicMaterialText}`;
+      }
+    });
+
+    // Add specific Science Homework submission reminders as requested by the user:
+    // - For Class A (G2A) & Class B (G2B): Submit Science Homework on Sunday (Reminder shown on Saturday night, targetDay is Sunday)
+    // - For Class C (G2C): Submit Science Homework on Monday (Reminder shown on Sunday night, targetDay is Monday)
+    if (targetDay === 'Sunday') {
+      if (classId === 'G2A' || classId === 'G2B') {
+        const hasSciRem = filtered.some(n => n.subject === 'Science' && n.note?.includes('Homework Submission'));
+        if (!hasSciRem) {
+          filtered.push({
+            id: `tn-b1-w3-${classId}-Sun-science-hw-submit`,
+            classId: classId,
+            targetDay: 'Sunday',
+            subject: 'Science',
+            note: 'Science Homework Submission: Submit Science Homework (Workbook/Booklet Page 38) tomorrow.',
+            arabicNote: 'تذكير: تسليم واجب الساينس (كتاب التمارين/البوكليت صفحة 38) للمعلمة.',
+            bagItem: 'Science Workbook / Booklet (كتاب أو بوكليت الساينس)',
+            isQuiz: false,
+            categoryType: 'note',
+            block: 1,
+            week: 3
+          });
+        }
+      }
+    } else if (targetDay === 'Monday') {
+      if (classId === 'G2C') {
+        const hasSciRem = filtered.some(n => n.subject === 'Science' && n.note?.includes('Homework Submission'));
+        if (!hasSciRem) {
+          filtered.push({
+            id: `tn-b1-w3-G2C-Mon-science-hw-submit`,
+            classId: 'G2C',
+            targetDay: 'Monday',
+            subject: 'Science',
+            note: 'Science Homework Submission: Submit Science Homework (Workbook Page 36) tomorrow.',
+            arabicNote: 'تذكير: تسليم واجب الساينس (كتاب التمارين صفحة 36) للمعلمة.',
+            bagItem: 'Science Workbook / Booklet (كتاب أو بوكليت الساينس)',
+            isQuiz: false,
+            categoryType: 'note',
+            block: 1,
+            week: 3
+          });
+        }
+      }
+    }
+
+    return filtered;
   } catch (err) {
     console.error('Error loading dynamic tomorrow notes from database tables:', err);
-    return baseNotes.filter((n) => !isDisallowedMathNote(n));
+    const fb = baseNotes.filter((n) => !isDisallowedMathNote(n));
+    fb.forEach((note) => {
+      if (note.subject === 'Science') {
+        const materialText = "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn";
+        const arabicMaterialText = "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.";
+        note.bagItem = materialText;
+        note.note = `Science Tools: ${materialText}`;
+        note.arabicNote = `أدوات الساينس المطلوبة: ${arabicMaterialText}`;
+      }
+    });
+
+    // Handle same dynamic science homework reminders in fallback
+    if (targetDay === 'Sunday') {
+      if (classId === 'G2A' || classId === 'G2B') {
+        fb.push({
+          id: `tn-b1-w3-${classId}-Sun-science-hw-submit`,
+          classId: classId,
+          targetDay: 'Sunday',
+          subject: 'Science',
+          note: 'Science Homework Submission: Submit Science Homework (Workbook/Booklet Page 38) tomorrow.',
+          arabicNote: 'تذكير: تسليم واجب الساينس (كتاب التمارين/البوكليت صفحة 38) للمعلمة.',
+          bagItem: 'Science Workbook / Booklet (كتاب أو بوكليت الساينس)',
+          isQuiz: false,
+          categoryType: 'note',
+          block: 1,
+          week: 3
+        });
+      }
+    } else if (targetDay === 'Monday') {
+      if (classId === 'G2C') {
+        fb.push({
+          id: `tn-b1-w3-G2C-Mon-science-hw-submit`,
+          classId: 'G2C',
+          targetDay: 'Monday',
+          subject: 'Science',
+          note: 'Science Homework Submission: Submit Science Homework (Workbook Page 36) tomorrow.',
+          arabicNote: 'تذكير: تسليم واجب الساينس (كتاب التمارين صفحة 36) للمعلمة.',
+          bagItem: 'Science Workbook / Booklet (كتاب أو بوكليت الساينس)',
+          isQuiz: false,
+          categoryType: 'note',
+          block: 1,
+          week: 3
+        });
+      }
+    }
+
+    return fb;
   }
 }
 
