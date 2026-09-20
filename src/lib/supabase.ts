@@ -421,7 +421,8 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
         // We do not overlay INITIAL_CLASSWORK, so that deleted records stay deleted.
         if (data.length > 0) {
           const finalData = (data as ClassworkRow[]).map(rowToClasswork);
-          return finalData;
+          const deletedIds = await getDeletedPlannerItemIds();
+          return finalData.filter((c) => !deletedIds.includes(c.id));
         }
       }
     } catch (err) {
@@ -460,7 +461,8 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   }
 
   if (fetchedFromServer) {
-    return baseItems;
+    const deletedIds = await getDeletedPlannerItemIds();
+    return baseItems.filter((c) => !deletedIds.includes(c.id));
   }
 
   // Also filter out any base items that have been replaced in localCustom
@@ -481,7 +483,10 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   localCustom.forEach((c) => {
     if (c && c.id) map.set(c.id, c);
   });
-  return Array.from(map.values());
+  
+  const finalMerged = Array.from(map.values());
+  const deletedIds = await getDeletedPlannerItemIds();
+  return finalMerged.filter((c) => !deletedIds.includes(c.id));
 }
 
 export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkEntry> {
@@ -557,7 +562,45 @@ export async function updateClassworkCompletion(id: string, completed: boolean):
   }
 }
 
+export async function getDeletedPlannerItemIds(): Promise<string[]> {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('planner_settings')
+      .select('value')
+      .eq('key', 'deleted_planner_item_ids')
+      .maybeSingle();
+    if (!error && data && data.value) {
+      return JSON.parse(data.value);
+    }
+  } catch (e) {
+    console.warn('Error fetching deleted planner item ids:', e);
+  }
+  return [];
+}
+
+export async function saveDeletedPlannerItemId(itemId: string): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  try {
+    const currentList = await getDeletedPlannerItemIds();
+    if (!currentList.includes(itemId)) {
+      currentList.push(itemId);
+      await supabase
+        .from('planner_settings')
+        .upsert({
+          key: 'deleted_planner_item_ids',
+          value: JSON.stringify(currentList),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key' });
+    }
+  } catch (e) {
+    console.warn('Error saving deleted planner item id to Supabase settings:', e);
+  }
+}
+
 export async function deleteClasswork(id: string): Promise<void> {
+  await saveDeletedPlannerItemId(id);
+
   // Centralized cross-device sync backup
   try {
     await fetch('/api/planner-data/delete', {
@@ -652,7 +695,8 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
             }
           });
 
-          return finalData;
+          const deletedIds = await getDeletedPlannerItemIds();
+          return finalData.filter((h) => !deletedIds.includes(h.id));
         }
       }
     } catch (err) {
@@ -715,7 +759,8 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   });
 
   if (fetchedFromServer) {
-    return normalizedBase;
+    const deletedIds = await getDeletedPlannerItemIds();
+    return normalizedBase.filter((h) => !deletedIds.includes(h.id));
   }
 
   // Also filter out any base items that have been replaced in localCustom
@@ -736,7 +781,10 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   localCustom.forEach((h) => {
     if (h && h.id) map.set(h.id, h);
   });
-  return Array.from(map.values());
+  
+  const finalMerged = Array.from(map.values());
+  const deletedIds = await getDeletedPlannerItemIds();
+  return finalMerged.filter((h) => !deletedIds.includes(h.id));
 }
 
 export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntry> {
@@ -813,6 +861,8 @@ export async function updateHomeworkCompletion(id: string, completed: boolean): 
 }
 
 export async function deleteHomework(id: string): Promise<void> {
+  await saveDeletedPlannerItemId(id);
+
   // Centralized cross-device sync backup
   try {
     await fetch('/api/planner-data/delete', {

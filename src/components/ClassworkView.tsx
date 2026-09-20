@@ -84,14 +84,15 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   const timetablePeriods: GroupedPeriodSlot[] = [];
   for (const slot of rawTimetablePeriods) {
-    const last = timetablePeriods[timetablePeriods.length - 1];
-    if (last && last.subject === slot.subject && (slot.subject === 'English' || slot.subject === 'Mathematics')) {
-      last.periods.push(slot.period);
-      const startTime = last.time.split(' - ')[0];
+    const existing = timetablePeriods.find((p) => p.subject === slot.subject);
+    if (existing) {
+      existing.periods.push(slot.period);
+      existing.periods.sort((a, b) => a - b);
+      const startTime = existing.time.split(' - ')[0];
       const endTime = slot.time.split(' - ')[1] || slot.time;
-      last.time = `${startTime} - ${endTime}`;
-      last.periodLabel = last.periods.map((p) => `P${p}`).join(' & ');
-      last.slotId = `tt-${selectedDay}-${last.periodLabel}-${last.subject}-${last.periods.join('_')}`;
+      existing.time = `${startTime} - ${endTime}`;
+      existing.periodLabel = existing.periods.map((p) => `P${p}`).join(' & ');
+      existing.slotId = `tt-${selectedDay}-${existing.periodLabel}-${existing.subject}-${existing.periods.join('_')}`;
     } else {
       timetablePeriods.push({
         slotId: `tt-${selectedDay}-P${slot.period}-${slot.subject}-${slot.period}`,

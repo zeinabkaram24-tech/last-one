@@ -147,12 +147,69 @@ export async function getTomorrowNotesForDay(
       map.set(key, n);
     });
 
+    const deletedIds = await getDeletedTomorrowNoteIds();
     const merged = Array.from(map.values());
-    return merged.filter((n) => !isDisallowedMathNote(n));
+    return merged.filter((n) => {
+      if (isDisallowedMathNote(n)) return false;
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      if (deletedIds.includes(key) || (n.id && deletedIds.includes(n.id))) {
+        return false;
+      }
+      return true;
+    });
   } catch (err) {
     console.error('Error loading dynamic tomorrow notes from database tables:', err);
     return baseNotes.filter((n) => !isDisallowedMathNote(n));
   }
+}
+
+export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
+  if (!isSupabaseConfigured) {
+    try {
+      const cached = IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'];
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('planner_settings')
+      .select('value')
+      .eq('key', 'deleted_tomorrow_note_ids')
+      .maybeSingle();
+    if (!error && data && data.value) {
+      return JSON.parse(data.value);
+    }
+  } catch (e) {
+    console.warn('Error fetching deleted tomorrow note ids:', e);
+  }
+  return [];
+}
+
+export async function saveDeletedTomorrowNoteId(noteId: string): Promise<void> {
+  const currentList = await getDeletedTomorrowNoteIds();
+  if (!currentList.includes(noteId)) {
+    currentList.push(noteId);
+    
+    if (isSupabaseConfigured) {
+      try {
+        await supabase
+          .from('planner_settings')
+          .upsert({
+            key: 'deleted_tomorrow_note_ids',
+            value: JSON.stringify(currentList),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'key' });
+      } catch (e) {
+        console.warn('Error saving deleted tomorrow note id to Supabase:', e);
+      }
+    } else {
+      IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(currentList);
+    }
+  }
+  notifyTomorrowNotesListeners();
 }
 
 // Save tomorrow notes directly inside classwork or homework table

@@ -16,7 +16,7 @@ import { MaterialsModal } from './components/MaterialsModal';
 import { PdfViewerModal } from './components/PdfViewerModal';
 import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 import { InteractiveEditorModal } from './components/InteractiveEditorModal';
-import { notifyTomorrowNotesListeners, saveTomorrowNotes } from './utils/tomorrowNotesStorage';
+import { notifyTomorrowNotesListeners, saveTomorrowNotes, saveDeletedTomorrowNoteId } from './utils/tomorrowNotesStorage';
 import {
   getActiveUserProfile,
   setActiveUserProfile,
@@ -758,6 +758,8 @@ export default function App() {
       setHomeworkList((prev) => prev.filter((h) => h.id !== id));
 
       try {
+        await saveDeletedTomorrowNoteId(id);
+        
         await Promise.all([
           supabase.from('classwork').delete().eq('id', id),
           supabase.from('homework').delete().eq('id', id)
