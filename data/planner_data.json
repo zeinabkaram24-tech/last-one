@@ -1192,6 +1192,18 @@
       "priority": "normal",
       "block": 1,
       "week": 3
+    },
+    {
+      "id": "tomorrow-1789892798773",
+      "classId": "ALL",
+      "assignedDay": "Sunday",
+      "dueDay": "Sunday",
+      "subject": "English",
+      "task": "dictation",
+      "completed": false,
+      "priority": "urgent",
+      "block": 1,
+      "week": 3
     }
   ],
   "tomorrowNotes": [
@@ -1809,6 +1821,66 @@
       "isQuiz": false,
       "categoryType": "note",
       "targetDay": "Sunday"
+    },
+    {
+      "id": "tomorrow-1789892798773",
+      "classId": "ALL",
+      "subject": "English",
+      "block": 1,
+      "week": 3,
+      "note": "Dictation",
+      "arabicNote": "ديكتيشن",
+      "isQuiz": true,
+      "categoryType": "quiz",
+      "targetDay": "Monday"
+    },
+    {
+      "id": "tn-b1-w3-G2A-mon-eng-dictation",
+      "classId": "G2A",
+      "targetDay": "Monday",
+      "subject": "English",
+      "note": "Dictation",
+      "arabicNote": "ديكتيشن",
+      "isQuiz": true,
+      "categoryType": "quiz",
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tn-b1-w3-G2B-mon-eng-dictation",
+      "classId": "G2B",
+      "targetDay": "Monday",
+      "subject": "English",
+      "note": "Dictation",
+      "arabicNote": "ديكتيشن",
+      "isQuiz": true,
+      "categoryType": "quiz",
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tn-b1-w3-G2C-mon-eng-dictation",
+      "classId": "G2C",
+      "targetDay": "Monday",
+      "subject": "English",
+      "note": "Dictation",
+      "arabicNote": "ديكتيشن",
+      "isQuiz": true,
+      "categoryType": "quiz",
+      "block": 1,
+      "week": 3
+    },
+    {
+      "id": "tn-b1-w3-ALL-mon-eng-dictation",
+      "classId": "ALL",
+      "targetDay": "Monday",
+      "subject": "English",
+      "note": "Dictation",
+      "arabicNote": "ديكتيشن",
+      "isQuiz": true,
+      "categoryType": "quiz",
+      "block": 1,
+      "week": 3
     }
   ]
 }

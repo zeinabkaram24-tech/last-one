@@ -3,6 +3,21 @@ import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES } from '../data/defaultWeekl
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
 
+export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
+  ...(['G2A', 'G2B', 'G2C', 'ALL'] as const).map((cls) => ({
+    id: `tn-b1-w3-${cls}-mon-eng-dictation`,
+    classId: cls as ClassId,
+    targetDay: 'Monday' as SchoolDay,
+    subject: 'English' as const,
+    note: 'Dictation',
+    arabicNote: 'ديكتيشن',
+    isQuiz: true,
+    categoryType: 'quiz' as const,
+    block: 1,
+    week: 3,
+  })),
+];
+
 const LOCAL_CUSTOM_TOMORROW_KEY = 'tomorrow_special_notes_custom_v3';
 
 export function getLocalCustomTomorrowNotes(): TomorrowSpecialNote[] {
@@ -85,7 +100,11 @@ export async function getTomorrowNotesForDay(
 
   // Base official notes for Block/Week or EffectiveWeek from static files
   const baseNotes: TomorrowSpecialNote[] =
-    block === 1 && (week === 2 || effectiveWeek === 2)
+    block === 1 && (week === 3 || effectiveWeek === 3)
+      ? WEEK3_SPECIAL_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
+        )
+      : block === 1 && (week === 2 || effectiveWeek === 2)
       ? WEEK2_SPECIAL_NOTES.filter(
           (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
         )
@@ -197,6 +216,26 @@ export async function getTomorrowNotesForDay(
         });
       });
     }
+
+    // 3. Fetch from central planner-data endpoint
+    try {
+      const res = await fetch('/api/planner-data');
+      if (res.ok) {
+        const pData = await res.json();
+        if (pData && Array.isArray(pData.tomorrowNotes)) {
+          pData.tomorrowNotes.forEach((n: any) => {
+            if (
+              (n.classId === classId || n.classId === 'ALL') &&
+              n.targetDay === targetDay &&
+              (n.block || 1) === block &&
+              (n.week || 1) === week
+            ) {
+              dynamicNotes.push(n);
+            }
+          });
+        }
+      }
+    } catch {}
 
     // Merge base notes and dynamic notes
     const map = new Map<string, TomorrowSpecialNote>();
@@ -460,45 +499,51 @@ export async function saveTomorrowNotes(
       for (const note of notes) {
         const isQuiz = note.isQuiz || note.categoryType === 'quiz' || /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((note.note + ' ' + (note.arabicNote || '')).toLowerCase());
         const targetId = note.id || `tomorrow-${isQuiz ? 'hw' : 'cw'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-        const classId = (note.classId as any) === 'ALL' ? 'G2B' : note.classId;
+        const targetClasses: ClassId[] =
+          (note.classId as any) === 'ALL'
+            ? ['G2A', 'G2B', 'G2C']
+            : [note.classId as ClassId];
 
-        if (isQuiz) {
-          // Prepare row for homework table
-          const row = {
-            id: targetId,
-            class_id: classId,
-            assigned_day: 'Sunday',
-            due_day: note.targetDay,
-            subject: note.subject,
-            task: note.arabicNote || note.note || '',
-            details: note.bagItem || null,
-            completed: false,
-            priority: 'urgent',
-            block: note.block || block,
-            week: note.week || week,
-            link_url: note.linkUrl || null,
-          };
+        for (const classId of targetClasses) {
+          const rowId = (note.classId as any) === 'ALL' ? `${targetId}-${classId}` : targetId;
+          if (isQuiz) {
+            // Prepare row for homework table
+            const row = {
+              id: rowId,
+              class_id: classId,
+              assigned_day: 'Sunday',
+              due_day: note.targetDay,
+              subject: note.subject,
+              task: note.arabicNote || note.note || '',
+              details: note.bagItem || null,
+              completed: false,
+              priority: 'urgent',
+              block: note.block || block,
+              week: note.week || week,
+              link_url: note.linkUrl || null,
+            };
 
-          await supabase.from('homework').upsert(row, { onConflict: 'id' });
-        } else {
-          // Prepare row for classwork table
-          const row = {
-            id: targetId,
-            class_id: classId,
-            day: note.targetDay,
-            period: 1,
-            subject: note.subject,
-            title: note.note || '',
-            details: note.arabicNote || note.note || '',
-            pages: note.bagItem || null,
-            completed: false,
-            block: note.block || block,
-            week: note.week || week,
-            link_url: note.linkUrl || null,
-            link_title: note.linkTitle || null,
-          };
+            await supabase.from('homework').upsert(row, { onConflict: 'id' });
+          } else {
+            // Prepare row for classwork table
+            const row = {
+              id: rowId,
+              class_id: classId,
+              day: note.targetDay,
+              period: 1,
+              subject: note.subject,
+              title: note.note || '',
+              details: note.arabicNote || note.note || '',
+              pages: note.bagItem || null,
+              completed: false,
+              block: note.block || block,
+              week: note.week || week,
+              link_url: note.linkUrl || null,
+              link_title: note.linkTitle || null,
+            };
 
-          await supabase.from('classwork').upsert(row, { onConflict: 'id' });
+            await supabase.from('classwork').upsert(row, { onConflict: 'id' });
+          }
         }
       }
     } catch (err) {

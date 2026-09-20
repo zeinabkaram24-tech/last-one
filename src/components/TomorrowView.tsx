@@ -119,11 +119,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         return true;
       }
 
-      // Strict English rule: ONLY allow dictation ("dictation" or "إملاء") on Monday (Sunday looked ahead), completely block all other English notes/alerts/submissions on any day
+      // Strict English rule: ONLY allow dictation ("dictation" or "إملاء" or "ديكتيشن") on Monday (Sunday looked ahead), completely block all other English notes/alerts/submissions on any day
       if (n.subject === 'English') {
         const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-        const isDictation = fullText.includes('dictation') || fullText.includes('إملاء');
-        if (tomorrowDay === 'Monday' && isDictation) {
+        const isDictation = fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن');
+        if ((tomorrowDay === 'Monday' || tomorrowDay === 'Sunday') && isDictation) {
+          // Allowed!
+        } else if (isDictation) {
           // Allowed!
         } else {
           return true; // Disallowed
@@ -297,6 +299,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const getNoteDisplayArabic = (n: TomorrowSpecialNote) => {
     if (!n) return '';
+    const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+    const isEnglish = n.subject === 'English' || fullText.includes('english');
+    const isDictation = fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('إملاء');
+    if (isEnglish && isDictation) {
+      return 'ديكتيشن';
+    }
     // Always respect user-edited or custom note text directly
     if (n.arabicNote && n.arabicNote.trim()) {
       return n.arabicNote.trim();
@@ -309,6 +317,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const getNoteDisplayBagItem = (n: TomorrowSpecialNote) => {
     if (!n) return '';
+    const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+    if (fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('إملاء')) {
+      return '';
+    }
     return n.bagItem || '';
   };
 
@@ -324,7 +336,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     }
     const quiz = isQuizOrTest(note);
     const fullText = ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase();
-    const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');
+    const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('تسميع');
     const isArabic = note.subject === 'Arabic' || fullText.includes('عربي') || fullText.includes('عربية');
     const isEnglish = note.subject === 'English' || fullText.includes('english');
 
@@ -365,10 +377,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     }
 
     if (quiz) {
-      // User directive: Arabic dictation is strictly 'إملاء' (NO 'Dictation'), English dictation is 'Dictation'
+      // User directive: Arabic dictation is strictly 'إملاء' (NO 'Dictation'), English dictation is 'Dictation' / 'ديكتيشن'
       let label = '🚨 اختبار';
       if (isDictation) {
-        label = isArabic ? '✍️ إملاء كشكول الطالب' : isEnglish ? '✍️ Dictation' : '✍️ إملاء كشكول الطالب';
+        label = isArabic ? '✍️ إملاء كشكول الطالب' : isEnglish ? '🚨 ديكتيشن' : '✍️ إملاء كشكول الطالب';
       } else if (note.subject === 'French') {
         label = '🇫🇷 كويز فرنسي';
       } else if (note.subject === 'Mathematics' || note.subject === 'Math') {
@@ -381,7 +393,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         label,
         badgeClass: 'bg-rose-600 text-white font-black shadow-xs',
         cardClass: 'bg-rose-50 border-2 border-rose-500 text-rose-950 font-bold shadow-xs',
-        subjectName: arabName,
+        subjectName: isEnglish ? 'English' : arabName,
         isAlert: true,
       };
     }
@@ -582,6 +594,23 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         block: currentBlock,
         week: currentWeek,
       });
+    }
+
+    // Automatically inject Monday English Dictation alert for all classes (G2A, G2B, G2C) when looking ahead to Monday
+    if (tomorrowDay === 'Monday') {
+      const engDictationId = `eng-dictation-${currentClass}-${tomorrowDay}`;
+      addOrMergeNote({
+        id: engDictationId,
+        classId: currentClass,
+        targetDay: tomorrowDay,
+        subject: 'English',
+        note: 'Dictation',
+        arabicNote: 'ديكتيشن',
+        isQuiz: true,
+        categoryType: 'quiz',
+        block: currentBlock,
+        week: currentWeek,
+      }, true);
     }
 
     // Process linked alerts first

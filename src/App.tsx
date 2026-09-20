@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, UserProfile, TomorrowSpecialNote } from './types';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from './data/defaultWeeklyPlan';
-import { SCHOOL_DAYS, SCHOOL_NAME, SCHOOL_BRANCH } from './data/timetables';
+import { SCHOOL_DAYS, SCHOOL_NAME, SCHOOL_BRANCH, NEXT_SCHOOL_DAY } from './data/timetables';
 import { Navbar } from './components/Navbar';
 import { ClassworkView } from './components/ClassworkView';
 import { HomeworkView } from './components/HomeworkView';
@@ -779,39 +779,48 @@ export default function App() {
       
       const isQuiz = data.isQuiz || data.categoryType === 'quiz' || /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((data.note + ' ' + (data.arabicNote || '')).toLowerCase());
       
+      const classesToAdd: ClassId[] =
+        (data.classId as any) === 'ALL'
+          ? ['G2A', 'G2B', 'G2C']
+          : [data.classId || currentClass];
+
       if (isQuiz) {
-        const hwEntry: HomeworkEntry = {
-          id: data.id || `tomorrow-hw-${Date.now()}`,
-          classId: data.classId || currentClass,
-          assignedDay: 'Sunday',
-          dueDay: data.targetDay,
-          subject: data.subject,
-          task: data.arabicNote || data.note || '',
-          details: data.bagItem || undefined,
-          completed: false,
-          priority: 'urgent',
-          block,
-          week,
-          linkUrl: data.linkUrl || undefined,
-        };
-        await handleAddHomework(hwEntry);
+        for (const cls of classesToAdd) {
+          const hwEntry: HomeworkEntry = {
+            id: (data.classId as any) === 'ALL' ? `${data.id || `tomorrow-hw-${Date.now()}`}-${cls}` : (data.id || `tomorrow-hw-${Date.now()}`),
+            classId: cls,
+            assignedDay: 'Sunday',
+            dueDay: data.targetDay,
+            subject: data.subject,
+            task: data.arabicNote || data.note || '',
+            details: data.bagItem || undefined,
+            completed: false,
+            priority: 'urgent',
+            block,
+            week,
+            linkUrl: data.linkUrl || undefined,
+          };
+          await handleAddHomework(hwEntry);
+        }
       } else {
-        const cwEntry: ClassworkEntry = {
-          id: data.id || `tomorrow-cw-${Date.now()}`,
-          classId: data.classId || currentClass,
-          day: data.targetDay,
-          period: 1,
-          subject: data.subject,
-          title: data.note || '',
-          details: data.arabicNote || data.note || '',
-          pages: data.bagItem || undefined,
-          completed: false,
-          block,
-          week,
-          linkUrl: data.linkUrl || undefined,
-          linkTitle: data.linkTitle || undefined,
-        };
-        await handleSaveClasswork(cwEntry);
+        for (const cls of classesToAdd) {
+          const cwEntry: ClassworkEntry = {
+            id: (data.classId as any) === 'ALL' ? `${data.id || `tomorrow-cw-${Date.now()}`}-${cls}` : (data.id || `tomorrow-cw-${Date.now()}`),
+            classId: cls,
+            day: data.targetDay,
+            period: 1,
+            subject: data.subject,
+            title: data.note || '',
+            details: data.arabicNote || data.note || '',
+            pages: data.bagItem || undefined,
+            completed: false,
+            block,
+            week,
+            linkUrl: data.linkUrl || undefined,
+            linkTitle: data.linkTitle || undefined,
+          };
+          await handleSaveClasswork(cwEntry);
+        }
       }
 
       await saveTomorrowNotes(block, week, [data], 'merge');
@@ -995,7 +1004,7 @@ export default function App() {
               homeworkList={homeworkList}
               classworkList={classworkList}
               isAdminEditMode={isAdminEditMode}
-              onAddTomorrowNote={() => handleOpenAddModal('tomorrow')}
+              onAddTomorrowNote={() => handleOpenAddModal('tomorrow', { targetDay: NEXT_SCHOOL_DAY[selectedDay] || 'Sunday' })}
               onEditTomorrowNote={(entry) => handleOpenEditModal('tomorrow', entry)}
               onDeleteTomorrowNote={(id) => handleDeleteInteractiveItem('tomorrow', id)}
             />
