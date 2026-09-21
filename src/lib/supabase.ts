@@ -2,6 +2,29 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ClassId, ClassworkEntry, HomeworkEntry, SchoolDay, SubjectName, MaterialItem } from '../types';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from '../data/defaultWeeklyPlan';
 import initialData from '../data/initialData.json';
+import plannerData from '../../data/planner_data.json';
+
+export const FILE_BASELINE_CLASSWORK: ClassworkEntry[] = (() => {
+  const map = new Map<string, ClassworkEntry>();
+  INITIAL_CLASSWORK.forEach((c) => { if (c && c.id) map.set(c.id, c); });
+  if (plannerData && Array.isArray(plannerData.classwork)) {
+    (plannerData.classwork as unknown as ClassworkEntry[]).forEach((c) => {
+      if (c && c.id) map.set(c.id, c);
+    });
+  }
+  return Array.from(map.values());
+})();
+
+export const FILE_BASELINE_HOMEWORK: HomeworkEntry[] = (() => {
+  const map = new Map<string, HomeworkEntry>();
+  INITIAL_HOMEWORK.forEach((h) => { if (h && h.id) map.set(h.id, h); });
+  if (plannerData && Array.isArray(plannerData.homework)) {
+    (plannerData.homework as unknown as HomeworkEntry[]).forEach((h) => {
+      if (h && h.id) map.set(h.id, h);
+    });
+  }
+  return Array.from(map.values());
+})();
 
 export function cleanSupabaseUrl(rawUrl: string): string {
   let cleaned = (rawUrl || '').trim().replace(/^["']|["']$/g, '');
@@ -478,7 +501,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
         } else {
           // Fresh unseeded database
           const map = new Map<string, ClassworkEntry>();
-          INITIAL_CLASSWORK.forEach((c) => {
+          FILE_BASELINE_CLASSWORK.forEach((c) => {
             if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
           });
           return Array.from(map.values());
@@ -491,7 +514,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
 
   // Fallback ONLY if Supabase is unconfigured or returns offline/empty
   const localCustom = getLocalCustomClasswork();
-  let baseItems = [...INITIAL_CLASSWORK];
+  let baseItems = [...FILE_BASELINE_CLASSWORK];
 
   // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
   try {
@@ -805,7 +828,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         } else {
           // Fresh unseeded database
           const map = new Map<string, HomeworkEntry>();
-          INITIAL_HOMEWORK.forEach((h) => {
+          FILE_BASELINE_HOMEWORK.forEach((h) => {
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
           return Array.from(map.values());
@@ -818,7 +841,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
 
   // Fallback ONLY if Supabase is unconfigured or returns offline/empty
   const localCustom = getLocalCustomHomework();
-  let baseItems = [...INITIAL_HOMEWORK];
+  let baseItems = [...FILE_BASELINE_HOMEWORK];
 
   // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
   try {
@@ -1169,7 +1192,7 @@ export async function seedInitialDataIfEmpty(): Promise<{
 
     // Seed classwork if empty
     if ((cwCount ?? 0) === 0) {
-      const cwInitial = INITIAL_CLASSWORK;
+      const cwInitial = FILE_BASELINE_CLASSWORK;
       if (cwInitial && cwInitial.length > 0) {
         console.log(`🌱 Seeding ${cwInitial.length} classwork entries into Supabase...`);
         const rows = cwInitial.map(classworkToRow);
@@ -1191,7 +1214,7 @@ export async function seedInitialDataIfEmpty(): Promise<{
 
     // Seed homework if empty
     if ((hwCount ?? 0) === 0) {
-      const hwInitial = INITIAL_HOMEWORK;
+      const hwInitial = FILE_BASELINE_HOMEWORK;
       if (hwInitial && hwInitial.length > 0) {
         console.log(`🌱 Seeding ${hwInitial.length} homework entries into Supabase...`);
         const rows = hwInitial.map(homeworkToRow);
@@ -1256,7 +1279,7 @@ export async function forceSyncBaselineToSupabase(): Promise<void> {
     
     // Only insert baseline items if the database has no classwork at all, or only insert items not in deletedSet and not already existing
     if (existingCwIds.size === 0) {
-      const missingCw = INITIAL_CLASSWORK.filter((c) => c && c.id && !deletedSet.has(c.id));
+      const missingCw = FILE_BASELINE_CLASSWORK.filter((c) => c && c.id && !deletedSet.has(c.id));
       if (missingCw.length > 0) {
         const cwRows = missingCw.map(classworkToRow);
         for (let i = 0; i < cwRows.length; i += 50) {
@@ -1274,7 +1297,7 @@ export async function forceSyncBaselineToSupabase(): Promise<void> {
     const existingHwIds = new Set((hwExisting || []).map((r: any) => r.id));
     
     if (existingHwIds.size === 0) {
-      const missingHw = INITIAL_HOMEWORK.filter((h) => h && h.id && !deletedSet.has(h.id));
+      const missingHw = FILE_BASELINE_HOMEWORK.filter((h) => h && h.id && !deletedSet.has(h.id));
       if (missingHw.length > 0) {
         const hwRows = missingHw.map(homeworkToRow);
         for (let i = 0; i < hwRows.length; i += 50) {

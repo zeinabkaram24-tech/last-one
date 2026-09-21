@@ -52,8 +52,10 @@ import {
   saveActiveSupabaseConfig,
   getLocalCustomClasswork,
   getLocalCustomHomework,
+  removeDeletedPlannerItemId,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
+import plannerData from '../data/planner_data.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
 
 // Real local app storage with fallback for browser environment
@@ -94,7 +96,25 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     }
   } catch {}
 
-  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK).filter(c => !deletedSet.has(c.id));
+  const map = new Map<string, ClassworkEntry>();
+  // 1. Base default from code
+  INITIAL_CLASSWORK.forEach((c) => {
+    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+  });
+  // 2. Direct data from planner_data.json (highest priority file baseline)
+  if (plannerData && Array.isArray(plannerData.classwork)) {
+    (plannerData.classwork as unknown as ClassworkEntry[]).forEach((c) => {
+      if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+    });
+  }
+  // 3. User local custom additions
+  if (cached && cached.length > 0) {
+    cached.forEach((c) => {
+      if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+    });
+  }
+
+  const source = Array.from(map.values());
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
@@ -122,7 +142,25 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
     }
   } catch {}
 
-  const source = (cached && cached.length > 0 ? cached : INITIAL_HOMEWORK).filter(h => !deletedSet.has(h.id));
+  const map = new Map<string, HomeworkEntry>();
+  // 1. Base default from code
+  INITIAL_HOMEWORK.forEach((h) => {
+    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+  });
+  // 2. Direct data from planner_data.json (highest priority file baseline)
+  if (plannerData && Array.isArray(plannerData.homework)) {
+    (plannerData.homework as unknown as HomeworkEntry[]).forEach((h) => {
+      if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+    });
+  }
+  // 3. User local custom additions
+  if (cached && cached.length > 0) {
+    cached.forEach((h) => {
+      if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+    });
+  }
+
+  const source = Array.from(map.values());
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedHomeworkIds);
