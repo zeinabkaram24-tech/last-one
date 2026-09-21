@@ -52,7 +52,6 @@ import {
   saveActiveSupabaseConfig,
   getLocalCustomClasswork,
   getLocalCustomHomework,
-  removeDeletedPlannerItemId,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
@@ -85,6 +84,7 @@ const STORAGE_KEYS = {
 };
 
 function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
+  const cached = getLocalCustomClasswork();
   let deletedSet = new Set<string>();
   try {
     const raw = appStorage.getItem('nile_deleted_planner_item_ids_v3');
@@ -94,7 +94,7 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     }
   } catch {}
 
-  const source = INITIAL_CLASSWORK.filter(c => !deletedSet.has(c.id));
+  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK).filter(c => !deletedSet.has(c.id));
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
@@ -112,6 +112,7 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
 }
 
 function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
+  const cached = getLocalCustomHomework();
   let deletedSet = new Set<string>();
   try {
     const raw = appStorage.getItem('nile_deleted_planner_item_ids_v3');
@@ -121,7 +122,7 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
     }
   } catch {}
 
-  const source = INITIAL_HOMEWORK.filter(h => !deletedSet.has(h.id));
+  const source = (cached && cached.length > 0 ? cached : INITIAL_HOMEWORK).filter(h => !deletedSet.has(h.id));
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedHomeworkIds);

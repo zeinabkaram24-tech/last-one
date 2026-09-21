@@ -98,14 +98,21 @@ export async function getTomorrowNotesForDay(
 ): Promise<TomorrowSpecialNote[]> {
   const effectiveWeek = targetDay === 'Sunday' && week > 1 ? week - 1 : week;
 
-  // Base official notes for Block/Week or EffectiveWeek from planner_data.json
-  const baseNotes: TomorrowSpecialNote[] = SPECIAL_TEACHER_NOTES.filter(
-    (n) =>
-      (n.classId === classId || (n.classId as any) === 'ALL') &&
-      n.targetDay === targetDay &&
-      (n.block || 1) === block &&
-      ((n.week || 1) === week || (n.week || 1) === effectiveWeek)
-  );
+  // Base official notes for Block/Week or EffectiveWeek from static files
+  const baseNotes: TomorrowSpecialNote[] =
+    block === 1 && (week === 3 || effectiveWeek === 3)
+      ? WEEK3_SPECIAL_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
+        )
+      : block === 1 && (week === 2 || effectiveWeek === 2)
+      ? WEEK2_SPECIAL_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
+        )
+      : block === 1 && (week === 1 || effectiveWeek === 1)
+      ? SPECIAL_TEACHER_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay && (n.week === 1 || !n.week)
+        )
+      : [];
 
   // Load custom notes from localStorage
   const localCustom = getLocalCustomTomorrowNotes().filter(

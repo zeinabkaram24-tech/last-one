@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Upload, Link2, FileText, Sparkles, BookOpen, ExternalLink, Calendar, HelpCircle, Mic, MicOff, Loader2 } from 'lucide-react';
 import { ClassId, SchoolDay, SubjectName, ClassworkEntry, HomeworkEntry, TomorrowSpecialNote } from '../types';
-import { NEXT_SCHOOL_DAY } from '../data/timetables';
 
 interface InteractiveEditorModalProps {
   isOpen: boolean;
