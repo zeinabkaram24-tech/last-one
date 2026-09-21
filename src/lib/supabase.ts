@@ -493,29 +493,20 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const localCustom = getLocalCustomClasswork();
   let baseItems = [...INITIAL_CLASSWORK];
 
-  // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
+  // 1. Fetch from server-side centralized storage for cross-device sync
   try {
     const res = await fetch('/api/planner-data');
     if (res.ok) {
       const srvData = await res.json();
       if (srvData && Array.isArray(srvData.classwork) && srvData.classwork.length > 0) {
-        const srvKeys = new Set(
-          srvData.classwork.map((c: ClassworkEntry) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
-        );
-        baseItems = baseItems.filter(
-          (c) => !srvKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
-        );
-        const srvMap = new Map<string, ClassworkEntry>();
-        baseItems.forEach((c) => srvMap.set(c.id, c));
-        srvData.classwork.forEach((c: ClassworkEntry) => srvMap.set(c.id, c));
-        baseItems = Array.from(srvMap.values());
+        baseItems = srvData.classwork;
       }
     }
   } catch (err) {
     // Server fetch fallback
   }
 
-  // Merge srvData and localCustom over baseItems
+  // Merge baseItems and localCustom
   const map = new Map<string, ClassworkEntry>();
   baseItems.forEach((c) => {
     if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
@@ -820,22 +811,13 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const localCustom = getLocalCustomHomework();
   let baseItems = [...INITIAL_HOMEWORK];
 
-  // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
+  // 1. Fetch from server-side centralized storage for cross-device sync
   try {
     const res = await fetch('/api/planner-data');
     if (res.ok) {
       const srvData = await res.json();
       if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {
-        const srvKeys = new Set(
-          srvData.homework.map((h: HomeworkEntry) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-        );
-        baseItems = baseItems.filter(
-          (h) => !srvKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-        );
-        const srvMap = new Map<string, HomeworkEntry>();
-        baseItems.forEach((h) => srvMap.set(h.id, h));
-        srvData.homework.forEach((h: HomeworkEntry) => srvMap.set(h.id, h));
-        baseItems = Array.from(srvMap.values());
+        baseItems = srvData.homework;
       }
     }
   } catch (err) {
