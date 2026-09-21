@@ -78,7 +78,7 @@ function saveStoredMaterials(items: any[]): void {
 }
 
 // Helper to read planner data
-function getStoredPlannerData(): { classwork: any[]; homework: any[]; tomorrowNotes: any[]; deletedTomorrowNoteIds?: string[] } {
+function getStoredPlannerData(): { classwork: any[]; homework: any[]; tomorrowNotes: any[]; deletedTomorrowNoteIds?: string[]; deletedPlannerItemIds?: string[] } {
   try {
     if (fs.existsSync(PLANNER_DATA_FILE)) {
       const raw = fs.readFileSync(PLANNER_DATA_FILE, 'utf-8');
@@ -87,10 +87,10 @@ function getStoredPlannerData(): { classwork: any[]; homework: any[]; tomorrowNo
   } catch (err) {
     console.warn('Error reading planner_data.json:', err);
   }
-  return { classwork: [], homework: [], tomorrowNotes: [], deletedTomorrowNoteIds: [] };
+  return { classwork: [], homework: [], tomorrowNotes: [], deletedTomorrowNoteIds: [], deletedPlannerItemIds: [] };
 }
 
-function saveStoredPlannerData(data: { classwork: any[]; homework: any[]; tomorrowNotes: any[]; deletedTomorrowNoteIds?: string[] }): void {
+function saveStoredPlannerData(data: { classwork: any[]; homework: any[]; tomorrowNotes: any[]; deletedTomorrowNoteIds?: string[]; deletedPlannerItemIds?: string[] }): void {
   try {
     fs.writeFileSync(PLANNER_DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {

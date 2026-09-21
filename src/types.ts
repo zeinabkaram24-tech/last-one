@@ -86,6 +86,7 @@ export interface TomorrowSpecialNote {
   linkTitle?: string;
   pdfUrl?: string;
   linkedIds?: string[];
+  isCustom?: boolean;
 }
 
 export interface TomorrowItem {

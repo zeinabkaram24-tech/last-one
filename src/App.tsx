@@ -52,6 +52,7 @@ import {
   saveActiveSupabaseConfig,
   getLocalCustomClasswork,
   getLocalCustomHomework,
+  removeDeletedPlannerItemId,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
