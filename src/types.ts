@@ -81,7 +81,6 @@ export interface TomorrowSpecialNote {
   block?: number;
   week?: number;
   isQuiz?: boolean;
-  isCustom?: boolean;
   categoryType?: 'note' | 'quiz';
   linkUrl?: string;
   linkTitle?: string;

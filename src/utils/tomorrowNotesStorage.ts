@@ -2,7 +2,6 @@ import { ClassId, SchoolDay } from '../types';
 import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
-import plannerData from '../../data/planner_data.json';
 
 export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   ...(['G2A', 'G2B', 'G2C', 'ALL'] as const).map((cls) => ({
@@ -114,18 +113,6 @@ export async function getTomorrowNotesForDay(
           (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay && (n.week === 1 || !n.week)
         )
       : [];
-
-  // Direct file notes from planner_data.json
-  if (plannerData && Array.isArray(plannerData.tomorrowNotes)) {
-    const fileTomorrowNotes = (plannerData.tomorrowNotes as unknown as TomorrowSpecialNote[]).filter(
-      (n) =>
-        (n.classId === classId || (n.classId as any) === 'ALL') &&
-        n.targetDay === targetDay &&
-        (n.block || 1) === block &&
-        (n.week || 1) === week
-    );
-    baseNotes.push(...fileTomorrowNotes);
-  }
 
   // Load custom notes from localStorage
   const localCustom = getLocalCustomTomorrowNotes().filter(
