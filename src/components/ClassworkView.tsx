@@ -41,34 +41,27 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   onDeleteClasswork,
   onAddClasswork,
 }) => {
+  const matchesClass = (c: any) => {
+    const cid = c.class_id || c.classId;
+    return cid === currentClass || cid === 'ALL';
+  };
+
   // Check if current class has ANY weekly plan entered for this Block and Week
   let hasPlanForWeek = classworkList.some(
     (c) =>
-      (c.classId === currentClass || (c.classId as any) === 'ALL') &&
+      matchesClass(c) &&
       (c.block || 1) === currentBlock &&
       (c.week || 1) === currentWeek
   );
 
-  // If there is a French class in the timetable for today, we always allow rendering
-  // so the French card can be displayed as a placeholder task card
-  const hasFrenchInTodayTimetable = (CLASS_TIMETABLES[currentClass][selectedDay] || []).some(
-    (s) => s.subject === 'French'
-  );
-  if (hasFrenchInTodayTimetable) {
+  // Allow rendering for any day that has scheduled classes
+  const hasClassesInTodayTimetable = (CLASS_TIMETABLES[currentClass][selectedDay] || []).length > 0;
+  if (hasClassesInTodayTimetable) {
     hasPlanForWeek = true;
   }
 
-  // Filter to subjects with weekly plans (Arabic, French, Mathematics, Social Studies, English, ICT, Science)
-  const rawTimetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
-    (s) =>
-      s.subject === 'Arabic' ||
-      s.subject === 'French' ||
-      s.subject === 'Mathematics' ||
-      s.subject === 'Social Studies' ||
-      s.subject === 'English' ||
-      s.subject === 'ICT' ||
-      s.subject === 'Science'
-  );
+  // Include all scheduled timetable subjects (Arabic, French, Mathematics, English, Science, Social Studies, Religion, ICT, Arts, PE, Music)
+  const rawTimetablePeriods = CLASS_TIMETABLES[currentClass][selectedDay] || [];
 
   // Group repeated periods (especially English or Mathematics) so they appear once only
   interface GroupedPeriodSlot {
@@ -112,7 +105,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     return (
       classworkList.find(
         (c) =>
-          (c.classId === currentClass || (c.classId as any) === 'ALL') &&
+          matchesClass(c) &&
           c.day === selectedDay &&
           slot.periods.includes(c.period) &&
           (c.block || 1) === currentBlock &&
@@ -121,7 +114,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       ) ||
       classworkList.find(
         (c) =>
-          (c.classId === currentClass || (c.classId as any) === 'ALL') &&
+          matchesClass(c) &&
           c.day === selectedDay &&
           c.subject === slot.subject &&
           (c.block || 1) === currentBlock &&
@@ -134,18 +127,25 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   // Collect all valid educational classwork items for this class, day, block, and week
   const dayClasswork = classworkList.filter(
     (c) =>
-      (c.classId === currentClass || (c.classId as any) === 'ALL') &&
+      matchesClass(c) &&
       c.day === selectedDay &&
       (c.block || 1) === currentBlock &&
       (c.week || 1) === currentWeek &&
       Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
   );
 
-  // Deduplicate entries by ID to protect against any data-level duplicates
+  // Deduplicate entries by ID AND content-level (subject + title) to protect against any data-level duplicates
   const uniqueClassworkMap = new Map<string, ClassworkEntry>();
   dayClasswork.forEach((c) => {
     if (!uniqueClassworkMap.has(c.id)) {
-      uniqueClassworkMap.set(c.id, c);
+      const isDuplicateContent = Array.from(uniqueClassworkMap.values()).some(
+        (existing) =>
+          existing.subject === c.subject &&
+          (existing.title || '').trim().toLowerCase() === (c.title || '').trim().toLowerCase()
+      );
+      if (!isDuplicateContent) {
+        uniqueClassworkMap.set(c.id, c);
+      }
     }
   });
   const availableClasswork = Array.from(uniqueClassworkMap.values());
@@ -175,34 +175,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
         ...slot,
         slotId: `active-tt-${selectedDay}-${slot.periodLabel}-${slot.subject}-${matched.id}`,
         cwEntry: matched,
-      });
-    } else if (slot.subject === 'French') {
-      // ALWAYS include French slots even if there is no weekly plan entry!
-      // Generate a default placeholder classwork entry
-      const defaultFrenchEntry: ClassworkEntry = {
-        id: `cw-french-default-${selectedDay}-${slot.periodLabel}`,
-        classId: currentClass,
-        day: selectedDay,
-        period: slot.periods[0] || 1,
-        subject: 'French',
-        title: 'درس اللغة الفرنسية: أفراد العائلة 🇫🇷',
-        details: 'اضغط على الرابط بالأسفل لفتح شيت درس أفراد العائلة Les membres de la famille.',
-        completed: false,
-        block: currentBlock,
-        week: currentWeek,
-        linkUrl: currentBlock === 1 && currentWeek === 3 ? 'https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view' : undefined,
-        linkTitle: currentBlock === 1 && currentWeek === 3 ? 'شيت درس أفراد العائلة - Les membres de la famille 📄' : undefined,
-      };
-      activeTimetablePeriods.push({
-        ...slot,
-        slotId: `active-tt-${selectedDay}-${slot.periodLabel}-${slot.subject}-default`,
-        cwEntry: defaultFrenchEntry,
-      });
-    } else if (isAdminEditMode) {
-      activeTimetablePeriods.push({
-        ...slot,
-        slotId: `active-tt-${selectedDay}-${slot.periodLabel}-${slot.subject}-empty`,
-        cwEntry: undefined,
       });
     }
   }
@@ -453,12 +425,8 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                         )}
                       </div>
                     ) : (
-                      <div className="space-y-1.5 py-0.5">
-                        <div className="flex items-center justify-between text-xs text-slate-400">
-                          <span className="italic font-normal">
-                            لا توجد تفاصيل مسجلة لهذه الحصة في الخطة
-                          </span>
-                        </div>
+                      <div className="py-1">
+                        {/* Empty/blank as instructed: no invented text */}
                       </div>
                     )}
                   </div>

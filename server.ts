@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
+import { createClient } from '@supabase/supabase-js';
 const requireFn = typeof require !== 'undefined' ? require : createRequire(import.meta.url);
 const pdf = requireFn('pdf-parse');
 import { GoogleGenAI } from '@google/genai';
@@ -32,14 +33,36 @@ try {
   console.warn('Could not ensure data/upload directories:', e);
 }
 
+function cleanSupabaseUrl(rawUrl: string): string {
+  let cleaned = (rawUrl || '').trim().replace(/^["']|["']$/g, '');
+  if (!cleaned) return '';
+  try {
+    if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) cleaned = 'https://' + cleaned;
+    const parsed = new URL(cleaned);
+    if (parsed.hostname.endsWith('.supabase.co')) return parsed.origin;
+    return cleaned.replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
+  } catch {
+    return cleaned.replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
+  }
+}
+
 function getStoredSupabaseConfig(): { url: string; key: string } | null {
   try {
     if (fs.existsSync(SUPABASE_CONFIG_FILE)) {
       const raw = fs.readFileSync(SUPABASE_CONFIG_FILE, 'utf-8');
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.url) {
+        parsed.url = cleanSupabaseUrl(parsed.url);
+        return parsed;
+      }
     }
   } catch (err) {
     console.warn('Error reading supabase_config.json:', err);
+  }
+  const envUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const envKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  if (envUrl && envKey) {
+    return { url: cleanSupabaseUrl(envUrl), key: envKey.trim() };
   }
   return null;
 }
@@ -77,8 +100,16 @@ function saveStoredMaterials(items: any[]): void {
   }
 }
 
+interface StoredPlannerData {
+  classwork: any[];
+  homework: any[];
+  tomorrowNotes: any[];
+  deletedTomorrowNoteIds?: string[];
+  deletedPlannerItemIds?: string[];
+}
+
 // Helper to read planner data
-function getStoredPlannerData(): { classwork: any[]; homework: any[]; tomorrowNotes: any[]; deletedTomorrowNoteIds?: string[] } {
+function getStoredPlannerData(): StoredPlannerData {
   try {
     if (fs.existsSync(PLANNER_DATA_FILE)) {
       const raw = fs.readFileSync(PLANNER_DATA_FILE, 'utf-8');
@@ -87,10 +118,10 @@ function getStoredPlannerData(): { classwork: any[]; homework: any[]; tomorrowNo
   } catch (err) {
     console.warn('Error reading planner_data.json:', err);
   }
-  return { classwork: [], homework: [], tomorrowNotes: [], deletedTomorrowNoteIds: [] };
+  return { classwork: [], homework: [], tomorrowNotes: [], deletedTomorrowNoteIds: [], deletedPlannerItemIds: [] };
 }
 
-function saveStoredPlannerData(data: { classwork: any[]; homework: any[]; tomorrowNotes: any[]; deletedTomorrowNoteIds?: string[] }): void {
+function saveStoredPlannerData(data: StoredPlannerData): void {
   try {
     fs.writeFileSync(PLANNER_DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {
@@ -133,6 +164,173 @@ app.post('/api/supabase-config/clear', (req, res) => {
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error clearing Supabase config' });
+  }
+});
+
+// Seed data from local planner_data.json into Supabase
+app.post('/api/supabase/seed-from-local', async (req, res) => {
+  try {
+    const { url: reqUrl, key: reqKey, force } = req.body || {};
+    const storedConfig = getStoredSupabaseConfig();
+    const effectiveUrl = cleanSupabaseUrl(reqUrl || storedConfig?.url || process.env.VITE_SUPABASE_URL || '');
+    const effectiveKey = (reqKey || storedConfig?.key || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+
+    if (!effectiveUrl || !effectiveKey) {
+      return res.status(400).json({ error: 'Supabase credentials not configured on server' });
+    }
+
+    const client = createClient(effectiveUrl, effectiveKey);
+    const data = getStoredPlannerData();
+
+    // Always clear/overwrite when seeding to prevent duplication or merging
+    console.log('🧹 Clearing existing data from Supabase for clean seed-from-local overwrite...');
+    try {
+      await Promise.all([
+        client.from('classwork').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        client.from('homework').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        client.from('planner_settings').delete().in('key', ['deleted_planner_item_ids', 'deleted_tomorrow_note_ids', 'tomorrow_special_notes'])
+      ]);
+    } catch (clearErr) {
+      console.warn('Notice clearing existing Supabase data:', clearErr);
+    }
+
+    let cwCount = 0;
+    let hwCount = 0;
+    let tnCount = 0;
+
+    const cwList = Array.isArray(data.classwork) ? data.classwork : [];
+    const hwList = Array.isArray(data.homework) ? data.homework : [];
+    const tnList = Array.isArray(data.tomorrowNotes) ? data.tomorrowNotes : [];
+
+    if (cwList.length > 0) {
+      const cwRows: any[] = [];
+      const seenCwIds = new Set<string>();
+      for (const cw of cwList) {
+        if (cw.id && !seenCwIds.has(cw.id)) {
+          seenCwIds.add(cw.id);
+          const resolvedClassId = cw.class_id || cw.classId || 'G2B';
+          cwRows.push({
+            id: cw.id,
+            class_id: resolvedClassId,
+            day: cw.day,
+            period: Number(cw.period) || 1,
+            subject: cw.subject,
+            title: cw.title || '',
+            details: cw.details || null,
+            pages: cw.pages || null,
+            completed: Boolean(cw.completed),
+            block: Number(cw.block) || 1,
+            week: Number(cw.week) || 1,
+            link_url: cw.link_url || cw.linkUrl || null,
+            link_title: cw.link_title || cw.linkTitle || null,
+          });
+        }
+      }
+
+      for (let i = 0; i < cwRows.length; i += 50) {
+        const chunk = cwRows.slice(i, i + 50);
+        const { error } = await client.from('classwork').insert(chunk);
+        if (!error) cwCount += chunk.length;
+      }
+    }
+
+    if (hwList.length > 0) {
+      const hwRows: any[] = [];
+      const seenHwIds = new Set<string>();
+      for (const hw of hwList) {
+        if (hw.id && !seenHwIds.has(hw.id)) {
+          seenHwIds.add(hw.id);
+          const resolvedClassId = hw.class_id || hw.classId || 'G2B';
+          let details = hw.details || null;
+          if (hw.pdfUrl) {
+            details = (details || '') + ` ||PDF_URL:${hw.pdfUrl}`;
+          }
+          hwRows.push({
+            id: hw.id,
+            class_id: resolvedClassId,
+            assigned_day: hw.assigned_day || hw.assignedDay || 'Sunday',
+            due_day: hw.due_day || hw.dueDay || 'Sunday',
+            subject: hw.subject,
+            task: hw.task || '',
+            details,
+            pages: hw.pages || null,
+            completed: Boolean(hw.completed),
+            priority: hw.priority || 'normal',
+            block: Number(hw.block) || 1,
+            week: Number(hw.week) || 1,
+            is_link_task: Boolean(hw.is_link_task ?? hw.isLinkTask),
+            link_url: hw.link_url || hw.linkUrl || null,
+          });
+        }
+      }
+
+      for (let i = 0; i < hwRows.length; i += 50) {
+        const chunk = hwRows.slice(i, i + 50);
+        const { error } = await client.from('homework').insert(chunk);
+        if (!error) hwCount += chunk.length;
+      }
+    }
+
+    if (tnList.length > 0) {
+      await client.from('planner_settings').upsert({
+        key: 'tomorrow_special_notes',
+        value: JSON.stringify(tnList),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'key' });
+      tnCount = tnList.length;
+    }
+
+    res.json({
+      success: true,
+      seeded: cwCount > 0 || hwCount > 0 || tnCount > 0,
+      classworkCount: cwCount,
+      homeworkCount: hwCount,
+      tomorrowNotesCount: tnCount,
+      message: `تم رفع ${cwCount} درساً و ${hwCount} واجباً و ${tnCount} ملاحظة من planner_data.json إلى Supabase بنجاح بعد مسح شامل للبيانات القديمة.`,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Error seeding Supabase from local planner data' });
+  }
+});
+
+// Delete all Week 3 data from local planner_data.json and Supabase
+app.post('/api/supabase/delete-week3', async (req, res) => {
+  try {
+    const storedConfig = getStoredSupabaseConfig();
+    const effectiveUrl = cleanSupabaseUrl(storedConfig?.url || process.env.VITE_SUPABASE_URL || '');
+    const effectiveKey = (storedConfig?.key || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+
+    // 1. Delete week 3 from local planner_data.json
+    const data = getStoredPlannerData();
+    if (Array.isArray(data.classwork)) {
+      data.classwork = data.classwork.filter((c: any) => c.week !== 3);
+    }
+    if (Array.isArray(data.homework)) {
+      data.homework = data.homework.filter((h: any) => h.week !== 3);
+    }
+    if (Array.isArray(data.tomorrowNotes)) {
+      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => n.week !== 3);
+    }
+    saveStoredPlannerData(data);
+
+    // 2. If Supabase is configured, delete week 3 rows from Supabase
+    let deletedFromSupabase = false;
+    if (effectiveUrl && effectiveKey) {
+      const client = createClient(effectiveUrl, effectiveKey);
+      await Promise.all([
+        client.from('classwork').delete().eq('week', 3),
+        client.from('homework').delete().eq('week', 3),
+      ]);
+      deletedFromSupabase = true;
+    }
+
+    res.json({
+      success: true,
+      message: 'تم مسح جميع بيانات الأسبوع الثالث بنجاح لكل الفصول وكل التبويبات والملاحظات!',
+      deletedFromSupabase
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Error deleting Week 3 data' });
   }
 });
 
@@ -229,6 +427,19 @@ app.get('/api/planner-data', (req, res) => {
       data.classwork = (data.classwork || []).filter((c: any) => !delSet.has(c.id));
       data.homework = (data.homework || []).filter((h: any) => !delSet.has(h.id));
     }
+    // Guarantee both classId and class_id are populated on every item returned
+    if (Array.isArray(data.classwork)) {
+      data.classwork = data.classwork.map((c: any) => {
+        const cid = c.class_id || c.classId || 'G2B';
+        return { ...c, classId: cid, class_id: cid };
+      });
+    }
+    if (Array.isArray(data.homework)) {
+      data.homework = data.homework.map((h: any) => {
+        const cid = h.class_id || h.classId || 'G2B';
+        return { ...h, classId: cid, class_id: cid };
+      });
+    }
     res.json(data);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to read planner data' });
@@ -240,31 +451,46 @@ app.post('/api/planner-data', (req, res) => {
     const { classwork, homework, tomorrowNotes, mode = 'merge' } = req.body;
     let current = getStoredPlannerData();
 
+    // Normalize incoming items to have both classId and class_id
+    const normalizedCw = Array.isArray(classwork)
+      ? classwork.map((c: any) => {
+          const cid = c.class_id || c.classId || 'G2B';
+          return { ...c, classId: cid, class_id: cid };
+        })
+      : [];
+
+    const normalizedHw = Array.isArray(homework)
+      ? homework.map((h: any) => {
+          const cid = h.class_id || h.classId || 'G2B';
+          return { ...h, classId: cid, class_id: cid };
+        })
+      : [];
+
     if (mode === 'replace') {
       // If replacing, remove existing items matching the incoming items' (block, week, subject, classId) or (block, week)
-      if (Array.isArray(classwork) && classwork.length > 0) {
+      if (normalizedCw.length > 0) {
         const targetKeys = new Set(
-          classwork.map((cw: any) => `${cw.block || 1}-${cw.week || 1}-${cw.classId}-${normalizeSubject(cw.subject)}`)
+          normalizedCw.map((cw: any) => `${cw.block || 1}-${cw.week || 1}-${cw.classId}-${normalizeSubject(cw.subject)}`)
         );
         current.classwork = current.classwork.filter(
-          (cw: any) => !targetKeys.has(`${cw.block || 1}-${cw.week || 1}-${cw.classId}-${normalizeSubject(cw.subject)}`)
+          (cw: any) => !targetKeys.has(`${cw.block || 1}-${cw.week || 1}-${cw.class_id || cw.classId}-${normalizeSubject(cw.subject)}`)
         );
         const cwMap = new Map<string, any>();
         current.classwork.forEach((cw: any) => { if (cw?.id) cwMap.set(cw.id, cw); });
-        classwork.forEach((cw: any) => { if (cw?.id) cwMap.set(cw.id, cw); });
+        normalizedCw.forEach((cw: any) => { if (cw?.id) cwMap.set(cw.id, cw); });
         current.classwork = Array.from(cwMap.values());
       }
 
-      if (Array.isArray(homework) && homework.length > 0) {
+      if (normalizedHw.length > 0) {
         const targetKeys = new Set(
-          homework.map((hw: any) => `${hw.block || 1}-${hw.week || 1}-${hw.classId}-${normalizeSubject(hw.subject)}`)
+          normalizedHw.map((hw: any) => `${hw.block || 1}-${hw.week || 1}-${hw.classId}-${normalizeSubject(hw.subject)}`)
         );
         current.homework = current.homework.filter(
-          (hw: any) => !targetKeys.has(`${hw.block || 1}-${hw.week || 1}-${hw.classId}-${normalizeSubject(hw.subject)}`)
+          (hw: any) => !targetKeys.has(`${hw.block || 1}-${hw.week || 1}-${hw.class_id || hw.classId}-${normalizeSubject(hw.subject)}`)
         );
         const hwMap = new Map<string, any>();
         current.homework.forEach((hw: any) => { if (hw?.id) hwMap.set(hw.id, hw); });
-        homework.forEach((hw: any) => { if (hw?.id) hwMap.set(hw.id, hw); });
+        normalizedHw.forEach((hw: any) => { if (hw?.id) hwMap.set(hw.id, hw); });
         current.homework = Array.from(hwMap.values());
       }
 
@@ -378,6 +604,26 @@ app.post('/api/planner-data/delete', (req, res) => {
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error deleting planner item' });
+  }
+});
+
+app.post('/api/planner-data/restore', (req, res) => {
+  try {
+    const { id, ids, type } = req.body;
+    const targetIds: string[] = Array.isArray(ids) ? ids : id ? [id] : [];
+    let current = getStoredPlannerData();
+    if (!current.deletedPlannerItemIds) current.deletedPlannerItemIds = [];
+    if (!current.deletedTomorrowNoteIds) current.deletedTomorrowNoteIds = [];
+
+    if (type === 'classwork' || type === 'homework') {
+      current.deletedPlannerItemIds = current.deletedPlannerItemIds.filter((tId: string) => !targetIds.includes(tId));
+    } else if (type === 'tomorrowNotes') {
+      current.deletedTomorrowNoteIds = current.deletedTomorrowNoteIds.filter((tId: string) => !targetIds.includes(tId));
+    }
+    saveStoredPlannerData(current);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Error restoring planner item' });
   }
 });
 

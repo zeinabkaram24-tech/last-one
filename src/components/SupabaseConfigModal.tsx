@@ -10,6 +10,7 @@ import {
   Trash2,
   Check,
   ExternalLink,
+  Sparkles,
 } from 'lucide-react';
 import {
   getActiveSupabaseConfig,
@@ -17,6 +18,7 @@ import {
   updateSupabaseClient,
   isSupabaseConfigured,
   supabase,
+  seedSupabaseFromPlannerData,
 } from '../lib/supabase';
 
 interface SupabaseConfigModalProps {
@@ -38,6 +40,11 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
     message: string;
   } | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [seedStatus, setSeedStatus] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -99,6 +106,35 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
     }
   };
 
+  const handleSeedData = async () => {
+    setSeeding(true);
+    setSeedStatus(null);
+    try {
+      const cleanedUrl = url.trim();
+      const cleanedKey = anonKey.trim();
+      if (cleanedUrl && cleanedKey) {
+        saveActiveSupabaseConfig(cleanedUrl, cleanedKey);
+        updateSupabaseClient(cleanedUrl, cleanedKey);
+      }
+
+      const res = await seedSupabaseFromPlannerData({ force: true });
+      setSeedStatus({
+        success: res.success && res.seeded,
+        message: res.message,
+      });
+      if (res.success && onConfigSaved) {
+        onConfigSaved();
+      }
+    } catch (err: any) {
+      setSeedStatus({
+        success: false,
+        message: `فشل استيراد البيانات: ${err.message || 'خطأ غير متوقع'}`,
+      });
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   const handleSavePermanently = async () => {
     const cleanedUrl = url.trim();
     const cleanedKey = anonKey.trim();
@@ -116,6 +152,9 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
     } catch (err) {
       console.warn('Failed to save Supabase config on server:', err);
     }
+
+    // Auto-seed if database is empty upon saving
+    seedSupabaseFromPlannerData().catch(() => {});
 
     setSavedSuccess(true);
     if (onConfigSaved) onConfigSaved();
@@ -266,6 +305,51 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
             <span>تم حفظ الإعدادات بنجاح دائم في متصفحك! لن يطلبها منك مرة أخرى.</span>
           </div>
         )}
+
+        {/* Seed Data from planner_data.json Section */}
+        <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-200/80 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-indigo-950">
+                  استيراد ورفع بيانات المخطط (Seed Data)
+                </h4>
+                <p className="text-[11px] text-indigo-700 font-medium">
+                  قراءة ملف <span className="px-1 py-0.5 rounded bg-indigo-100/90 font-mono text-[10px]">data/planner_data.json</span> المحلي ورفع كافة الدروس والواجبات والمخطط إلى Supabase فوراً.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={seeding || (!isSupabaseConfigured && (!url.trim() || !anonKey.trim()))}
+              onClick={handleSeedData}
+              className="px-3.5 py-2 rounded-xl text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer shrink-0"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${seeding ? 'animate-spin' : ''}`} />
+              <span>{seeding ? 'جاري الرفع إلى Supabase...' : 'رفع كافة البيانات إلى Supabase الآن'}</span>
+            </button>
+          </div>
+
+          {seedStatus && (
+            <div
+              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${
+                seedStatus.success
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                  : 'bg-amber-50 border-amber-200 text-amber-900'
+              }`}
+            >
+              {seedStatus.success ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              )}
+              <span>{seedStatus.message}</span>
+            </div>
+          )}
+        </div>
 
         {/* Actions */}
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2.5 border-t border-slate-100">

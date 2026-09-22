@@ -37,6 +37,7 @@ export interface DaySchedule {
 export interface ClassworkEntry {
   id: string;
   classId: ClassId;
+  class_id?: ClassId;
   day: SchoolDay;
   period: number;
   subject: SubjectName;
@@ -54,6 +55,7 @@ export interface ClassworkEntry {
 export interface HomeworkEntry {
   id: string;
   classId: ClassId;
+  class_id?: ClassId;
   assignedDay: SchoolDay;
   dueDay: SchoolDay;
   subject: SubjectName;
@@ -67,6 +69,11 @@ export interface HomeworkEntry {
   isLinkTask?: boolean;
   linkUrl?: string;
   pdfUrl?: string;
+}
+
+export function getItemClassId(item: { classId?: string; class_id?: string } | null | undefined): ClassId {
+  if (!item) return 'G2B';
+  return ((item.classId || item.class_id || 'G2B') as ClassId);
 }
 
 export interface TomorrowSpecialNote {
@@ -86,6 +93,7 @@ export interface TomorrowSpecialNote {
   linkTitle?: string;
   pdfUrl?: string;
   linkedIds?: string[];
+  isCustom?: boolean;
 }
 
 export interface TomorrowItem {

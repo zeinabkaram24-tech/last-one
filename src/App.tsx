@@ -16,7 +16,7 @@ import { MaterialsModal } from './components/MaterialsModal';
 import { PdfViewerModal } from './components/PdfViewerModal';
 import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 import { InteractiveEditorModal } from './components/InteractiveEditorModal';
-import { notifyTomorrowNotesListeners, saveTomorrowNotes, saveDeletedTomorrowNoteId } from './utils/tomorrowNotesStorage';
+import { notifyTomorrowNotesListeners, saveTomorrowNotes, saveDeletedTomorrowNoteId, removeDeletedTomorrowNoteId } from './utils/tomorrowNotesStorage';
 import {
   getActiveUserProfile,
   setActiveUserProfile,
@@ -41,6 +41,7 @@ import {
   bulkInsertHomework,
   seedInitialDataIfEmpty,
   forceSyncBaselineToSupabase,
+  seedSupabaseFromPlannerData,
   fetchPlannerSettings,
   savePlannerSetting,
   rowToClasswork,
@@ -52,6 +53,7 @@ import {
   saveActiveSupabaseConfig,
   getLocalCustomClasswork,
   getLocalCustomHomework,
+  removeDeletedPlannerItemId,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
@@ -215,6 +217,7 @@ export default function App() {
   const [selectedEditorItem, setSelectedEditorItem] = useState<any>(null);
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [undoAction, setUndoAction] = useState<(() => Promise<void>) | null>(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
@@ -226,6 +229,12 @@ export default function App() {
     const handleConfigUpdated = async () => {
       setSupabaseStatus('connecting');
       try {
+        // Auto-seed if database is empty upon connecting
+        const seedRes = await seedSupabaseFromPlannerData().catch(() => null);
+        if (seedRes && seedRes.seeded) {
+          showToast(`🌱 تم استيراد ورفع ${seedRes.classworkCount} درساً و ${seedRes.homeworkCount} واجباً من planner_data.json إلى Supabase!`);
+        }
+
         const [cwData, hwData] = await Promise.all([
           fetchAllClasswork(),
           fetchAllHomework(),
@@ -240,9 +249,23 @@ export default function App() {
       }
     };
 
+    const handleDataSeeded = async () => {
+      try {
+        const [cwData, hwData] = await Promise.all([
+          fetchAllClasswork(),
+          fetchAllHomework(),
+        ]);
+        if (cwData && cwData.length > 0) setClassworkList(cwData);
+        if (hwData && hwData.length > 0) setHomeworkList(hwData);
+        setSupabaseStatus('connected');
+      } catch {}
+    };
+
     window.addEventListener('supabase_config_updated', handleConfigUpdated);
+    window.addEventListener('supabase_data_seeded', handleDataSeeded);
     return () => {
       window.removeEventListener('supabase_config_updated', handleConfigUpdated);
+      window.removeEventListener('supabase_data_seeded', handleDataSeeded);
     };
   }, []);
 
@@ -282,8 +305,14 @@ export default function App() {
       try {
         if (isSupabaseConfigured) {
           setSupabaseStatus('connecting');
-          // Force-sync updated local codebase baseline data to Supabase first
-          await forceSyncBaselineToSupabase().catch(() => {});
+          // Seed Supabase from local planner_data.json immediately if empty or sync needed
+          const seedRes = await seedSupabaseFromPlannerData().catch((e) => {
+            console.warn('Initial seed check warning:', e);
+            return null;
+          });
+          if (seedRes && seedRes.seeded) {
+            showToast(`🌱 تم استيراد ورفع ${seedRes.classworkCount} درساً و ${seedRes.homeworkCount} واجباً من planner_data.json إلى Supabase بنجاح!`);
+          }
         } else {
           setSupabaseStatus('unconfigured');
         }
@@ -295,15 +324,11 @@ export default function App() {
           fetchPlannerSettings(),
         ]);
 
-        // Background non-blocking tasks: credentials sync, local data sync, and lazy seeding
+        // Background non-blocking tasks: credentials sync, local data sync
         Promise.allSettled([
           syncLocalDataToServer(),
           syncSupabaseConfigWithServer(),
-        ]).then(() => {
-          if (isSupabaseConfigured && (!cwData || cwData.length === 0) && (!hwData || hwData.length === 0)) {
-            seedInitialDataIfEmpty().catch(() => {});
-          }
-        }).catch(() => {});
+        ]).catch(() => {});
 
         if (!isMounted) return;
 
@@ -645,6 +670,9 @@ export default function App() {
   };
 
   const handleDeleteHomework = async (id: string) => {
+    const originalItem = homeworkList.find((h) => h.id === id);
+    if (!originalItem) return;
+
     setHomeworkList((prev) => {
       const next = prev.filter((h) => h.id !== id);
       if (userProfile?.mode === 'student' && userProfile.studentName) {
@@ -672,6 +700,24 @@ export default function App() {
     } catch (e) {
       console.error('Error deleting homework:', e);
     }
+
+    setUndoAction(() => async () => {
+      setHomeworkList((prev) => {
+        if (prev.some((h) => h.id === id)) return prev;
+        return [...prev, originalItem];
+      });
+      try {
+        await upsertHomework(originalItem);
+        await fetch('/api/planner-data/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, type: 'homework' }),
+        });
+      } catch (e) {
+        console.error('Error restoring homework:', e);
+      }
+    });
+
     showToast('تم حذف الواجب بنجاح.');
   };
 
@@ -681,16 +727,16 @@ export default function App() {
     mode: 'merge' | 'replace' = 'replace'
   ) => {
     if (mode === 'replace') {
-      const cwKeys = new Set(newClasswork.map((c) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`));
-      const hwKeys = new Set(newHomework.map((h) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`));
+      const cwKeys = new Set(newClasswork.map((c) => `${c.block || 1}-${c.week || 1}-${c.class_id || c.classId}-${c.subject}`));
+      const hwKeys = new Set(newHomework.map((h) => `${h.block || 1}-${h.week || 1}-${h.class_id || h.classId}-${h.subject}`));
 
       setClassworkList((prev) => [
         ...newClasswork,
-        ...prev.filter((c) => !cwKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)),
+        ...prev.filter((c) => !cwKeys.has(`${c.block || 1}-${c.week || 1}-${c.class_id || c.classId}-${c.subject}`)),
       ]);
       setHomeworkList((prev) => [
         ...newHomework,
-        ...prev.filter((h) => !hwKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)),
+        ...prev.filter((h) => !hwKeys.has(`${h.block || 1}-${h.week || 1}-${h.class_id || h.classId}-${h.subject}`)),
       ]);
     } else {
       setClassworkList((prev) => [...newClasswork, ...prev]);
@@ -739,6 +785,9 @@ export default function App() {
   };
 
   const handleDeleteClasswork = async (id: string) => {
+    const originalItem = classworkList.find((c) => c.id === id);
+    if (!originalItem) return;
+
     setClassworkList((prev) => prev.filter((c) => c.id !== id));
     try {
       await deleteClasswork(id);
@@ -750,6 +799,24 @@ export default function App() {
     } catch (e) {
       console.error('Error deleting classwork:', e);
     }
+
+    setUndoAction(() => async () => {
+      setClassworkList((prev) => {
+        if (prev.some((c) => c.id === id)) return prev;
+        return [...prev, originalItem];
+      });
+      try {
+        await upsertClasswork(originalItem);
+        await fetch('/api/planner-data/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, type: 'classwork' }),
+        });
+      } catch (e) {
+        console.error('Error restoring classwork:', e);
+      }
+    });
+
     showToast('تم حذف الحصة بنجاح.');
   };
 
@@ -851,6 +918,24 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, ids: linkedHwId ? [id, linkedHwId] : [id], type: 'tomorrowNotes' }),
         }).catch(() => {});
+
+        setUndoAction(() => async () => {
+          try {
+            await removeDeletedTomorrowNoteId(id);
+            if (linkedHwId) {
+              await removeDeletedTomorrowNoteId(linkedHwId);
+            }
+            await fetch('/api/planner-data/restore', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, ids: linkedHwId ? [id, linkedHwId] : [id], type: 'tomorrowNotes' }),
+            });
+          } catch (e) {
+            console.error('Error restoring tomorrow note:', e);
+          }
+          notifyTomorrowNotesListeners();
+        });
+
       } catch (e) {
         console.error('Error deleting tomorrow note:', e);
       }
@@ -880,7 +965,7 @@ export default function App() {
 
   // Calculate pending homework count for current class
   const pendingHomeworkCount = homeworkList.filter(
-    (h) => h.classId === currentClass && !h.completed
+    (h) => (h.class_id === currentClass || h.classId === currentClass) && !h.completed
   ).length;
 
   return (
@@ -941,12 +1026,31 @@ export default function App() {
               <Sparkles className="w-4 h-4 text-emerald-200" />
               <span>{toastMsg}</span>
             </div>
-            <button
-              onClick={() => setToastMsg(null)}
-              className="text-emerald-200 hover:text-white text-xs font-bold"
-            >
-              Dismiss
-            </button>
+            <div className="flex items-center gap-4">
+              {undoAction && (
+                <button
+                  onClick={async () => {
+                    const action = undoAction;
+                    setUndoAction(null);
+                    await action();
+                    showToast('تم التراجع بنجاح! ↩️');
+                  }}
+                  className="px-3 py-1 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-extrabold flex items-center gap-1 border border-emerald-600 transition-all cursor-pointer"
+                >
+                  <span>↩️</span>
+                  <span>تراجع (Undo)</span>
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setToastMsg(null);
+                  setUndoAction(null);
+                }}
+                className="text-emerald-200 hover:text-white text-xs font-bold"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         )}
 

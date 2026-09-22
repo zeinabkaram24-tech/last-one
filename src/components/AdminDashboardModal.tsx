@@ -50,6 +50,7 @@ import {
   upsertHomework,
   deleteClasswork,
   deleteHomework,
+  deleteWeek3Data,
 } from '../lib/supabase';
 import { saveTomorrowNotes, saveDeletedTomorrowNoteId, getSemanticKey, notifyTomorrowNotesListeners } from '../utils/tomorrowNotesStorage';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
@@ -482,9 +483,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           );
 
           if (planClass !== 'ALL') {
-            fc = fc.filter((c: any) => c.classId === planClass);
-            fh = fh.filter((h: any) => h.classId === planClass);
-            ft = ft.filter((n: any) => n.classId === planClass);
+            fc = fc.filter((c: any) => (c.class_id || c.classId) === planClass);
+            fh = fh.filter((h: any) => (h.class_id || h.classId) === planClass);
+            ft = ft.filter((n: any) => (n.class_id || n.classId) === planClass);
           }
 
           setParsedResult({
@@ -988,6 +989,33 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  const yes = window.confirm('هل أنتِ متأكدة من رغبتكِ في مسح جميع بيانات الأسبوع الثالث لكل الفصول والأيام والتبويبات؟ لا يمكن التراجع عن هذا الإجراء!');
+                  if (!yes) return;
+                  try {
+                    setIsPublishingPlan(true);
+                    const res = await deleteWeek3Data();
+                    if (res.success) {
+                      alert(res.message);
+                      window.location.reload();
+                    } else {
+                      alert(res.message);
+                    }
+                  } catch (err: any) {
+                    alert('حدث خطأ أثناء الحذف: ' + err.message);
+                  } finally {
+                    setIsPublishingPlan(false);
+                  }
+                }}
+                disabled={isPublishingPlan}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-300 transition-colors cursor-pointer shadow-2xs"
+                title="مسح كامل لبيانات الأسبوع الثالث"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <span>🗑️ مسح الأسبوع الثالث</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setIsSupabaseModalOpen(true)}

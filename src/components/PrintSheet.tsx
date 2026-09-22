@@ -33,7 +33,7 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
 
   const dayClasswork = classworkList.filter(
     (c) =>
-      c.classId === currentClass &&
+      (c.class_id === currentClass || c.classId === currentClass || (c.class_id as any) === 'ALL' || (c.classId as any) === 'ALL') &&
       c.day === selectedDay &&
       (c.block || 1) === currentBlock &&
       (c.week || 1) === currentWeek
@@ -41,7 +41,7 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
 
   const dueTomorrowHomework = homeworkList.filter(
     (h) =>
-      h.classId === currentClass &&
+      (h.class_id === currentClass || h.classId === currentClass || (h.class_id as any) === 'ALL' || (h.classId as any) === 'ALL') &&
       h.dueDay === tomorrowDay &&
       (h.block || 1) === currentBlock &&
       (h.week || 1) === currentWeek

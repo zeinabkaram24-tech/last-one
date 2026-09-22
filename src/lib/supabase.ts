@@ -2,6 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ClassId, ClassworkEntry, HomeworkEntry, SchoolDay, SubjectName, MaterialItem } from '../types';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from '../data/defaultWeeklyPlan';
 import initialData from '../data/initialData.json';
+import localPlannerData from '../../data/planner_data.json';
 
 export function cleanSupabaseUrl(rawUrl: string): string {
   let cleaned = (rawUrl || '').trim().replace(/^["']|["']$/g, '');
@@ -250,41 +251,44 @@ export interface StudentProgressRow {
   last_active: number;
 }
 
-// Convert from Row to ClassworkEntry
-export function rowToClasswork(row: ClassworkRow): ClassworkEntry {
+// Convert from Row to ClassworkEntry - Supports both class_id and classId interchangeably
+export function rowToClasswork(row: any): ClassworkEntry {
+  const resolvedClassId = (row.class_id || row.classId || 'G2B') as ClassId;
   return {
     id: row.id,
-    classId: row.class_id as ClassId,
+    classId: resolvedClassId,
+    class_id: resolvedClassId,
     day: row.day as SchoolDay,
-    period: row.period,
+    period: Number(row.period) || 1,
     subject: row.subject as SubjectName,
-    title: row.title,
+    title: row.title || '',
     details: row.details || undefined,
     pages: row.pages || undefined,
     completed: Boolean(row.completed),
-    block: row.block || 1,
-    week: row.week || 1,
-    linkUrl: row.link_url || undefined,
-    linkTitle: row.link_title || undefined,
+    block: Number(row.block) || 1,
+    week: Number(row.week) || 1,
+    linkUrl: row.link_url || row.linkUrl || undefined,
+    linkTitle: row.link_title || row.linkTitle || undefined,
   };
 }
 
-// Convert from ClassworkEntry to Row
-export function classworkToRow(entry: ClassworkEntry): Omit<ClassworkRow, 'created_at'> {
+// Convert from ClassworkEntry to Row - Supports both class_id and classId
+export function classworkToRow(entry: any): Omit<ClassworkRow, 'created_at'> {
+  const resolvedClassId = entry.class_id || entry.classId || 'G2B';
   return {
     id: entry.id,
-    class_id: entry.classId,
+    class_id: resolvedClassId,
     day: entry.day,
-    period: entry.period,
+    period: Number(entry.period) || 1,
     subject: entry.subject,
-    title: entry.title,
+    title: entry.title || '',
     details: entry.details || null,
     pages: entry.pages || null,
     completed: Boolean(entry.completed),
-    block: entry.block || 1,
-    week: entry.week || 1,
-    link_url: entry.linkUrl || null,
-    link_title: entry.linkTitle || null,
+    block: Number(entry.block) || 1,
+    week: Number(entry.week) || 1,
+    link_url: entry.link_url || entry.linkUrl || null,
+    link_title: entry.link_title || entry.linkTitle || null,
   };
 }
 
@@ -306,45 +310,48 @@ export function packHomeworkDetails(details?: string, pdfUrl?: string) {
   return res || undefined;
 }
 
-// Convert from Row to HomeworkEntry
-export function rowToHomework(row: HomeworkRow): HomeworkEntry {
+// Convert from Row to HomeworkEntry - Supports both class_id and classId interchangeably
+export function rowToHomework(row: any): HomeworkEntry {
   const unpacked = unpackHomeworkDetails(row.details);
+  const resolvedClassId = (row.class_id || row.classId || 'G2B') as ClassId;
   return {
     id: row.id,
-    classId: row.class_id as ClassId,
-    assignedDay: row.assigned_day as SchoolDay,
-    dueDay: row.due_day as SchoolDay,
+    classId: resolvedClassId,
+    class_id: resolvedClassId,
+    assignedDay: (row.assigned_day || row.assignedDay) as SchoolDay,
+    dueDay: (row.due_day || row.dueDay) as SchoolDay,
     subject: row.subject as SubjectName,
-    task: row.task,
+    task: row.task || '',
     details: unpacked.details,
     pages: row.pages || undefined,
     completed: Boolean(row.completed),
     priority: (row.priority as 'normal' | 'urgent') || 'normal',
-    block: row.block || 1,
-    week: row.week || 1,
-    isLinkTask: Boolean(row.is_link_task),
-    linkUrl: row.link_url || undefined,
-    pdfUrl: unpacked.pdfUrl,
+    block: Number(row.block) || 1,
+    week: Number(row.week) || 1,
+    isLinkTask: Boolean(row.is_link_task ?? row.isLinkTask),
+    linkUrl: row.link_url || row.linkUrl || undefined,
+    pdfUrl: unpacked.pdfUrl || row.pdfUrl || undefined,
   };
 }
 
-// Convert from HomeworkEntry to Row
-export function homeworkToRow(entry: HomeworkEntry): Omit<HomeworkRow, 'created_at'> {
+// Convert from HomeworkEntry to Row - Supports both class_id and classId
+export function homeworkToRow(entry: any): Omit<HomeworkRow, 'created_at'> {
+  const resolvedClassId = entry.class_id || entry.classId || 'G2B';
   return {
     id: entry.id,
-    class_id: entry.classId,
-    assigned_day: entry.assignedDay,
-    due_day: entry.dueDay,
+    class_id: resolvedClassId,
+    assigned_day: entry.assigned_day || entry.assignedDay,
+    due_day: entry.due_day || entry.dueDay,
     subject: entry.subject,
-    task: entry.task,
+    task: entry.task || '',
     details: packHomeworkDetails(entry.details, entry.pdfUrl) || null,
     pages: entry.pages || null,
     completed: Boolean(entry.completed),
     priority: entry.priority || 'normal',
-    block: entry.block || 1,
-    week: entry.week || 1,
-    is_link_task: Boolean(entry.isLinkTask),
-    link_url: entry.linkUrl || null,
+    block: Number(entry.block) || 1,
+    week: Number(entry.week) || 1,
+    is_link_task: Boolean(entry.is_link_task ?? entry.isLinkTask),
+    link_url: entry.link_url || entry.linkUrl || null,
   };
 }
 
@@ -1132,159 +1139,341 @@ export async function fetchKnownStudentsFromDb(): Promise<{ name: string; classI
 }
 
 // =========================================================================
-// Automated Initial Seeding
+// Automated Seeding & Sync from data/planner_data.json
 // =========================================================================
+
+export interface SeedResult {
+  success: boolean;
+  seeded: boolean;
+  classworkCount: number;
+  homeworkCount: number;
+  tomorrowNotesCount: number;
+  message: string;
+}
+
+/**
+ * Reads local planner data (data/planner_data.json) and uploads all lessons,
+ * homework, and planner items to Supabase if empty or when forced.
+ */
+export async function seedSupabaseFromPlannerData(options?: { force?: boolean }): Promise<SeedResult> {
+  if (!isSupabaseConfigured) {
+    return {
+      success: false,
+      seeded: false,
+      classworkCount: 0,
+      homeworkCount: 0,
+      tomorrowNotesCount: 0,
+      message: 'قاعدة بيانات Supabase غير مهيأة بعد (يرجى إدخال الرابط والمفتاح في الإعدادات).',
+    };
+  }
+
+  try {
+    // 1. Retrieve planner data: try central /api/planner-data endpoint, fallback to bundled localPlannerData
+    let plannerJson: {
+      classwork: any[];
+      homework: any[];
+      tomorrowNotes?: any[];
+      deletedTomorrowNoteIds?: string[];
+      deletedPlannerItemIds?: string[];
+    } = localPlannerData as any;
+
+    try {
+      const res = await withTimeout(fetch('/api/planner-data'), 2500, null as any);
+      if (res && res.ok) {
+        const srvJson = await res.json();
+        if (srvJson && (Array.isArray(srvJson.classwork) || Array.isArray(srvJson.homework))) {
+          plannerJson = srvJson;
+        }
+      }
+    } catch {
+      // Fallback directly to localPlannerData
+    }
+
+    const cwList: any[] = Array.isArray(plannerJson.classwork) ? plannerJson.classwork : [];
+    const hwList: any[] = Array.isArray(plannerJson.homework) ? plannerJson.homework : [];
+    const tnList: any[] = Array.isArray(plannerJson.tomorrowNotes) ? plannerJson.tomorrowNotes : [];
+
+    // Clear/Overwrite local stored browser caches first to ensure no merging of old data
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('classwork_planner_custom_entries_v3');
+      localStorage.removeItem('homework_planner_custom_entries_v3');
+      localStorage.removeItem('nile_deleted_planner_item_ids_v3');
+      localStorage.removeItem('nile_deleted_tomorrow_note_ids_v3');
+      localStorage.removeItem('nile_planner_custom_classwork');
+      localStorage.removeItem('nile_planner_custom_homework');
+    }
+
+    // Always perform a complete overwrite (delete all existing records) when forced or when seeding to prevent duplication or merging
+    console.log('🧹 Clearing existing classwork, homework, and special settings from Supabase for a clean overwrite...');
+    try {
+      await Promise.all([
+        supabase.from('classwork').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('homework').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('planner_settings').delete().in('key', ['deleted_planner_item_ids', 'deleted_tomorrow_note_ids', 'tomorrow_special_notes'])
+      ]);
+    } catch (clearErr) {
+      console.warn('Notice clearing existing Supabase data:', clearErr);
+    }
+
+    let seededCwCount = 0;
+    let seededHwCount = 0;
+    let seededTnCount = 0;
+
+    // 3. Upload Classwork (الدروس والحصص)
+    if (cwList.length > 0) {
+      console.log(`🌱 Seeding ${cwList.length} classwork entries from planner_data.json into Supabase...`);
+      const cwRows: any[] = [];
+      const seenCwIds = new Set<string>();
+      for (const cw of cwList) {
+        if (cw.id && !seenCwIds.has(cw.id)) {
+          seenCwIds.add(cw.id);
+          const resolvedClassId = cw.class_id || cw.classId || 'G2B';
+          cwRows.push({
+            id: cw.id,
+            class_id: resolvedClassId,
+            day: cw.day,
+            period: Number(cw.period) || 1,
+            subject: cw.subject,
+            title: cw.title || '',
+            details: cw.details || null,
+            pages: cw.pages || null,
+            completed: Boolean(cw.completed),
+            block: Number(cw.block) || 1,
+            week: Number(cw.week) || 1,
+            link_url: cw.link_url || cw.linkUrl || null,
+            link_title: cw.link_title || cw.linkTitle || null,
+          });
+        }
+      }
+
+      for (let i = 0; i < cwRows.length; i += 50) {
+        const chunk = cwRows.slice(i, i + 50);
+        const { error } = await supabase.from('classwork').insert(chunk);
+        if (error) {
+          console.warn('Notice seeding classwork chunk:', error.message);
+        } else {
+          seededCwCount += chunk.length;
+        }
+      }
+      saveLocalCustomClasswork(cwList.map((c: any) => ({
+        ...c,
+        classId: c.class_id || c.classId || 'G2B',
+        class_id: c.class_id || c.classId || 'G2B',
+      })), 'replace');
+    }
+
+    // 4. Upload Homework (الواجبات والمهام)
+    if (hwList.length > 0) {
+      console.log(`🌱 Seeding ${hwList.length} homework entries from planner_data.json into Supabase...`);
+      const hwRows: any[] = [];
+      const seenHwIds = new Set<string>();
+      for (const hw of hwList) {
+        if (hw.id && !seenHwIds.has(hw.id)) {
+          seenHwIds.add(hw.id);
+          const resolvedClassId = hw.class_id || hw.classId || 'G2B';
+          hwRows.push({
+            id: hw.id,
+            class_id: resolvedClassId,
+            assigned_day: hw.assigned_day || hw.assignedDay || 'Sunday',
+            due_day: hw.due_day || hw.dueDay || 'Sunday',
+            subject: hw.subject,
+            task: hw.task || '',
+            details: packHomeworkDetails(hw.details, hw.pdfUrl) || null,
+            pages: hw.pages || null,
+            completed: Boolean(hw.completed),
+            priority: hw.priority || 'normal',
+            block: Number(hw.block) || 1,
+            week: Number(hw.week) || 1,
+            is_link_task: Boolean(hw.is_link_task ?? hw.isLinkTask),
+            link_url: hw.link_url || hw.linkUrl || null,
+          });
+        }
+      }
+
+      for (let i = 0; i < hwRows.length; i += 50) {
+        const chunk = hwRows.slice(i, i + 50);
+        const { error } = await supabase.from('homework').insert(chunk);
+        if (error) {
+          console.warn('Notice seeding homework chunk:', error.message);
+        } else {
+          seededHwCount += chunk.length;
+        }
+      }
+      saveLocalCustomHomework(hwList, 'replace');
+    }
+
+    // 5. Upload Tomorrow Notes & Planner Settings (المخطط والملاحظات)
+    if (tnList.length > 0) {
+      try {
+        await supabase.from('planner_settings').upsert({
+          key: 'tomorrow_special_notes',
+          value: JSON.stringify(tnList),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'key' });
+        seededTnCount = tnList.length;
+      } catch (err) {
+        console.warn('Notice saving tomorrow_special_notes in settings:', err);
+      }
+    }
+
+    // Save deleted items lists if any
+    if (Array.isArray(plannerJson.deletedPlannerItemIds) && plannerJson.deletedPlannerItemIds.length > 0) {
+      try {
+        await supabase.from('planner_settings').upsert({
+          key: 'deleted_planner_item_ids',
+          value: JSON.stringify(plannerJson.deletedPlannerItemIds),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'key' });
+      } catch {}
+    }
+
+    if (Array.isArray(plannerJson.deletedTomorrowNoteIds) && plannerJson.deletedTomorrowNoteIds.length > 0) {
+      try {
+        await supabase.from('planner_settings').upsert({
+          key: 'deleted_tomorrow_note_ids',
+          value: JSON.stringify(plannerJson.deletedTomorrowNoteIds),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'key' });
+      } catch {}
+    }
+
+    // Upsert default planner settings if empty
+    try {
+      const defaultSettings = [
+        { key: 'current_class', value: initialData.nile_planner_current_class_v3 || 'G2B' },
+        { key: 'current_week', value: initialData.nile_planner_current_week_v3 || '3' },
+        { key: 'selected_day', value: initialData.nile_planner_selected_day_v3 || 'Sunday' },
+        { key: 'current_block', value: '1' },
+      ];
+      await supabase.from('planner_settings').upsert(defaultSettings, { onConflict: 'key' });
+    } catch {}
+
+    const wasSeeded = seededCwCount > 0 || seededHwCount > 0 || seededTnCount > 0;
+
+    if (wasSeeded && typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('supabase_data_seeded', {
+          detail: {
+            classworkCount: seededCwCount,
+            homeworkCount: seededHwCount,
+            tomorrowNotesCount: seededTnCount,
+          },
+        })
+      );
+    }
+
+    return {
+      success: true,
+      seeded: wasSeeded,
+      classworkCount: seededCwCount || cwList.length,
+      homeworkCount: seededHwCount || hwList.length,
+      tomorrowNotesCount: seededTnCount || tnList.length,
+      message: wasSeeded
+        ? `تم بنجاح استيراد ورفع ${seededCwCount} درساً و ${seededHwCount} واجباً و ${seededTnCount} ملاحظة من planner_data.json إلى Supabase!`
+        : 'قاعدة بيانات Supabase تحتوي بالفعل على بيانات الدروس والواجبات.',
+    };
+  } catch (err: any) {
+    console.error('Error during seedSupabaseFromPlannerData:', err);
+    return {
+      success: false,
+      seeded: false,
+      classworkCount: 0,
+      homeworkCount: 0,
+      tomorrowNotesCount: 0,
+      message: `خطأ أثناء استيراد البيانات إلى Supabase: ${err.message || 'خطأ غير معروف'}`,
+    };
+  }
+}
 
 export async function seedInitialDataIfEmpty(): Promise<{
   seeded: boolean;
   classworkCount: number;
   homeworkCount: number;
 }> {
-  if (!isSupabaseConfigured) {
-    return { seeded: false, classworkCount: 0, homeworkCount: 0 };
-  }
-
-  try {
-    // Check existing count in classwork
-    const { count: cwCount, error: cwErr } = await supabase
-      .from('classwork')
-      .select('*', { count: 'exact', head: true });
-
-    if (cwErr) {
-      console.warn('Error checking classwork table count:', cwErr.message);
-      return { seeded: false, classworkCount: 0, homeworkCount: 0 };
-    }
-
-    // Check existing count in homework
-    const { count: hwCount, error: hwErr } = await supabase
-      .from('homework')
-      .select('*', { count: 'exact', head: true });
-
-    if (hwErr) {
-      console.warn('Error checking homework table count:', hwErr.message);
-      return { seeded: false, classworkCount: cwCount || 0, homeworkCount: 0 };
-    }
-
-    let seeded = false;
-
-    // Seed classwork if empty
-    if ((cwCount ?? 0) === 0) {
-      const cwInitial = INITIAL_CLASSWORK;
-      if (cwInitial && cwInitial.length > 0) {
-        console.log(`🌱 Seeding ${cwInitial.length} classwork entries into Supabase...`);
-        const rows = cwInitial.map(classworkToRow);
-        for (let i = 0; i < rows.length; i += 50) {
-          const chunk = rows.slice(i, i + 50);
-          try {
-            const { error: seedCwErr } = await supabase.from('classwork').upsert(chunk, { onConflict: 'id' });
-            if (seedCwErr) {
-              console.warn('Notice seeding classwork chunk:', seedCwErr.message || seedCwErr);
-            } else {
-              seeded = true;
-            }
-          } catch (e) {
-            console.warn('Network exception during classwork seed chunk:', e);
-          }
-        }
-      }
-    }
-
-    // Seed homework if empty
-    if ((hwCount ?? 0) === 0) {
-      const hwInitial = INITIAL_HOMEWORK;
-      if (hwInitial && hwInitial.length > 0) {
-        console.log(`🌱 Seeding ${hwInitial.length} homework entries into Supabase...`);
-        const rows = hwInitial.map(homeworkToRow);
-        for (let i = 0; i < rows.length; i += 50) {
-          const chunk = rows.slice(i, i + 50);
-          try {
-            const { error: seedHwErr } = await supabase.from('homework').upsert(chunk, { onConflict: 'id' });
-            if (seedHwErr) {
-              console.warn('Notice seeding homework chunk:', seedHwErr.message || seedHwErr);
-            } else {
-              seeded = true;
-            }
-          } catch (e) {
-            console.warn('Network exception during homework seed chunk:', e);
-          }
-        }
-      }
-    }
-
-    // Seed initial settings if empty
-    try {
-      const { count: settiingsCount } = await supabase
-        .from('planner_settings')
-        .select('*', { count: 'exact', head: true });
-
-      if ((settiingsCount ?? 0) === 0) {
-        const settingsToSeed = [
-          { key: 'current_class', value: initialData.nile_planner_current_class_v3 || 'G2B' },
-          { key: 'current_week', value: initialData.nile_planner_current_week_v3 || '3' },
-          { key: 'selected_day', value: initialData.nile_planner_selected_day_v3 || 'Sunday' },
-          { key: 'current_block', value: '1' },
-        ];
-        await supabase.from('planner_settings').upsert(settingsToSeed, { onConflict: 'key' });
-      }
-    } catch {
-      // Ignore if table not yet created
-    }
-
-    return {
-      seeded,
-      classworkCount: cwCount ?? 0,
-      homeworkCount: hwCount ?? 0,
-    };
-  } catch (err) {
-    console.warn('Notice during auto-seeding:', err);
-    return { seeded: false, classworkCount: 0, homeworkCount: 0 };
-  }
+  const res = await seedSupabaseFromPlannerData();
+  return {
+    seeded: res.seeded,
+    classworkCount: res.classworkCount,
+    homeworkCount: res.homeworkCount,
+  };
 }
 
 export async function forceSyncBaselineToSupabase(): Promise<void> {
   if (!isSupabaseConfigured) return;
+  await seedSupabaseFromPlannerData();
+}
+
+export async function deleteWeek3Data(): Promise<{ success: boolean; message: string }> {
   try {
-    const deletedIds = await getDeletedPlannerItemIds();
-    const deletedSet = new Set(deletedIds);
+    // 1. Clear local browser custom entries (especially if they belong to week 3)
+    if (typeof window !== 'undefined') {
+      const storedCw = localStorage.getItem('classwork_planner_custom_entries_v3');
+      if (storedCw) {
+        try {
+          const list = JSON.parse(storedCw);
+          const filtered = list.filter((c: any) => c.week !== 3);
+          localStorage.setItem('classwork_planner_custom_entries_v3', JSON.stringify(filtered));
+        } catch {}
+      }
+      
+      const storedHw = localStorage.getItem('homework_planner_custom_entries_v3');
+      if (storedHw) {
+        try {
+          const list = JSON.parse(storedHw);
+          const filtered = list.filter((h: any) => h.week !== 3);
+          localStorage.setItem('homework_planner_custom_entries_v3', JSON.stringify(filtered));
+        } catch {}
+      }
 
-    // 1. Check existing classwork
-    const { data: cwExisting } = await supabase
-      .from('classwork')
-      .select('id');
-    
-    const existingCwIds = new Set((cwExisting || []).map((r: any) => r.id));
-    
-    // Only insert baseline items if the database has no classwork at all, or only insert items not in deletedSet and not already existing
-    if (existingCwIds.size === 0) {
-      const missingCw = INITIAL_CLASSWORK.filter((c) => c && c.id && !deletedSet.has(c.id));
-      if (missingCw.length > 0) {
-        const cwRows = missingCw.map(classworkToRow);
-        for (let i = 0; i < cwRows.length; i += 50) {
-          const chunk = cwRows.slice(i, i + 50);
-          await supabase.from('classwork').insert(chunk);
-        }
+      const storedNileCw = localStorage.getItem('nile_planner_custom_classwork');
+      if (storedNileCw) {
+        try {
+          const list = JSON.parse(storedNileCw);
+          const filtered = list.filter((c: any) => c.week !== 3);
+          localStorage.setItem('nile_planner_custom_classwork', JSON.stringify(filtered));
+        } catch {}
+      }
+
+      const storedNileHw = localStorage.getItem('nile_planner_custom_homework');
+      if (storedNileHw) {
+        try {
+          const list = JSON.parse(storedNileHw);
+          const filtered = list.filter((h: any) => h.week !== 3);
+          localStorage.setItem('nile_planner_custom_homework', JSON.stringify(filtered));
+        } catch {}
       }
     }
 
-    // 2. Check existing homework
-    const { data: hwExisting } = await supabase
-      .from('homework')
-      .select('id');
-    
-    const existingHwIds = new Set((hwExisting || []).map((r: any) => r.id));
-    
-    if (existingHwIds.size === 0) {
-      const missingHw = INITIAL_HOMEWORK.filter((h) => h && h.id && !deletedSet.has(h.id));
-      if (missingHw.length > 0) {
-        const hwRows = missingHw.map(homeworkToRow);
-        for (let i = 0; i < hwRows.length; i += 50) {
-          const chunk = hwRows.slice(i, i + 50);
-          await supabase.from('homework').insert(chunk);
-        }
-      }
+    // 2. Call backend to clean planner_data.json on server and Supabase
+    const response = await fetch('/api/supabase/delete-week3', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const resJson = await response.json();
+
+    // 3. Delete directly from Supabase if client is initialized
+    if (isSupabaseConfigured && supabase) {
+      await Promise.all([
+        supabase.from('classwork').delete().eq('week', 3),
+        supabase.from('homework').delete().eq('week', 3),
+      ]);
     }
-  } catch (err) {
-    console.warn('[Sync] Non-fatal sync notice:', err);
+
+    // Dispatch custom event to notify all components to reload their data!
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('supabase_data_seeded'));
+    }
+
+    return {
+      success: true,
+      message: resJson.message || 'تم حذف جميع بيانات الأسبوع الثالث بنجاح!'
+    };
+  } catch (err: any) {
+    console.error('Error during deleteWeek3Data:', err);
+    return {
+      success: false,
+      message: `خطأ أثناء الحذف: ${err.message || 'خطأ غير معروف'}`
+    };
   }
 }
 

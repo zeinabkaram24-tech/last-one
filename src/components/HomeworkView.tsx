@@ -89,10 +89,15 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   onEditHomework,
   onDeleteHomework,
 }) => {
+  const matchesClass = (h: any) => {
+    const cid = h.class_id || h.classId;
+    return cid === currentClass || cid === 'ALL';
+  };
+
   // Check if this Block and Week has ANY homework entered for current class
   const hasHomeworkForWeek = homeworkList.some(
     (h) =>
-      (h.classId === currentClass || (h.classId as any) === 'ALL') &&
+      matchesClass(h) &&
       (h.block || 1) === currentBlock &&
       (h.week || 1) === currentWeek
   );
@@ -100,7 +105,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   // Homework assigned for the selected day with strict deduplication by ID
   const rawDayHomework = homeworkList.filter(
     (h) =>
-      (h.classId === currentClass || (h.classId as any) === 'ALL') &&
+      matchesClass(h) &&
       h.assignedDay === selectedDay &&
       (h.block || 1) === currentBlock &&
       (h.week || 1) === currentWeek

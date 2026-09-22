@@ -118,11 +118,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
     // These rules ONLY apply when we are in Week 3
     if (currentWeek === 3) {
-      // Strict Mathematics/Math rule: Completely disallow Maths notes/alerts/submissions on any day
-      if (n.subject === 'Mathematics' || n.subject === 'Math') {
-        return true;
-      }
-
       // Strict English rule: ONLY allow dictation ("dictation" or "إملاء" or "ديكتيشن") on Monday (Sunday looked ahead), completely block all other English notes/alerts/submissions on any day
       if (n.subject === 'English') {
         const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
@@ -145,15 +140,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         }
       }
 
-      // Explicit user rule: Delete / disallow Science booklet submission for G2C on Monday
-      if (
-        (currentClass === 'G2C' || n.classId === 'G2C') &&
-        (tomorrowDay === 'Monday' || n.targetDay === 'Monday') &&
-        n.subject === 'Science' &&
-        ((n.note || '').includes('بوكلت') || (n.arabicNote || '').includes('بوكلت') || (n.id || '').includes('hw-submit'))
-      ) {
-        return true;
-      }
+      // Explicit user rule: Allow Science booklet submission for G2C on Monday as per latest user request
+      // (Previously disallowed, but now explicitly requested: "يوم الحد في التومورو، طبعا للتوسي، تضيف لي تاسك بتسليم البوكليت.")
 
       // Strict user rule for Sunday (Saturday-Tomorrow view):
       // Allow quizzes, tests, French, Social Studies, or notes with materials
@@ -233,6 +221,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (normSubject.includes('math') || normSubject.includes('رياضيات')) {
       if (text.includes('test') || text.includes('اختبار') || text.includes('unit 1')) {
         return `math-test-${n.targetDay}`;
+      }
+    }
+
+    // 6. English dictation
+    if (normSubject.includes('english') || normSubject.includes('إنجليزي') || normSubject.includes('انجليزي')) {
+      if (text.includes('dictation') || text.includes('إملاء') || text.includes('ديكتيشن')) {
+        return `english-dictation-${n.targetDay}`;
       }
     }
 
@@ -465,7 +460,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
     // 1. Linked from Homework:
     homeworkList.forEach((h) => {
-      if (h.classId !== currentClass && (h.classId as any) !== 'ALL') return;
+      const cid = h.class_id || h.classId;
+      if (cid !== currentClass && (cid as any) !== 'ALL') return;
       if (h.week && h.week !== currentWeek) return;
 
       const fullText = `${h.task} ${h.details || ''} ${h.subject}`;
