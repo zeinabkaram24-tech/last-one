@@ -153,108 +153,110 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return false;
     }
 
-    // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (No reminders/notes on Monday for G2B and G2C!)
-    if (tomorrowDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
-      return true; // Strictly disallow all system/default reminders/notes on Monday for Class B and Class C!
-    }
-
-    // Strict Saturday / Sunday lookahead French Homework exclusion:
-    // "وعايزة أمسح الـ task بتاع تسليم هوم ورك الفرنش اللي هي في 2A في السبت tomorrow. وامسح حكاية الـ homework الـ French من يوم السبت."
-    if ((selectedDay === 'Saturday' || tomorrowDay === 'Sunday') && (n.subject === 'French' || (n.subject as string)?.toLowerCase() === 'french')) {
-      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      if (fullText.includes('homework') || fullText.includes('واجب') || fullText.includes('تسليم') || fullText.includes('page 26') || fullText.includes('fiche')) {
-        return true;
+    if (currentWeek === 3) {
+      // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (No reminders/notes on Monday for G2B and G2C!)
+      if (tomorrowDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
+        return true; // Strictly disallow all system/default reminders/notes on Monday for Class B and Class C!
       }
-    }
 
-    // 1. Strict G2A Monday & Tuesday rule:
-    // "يوم الاثنين في التومورو لكلاس 2 أ، هيتحط لي بس تاسك إحضار الأدوات للساينس."
-    // "في نفس اليوم ونفس الفصل هيتشال تاسك الإملاء اللي انت عامله. بوهيتشال تاسك كويز فرنسي اللي انت عامله."
-    if (currentClass === 'G2A' && (tomorrowDay === 'Monday' || tomorrowDay === 'Tuesday')) {
-      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      const isSciTools = n.subject === 'Science' && (fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط'));
-      const isEnglishDictation = n.subject === 'English' && (fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن'));
-      
-      if (tomorrowDay === 'Monday') {
-        if (!isSciTools && !isEnglishDictation) {
-          return true; // Strictly disallowed (Allow ONLY Science tools or English dictation!)
-        }
-      } else {
-        if (!isSciTools) {
-          return true; // Strictly disallowed (ONLY allow Science tools!)
+      // Strict Saturday / Sunday lookahead French Homework exclusion:
+      // "وعايزة أمسح الـ task بتاع تسليم هوم ورك الفرنش اللي هي في 2A في السبت tomorrow. وامسح حكاية الـ homework الـ French من يوم السبت."
+      if ((selectedDay === 'Saturday' || tomorrowDay === 'Sunday') && (n.subject === 'French' || (n.subject as string)?.toLowerCase() === 'french')) {
+        const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        if (fullText.includes('homework') || fullText.includes('واجب') || fullText.includes('تسليم') || fullText.includes('page 26') || fullText.includes('fiche')) {
+          return true;
         }
       }
-    }
 
-    // Cancel/remove any dictation reminder for Class B (G2B) and Class C (G2C) on Monday (tomorrowDay === 'Monday')
-    if (tomorrowDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
-      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      const isDictation = fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع');
-      if (isDictation) {
-        return true; // Strictly disallowed!
-      }
-    }
-
-    // Strictly disallow any Science booklet submission for Class C (G2C) on ANY day in the tomorrow view
-    if (currentClass === 'G2C') {
-      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      const isSciBooklet = n.subject === 'Science' && (fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('booklet') || fullText.includes('submission') || fullText.includes('تسليم'));
-      if (isSciBooklet) {
-        return true; // Strictly disallowed for G2C!
-      }
-    }
-
-    // G2C French Quiz on Monday (Sunday tomorrow) is disallowed!
-    if (currentClass === 'G2C' && tomorrowDay === 'Monday' && n.subject === 'French') {
-      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      const isFrenchQuiz = fullText.includes('quiz') || fullText.includes('كويز') || fullText.includes('اختبار');
-      if (isFrenchQuiz) {
-        return true;
-      }
-    }
-
-    // Strict Saturday rules for Tomorrow view:
-    // 1) "قم بحذف task dictation من يوم السبت لـ class A و C في tomorrow." (and B as well)
-    // 2) French is disallowed on Saturday
-    if (selectedDay === 'Saturday' || tomorrowDay === 'Saturday') {
-      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      const isDictation = fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('إملاء');
-      if (isDictation) {
-        return true; // Strictly disallowed on Saturday for all classes!
-      }
-      const isFrench = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي');
-      if (isFrench) {
-        return true; // Strictly disallowed on Saturday
-      }
-    }
-
-    // 2. Strict Math test reminder rule: only show on Wednesday (tomorrowDay === 'Thursday')
-    if (n.subject === 'Mathematics' || n.subject === 'Math') {
-      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      const isTest = n.isQuiz || n.categoryType === 'quiz' || fullText.includes('test') || fullText.includes('quiz') || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم');
-      if (isTest && (tomorrowDay as string) !== 'Thursday') {
-        return true; // Strictly disallowed on any day other than Wednesday (where tomorrowDay === 'Thursday')
-      }
-    }
-
-    // 3. Strict Science rules for Sunday (Saturday-Tomorrow view):
-    if (tomorrowDay === 'Sunday' && n.subject === 'Science') {
-      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      const isTools = fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط');
-      const isBooklet = fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('تسليم') || fullText.includes('booklet') || fullText.includes('submission');
-
-      if (isTools) {
-        // G2B and G2C have Science tools on Sunday
-        // G2A does NOT have Science tools on Sunday
-        if (currentClass === 'G2A') {
-          return true; // Strictly disallowed for G2A on Sunday
+      // 1. Strict G2A Monday & Tuesday rule:
+      // "يوم الاثنين في التومورو لكلاس 2 أ، هيتحط لي بس تاسك إحضار الأدوات للساينس."
+      // "في نفس اليوم ونفس الفصل هيتشال تاسك الإملاء اللي انت عامله. بوهيتشال تاسك كويز فرنسي اللي انت عامله."
+      if (currentClass === 'G2A' && (tomorrowDay === 'Monday' || tomorrowDay === 'Tuesday')) {
+        const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isSciTools = n.subject === 'Science' && (fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط'));
+        const isEnglishDictation = n.subject === 'English' && (fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن'));
+        
+        if (tomorrowDay === 'Monday') {
+          if (!isSciTools && !isEnglishDictation) {
+            return true; // Strictly disallowed (Allow ONLY Science tools or English dictation!)
+          }
+        } else {
+          if (!isSciTools) {
+            return true; // Strictly disallowed (ONLY allow Science tools!)
+          }
         }
-        return false; // Explicitly allowed for G2B and G2C
       }
 
-      if (isBooklet) {
-        // G2A and G2B have Science booklet submission on Sunday
-        return false; // Explicitly allowed for G2A and G2B
+      // Cancel/remove any dictation reminder for Class B (G2B) and Class C (G2C) on Monday (tomorrowDay === 'Monday')
+      if (tomorrowDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
+        const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isDictation = fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع');
+        if (isDictation) {
+          return true; // Strictly disallowed!
+        }
+      }
+
+      // Strictly disallow any Science booklet submission for Class C (G2C) on ANY day in the tomorrow view
+      if (currentClass === 'G2C') {
+        const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isSciBooklet = n.subject === 'Science' && (fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('booklet') || fullText.includes('submission') || fullText.includes('تسليم'));
+        if (isSciBooklet) {
+          return true; // Strictly disallowed for G2C!
+        }
+      }
+
+      // G2C French Quiz on Monday (Sunday tomorrow) is disallowed!
+      if (currentClass === 'G2C' && tomorrowDay === 'Monday' && n.subject === 'French') {
+        const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isFrenchQuiz = fullText.includes('quiz') || fullText.includes('كويز') || fullText.includes('اختبار');
+        if (isFrenchQuiz) {
+          return true;
+        }
+      }
+
+      // Strict Saturday rules for Tomorrow view:
+      // 1) "قم بحذف task dictation من يوم السبت لـ class A و C في tomorrow." (and B as well)
+      // 2) French is disallowed on Saturday
+      if (selectedDay === 'Saturday' || tomorrowDay === 'Saturday') {
+        const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isDictation = fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('إملاء');
+        if (isDictation) {
+          return true; // Strictly disallowed on Saturday for all classes!
+        }
+        const isFrench = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي');
+        if (isFrench) {
+          return true; // Strictly disallowed on Saturday
+        }
+      }
+
+      // 2. Strict Math test reminder rule: only show on Wednesday (tomorrowDay === 'Thursday')
+      if (n.subject === 'Mathematics' || n.subject === 'Math') {
+        const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isTest = n.isQuiz || n.categoryType === 'quiz' || fullText.includes('test') || fullText.includes('quiz') || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم');
+        if (isTest && (tomorrowDay as string) !== 'Thursday') {
+          return true; // Strictly disallowed on any day other than Wednesday (where tomorrowDay === 'Thursday')
+        }
+      }
+
+      // 3. Strict Science rules for Sunday (Saturday-Tomorrow view):
+      if (tomorrowDay === 'Sunday' && n.subject === 'Science') {
+        const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isTools = fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط');
+        const isBooklet = fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('تسليم') || fullText.includes('booklet') || fullText.includes('submission');
+
+        if (isTools) {
+          // G2B and G2C have Science tools on Sunday
+          // G2A does NOT have Science tools on Sunday
+          if (currentClass === 'G2A') {
+            return true; // Strictly disallowed for G2A on Sunday
+          }
+          return false; // Explicitly allowed for G2B and G2C
+        }
+
+        if (isBooklet) {
+          // G2A and G2B have Science booklet submission on Sunday
+          return false; // Explicitly allowed for G2A and G2B
+        }
       }
     }
 

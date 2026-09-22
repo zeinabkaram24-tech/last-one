@@ -811,15 +811,30 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         if (dbItems.length > 0) {
           // Cloud database is active: use as single source of truth without resurrecting deleted items
           dbItems.forEach((h) => {
+            // Exclude Tuesday Dictation / Dictation Alert for Week 3
+            const isTuesdayDictation = h.week === 3 && h.assignedDay === 'Tuesday' && 
+              (/dictation|إملاء|تنبيه إملاء/.test((h.task || '').toLowerCase()) || /dictation|إملاء|تنبيه إملاء/.test((h.subject || '').toLowerCase()));
+            if (isTuesdayDictation) return;
+
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
           const localCustom = getLocalCustomHomework();
           localCustom.forEach((h) => {
+            // Exclude Tuesday Dictation / Dictation Alert for Week 3
+            const isTuesdayDictation = h.week === 3 && h.assignedDay === 'Tuesday' && 
+              (/dictation|إملاء|تنبيه إملاء/.test((h.task || '').toLowerCase()) || /dictation|إملاء|تنبيه إملاء/.test((h.subject || '').toLowerCase()));
+            if (isTuesdayDictation) return;
+
             if (h && h.id && (h.week || 1) === 3 && !deletedSet.has(h.id)) map.set(h.id, h);
           });
         } else {
           // Fresh unseeded database for Week 3
           INITIAL_HOMEWORK.filter((h) => (h.week || 1) === 3).forEach((h) => {
+            // Exclude Tuesday Dictation / Dictation Alert for Week 3
+            const isTuesdayDictation = h.week === 3 && h.assignedDay === 'Tuesday' && 
+              (/dictation|إملاء|تنبيه إملاء/.test((h.task || '').toLowerCase()) || /dictation|إملاء|تنبيه إملاء/.test((h.subject || '').toLowerCase()));
+            if (isTuesdayDictation) return;
+
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
         }
@@ -885,9 +900,19 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   // Merge normalizedBase and localCustom
   const map = new Map<string, HomeworkEntry>();
   normalizedBase.forEach((h) => {
+    // Exclude Tuesday Dictation / Dictation Alert for Week 3
+    const isTuesdayDictation = h.week === 3 && h.assignedDay === 'Tuesday' && 
+      (/dictation|إملاء|تنبيه إملاء/.test((h.task || '').toLowerCase()) || /dictation|إملاء|تنبيه إملاء/.test((h.subject || '').toLowerCase()));
+    if (isTuesdayDictation) return;
+
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
   localCustom.forEach((h) => {
+    // Exclude Tuesday Dictation / Dictation Alert for Week 3
+    const isTuesdayDictation = h.week === 3 && h.assignedDay === 'Tuesday' && 
+      (/dictation|إملاء|تنبيه إملاء/.test((h.task || '').toLowerCase()) || /dictation|إملاء|تنبيه إملاء/.test((h.subject || '').toLowerCase()));
+    if (isTuesdayDictation) return;
+
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
   
@@ -1399,12 +1424,31 @@ export async function seedInitialDataIfEmpty(): Promise<{
   classworkCount: number;
   homeworkCount: number;
 }> {
-  const res = await seedSupabaseFromPlannerData();
-  return {
-    seeded: res.seeded,
-    classworkCount: res.classworkCount,
-    homeworkCount: res.homeworkCount,
-  };
+  if (!isSupabaseConfigured) {
+    return { seeded: false, classworkCount: 0, homeworkCount: 0 };
+  }
+
+  try {
+    // Perform a fast, lightweight exact-count head query to check if database already has records
+    const { count, error } = await supabase
+      .from('classwork')
+      .select('*', { count: 'exact', head: true });
+
+    if (!error && count !== null && count > 0) {
+      console.log('[Supabase] Database already contains records. Skipping auto-seed to prevent overriding deletes and edits.');
+      return { seeded: false, classworkCount: 0, homeworkCount: 0 };
+    }
+
+    const res = await seedSupabaseFromPlannerData();
+    return {
+      seeded: res.seeded,
+      classworkCount: res.classworkCount,
+      homeworkCount: res.homeworkCount,
+    };
+  } catch (e) {
+    console.warn('Error inside seedInitialDataIfEmpty:', e);
+    return { seeded: false, classworkCount: 0, homeworkCount: 0 };
+  }
 }
 
 export async function forceSyncBaselineToSupabase(): Promise<void> {

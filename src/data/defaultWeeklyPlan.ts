@@ -2564,24 +2564,9 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     block: 1,
     week: 3
   } as HomeworkEntry)),
-  // الثلاثاء: إنذار وتنبيه الإملاء قبلها بيوم في الهوم وورك
-  ...["G2A", "G2B", "G2C"].map((cls) => ({
-    id: `hw-b1-w3-${cls}-Tue-arabic-dictation-alert`,
-    classId: cls as "G2A" | "G2B" | "G2C",
-    assignedDay: "Tuesday" as any,
-    dueDay: "Wednesday" as any,
-    subject: "Arabic" as any,
-    task: "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
-    details: "تنبيه إملاء: الاستعداد لإملاء مادة اللغة العربية غداً الأربعاء، ومراجعة الكلمات والظواهر اللغوية المقررة وإحضار كراسة الطالب وقلم رصاص وممحاة.",
-    pages: "كراسة الطالب",
-    completed: false,
-    priority: "urgent" as any,
-    block: 1,
-    week: 3
-  } as HomeworkEntry)),
   // BLOCK 1 - WEEK 3 ENGLISH DICTATION LIST FOR ALL CLASSES & DAYS
   ...["G2A", "G2B", "G2C"].flatMap((cls) => 
-    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"].map((day) => ({
+    ["Sunday", "Monday", "Wednesday", "Thursday"].map((day) => ({
       id: `hw-b1-w3-${cls}-dictation-list-${day}`,
       classId: cls as "G2A" | "G2B" | "G2C",
       assignedDay: day as any,

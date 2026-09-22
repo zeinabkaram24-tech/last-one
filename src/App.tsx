@@ -356,7 +356,7 @@ export default function App() {
         if (isSupabaseConfigured) {
           setSupabaseStatus('connecting');
           // Seed Supabase from local planner_data.json immediately if empty or sync needed
-          const seedRes = await seedSupabaseFromPlannerData().catch((e) => {
+          const seedRes = await seedInitialDataIfEmpty().catch((e) => {
             console.warn('Initial seed check warning:', e);
             return null;
           });
