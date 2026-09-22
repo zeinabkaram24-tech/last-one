@@ -818,22 +818,26 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         if (dbItems.length > 0) {
           // Cloud database is active: use as single source of truth without resurrecting deleted items
           dbItems.forEach((h) => {
+            if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
           // Merge in any newly introduced baseline homework that is not yet in the cloud database
           const dbIds = new Set(dbItems.map((d) => d.id));
           INITIAL_HOMEWORK.filter((h) => (h.week || 1) === 3).forEach((h) => {
+            if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
             if (h && h.id && !dbIds.has(h.id) && !deletedSet.has(h.id)) {
               map.set(h.id, h);
             }
           });
           const localCustom = getLocalCustomHomework();
           localCustom.forEach((h) => {
+            if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
             if (h && h.id && (h.week || 1) === 3 && !deletedSet.has(h.id)) map.set(h.id, h);
           });
         } else {
           // Fresh unseeded database for Week 3
           INITIAL_HOMEWORK.filter((h) => (h.week || 1) === 3).forEach((h) => {
+            if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
         }
@@ -899,9 +903,11 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   // Merge normalizedBase and localCustom
   const map = new Map<string, HomeworkEntry>();
   normalizedBase.forEach((h) => {
+    if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
   localCustom.forEach((h) => {
+    if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
   
