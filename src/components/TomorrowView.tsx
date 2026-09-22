@@ -101,7 +101,66 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (!n) return true;
     if (tomorrowDay === 'Saturday') return true;
 
-    // Universal Arabic rule: ONLY allow Dictation (إملاء) or Quiz/Test (اختبار / كويز) for Arabic in Tomorrow!
+    // =========================================================================
+    // CRITICAL OVERRIDES: These MUST run BEFORE any "isCustom || tn-" check
+    // to prevent custom/manual notes from bypassing the filters!
+    // =========================================================================
+
+    // 1. Strict G2A Monday rule:
+    // "يوم الاثنين في التومورو لكلاس 2 أ، هيتحط لي بس تاسك إحضار الأدوات للساينس."
+    // "في نفس اليوم ونفس الفصل هيتشال تاسك الإملاء اللي انت عامله. بوهيتشال تاسك كويز فرنسي اللي انت عامله."
+    if (currentClass === 'G2A' && tomorrowDay === 'Monday') {
+      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isSciTools = n.subject === 'Science' && (fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط'));
+      if (!isSciTools) {
+        return true; // Strictly disallowed (ONLY allow Science tools!)
+      }
+    }
+
+    // 2. Strict Math test reminder rule: only show on Wednesday (tomorrowDay === 'Thursday')
+    if (n.subject === 'Mathematics' || n.subject === 'Math') {
+      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isTest = n.isQuiz || n.categoryType === 'quiz' || fullText.includes('test') || fullText.includes('quiz') || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم');
+      if (isTest && tomorrowDay !== 'Thursday') {
+        return true; // Strictly disallowed on any day other than Wednesday (where tomorrowDay === 'Thursday')
+      }
+    }
+
+    // 3. Strict Science tools rule for Sunday (Saturday-Tomorrow view):
+    // "بوستات الليفتو إيه؟ السبت، التومارو، اللي هي يرجع إحضار أدوات الساينس ديا لا مش موجودة معانا."
+    if (tomorrowDay === 'Sunday' && n.subject === 'Science') {
+      const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      if (fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط')) {
+        return true; // Strictly disallowed!
+      }
+    }
+
+    // 4. Week 3 Subject Dictation rules
+    if (currentWeek === 3) {
+      // Strict English rule: ONLY allow dictation ("dictation" or "إملاء" or "ديكتيشن") on Monday (Sunday looked ahead), completely block all other English notes/alerts/submissions on any day
+      if (n.subject === 'English') {
+        const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isDictation = fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن');
+        if ((tomorrowDay === 'Monday' || tomorrowDay === 'Sunday') && isDictation) {
+          // Allowed!
+        } else if (isDictation) {
+          // Allowed!
+        } else {
+          return true; // Disallowed
+        }
+      }
+
+      // Strict Arabic rule: ONLY allow dictation ("إملاء") notes for Arabic, disallow any other Arabic notes
+      if (n.subject === 'Arabic' || n.subject === 'عربي' || n.subject === 'اللغة العربية') {
+        const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');
+        if (!isDictation) {
+          return true; // Disallowed
+        }
+      }
+    }
+
+    // 5. Universal Arabic rule: ONLY allow Dictation (إملاء) or Quiz/Test (اختبار / كويز) for Arabic in Tomorrow!
     // Never allow any other Arabic items (no prep, reading, library, or general notes, no matter if manual/seeded/custom)
     const normSubjectText = (n.subject || '').trim().toLowerCase();
     const isArabicSubject = normSubjectText === 'arabic' || normSubjectText.includes('عربي') || normSubjectText.includes('اللغة العربية');
@@ -114,7 +173,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
-    // Strict user rule: "التاسكات اللي بتتحط بتسليم واجب دي ما بتتحطش غير للساينس والسوشيال بس"
+    // 6. Strict user rule: "التاسكات اللي بتتحط بتسليم واجب دي ما بتتحطش غير للساينس والسوشيال بس"
     // Homework submission tasks (تسليم واجب) are STRICTLY FORBIDDEN for any subject other than Science and Social Studies!
     const normSubject = (n.subject || '').toLowerCase();
     const isSciOrSoc =
@@ -144,7 +203,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true; // Disallow any homework submission task for subjects other than Science and Social Studies
     }
 
-    // User or admin manually added notes or special tn- notes must always be displayed (unless they violate the submission rule above)
+    // =========================================================================
+    // DEFAULT DISPLAY LOGIC FOR MANUAL / SPECIAL / GENERIC ITEMS
+    // =========================================================================
+
+    // User or admin manually added notes or special tn- notes must always be displayed (unless they violate the strict overrides above)
     if (n.isCustom || (n.id && (n.id.includes('manual') || n.id.includes('tomorrow-') || n.id.includes('note-') || n.id.includes('tn-') || n.id.includes('custom')))) {
       return false;
     }
@@ -160,77 +223,19 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true;
     }
 
-    // Universal Arabic rule: ONLY allow Dictation (إملاء) or Quiz/Test (اختبار / كويز) for Arabic in Tomorrow!
-    // Never allow any other Arabic items (no prep, reading, library, or general notes)
-    if (n.subject === 'Arabic' || n.subject === 'عربي' || n.subject === 'اللغة العربية') {
-      const fullText = ((n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.title || '')).toLowerCase();
-      const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');
-      const isQuiz = isQuizOrTest(n) || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم') || fullText.includes('test') || fullText.includes('quiz');
-      if (!isDictation && !isQuiz) {
-        return true;
-      }
-    }
+    // Week 3 general Sunday restriction
+    if (currentWeek === 3 && tomorrowDay === 'Sunday') {
+      const isQuiz = isQuizOrTest(n);
+      const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isFrench = n.subject === 'French';
+      const isSocialStudiesSubmission =
+        n.subject === 'Social Studies' &&
+        (currentClass === 'G2A' || currentClass === 'G2C') &&
+        (fullText.includes('تسليم') || fullText.includes('submission') || fullText.includes('واجب'));
+      const hasBagItem = !!n.bagItem;
 
-    // These rules ONLY apply when we are in Week 3
-    if (currentWeek === 3) {
-      // Strict English rule: ONLY allow dictation ("dictation" or "إملاء" or "ديكتيشن") on Monday (Sunday looked ahead), completely block all other English notes/alerts/submissions on any day
-      if (n.subject === 'English') {
-        const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-        const isDictation = fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن');
-        if ((tomorrowDay === 'Monday' || tomorrowDay === 'Sunday') && isDictation) {
-          // Allowed!
-        } else if (isDictation) {
-          // Allowed!
-        } else {
-          return true; // Disallowed
-        }
-      }
-
-      // Strict Arabic rule: ONLY allow dictation ("إملاء") notes for Arabic, disallow any other Arabic notes
-      if (n.subject === 'Arabic') {
-        const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-        const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');
-        if (!isDictation) {
-          return true;
-        }
-      }
-
-      // Explicit user rule: Allow Science booklet submission for G2C on Monday as per latest user request
-      // (Previously disallowed, but now explicitly requested: "يوم الحد في التومورو، طبعا للتوسي، تضيف لي تاسك بتسليم البوكليت.")
-
-      // Strict Science tools rule for Sunday (Saturday-Tomorrow view):
-      // "بوستات الليفتو إيه؟ السبت، التومارو، اللي هي يرجع إحضار أدوات الساينس ديا لا مش موجودة معانا."
-      if (tomorrowDay === 'Sunday' && n.subject === 'Science') {
-        const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-        if (fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط')) {
-          return true; // Strictly disallowed!
-        }
-      }
-
-      // Strict Math test reminder rule: only show on Wednesday (tomorrowDay === 'Thursday')
-      if (n.subject === 'Mathematics' || n.subject === 'Math') {
-        const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-        const isTest = n.isQuiz || n.categoryType === 'quiz' || fullText.includes('test') || fullText.includes('quiz') || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم');
-        if (isTest && tomorrowDay !== 'Thursday') {
-          return true; // Strictly disallowed on any day other than Wednesday (where tomorrowDay === 'Thursday')
-        }
-      }
-
-      // Strict user rule for Sunday (Saturday-Tomorrow view):
-      // Allow quizzes, tests, French, Social Studies, or notes with materials
-      if (tomorrowDay === 'Sunday') {
-        const isQuiz = isQuizOrTest(n);
-        const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-        const isFrench = n.subject === 'French';
-        const isSocialStudiesSubmission =
-          n.subject === 'Social Studies' &&
-          (currentClass === 'G2A' || currentClass === 'G2C') &&
-          (fullText.includes('تسليم') || fullText.includes('submission') || fullText.includes('واجب'));
-        const hasBagItem = !!n.bagItem;
-
-        if (!isQuiz && !isFrench && !isSocialStudiesSubmission && !hasBagItem) {
-          return true; // Disallowed
-        }
+      if (!isQuiz && !isFrench && !isSocialStudiesSubmission && !hasBagItem) {
+        return true; // Disallowed
       }
     }
 

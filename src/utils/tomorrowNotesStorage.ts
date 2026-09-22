@@ -602,6 +602,38 @@ export async function getTomorrowNotesForDay(
     // For G2A (Class 2A) rules:
     if (classId === 'G2A') {
       // Removed Sunday (Saturday to be): Bring tools
+
+      // Monday (Sunday to be): Only show Science tools task. Remove any dictation or French quiz.
+      if (targetDay === 'Monday') {
+        finalNotes = finalNotes.filter((n) => {
+          const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+          const isDictation = n.subject === 'English' || n.subject === 'Arabic' || fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع');
+          const isFrenchQuiz = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي') || fullText.includes('quiz') || fullText.includes('كويز');
+          return !isDictation && !isFrenchQuiz;
+        });
+
+        const sciToolsId = `tn-b1-w3-G2A-Mon-science-tools`;
+        const semKey = `science-tools-Monday`;
+        const hasSciTools = finalNotes.some(
+          (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools') || n.arabicNote?.includes('كروشيه'))
+        );
+        if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKey)) {
+          finalNotes.push({
+            id: sciToolsId,
+            classId: 'G2A',
+            targetDay: 'Monday',
+            subject: 'Science',
+            note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
+            arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
+            bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
+            isQuiz: false,
+            categoryType: 'note',
+            block: 1,
+            week: 3,
+            isCustom: true
+          });
+        }
+      }
     }
 
     // For G2C (Class 2C) rules:
