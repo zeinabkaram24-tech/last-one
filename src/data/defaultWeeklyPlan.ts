@@ -1618,6 +1618,423 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 3
+  },
+  // BLOCK 1 - WEEK 3 ARABIC CLASSWORK (الأسبوع 3 - الخطة الأسبوعية لمادة اللغة العربية)
+  // الأحد: نص استماع (مهنة أبي)
+  {
+    id: "cw-b1-w3-G2A-Sunday-p7-arabic",
+    classId: "G2A",
+    day: "Sunday",
+    period: 7,
+    subject: "Arabic",
+    title: "نص استماع (مهنة أبي)",
+    details: "الوحدة الأولى: العودة إلى المدرسة - نص استماع (مهنة أبي) ومناقشة فهم المسموع واستخراج المفردات.",
+    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 19",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2B-Sunday-p4-arabic",
+    classId: "G2B",
+    day: "Sunday",
+    period: 4,
+    subject: "Arabic",
+    title: "نص استماع (مهنة أبي)",
+    details: "الوحدة الأولى: العودة إلى المدرسة - نص استماع (مهنة أبي) ومناقشة فهم المسموع واستخراج المفردات.",
+    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 19",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2C-Sunday-p6-arabic",
+    classId: "G2C",
+    day: "Sunday",
+    period: 6,
+    subject: "Arabic",
+    title: "نص استماع (مهنة أبي)",
+    details: "الوحدة الأولى: العودة إلى المدرسة - نص استماع (مهنة أبي) ومناقشة فهم المسموع واستخراج المفردات.",
+    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 19",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  // الإثنين: ظرف الزمان وظرف المكان + حل تدريبات
+  {
+    id: "cw-b1-w3-G2A-Monday-p1-arabic",
+    classId: "G2A",
+    day: "Monday",
+    period: 1,
+    subject: "Arabic",
+    title: "ظرف الزمان وظرف المكان + حل تدريبات",
+    details: "الوحدة الأولى: العودة إلى المدرسة - التعرف على ظرفي الزمان والمكان واستخدامهما في جمل مفيدة وحل تدريبات كراسة النشاط.",
+    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 16-17-18",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2B-Monday-p8-arabic",
+    classId: "G2B",
+    day: "Monday",
+    period: 8,
+    subject: "Arabic",
+    title: "ظرف الزمان وظرف المكان + حل تدريبات",
+    details: "الوحدة الأولى: العودة إلى المدرسة - التعرف على ظرفي الزمان والمكان واستخدامهما في جمل مفيدة وحل تدريبات كراسة النشاط.",
+    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 16-17-18",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2C-Monday-p1-arabic",
+    classId: "G2C",
+    day: "Monday",
+    period: 1,
+    subject: "Arabic",
+    title: "ظرف الزمان وظرف المكان + حل تدريبات",
+    details: "الوحدة الأولى: العودة إلى المدرسة - التعرف على ظرفي الزمان والمكان واستخدامهما في جمل مفيدة وحل تدريبات كراسة النشاط.",
+    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 16-17-18",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  // الثلاثاء: مكتبة
+  {
+    id: "cw-b1-w3-G2A-Tuesday-p8-arabic",
+    classId: "G2A",
+    day: "Tuesday",
+    period: 8,
+    subject: "Arabic",
+    title: "مكتبة",
+    details: "الوحدة الأولى: العودة إلى المدرسة - حصة المكتبة وقراءة قصص تعليمية لتنمية مهارات القراءة الصامتة والجهرية واكتساب مفردات جديدة.",
+    pages: "قصص تعليمية",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2B-Tuesday-p5-arabic",
+    classId: "G2B",
+    day: "Tuesday",
+    period: 5,
+    subject: "Arabic",
+    title: "مكتبة",
+    details: "الوحدة الأولى: العودة إلى المدرسة - حصة المكتبة وقراءة قصص تعليمية لتنمية مهارات القراءة الصامتة والجهرية واكتساب مفردات جديدة.",
+    pages: "قصص تعليمية",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2C-Tuesday-p7-arabic",
+    classId: "G2C",
+    day: "Tuesday",
+    period: 7,
+    subject: "Arabic",
+    title: "مكتبة",
+    details: "الوحدة الأولى: العودة إلى المدرسة - حصة المكتبة وقراءة قصص تعليمية لتنمية مهارات القراءة الصامتة والجهرية واكتساب مفردات جديدة.",
+    pages: "قصص تعليمية",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  // الأربعاء: إملاء
+  {
+    id: "cw-b1-w3-G2A-Wednesday-p6-arabic",
+    classId: "G2A",
+    day: "Wednesday",
+    period: 6,
+    subject: "Arabic",
+    title: "إملاء",
+    details: "الوحدة الأولى: العودة إلى المدرسة - تطبيق الإملاء الأسبوعي لتقييم المهارات الإملائية والظواهر اللغوية في كراسة الطالب.",
+    pages: "كراسة الطالب",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2B-Wednesday-p4-arabic",
+    classId: "G2B",
+    day: "Wednesday",
+    period: 4,
+    subject: "Arabic",
+    title: "إملاء",
+    details: "الوحدة الأولى: العودة إلى المدرسة - تطبيق الإملاء الأسبوعي لتقييم المهارات الإملائية والظواهر اللغوية في كراسة الطالب.",
+    pages: "كراسة الطالب",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2C-Wednesday-p6-arabic",
+    classId: "G2C",
+    day: "Wednesday",
+    period: 6,
+    subject: "Arabic",
+    title: "إملاء",
+    details: "الوحدة الأولى: العودة إلى المدرسة - تطبيق الإملاء الأسبوعي لتقييم المهارات الإملائية والظواهر اللغوية في كراسة الطالب.",
+    pages: "كراسة الطالب",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  // الخميس: نشاط تطبيقي
+  {
+    id: "cw-b1-w3-G2A-Thursday-p5-arabic",
+    classId: "G2A",
+    day: "Thursday",
+    period: 5,
+    subject: "Arabic",
+    title: "نشاط تطبيقي",
+    details: "الوحدة الأولى: العودة إلى المدرسة - حل وتطبيق أوراق العمل الشاملة وتطبيقات المفاهيم المكتسبة خلال الأسبوع.",
+    pages: "أوراق العمل",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2B-Thursday-p1-arabic",
+    classId: "G2B",
+    day: "Thursday",
+    period: 1,
+    subject: "Arabic",
+    title: "نشاط تطبيقي",
+    details: "الوحدة الأولى: العودة إلى المدرسة - حل وتطبيق أوراق العمل الشاملة وتطبيقات المفاهيم المكتسبة خلال الأسبوع.",
+    pages: "أوراق العمل",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  {
+    id: "cw-b1-w3-G2C-Thursday-p8-arabic",
+    classId: "G2C",
+    day: "Thursday",
+    period: 8,
+    subject: "Arabic",
+    title: "نشاط تطبيقي",
+    details: "الوحدة الأولى: العودة إلى المدرسة - حل وتطبيق أوراق العمل الشاملة وتطبيقات المفاهيم المكتسبة خلال الأسبوع.",
+    pages: "أوراق العمل",
+    completed: false,
+    block: 1,
+    week: 3
+  },
+  // BLOCK 1 - WEEK 3 MATHEMATICS CLASSWORK
+  // الأحد: Unit 2: Adding single number to 2 digit numbers
+  {
+    id: "cw-b1-w3-G2A-Sunday-p8-math",
+    classId: "G2A",
+    day: "Sunday",
+    period: 8,
+    subject: "Mathematics",
+    title: "Unit 2: Adding single number to 2 digit numbers",
+    details: "Unit 2: Adding single number to 2 digit numbers. Learning place value and counting on strategies. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  {
+    id: "cw-b1-w3-G2B-Sunday-p2-math",
+    classId: "G2B",
+    day: "Sunday",
+    period: 2,
+    subject: "Mathematics",
+    title: "Unit 2: Adding single number to 2 digit numbers",
+    details: "Unit 2: Adding single number to 2 digit numbers. Learning place value and counting on strategies. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  {
+    id: "cw-b1-w3-G2C-Sunday-p3-math",
+    classId: "G2C",
+    day: "Sunday",
+    period: 3,
+    subject: "Mathematics",
+    title: "Unit 2: Adding single number to 2 digit numbers",
+    details: "Unit 2: Adding single number to 2 digit numbers. Learning place value and counting on strategies. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  // الإثنين: Unit 2: Subtracting single number from 2 digit numbers
+  {
+    id: "cw-b1-w3-G2A-Monday-p8-math",
+    classId: "G2A",
+    day: "Monday",
+    period: 8,
+    subject: "Mathematics",
+    title: "Unit 2: Subtracting single number from 2 digit numbers",
+    details: "Unit 2: Subtracting single number from 2 digit numbers. Counting back and regrouping concepts. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  {
+    id: "cw-b1-w3-G2B-Monday-p3-math",
+    classId: "G2B",
+    day: "Monday",
+    period: 3,
+    subject: "Mathematics",
+    title: "Unit 2: Subtracting single number from 2 digit numbers",
+    details: "Unit 2: Subtracting single number from 2 digit numbers. Counting back and regrouping concepts. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  {
+    id: "cw-b1-w3-G2C-Monday-p8-math",
+    classId: "G2C",
+    day: "Monday",
+    period: 8,
+    subject: "Mathematics",
+    title: "Unit 2: Subtracting single number from 2 digit numbers",
+    details: "Unit 2: Subtracting single number from 2 digit numbers. Counting back and regrouping concepts. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  // الثلاثاء: Unit 2: Add and subtract 10 and multiples of 10
+  {
+    id: "cw-b1-w3-G2A-Tuesday-p3-math",
+    classId: "G2A",
+    day: "Tuesday",
+    period: 3,
+    subject: "Mathematics",
+    title: "Unit 2: Add and subtract 10 and multiples of 10",
+    details: "Unit 2: Add and subtract 10 and multiples of 10 to and from two-digit numbers using mental math and hundred chart patterns. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  {
+    id: "cw-b1-w3-G2B-Tuesday-p1-math",
+    classId: "G2B",
+    day: "Tuesday",
+    period: 1,
+    subject: "Mathematics",
+    title: "Unit 2: Add and subtract 10 and multiples of 10",
+    details: "Unit 2: Add and subtract 10 and multiples of 10 to and from two-digit numbers using mental math and hundred chart patterns. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  {
+    id: "cw-b1-w3-G2C-Tuesday-p3-math",
+    classId: "G2C",
+    day: "Tuesday",
+    period: 3,
+    subject: "Mathematics",
+    title: "Unit 2: Add and subtract 10 and multiples of 10",
+    details: "Unit 2: Add and subtract 10 and multiples of 10 to and from two-digit numbers using mental math and hundred chart patterns. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  // الأربعاء: Unit 2: Money
+  {
+    id: "cw-b1-w3-G2A-Wednesday-p1-math",
+    classId: "G2A",
+    day: "Wednesday",
+    period: 1,
+    subject: "Mathematics",
+    title: "Unit 2: Money",
+    details: "Unit 2: Money - Identifying coins and bills, calculating amounts, and solving simple shopping problems. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  {
+    id: "cw-b1-w3-G2B-Wednesday-p5-math",
+    classId: "G2B",
+    day: "Wednesday",
+    period: 5,
+    subject: "Mathematics",
+    title: "Unit 2: Money",
+    details: "Unit 2: Money - Identifying coins and bills, calculating amounts, and solving simple shopping problems. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  {
+    id: "cw-b1-w3-G2C-Wednesday-p7-math",
+    classId: "G2C",
+    day: "Wednesday",
+    period: 7,
+    subject: "Mathematics",
+    title: "Unit 2: Money",
+    details: "Unit 2: Money - Identifying coins and bills, calculating amounts, and solving simple shopping problems. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Maths-Grade2-B1-All-Sheet1 - Main",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  // الخميس: Unit 2 Test
+  {
+    id: "cw-b1-w3-G2A-Thursday-p1-math",
+    classId: "G2A",
+    day: "Thursday",
+    period: 1,
+    subject: "Mathematics",
+    title: "🚨 Unit 2 Math Test (اختبار رياضيات)",
+    details: "Unit 2 Test - Assessment covering all Unit 2 topics: Adding and subtracting single digit to 2 digit numbers, add/subtract 10 and multiples of 10, and money. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Unit 2 Test (Maths Sheet 1)",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  {
+    id: "cw-b1-w3-G2B-Thursday-p4-math",
+    classId: "G2B",
+    day: "Thursday",
+    period: 4,
+    subject: "Mathematics",
+    title: "🚨 Unit 2 Math Test (اختبار رياضيات)",
+    details: "Unit 2 Test - Assessment covering all Unit 2 topics: Adding and subtracting single digit to 2 digit numbers, add/subtract 10 and multiples of 10, and money. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Unit 2 Test (Maths Sheet 1)",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  },
+  {
+    id: "cw-b1-w3-G2C-Thursday-p6-math",
+    classId: "G2C",
+    day: "Thursday",
+    period: 6,
+    subject: "Mathematics",
+    title: "🚨 Unit 2 Math Test (اختبار رياضيات)",
+    details: "Unit 2 Test - Assessment covering all Unit 2 topics: Adding and subtracting single digit to 2 digit numbers, add/subtract 10 and multiples of 10, and money. Resource: Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Unit 2 Test (Maths Sheet 1)",
+    completed: false,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
   }
 ];
 
@@ -2088,6 +2505,52 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     week: 3,
     pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
   },
+  // BLOCK 1 - WEEK 3 ARABIC HOMEWORK
+  // الأحد: كتابة نشيد (مدرستي بيتي الثاني)
+  ...["G2A", "G2B", "G2C"].map((cls) => ({
+    id: `hw-b1-w3-${cls}-Sun-arabic-poem`,
+    classId: cls as "G2A" | "G2B" | "G2C",
+    assignedDay: "Sunday" as any,
+    dueDay: "Monday" as any,
+    subject: "Arabic" as any,
+    task: "كتابة نشيد (مدرستي بيتي الثاني) بخط جميل في كراسة الطالب",
+    details: "الوحدة الأولى: العودة إلى المدرسة - كتابة نشيد مدرستي بيتي الثاني بخط جميل ومرتب في كراسة الطالب مع مراعاة قواعد الخط.",
+    pages: "كراسة الطالب",
+    completed: false,
+    priority: "normal" as any,
+    block: 1,
+    week: 3
+  } as HomeworkEntry)),
+  // الثلاثاء: كراسة نشاط الوحدة الأولى صفحة 37-38
+  ...["G2A", "G2B", "G2C"].map((cls) => ({
+    id: `hw-b1-w3-${cls}-Tue-arabic-activity`,
+    classId: cls as "G2A" | "G2B" | "G2C",
+    assignedDay: "Tuesday" as any,
+    dueDay: "Wednesday" as any,
+    subject: "Arabic" as any,
+    task: "حل تدريبات كراسة نشاط الوحدة الأولى صفحة 37-38",
+    details: "الوحدة الأولى: العودة إلى المدرسة - إنجاز التدريبات والأنشطة المقررة ص 37 و 38 في كراسة نشاط الوحدة الأولى.",
+    pages: "كراسة نشاط الوحدة الأولى ص 37-38",
+    completed: false,
+    priority: "normal" as any,
+    block: 1,
+    week: 3
+  } as HomeworkEntry)),
+  // الثلاثاء: إنذار وتنبيه الإملاء قبلها بيوم في الهوم وورك
+  ...["G2A", "G2B", "G2C"].map((cls) => ({
+    id: `hw-b1-w3-${cls}-Tue-arabic-dictation-alert`,
+    classId: cls as "G2A" | "G2B" | "G2C",
+    assignedDay: "Tuesday" as any,
+    dueDay: "Wednesday" as any,
+    subject: "Arabic" as any,
+    task: "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
+    details: "تنبيه إملاء: الاستعداد لإملاء مادة اللغة العربية غداً الأربعاء، ومراجعة الكلمات والظواهر اللغوية المقررة وإحضار كراسة الطالب وقلم رصاص وممحاة.",
+    pages: "كراسة الطالب",
+    completed: false,
+    priority: "urgent" as any,
+    block: 1,
+    week: 3
+  } as HomeworkEntry)),
   // BLOCK 1 - WEEK 3 ENGLISH DICTATION LIST FOR ALL CLASSES & DAYS
   ...["G2A", "G2B", "G2C"].flatMap((cls) => 
     ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"].map((day) => ({
@@ -2104,5 +2567,86 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
       block: 1,
       week: 3
     } as HomeworkEntry))
-  )
+  ),
+  // BLOCK 1 - WEEK 3 MATHEMATICS HOMEWORK
+  // الأحد: حل ص 82 و 83
+  ...["G2A", "G2B", "G2C"].map((cls) => ({
+    id: `hw-b1-w3-${cls}-Sun-math-82-83`,
+    classId: cls as "G2A" | "G2B" | "G2C",
+    assignedDay: "Sunday" as any,
+    dueDay: "Monday" as any,
+    subject: "Mathematics" as any,
+    task: "Maths Sheet 1: Solve Pages 82, 83",
+    details: "Unit 2: Adding single number to 2 digit numbers - Solve exercises on Pages 82 and 83 on Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Pages 82, 83",
+    completed: false,
+    priority: "normal" as any,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  } as HomeworkEntry)),
+  // الإثنين: حل ص 88
+  ...["G2A", "G2B", "G2C"].map((cls) => ({
+    id: `hw-b1-w3-${cls}-Mon-math-88`,
+    classId: cls as "G2A" | "G2B" | "G2C",
+    assignedDay: "Monday" as any,
+    dueDay: "Tuesday" as any,
+    subject: "Mathematics" as any,
+    task: "Maths Sheet 1: Solve Page 88",
+    details: "Unit 2: Subtracting single number from 2 digit numbers - Solve exercises on Page 88 on Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Page 88",
+    completed: false,
+    priority: "normal" as any,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  } as HomeworkEntry)),
+  // الثلاثاء: حل ص 89
+  ...["G2A", "G2B", "G2C"].map((cls) => ({
+    id: `hw-b1-w3-${cls}-Tue-math-89`,
+    classId: cls as "G2A" | "G2B" | "G2C",
+    assignedDay: "Tuesday" as any,
+    dueDay: "Wednesday" as any,
+    subject: "Mathematics" as any,
+    task: "Maths Sheet 1: Solve Page 89",
+    details: "Unit 2: Add and subtract 10 and multiples of 10 to and from two-digit numbers - Solve Page 89 on Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Page 89",
+    completed: false,
+    priority: "normal" as any,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  } as HomeworkEntry)),
+  // الأربعاء: حل ص 89 (Money)
+  ...["G2A", "G2B", "G2C"].map((cls) => ({
+    id: `hw-b1-w3-${cls}-Wed-math-89-money`,
+    classId: cls as "G2A" | "G2B" | "G2C",
+    assignedDay: "Wednesday" as any,
+    dueDay: "Thursday" as any,
+    subject: "Mathematics" as any,
+    task: "Maths Sheet 1: Solve Page 89 (Money)",
+    details: "Unit 2: Money - Complete money exercises on Page 89 on Maths-Grade2-B1-All-Sheet1 - Main.",
+    pages: "Page 89",
+    completed: false,
+    priority: "normal" as any,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  } as HomeworkEntry)),
+  // الأربعاء (إنذار الاختبار): غداً الخميس اختبار رياضيات
+  ...["G2A", "G2B", "G2C"].map((cls) => ({
+    id: `hw-b1-w3-${cls}-Wed-math-test-alert`,
+    classId: cls as "G2A" | "G2B" | "G2C",
+    assignedDay: "Wednesday" as any,
+    dueDay: "Thursday" as any,
+    subject: "Mathematics" as any,
+    task: "🚨 إنذار وتنبيه هام: غداً الخميس اختبار رياضيات (Unit 2 Math Test)",
+    details: "تنبيه اختبار هام: الاستعداد لاختبار مادة الرياضيات (Unit 2 Test) غداً الخميس! يرجى مراجعة دروس الوحدة الثانية (الجمع، الطرح، مضاعفات الـ 10، والنقود) في شيت الرياضيات (Pages 82 to 89)، وإحضار الأدوات كاملة (قلم رصاص، ممحاة، مسطرة، كشكول الماث).",
+    pages: "Maths Sheet 1 (Pages 82 - 89)",
+    completed: false,
+    priority: "urgent" as any,
+    block: 1,
+    week: 3,
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+  } as HomeworkEntry))
 ];

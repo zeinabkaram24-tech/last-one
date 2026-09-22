@@ -56,6 +56,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isQuizOrTest = (n: TomorrowSpecialNote) => {
     if (!n) return false;
     if (n.subject === 'Social Studies') return false;
+    if (n.isQuiz || n.categoryType === 'quiz') return true;
     const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
     
     // Explicitly exclude any homework, homework submissions, tools, or materials tasks
@@ -77,7 +78,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return false;
     }
 
-    if (n.isQuiz || n.categoryType === 'quiz') return true;
     return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(text);
   };
 
