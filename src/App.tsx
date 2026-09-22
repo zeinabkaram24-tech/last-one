@@ -161,10 +161,9 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
   } catch {}
 
   const source = (cached && cached.length > 0 ? cached : INITIAL_HOMEWORK).filter(h => {
-    const isG2ASunDictation = h.classId === 'G2A' && h.assignedDay === 'Sunday' && h.id?.includes('dictation-list-Sunday');
-    const isSunScienceBooklet = (h.classId === 'G2B' || h.classId === 'G2C') && h.assignedDay === 'Sunday' && h.id?.includes('science-Sun-booklet');
-    if (isG2ASunDictation || isSunScienceBooklet) return true;
-    return !deletedSet.has(h.id);
+    // Admin deleted items are strictly and unconditionally excluded
+    if (deletedSet.has(h.id)) return false;
+    return true;
   });
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
@@ -912,31 +911,9 @@ export default function App() {
 
       await saveTomorrowNotes(block, week, entriesToSave, 'merge');
 
-      // If note is a quiz, dictation, test, exam, or evaluation -> automatically add to Homework as urgent item for studying
-      const fullText = `${data.note || ''} ${data.arabicNote || ''} ${data.subject || ''} ${data.bagItem || ''}`;
-      const isQuizOrDictation =
-        data.isQuiz ||
-        data.categoryType === 'quiz' ||
-        /quiz|test|dictation|إملاء|تسميع|اختبار|امتحان|كويز|تقييم|exam|assessment/i.test(fullText);
-
-      if (isQuizOrDictation) {
-        for (const cls of classesToAdd) {
-          const hwEntry: HomeworkEntry = {
-            id: (data.classId as any) === 'ALL' ? `tn-hw-${data.id || Date.now()}-${cls}` : `tn-hw-${data.id || Date.now()}`,
-            classId: cls,
-            assignedDay: data.targetDay || selectedDay,
-            dueDay: data.targetDay || selectedDay,
-            subject: data.subject || 'General',
-            task: data.arabicNote || data.note || 'اختبار / إملاء',
-            details: data.bagItem ? `مذاكرة للاختبار/الإملاء (المطلوب: ${data.bagItem})` : 'تنبيه مذاكرة وتجهيز للاختبار أو الإملاء',
-            completed: false,
-            priority: 'urgent',
-            block,
-            week,
-            linkUrl: data.linkUrl || undefined,
-          };
-          await handleAddHomework(hwEntry);
-        }
+      // Ensure newly saved notes are un-deleted if they were previously in deletedTomorrowNoteIds
+      for (const entry of entriesToSave) {
+        await removeDeletedTomorrowNoteId(entry.id);
       }
 
       notifyTomorrowNotesListeners();

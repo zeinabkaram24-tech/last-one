@@ -135,7 +135,7 @@ export async function getTomorrowNotesForDay(
   classId: ClassId,
   targetDay: SchoolDay
 ): Promise<TomorrowSpecialNote[]> {
-  const effectiveWeek = targetDay === 'Sunday' && week > 1 ? week - 1 : week;
+  const effectiveWeek = week;
 
   // Base official notes for Block/Week or EffectiveWeek from static files
   const baseNotes: TomorrowSpecialNote[] =

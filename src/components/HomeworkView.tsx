@@ -104,11 +104,20 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
   // Homework assigned for the selected day with strict deduplication by ID
   const rawDayHomework = homeworkList.filter(
-    (h) =>
-      matchesClass(h) &&
-      h.assignedDay === selectedDay &&
-      (h.block || 1) === currentBlock &&
-      (h.week || 1) === currentWeek
+    (h) => {
+      if (!matchesClass(h)) return false;
+      if (h.assignedDay !== selectedDay) return false;
+      if ((h.block || 1) !== currentBlock) return false;
+      if ((h.week || 1) !== currentWeek) return false;
+
+      // Strict Saturday rule:
+      // User mandate: "وامسح حكاية الـ homework الـ French من يوم السبت."
+      if (selectedDay === 'Saturday' && (h.subject === 'French' || (h.subject as string)?.toLowerCase() === 'french')) {
+        return false;
+      }
+
+      return true;
+    }
   );
 
   const uniqueHwMap = new Map<string, HomeworkEntry>();
@@ -283,7 +292,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         </span>
                       )}
 
-                      {(hw.task.toLowerCase().includes('dictation list') || hw.task.includes('كلمات الإملاء')) && (
+                      {(hw.task.toLowerCase().includes('dictation') || hw.task.includes('إملاء') || (hw.details && hw.details.toLowerCase().includes('dictation'))) && (
                         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-black bg-indigo-50 text-indigo-900 border border-indigo-200 shadow-2xs">
                           <span>Dictation list 📝</span>
                         </span>
@@ -300,7 +309,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                     </p>
 
                     {/* Elegant Word Cards Grid for Dictation Lists */}
-                    {(hw.task.toLowerCase().includes('dictation list') || hw.task.includes('كلمات الإملاء')) && (() => {
+                    {(hw.task.toLowerCase().includes('dictation') || hw.task.includes('إملاء') || (hw.details && hw.details.toLowerCase().includes('dictation'))) && (() => {
                       const words = parseDictationWords(hw.details);
                       return (
                         <div className="mt-3 p-3.5 bg-slate-50/50 rounded-2xl border border-slate-150/80 space-y-2.5">

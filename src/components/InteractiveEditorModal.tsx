@@ -17,6 +17,19 @@ interface InteractiveEditorModalProps {
 }
 
 const DAYS: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday'];
+
+function getNextDueDay(day: SchoolDay): SchoolDay {
+  switch (day) {
+    case 'Sunday': return 'Monday';
+    case 'Monday': return 'Tuesday';
+    case 'Tuesday': return 'Wednesday';
+    case 'Wednesday': return 'Thursday';
+    case 'Thursday': return 'Sunday'; // Decoupled completely: Thursday homework is due on Sunday
+    case 'Saturday': return 'Sunday'; // Saturday is independent
+    default: return 'Sunday';
+  }
+}
+
 const CLASSES: (ClassId | 'ALL')[] = ['G2A', 'G2B', 'G2C', 'ALL'];
 const SUBJECTS: SubjectName[] = [
   'Arabic',
@@ -164,15 +177,14 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
         setTitle(initialData?.title || '');
         setDetails(initialData?.details || '');
         setPages(initialData?.pages || '');
-        setDay(initialData?.day || (selectedDay === 'Saturday' ? 'Sunday' : selectedDay));
+        const initialDayVal = initialData?.day || selectedDay;
+        setDay(initialDayVal);
         setPeriod(initialData?.period || 1);
-        setAssignedDay(initialData?.assignedDay || (selectedDay === 'Saturday' ? 'Sunday' : selectedDay));
+        const initialAssignedVal = initialData?.assignedDay || selectedDay;
+        setAssignedDay(initialAssignedVal);
         
-        // set next day for due day
-        const dayOrder: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday'];
-        const currentIdx = dayOrder.indexOf(initialData?.day || selectedDay);
-        const nextDayVal = dayOrder[(currentIdx + 1) % dayOrder.length];
-        setDueDay(initialData?.dueDay || nextDayVal);
+        // set next day for due day - Decoupled: Thursday goes to Sunday!
+        setDueDay(initialData?.dueDay || getNextDueDay(initialAssignedVal));
         setPriority(initialData?.priority || 'normal');
 
         setArabicNote(initialData?.arabicNote || initialData?.note || '');
@@ -182,8 +194,6 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
           initialData?.targetDay ||
             (itemType === 'tomorrow'
               ? NEXT_SCHOOL_DAY[selectedDay] || 'Sunday'
-              : selectedDay === 'Saturday'
-              ? 'Sunday'
               : selectedDay)
         );
         
@@ -859,7 +869,11 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                   <label className="block text-[11px] font-black text-slate-600 mb-1">تاريخ التكليف (Assigned):</label>
                   <select
                     value={assignedDay}
-                    onChange={(e) => setAssignedDay(e.target.value as SchoolDay)}
+                    onChange={(e) => {
+                      const newAssigned = e.target.value as SchoolDay;
+                      setAssignedDay(newAssigned);
+                      setDueDay(getNextDueDay(newAssigned));
+                    }}
                     className="w-full text-xs font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
                   >
                     {DAYS.map((d) => (

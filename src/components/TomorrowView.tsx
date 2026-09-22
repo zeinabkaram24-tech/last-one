@@ -99,21 +99,26 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items / quizzes, strictly excluding plain homework)
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
-    if (tomorrowDay === 'Saturday') return true;
 
-    // =========================================================================
-    // CRITICAL OVERRIDES: These MUST run BEFORE any "isCustom || tn-" check
-    // to prevent custom/manual notes from bypassing the filters!
-    // =========================================================================
+    // Always allow user-entered custom notes so user input is never blocked
+    if (
+      n.isCustom ||
+      n.id?.startsWith('custom-') ||
+      n.id?.startsWith('tn-custom-') ||
+      n.id?.startsWith('tomorrow-note-') ||
+      (n as any).isAdminModified ||
+      (n as any).source === 'user' ||
+      (n as any).source === 'admin'
+    ) {
+      return false;
+    }
 
-    // 0. Strict Thursday G2A rule:
-    // "يوم الخميس ضروري لازم تخش الشيت تكتب تسليم هوم ورك السوشيال بس، ما تكتبش أي حاجة فيها."
-    if (currentClass === 'G2A' && selectedDay === 'Thursday') {
-      const isSocial = n.subject === 'Social Studies';
-      const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      const isSocialSubmission = isSocial && (fullText.includes('تسليم') || fullText.includes('واجب') || fullText.includes('شيت'));
-      if (!isSocialSubmission) {
-        return true; // Strictly disallowed (ONLY allow Social Studies homework submission!)
+    // Strict Saturday / Sunday lookahead French Homework exclusion:
+    // "وعايزة أمسح الـ task بتاع تسليم هوم ورك الفرنش اللي هي في 2A في السبت tomorrow. وامسح حكاية الـ homework الـ French من يوم السبت."
+    if ((selectedDay === 'Saturday' || tomorrowDay === 'Sunday') && (n.subject === 'French' || (n.subject as string)?.toLowerCase() === 'french')) {
+      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      if (fullText.includes('homework') || fullText.includes('واجب') || fullText.includes('تسليم') || fullText.includes('page 26') || fullText.includes('fiche')) {
+        return true;
       }
     }
 
@@ -142,6 +147,18 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       const isFrenchQuiz = fullText.includes('quiz') || fullText.includes('كويز') || fullText.includes('اختبار');
       if (isFrenchQuiz) {
         return true;
+      }
+    }
+
+    // Strict Saturday G2B rule:
+    // "عايزة يوم السبت نلغي منه كويز الفرنش والديكتيشن لكلاس 2B"
+    if (currentClass === 'G2B' && (selectedDay === 'Saturday' || tomorrowDay === 'Saturday')) {
+      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isFrench = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي');
+      const isFrenchQuiz = isFrench && (n.isQuiz || fullText.includes('quiz') || fullText.includes('كويز') || fullText.includes('اختبار'));
+      const isDictation = n.subject === 'English' || fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('إملاء');
+      if (isFrenchQuiz || isDictation) {
+        return true; // Strictly disallowed on Saturday for G2B
       }
     }
 
@@ -276,8 +293,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     return lower.startsWith('hw:') || lower.startsWith('homework:') || lower.startsWith('واجب:');
   };
 
-  // Support both currentWeek and previous week if applicable
-  const effectiveWeek = tomorrowDay === 'Sunday' && currentWeek > 1 ? currentWeek - 1 : currentWeek;
+  // Support current week
+  const effectiveWeek = currentWeek;
 
   // Synchronous initialization for deleted note IDs to prevent initial frame flickering
   const [deletedNoteIds, setDeletedNoteIds] = useState<string[]>(() => getDeletedTomorrowNoteIdsSync());
@@ -567,7 +584,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((txt || '').toLowerCase());
     };
 
-    const effectiveWeekForHw = tomorrowDay === 'Sunday' && currentWeek > 1 ? currentWeek - 1 : currentWeek;
+    const effectiveWeekForHw = currentWeek;
 
     // 1. Linked from Homework:
     homeworkList.forEach((h) => {
@@ -657,10 +674,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Merge tomorrowNotes with linkedAlerts without duplicates
   const mergedNotes = useMemo<TomorrowSpecialNote[]>(() => {
-    if (tomorrowDay === 'Saturday') {
-      return [];
-    }
-
     const map = new Map<string, TomorrowSpecialNote>();
     let hasArabicDictation = false;
 
@@ -670,7 +683,21 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
       // Check if this note, its IDs, or its semantic key is deleted
       const noteIds = [n.id, ...(n.linkedIds || [])].filter(Boolean) as string[];
-      if (noteIds.some((id) => deletedNoteIds.includes(id)) || deletedNoteIds.includes(semKey)) {
+      const isCustomOrExplicit =
+        n.isCustom ||
+        (n as any).isAdminModified ||
+        (n as any).source === 'user' ||
+        (n as any).source === 'admin' ||
+        n.id?.startsWith('custom-') ||
+        n.id?.startsWith('tomorrow-note-') ||
+        n.id?.startsWith('tn-custom-');
+
+      // If the note was explicitly deleted by its exact ID
+      if (noteIds.some((id) => deletedNoteIds.includes(id))) {
+        return;
+      }
+      // If deleted by semantic key (only block semantic keys for default uncustomized items)
+      if (!isCustomOrExplicit && deletedNoteIds.includes(semKey)) {
         return;
       }
 
@@ -735,7 +762,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     // Automatically inject French Quiz warning (ONLY once, exactly 1 day before the session per class)
     let injectFrenchQuiz = false;
     if (currentClass === 'G2A' && tomorrowDay === 'Wednesday') injectFrenchQuiz = true;
-    if (currentClass === 'G2B' && tomorrowDay === 'Monday') injectFrenchQuiz = true;
+    if (currentClass === 'G2B' && tomorrowDay === 'Monday' && selectedDay !== 'Saturday') injectFrenchQuiz = true;
     if (currentClass === 'G2C' && tomorrowDay === 'Tuesday') injectFrenchQuiz = true;
 
     if (injectFrenchQuiz) {
@@ -756,7 +783,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     }
 
     // Automatically inject Monday English Dictation alert for all classes (G2A, G2B, G2C) when looking ahead to Monday
-    if (tomorrowDay === 'Monday') {
+    if (tomorrowDay === 'Monday' && !(currentClass === 'G2B' && selectedDay === 'Saturday')) {
       const engDictationId = `eng-dictation-${currentClass}-${tomorrowDay}`;
       addOrMergeNote({
         id: engDictationId,
@@ -793,20 +820,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return bQuiz - aQuiz;
     });
   }, [mergedNotes]);
-
-  if (tomorrowDay === 'Saturday') {
-    return (
-      <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-2xs text-center space-y-3">
-        <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
-          <Sparkles className="w-8 h-8" />
-        </div>
-        <h3 className="text-lg font-black text-slate-800">عطلة نهاية الأسبوع السعيدة 🎉</h3>
-        <p className="text-sm text-slate-500 font-bold max-w-md mx-auto leading-relaxed">
-          يوم السبت عطلة رسمية. لا توجد حصص دراسية، واجبات منزلية، أو تنبيهات مجدولة للغد السبت. استمتع بيومك!
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">

@@ -63,7 +63,7 @@ export interface HomeworkEntry {
   details?: string;
   pages?: string;
   completed: boolean;
-  priority?: 'normal' | 'urgent';
+  priority?: 'normal' | 'urgent' | 'high';
   block?: number;
   week?: number;
   isLinkTask?: boolean;
