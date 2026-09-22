@@ -458,11 +458,16 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const deletedIds = await getDeletedPlannerItemIds();
   const deletedSet = new Set(deletedIds);
 
+  // Load Week 1 and Week 2 statically to be extremely fast and lightweight as per user request
+  const staticItems = INITIAL_CLASSWORK.filter((c) => (c.week || 1) < 3);
+  const resultList: ClassworkEntry[] = [...staticItems];
+
   // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
   if (isSupabaseConfigured) {
     try {
+      // ONLY fetch Week 3 classwork from Supabase to dramatically reduce database overhead and speed up the app!
       const res = await withTimeout<any>(
-        supabase.from('classwork').select('*').order('period', { ascending: true }),
+        supabase.from('classwork').select('*').eq('week', 3).order('period', { ascending: true }),
         3500,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
       );
@@ -471,25 +476,24 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
       if (!error && data && Array.isArray(data)) {
         const dbItems = (data as ClassworkRow[]).map(rowToClasswork);
 
+        const map = new Map<string, ClassworkEntry>();
         if (dbItems.length > 0) {
           // Cloud database is active: use as single source of truth without resurrecting deleted items
-          const map = new Map<string, ClassworkEntry>();
           dbItems.forEach((c) => {
             if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
           });
           const localCustom = getLocalCustomClasswork();
           localCustom.forEach((c) => {
-            if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+            if (c && c.id && (c.week || 1) === 3 && !deletedSet.has(c.id)) map.set(c.id, c);
           });
-          return Array.from(map.values());
         } else {
           // Fresh unseeded database
-          const map = new Map<string, ClassworkEntry>();
-          INITIAL_CLASSWORK.forEach((c) => {
+          INITIAL_CLASSWORK.filter((c) => (c.week || 1) === 3).forEach((c) => {
             if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
           });
-          return Array.from(map.values());
         }
+        resultList.push(...Array.from(map.values()));
+        return resultList;
       }
     } catch (err) {
       console.warn('Network exception fetching classwork from Supabase (falling back):', err);
@@ -766,11 +770,16 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const deletedIds = await getDeletedPlannerItemIds();
   const deletedSet = new Set(deletedIds);
 
+  // Load Week 1 and Week 2 statically to be extremely fast and lightweight as per user request
+  const staticItems = INITIAL_HOMEWORK.filter((h) => (h.week || 1) < 3);
+  const resultList: HomeworkEntry[] = [...staticItems];
+
   // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
   if (isSupabaseConfigured) {
     try {
+      // ONLY fetch Week 3 homework from Supabase to dramatically reduce database overhead and speed up the app!
       const res = await withTimeout<any>(
-        supabase.from('homework').select('*').order('created_at', { ascending: false }),
+        supabase.from('homework').select('*').eq('week', 3).order('created_at', { ascending: false }),
         3500,
         { data: null, error: { message: 'Supabase homework query timeout' } }
       );
@@ -798,25 +807,25 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           }
         });
 
+        const map = new Map<string, HomeworkEntry>();
         if (dbItems.length > 0) {
           // Cloud database is active: use as single source of truth without resurrecting deleted items
-          const map = new Map<string, HomeworkEntry>();
           dbItems.forEach((h) => {
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
           const localCustom = getLocalCustomHomework();
           localCustom.forEach((h) => {
-            if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+            if (h && h.id && (h.week || 1) === 3 && !deletedSet.has(h.id)) map.set(h.id, h);
           });
-          return Array.from(map.values());
         } else {
-          // Fresh unseeded database
-          const map = new Map<string, HomeworkEntry>();
-          INITIAL_HOMEWORK.forEach((h) => {
+          // Fresh unseeded database for Week 3
+          INITIAL_HOMEWORK.filter((h) => (h.week || 1) === 3).forEach((h) => {
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
-          return Array.from(map.values());
         }
+        
+        resultList.push(...Array.from(map.values()));
+        return resultList;
       }
     } catch (err) {
       console.warn('Network exception fetching homework from Supabase (falling back):', err);

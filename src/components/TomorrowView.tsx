@@ -80,8 +80,20 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isQuizOrTest = (n: TomorrowSpecialNote) => {
     if (!n) return false;
     if (n.subject === 'Social Studies') return false;
-    if (n.isQuiz || n.categoryType === 'quiz') return true;
     const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+    
+    // Explicitly exclude Science booklet/booklet submissions from being classified as quizzes/tests
+    if (
+      n.subject === 'Science' &&
+      (text.includes('بوكلت') ||
+        text.includes('بوكليت') ||
+        text.includes('booklet') ||
+        text.includes('submission'))
+    ) {
+      return false;
+    }
+
+    if (n.isQuiz || n.categoryType === 'quiz') return true;
     
     // Explicitly exclude any homework, homework submissions, tools, or materials tasks
     if (
@@ -141,6 +153,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return false;
     }
 
+    // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (No reminders/notes on Monday for G2B and G2C!)
+    if (tomorrowDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
+      return true; // Strictly disallow all system/default reminders/notes on Monday for Class B and Class C!
+    }
+
     // Strict Saturday / Sunday lookahead French Homework exclusion:
     // "وعايزة أمسح الـ task بتاع تسليم هوم ورك الفرنش اللي هي في 2A في السبت tomorrow. وامسح حكاية الـ homework الـ French من يوم السبت."
     if ((selectedDay === 'Saturday' || tomorrowDay === 'Sunday') && (n.subject === 'French' || (n.subject as string)?.toLowerCase() === 'french')) {
@@ -166,6 +183,24 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         if (!isSciTools) {
           return true; // Strictly disallowed (ONLY allow Science tools!)
         }
+      }
+    }
+
+    // Cancel/remove any dictation reminder for Class B (G2B) and Class C (G2C) on Monday (tomorrowDay === 'Monday')
+    if (tomorrowDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
+      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isDictation = fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع');
+      if (isDictation) {
+        return true; // Strictly disallowed!
+      }
+    }
+
+    // Strictly disallow any Science booklet submission for Class C (G2C) on ANY day in the tomorrow view
+    if (currentClass === 'G2C') {
+      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isSciBooklet = n.subject === 'Science' && (fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('booklet') || fullText.includes('submission') || fullText.includes('تسليم'));
+      if (isSciBooklet) {
+        return true; // Strictly disallowed for G2C!
       }
     }
 
@@ -197,7 +232,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (n.subject === 'Mathematics' || n.subject === 'Math') {
       const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
       const isTest = n.isQuiz || n.categoryType === 'quiz' || fullText.includes('test') || fullText.includes('quiz') || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم');
-      if (isTest && tomorrowDay !== 'Thursday') {
+      if (isTest && (tomorrowDay as string) !== 'Thursday') {
         return true; // Strictly disallowed on any day other than Wednesday (where tomorrowDay === 'Thursday')
       }
     }
@@ -486,6 +521,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const getNoteDisplayArabic = (n: TomorrowSpecialNote) => {
     if (!n) return '';
     const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+    
+    // Force Science booklet/submission text to strictly be "تسليم بوكليت الساينس" with no pages or details as per user request
+    if (n.subject === 'Science' && (fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('booklet') || fullText.includes('submission') || fullText.includes('تسليم'))) {
+      return 'تسليم بوكليت الساينس';
+    }
+
     const isEnglish = n.subject === 'English' || fullText.includes('english');
     const isDictation = fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('إملاء');
     if (isEnglish && isDictation) {
@@ -500,6 +541,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const getNoteDisplayBagItem = (n: TomorrowSpecialNote) => {
     if (!n) return '';
     const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+    
+    // Force Science booklet bagItem to be strictly "بوكليت الساينس" as per user request
+    if (n.subject === 'Science' && (fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('booklet') || fullText.includes('submission') || fullText.includes('تسليم'))) {
+      return 'بوكليت الساينس';
+    }
+
     if (fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('إملاء')) {
       return '';
     }
@@ -528,8 +575,27 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         isAlert: false,
       };
     }
-    const quiz = isQuizOrTest(note);
+    
     const fullText = ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase();
+
+    // Force Science booklet/booklet submissions to always be styled as regular, non-critical notes
+    if (
+      note.subject === 'Science' &&
+      (fullText.includes('بوكلت') ||
+        fullText.includes('بوكليت') ||
+        fullText.includes('booklet') ||
+        fullText.includes('submission'))
+    ) {
+      return {
+        label: 'ملاحظات الساينس',
+        badgeClass: 'bg-blue-100 text-blue-950 font-black border border-blue-200',
+        cardClass: 'bg-slate-50 border border-slate-200 shadow-2xs',
+        subjectName: 'الساينس (Science)',
+        isAlert: false,
+      };
+    }
+
+    const quiz = isQuizOrTest(note);
     const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('تسميع');
     const isArabic = note.subject === 'Arabic' || fullText.includes('عربي') || fullText.includes('عربية');
     const isEnglish = note.subject === 'English' || fullText.includes('english');
@@ -839,8 +905,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       });
     }
 
-    // Automatically inject Monday English Dictation alert for all classes (G2A, G2B, G2C) when looking ahead to Monday
-    if (tomorrowDay === 'Monday' && !(currentClass === 'G2B' && selectedDay === 'Saturday') && selectedDay !== 'Saturday') {
+    // Automatically inject Monday English Dictation alert ONLY for G2A (strictly disabled for G2B and G2C as per user request)
+    if (tomorrowDay === 'Monday' && currentClass === 'G2A' && selectedDay !== 'Saturday') {
       const engDictationId = `eng-dictation-${currentClass}-${tomorrowDay}`;
       addOrMergeNote({
         id: engDictationId,
@@ -950,6 +1016,17 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return bQuiz - aQuiz;
     });
   }, [mergedNotes]);
+
+  if (selectedDay === 'Thursday') {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-2xs text-center space-y-3">
+        <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mx-auto border border-indigo-100">
+          <BookOpen className="w-6 h-6 text-indigo-600" />
+        </div>
+        <p className="text-sm font-black text-slate-800">يوم الجمعة إجازة رسمية ولا توجد حصص أو مهام مطلوبة للغد</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

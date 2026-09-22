@@ -40,11 +40,23 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
   );
 
   const dueTomorrowHomework = homeworkList.filter(
-    (h) =>
-      (h.class_id === currentClass || h.classId === currentClass || (h.class_id as any) === 'ALL' || (h.classId as any) === 'ALL') &&
-      h.dueDay === tomorrowDay &&
-      (h.block || 1) === currentBlock &&
-      (h.week || 1) === currentWeek
+    (h) => {
+      const isMatch =
+        (h.class_id === currentClass || h.classId === currentClass || (h.class_id as any) === 'ALL' || (h.classId as any) === 'ALL') &&
+        h.dueDay === tomorrowDay &&
+        (h.block || 1) === currentBlock &&
+        (h.week || 1) === currentWeek;
+      if (!isMatch) return false;
+
+      // Filter out Monday dictation due for Class B and C
+      if (tomorrowDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
+        const fullText = ((h.task || '') + ' ' + (h.details || '')).toLowerCase();
+        if (fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع')) {
+          return false;
+        }
+      }
+      return true;
+    }
   );
 
   const tomorrowSpecial =

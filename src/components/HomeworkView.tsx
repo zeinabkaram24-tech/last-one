@@ -116,6 +116,14 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         return false;
       }
 
+      // Strict user rule: "حذف باسكال الإملاء من class B وclass C يوم الاثنين."
+      if (selectedDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
+        const fullText = ((h.task || '') + ' ' + (h.details || '') + ' ' + (h.subject || '')).toLowerCase();
+        if (fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع')) {
+          return false;
+        }
+      }
+
       return true;
     }
   );
@@ -285,7 +293,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         </span>
                       )}
 
-                      {hw.pages && (
+                      {hw.pages && !(hw.subject === 'Science' && (checkText.includes('بوكلت') || checkText.includes('بوكليت') || checkText.includes('booklet') || checkText.includes('submission') || checkText.includes('تسليم'))) && (
                         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-black bg-slate-100 text-slate-800 border border-slate-300 shadow-2xs">
                           <BookOpen className="w-3.5 h-3.5 text-slate-500" />
                           <span>{hw.pages}</span>
@@ -305,7 +313,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         hw.completed ? 'line-through text-slate-400' : 'text-slate-950'
                       }`}
                     >
-                      {hw.task}
+                      {hw.subject === 'Science' && (checkText.includes('بوكلت') || checkText.includes('بوكليت') || checkText.includes('booklet') || checkText.includes('submission') || checkText.includes('تسليم'))
+                        ? 'تسليم بوكليت الساينس'
+                        : hw.task}
                     </p>
 
                     {/* Elegant Word Cards Grid for Dictation Lists */}

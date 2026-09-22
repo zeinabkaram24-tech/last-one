@@ -286,6 +286,10 @@ export async function getTomorrowNotesForDay(
     const merged = Array.from(map.values());
     const filtered = merged.filter((n) => {
       if (isDisallowedMathNote(n)) return false;
+      
+      // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (No reminders/notes on Monday for G2B and G2C!)
+      if (targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
+
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       if (deletedIds.includes(key) || (n.id && deletedIds.includes(n.id))) {
         return false;
@@ -431,6 +435,10 @@ export async function getTomorrowNotesForDay(
     const merged = Array.from(map.values());
     const filtered = merged.filter((n) => {
       if (isDisallowedMathNote(n)) return false;
+
+      // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (No reminders/notes on Monday for G2B and G2C!)
+      if (targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
+
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       const semKey = getSemanticKey(n);
       if (
