@@ -18,8 +18,80 @@ export interface StudentProgressData {
   lastActive: number;
 }
 
-// Global in-memory storage to completely eliminate localStorage usage
+// Safe persistent local storage with memory fallback
 const IN_MEMORY_STUDENT_STORAGE: Record<string, string> = {};
+
+function getCookie(name: string): string | null {
+  try {
+    if (typeof document === 'undefined') return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      const encodedVal = parts.pop()?.split(';').shift();
+      return encodedVal ? decodeURIComponent(encodedVal) : null;
+    }
+  } catch (e) {
+    console.error('Error reading cookie fallback', e);
+  }
+  return null;
+}
+
+function setCookie(name: string, value: string): void {
+  try {
+    if (typeof document === 'undefined') return;
+    const encodedVal = encodeURIComponent(value);
+    document.cookie = `${name}=${encodedVal}; path=/; max-age=31536000; SameSite=None; Secure`;
+  } catch (e) {
+    console.error('Error setting cookie fallback', e);
+  }
+}
+
+function removeCookie(name: string): void {
+  try {
+    if (typeof document === 'undefined') return;
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure`;
+  } catch (e) {
+    console.error('Error removing cookie fallback', e);
+  }
+}
+
+const studentStorageHelper = {
+  getItem: (key: string): string | null => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const val = window.localStorage.getItem(key);
+        if (val !== null) return val;
+      }
+    } catch {}
+    // Try cookie fallback
+    const cookieVal = getCookie(key);
+    if (cookieVal !== null) return cookieVal;
+
+    return IN_MEMORY_STUDENT_STORAGE[key] || null;
+  },
+  setItem: (key: string, val: string): void => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, val);
+      }
+    } catch {}
+    // Set cookie fallback
+    setCookie(key, val);
+
+    IN_MEMORY_STUDENT_STORAGE[key] = val;
+  },
+  removeItem: (key: string): void => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+    } catch {}
+    // Remove cookie fallback
+    removeCookie(key);
+
+    delete IN_MEMORY_STUDENT_STORAGE[key];
+  },
+};
 
 export function normalizeStudentName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -27,7 +99,7 @@ export function normalizeStudentName(name: string): string {
 
 export function getActiveUserProfile(): UserProfile | null {
   try {
-    const raw = IN_MEMORY_STUDENT_STORAGE[PROFILE_KEY];
+    const raw = studentStorageHelper.getItem(PROFILE_KEY);
     if (!raw) return null;
     return JSON.parse(raw);
   } catch (e) {
@@ -39,9 +111,9 @@ export function getActiveUserProfile(): UserProfile | null {
 export function setActiveUserProfile(profile: UserProfile | null): void {
   try {
     if (!profile) {
-      delete IN_MEMORY_STUDENT_STORAGE[PROFILE_KEY];
+      studentStorageHelper.removeItem(PROFILE_KEY);
     } else {
-      IN_MEMORY_STUDENT_STORAGE[PROFILE_KEY] = JSON.stringify(profile);
+      studentStorageHelper.setItem(PROFILE_KEY, JSON.stringify(profile));
       if (profile.mode === 'student' && profile.studentName) {
         addKnownStudent(profile.studentName, profile.classId);
       }
@@ -53,7 +125,7 @@ export function setActiveUserProfile(profile: UserProfile | null): void {
 
 export function getKnownStudents(): { name: string; classId?: ClassId; lastActive: number }[] {
   try {
-    const raw = IN_MEMORY_STUDENT_STORAGE[KNOWN_STUDENTS_KEY];
+    const raw = studentStorageHelper.getItem(KNOWN_STUDENTS_KEY);
     if (!raw) return [];
     return JSON.parse(raw);
   } catch (e) {
@@ -79,7 +151,7 @@ export function addKnownStudent(name: string, classId?: ClassId): void {
         lastActive: Date.now(),
       });
     }
-    IN_MEMORY_STUDENT_STORAGE[KNOWN_STUDENTS_KEY] = JSON.stringify(list.slice(0, 10));
+    studentStorageHelper.setItem(KNOWN_STUDENTS_KEY, JSON.stringify(list.slice(0, 10)));
   } catch (e) {
     console.error('Error adding known student', e);
   }
@@ -90,8 +162,8 @@ export function removeKnownStudent(name: string): void {
     const list = getKnownStudents().filter(
       (s) => normalizeStudentName(s.name) !== normalizeStudentName(name)
     );
-    IN_MEMORY_STUDENT_STORAGE[KNOWN_STUDENTS_KEY] = JSON.stringify(list);
-    delete IN_MEMORY_STUDENT_STORAGE[PROGRESS_PREFIX + normalizeStudentName(name)];
+    studentStorageHelper.setItem(KNOWN_STUDENTS_KEY, JSON.stringify(list));
+    studentStorageHelper.removeItem(PROGRESS_PREFIX + normalizeStudentName(name));
   } catch (e) {
     console.error('Error removing known student', e);
   }
@@ -100,7 +172,7 @@ export function removeKnownStudent(name: string): void {
 export function getStudentProgress(studentName: string): StudentProgressData {
   const norm = normalizeStudentName(studentName);
   try {
-    const raw = IN_MEMORY_STUDENT_STORAGE[PROGRESS_PREFIX + norm];
+    const raw = studentStorageHelper.getItem(PROGRESS_PREFIX + norm);
     if (raw) {
       return JSON.parse(raw);
     }
@@ -135,7 +207,7 @@ export function saveStudentProgress(
   };
 
   try {
-    IN_MEMORY_STUDENT_STORAGE[PROGRESS_PREFIX + norm] = JSON.stringify(data);
+    studentStorageHelper.setItem(PROGRESS_PREFIX + norm, JSON.stringify(data));
     addKnownStudent(cleanName, classId);
     // Sync with Supabase in background
     if (isSupabaseConfigured) {
@@ -171,7 +243,7 @@ const GUEST_PROGRESS_KEY = 'nile_planner_guest_progress_v2';
 
 export function getGuestProgress(): { completedClassworkIds: string[]; completedHomeworkIds: string[] } {
   try {
-    const raw = IN_MEMORY_STUDENT_STORAGE[GUEST_PROGRESS_KEY];
+    const raw = studentStorageHelper.getItem(GUEST_PROGRESS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       return {
@@ -190,11 +262,11 @@ export function saveGuestProgress(
   completedHomeworkIds: string[]
 ): void {
   try {
-    IN_MEMORY_STUDENT_STORAGE[GUEST_PROGRESS_KEY] = JSON.stringify({
+    studentStorageHelper.setItem(GUEST_PROGRESS_KEY, JSON.stringify({
       completedClassworkIds,
       completedHomeworkIds,
       updatedAt: Date.now(),
-    });
+    }));
   } catch (e) {
     console.error('Error saving guest progress', e);
   }

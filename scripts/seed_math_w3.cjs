@@ -269,8 +269,7 @@ const mathHomework = [
     completed: false,
     priority: 'normal',
     block: 1,
-    week: 3,
-    pdfUrl: mathPdfUrl
+    week: 3
   })),
 
   // Monday 21/9 -> Due Tuesday 22/9: Page 88
@@ -286,8 +285,7 @@ const mathHomework = [
     completed: false,
     priority: 'normal',
     block: 1,
-    week: 3,
-    pdfUrl: mathPdfUrl
+    week: 3
   })),
 
   // Tuesday 22/9 -> Due Wednesday 23/9: Page 89
@@ -303,8 +301,7 @@ const mathHomework = [
     completed: false,
     priority: 'normal',
     block: 1,
-    week: 3,
-    pdfUrl: mathPdfUrl
+    week: 3
   })),
 
   // Wednesday 23/9 -> Due Thursday 24/9: Page 89 (Money)
@@ -320,107 +317,42 @@ const mathHomework = [
     completed: false,
     priority: 'normal',
     block: 1,
-    week: 3,
-    pdfUrl: mathPdfUrl
+    week: 3
   })),
 
-  // Wednesday 23/9 -> INSTRUCTION: "ولو في Test، حطي إنذار قبله في الـ Homework وفي الـ Tomorrow، اليوم اللي قبله."
-  // Math Test is on Thursday, so add alert in Homework on Wednesday!
+  // Wednesday 23/9 -> INSTRUCTION: Math Test alert placed once on Wednesday, write ONLY "Test", no details, no sheet display!
   ...['G2A', 'G2B', 'G2C'].map((cls) => ({
     id: `hw-b1-w3-${cls}-Wed-math-test-alert`,
     classId: cls,
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Mathematics',
-    task: '🚨 إنذار وتنبيه هام: غداً الخميس اختبار رياضيات (Unit 2 Math Test)',
-    details: 'تنبيه اختبار هام: الاستعداد لاختبار مادة الرياضيات (Unit 2 Test) غداً الخميس! يرجى مراجعة دروس الوحدة الثانية (الجمع، الطرح، مضاعفات الـ 10، والنقود) في شيت الرياضيات (Pages 82 to 89)، وإحضار الأدوات كاملة (قلم رصاص، ممحاة، مسطرة، كشكول الماث).',
-    pages: 'Maths Sheet 1 (Pages 82 - 89)',
+    task: 'Test',
+    details: '',
+    pages: '',
     completed: false,
     priority: 'urgent',
     block: 1,
-    week: 3,
-    pdfUrl: mathPdfUrl
+    week: 3
   }))
 ];
 
 // 4. Tomorrow Notes for Week 3 Mathematics
+// Per school rule: Homework submission tasks are ONLY for Science and Social Studies!
+// For Math, only the Test alert is required one day before (Wednesday evening for Thursday test).
+// Write ONLY "Test", no extra text, no sheet display.
 const mathTomorrowNotes = [
-  // Saturday evening -> for Sunday (targetDay: Sunday)
-  ...['G2A', 'G2B', 'G2C'].map((cls) => ({
-    id: `tn-w3-math-sun-prep-${cls.toLowerCase()}`,
-    classId: cls,
-    targetDay: 'Sunday',
-    subject: 'Mathematics',
-    period: cls === 'G2A' ? 8 : (cls === 'G2B' ? 2 : 3),
-    title: 'تحضير الرياضيات: Adding single number to 2 digit numbers',
-    note: 'Unit 2: Adding single number to 2 digit numbers. Bring Maths Sheet 1 and Grid Notebook.',
-    arabicNote: 'إحضار شيت الماث (Maths-Grade2-B1-All-Sheet1 - Main) وكشكول الماث المسطر لحصة الرياضيات (Unit 2: Adding single number to 2 digit numbers).',
-    bagItem: 'Maths-Grade2-B1-All-Sheet1 - Main & Grid Notebook',
-    priority: 'normal',
-    block: 1,
-    week: 3
-  })),
-
-  // Sunday evening -> for Monday (targetDay: Monday)
-  ...['G2A', 'G2B', 'G2C'].map((cls) => ({
-    id: `tn-w3-math-mon-prep-${cls.toLowerCase()}`,
-    classId: cls,
-    targetDay: 'Monday',
-    subject: 'Mathematics',
-    period: cls === 'G2A' ? 8 : (cls === 'G2B' ? 3 : 8),
-    title: 'تسليم واجب الماث وحصة الطرح',
-    note: 'Submit Math HW Pages 82, 83. Unit 2: Subtracting single number from 2 digit numbers.',
-    arabicNote: 'تسليم واجب الماث ص 82 و 83 وإحضار شيت الماث وكشكول الرياضيات لدراسة طرح الأعداد.',
-    bagItem: 'Maths Sheet 1 (Pages 82, 83 HW)',
-    priority: 'normal',
-    block: 1,
-    week: 3
-  })),
-
-  // Monday evening -> for Tuesday (targetDay: Tuesday)
-  ...['G2A', 'G2B', 'G2C'].map((cls) => ({
-    id: `tn-w3-math-tue-prep-${cls.toLowerCase()}`,
-    classId: cls,
-    targetDay: 'Tuesday',
-    subject: 'Mathematics',
-    period: cls === 'G2A' ? 3 : (cls === 'G2B' ? 1 : 3),
-    title: 'تسليم واجب الماث وحصة مضاعفات 10',
-    note: 'Submit Math HW Page 88. Unit 2: Add and subtract 10 and multiples of 10.',
-    arabicNote: 'تسليم واجب الماث ص 88 في شيت الرياضيات وإحضار الأدوات لحصة الجمع والطرح بمضاعفات الـ 10.',
-    bagItem: 'Maths Sheet 1 (Page 88 HW)',
-    priority: 'normal',
-    block: 1,
-    week: 3
-  })),
-
-  // Tuesday evening -> for Wednesday (targetDay: Wednesday)
-  ...['G2A', 'G2B', 'G2C'].map((cls) => ({
-    id: `tn-w3-math-wed-prep-${cls.toLowerCase()}`,
-    classId: cls,
-    targetDay: 'Wednesday',
-    subject: 'Mathematics',
-    period: cls === 'G2A' ? 1 : (cls === 'G2B' ? 5 : 7),
-    title: 'تسليم واجب الماث وحصة Money',
-    note: 'Submit Math HW Page 89. Unit 2: Money topic.',
-    arabicNote: 'تسليم واجب الماث ص 89 وإحضار شيت الماث لمتابعة درس النقود (Money).',
-    bagItem: 'Maths Sheet 1 (Page 89 HW)',
-    priority: 'normal',
-    block: 1,
-    week: 3
-  })),
-
   // Wednesday evening -> for Thursday (targetDay: Thursday)
-  // INSTRUCTION: "ولو في Test، حطي إنذار قبله في الـ Homework وفي الـ Tomorrow، اليوم اللي قبله."
   ...['G2A', 'G2B', 'G2C'].map((cls) => ({
     id: `tn-w3-math-thu-test-${cls.toLowerCase()}`,
     classId: cls,
     targetDay: 'Thursday',
     subject: 'Mathematics',
     period: cls === 'G2A' ? 1 : (cls === 'G2B' ? 4 : 6),
-    title: '🚨 إنذار وتنبيه هام: غداً الخميس اختبار رياضيات (Unit 2 Math Test)',
-    note: '🚨 Alert: Unit 2 Math Test Tomorrow (Thursday)! Review addition, subtraction, multiples of 10, and money (Pages 82 to 89). Bring pencil, eraser, ruler, and Grid Notebook.',
-    arabicNote: '🚨 إنذار وتنبيه هام: غداً الخميس اختبار رياضيات (Unit 2 Math Test) لجميع فصول الصف الثاني! يرجى المذاكرة الجيدة ومراجعة دروس الوحدة الثانية في شيت الماث، وإحضار قلم رصاص، مسطرة، ممحاة، وكشكول الماث.',
-    bagItem: 'Maths Sheet 1, Pencil Case (Pencil, Eraser, Ruler) & Grid Notebook',
+    title: 'Test',
+    note: 'Test',
+    arabicNote: 'Test',
+    bagItem: '',
     isQuiz: true,
     categoryType: 'quiz',
     priority: 'urgent',

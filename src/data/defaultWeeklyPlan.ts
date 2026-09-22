@@ -1510,7 +1510,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     subject: "Science",
     title: "Unit 2: Getting to know plants - Living and non-living things",
     details: "Introduction to Unit 2. Discuss the characteristics of living things and non-living things. Required Materials: Colored sheets with different colors , glue , colored pencils , a little chrochet yarn.",
-    pages: "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn",
+    pages: "ص 36 — Required: Colored sheets with different colors , glue , colored pencils , a little chrochet yarn",
     completed: false,
     block: 1,
     week: 3
@@ -1523,7 +1523,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     subject: "Science",
     title: "Unit 2: Getting to know plants - Living and non-living things",
     details: "Introduction to Unit 2. Discuss the characteristics of living things and non-living things. Required Materials: Colored sheets with different colors , glue , colored pencils , a little chrochet yarn.",
-    pages: "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn",
+    pages: "ص 36 — Required: Colored sheets with different colors , glue , colored pencils , a little chrochet yarn",
     completed: false,
     block: 1,
     week: 3
@@ -1536,7 +1536,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     subject: "Science",
     title: "Unit 2: Getting to know plants - Living and non-living things",
     details: "Introduction to Unit 2. Discuss the characteristics of living things and non-living things. Required Materials: Colored sheets with different colors , glue , colored pencils , a little chrochet yarn.",
-    pages: "Colored sheets with different colors , glue , colored pencils , a little chrochet yarn",
+    pages: "ص 36 — Required: Colored sheets with different colors , glue , colored pencils , a little chrochet yarn",
     completed: false,
     block: 1,
     week: 3
@@ -2582,8 +2582,7 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     completed: false,
     priority: "normal" as any,
     block: 1,
-    week: 3,
-    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+    week: 3
   } as HomeworkEntry)),
   // الإثنين: حل ص 88
   ...["G2A", "G2B", "G2C"].map((cls) => ({
@@ -2598,8 +2597,7 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     completed: false,
     priority: "normal" as any,
     block: 1,
-    week: 3,
-    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+    week: 3
   } as HomeworkEntry)),
   // الثلاثاء: حل ص 89
   ...["G2A", "G2B", "G2C"].map((cls) => ({
@@ -2614,8 +2612,7 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     completed: false,
     priority: "normal" as any,
     block: 1,
-    week: 3,
-    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+    week: 3
   } as HomeworkEntry)),
   // الأربعاء: حل ص 89 (Money)
   ...["G2A", "G2B", "G2C"].map((cls) => ({
@@ -2630,8 +2627,7 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     completed: false,
     priority: "normal" as any,
     block: 1,
-    week: 3,
-    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+    week: 3
   } as HomeworkEntry)),
   // الأربعاء (إنذار الاختبار): غداً الخميس اختبار رياضيات
   ...["G2A", "G2B", "G2C"].map((cls) => ({
@@ -2640,13 +2636,112 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     assignedDay: "Wednesday" as any,
     dueDay: "Thursday" as any,
     subject: "Mathematics" as any,
-    task: "🚨 إنذار وتنبيه هام: غداً الخميس اختبار رياضيات (Unit 2 Math Test)",
-    details: "تنبيه اختبار هام: الاستعداد لاختبار مادة الرياضيات (Unit 2 Test) غداً الخميس! يرجى مراجعة دروس الوحدة الثانية (الجمع، الطرح، مضاعفات الـ 10، والنقود) في شيت الرياضيات (Pages 82 to 89)، وإحضار الأدوات كاملة (قلم رصاص، ممحاة، مسطرة، كشكول الماث).",
-    pages: "Maths Sheet 1 (Pages 82 - 89)",
+    task: "Test",
+    details: "",
+    pages: "",
     completed: false,
     priority: "urgent" as any,
     block: 1,
+    week: 3
+  } as HomeworkEntry)),
+
+  // ==========================================
+  // BLOCK 1 - WEEK 3 FRENCH (FRANÇAIS) HOMEWORK
+  // Unité 4: La petite sœur de Lilly
+  // Rule 1: Homework is in the last session of the week (Page 26):
+  //   G2A: Thursday (p2)
+  //   G2B: Tuesday (p4)
+  //   G2C: Wednesday (p2)
+  // Rule 2: Quiz is in the second session of the week (Alert 1 day before):
+  //   G2A: Wednesday -> Alert on Tuesday
+  //   G2B: Monday -> Alert on Sunday
+  //   G2C: Tuesday -> Alert on Monday
+  // ==========================================
+  // G2A
+  {
+    id: 'hw-b1-w3-G2A-Tue-french-quiz-alert',
+    classId: 'G2A',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'French',
+    task: 'Quiz',
+    details: '',
+    pages: '',
+    completed: false,
+    priority: 'urgent',
+    block: 1,
     week: 3,
-    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-  } as HomeworkEntry))
+  },
+  {
+    id: 'hw-b1-w3-G2A-Thu-french-page26',
+    classId: 'G2A',
+    assignedDay: 'Thursday',
+    dueDay: 'Sunday',
+    subject: 'French',
+    task: 'French Homework: Fiche de devoir Page 26',
+    details: 'Unité 4: Présenter la famille (Les adjectifs possessifs) - حل تدريبات صفحة 26 في شيت واجب الفرنش (Fiche de devoir).',
+    pages: 'Page 26',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 3,
+  },
+  // G2B
+  {
+    id: 'hw-b1-w3-G2B-Sun-french-quiz-alert',
+    classId: 'G2B',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'French',
+    task: 'Quiz',
+    details: '',
+    pages: '',
+    completed: false,
+    priority: 'urgent',
+    block: 1,
+    week: 3,
+  },
+  {
+    id: 'hw-b1-w3-G2B-Tue-french-page26',
+    classId: 'G2B',
+    assignedDay: 'Tuesday',
+    dueDay: 'Sunday',
+    subject: 'French',
+    task: 'French Homework: Fiche de devoir Page 26',
+    details: 'Unité 4: Présenter la famille (Les adjectifs possessifs) - حل تدريبات صفحة 26 في شيت واجب الفرنش (Fiche de devoir).',
+    pages: 'Page 26',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 3,
+  },
+  // G2C
+  {
+    id: 'hw-b1-w3-G2C-Mon-french-quiz-alert',
+    classId: 'G2C',
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
+    subject: 'French',
+    task: 'Quiz',
+    details: '',
+    pages: '',
+    completed: false,
+    priority: 'urgent',
+    block: 1,
+    week: 3,
+  },
+  {
+    id: 'hw-b1-w3-G2C-Wed-french-page26',
+    classId: 'G2C',
+    assignedDay: 'Wednesday',
+    dueDay: 'Sunday',
+    subject: 'French',
+    task: 'French Homework: Fiche de devoir Page 26',
+    details: 'Unité 4: Présenter la famille (Les adjectifs possessifs) - حل تدريبات صفحة 26 في شيت واجب الفرنش (Fiche de devoir).',
+    pages: 'Page 26',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 3,
+  }
 ];

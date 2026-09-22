@@ -94,10 +94,10 @@ export const SUBJECT_METADATA: Record<SubjectName, SubjectMeta> = {
     name: 'Arabic',
     arabicName: 'لغة عربية',
     iconName: 'Languages',
-    color: '#059669', // Emerald-600
-    badgeBg: 'bg-emerald-50 text-emerald-950 border-emerald-300',
-    badgeText: 'text-emerald-900',
-    borderColor: 'border-emerald-400',
+    color: '#65a30d', // Lime-600
+    badgeBg: 'bg-lime-50 text-lime-950 border-lime-300',
+    badgeText: 'text-lime-900',
+    borderColor: 'border-lime-400',
     standardBagItems: ['كتاب اللغة العربية', 'كشكول العربي المسطر', 'كراسة الخط'],
   },
   Science: {

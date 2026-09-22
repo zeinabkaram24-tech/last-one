@@ -58,24 +58,60 @@ import {
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
 
+function getAppCookie(name: string): string | null {
+  try {
+    if (typeof document === 'undefined') return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      const encodedVal = parts.pop()?.split(';').shift();
+      return encodedVal ? decodeURIComponent(encodedVal) : null;
+    }
+  } catch (e) {
+    console.error('Error reading app cookie fallback', e);
+  }
+  return null;
+}
+
+function setAppCookie(name: string, value: string): void {
+  try {
+    if (typeof document === 'undefined') return;
+    const encodedVal = encodeURIComponent(value);
+    document.cookie = `${name}=${encodedVal}; path=/; max-age=31536000; SameSite=None; Secure`;
+  } catch (e) {
+    console.error('Error setting app cookie fallback', e);
+  }
+}
+
+function removeAppCookie(name: string): void {
+  try {
+    if (typeof document === 'undefined') return;
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure`;
+  } catch (e) {
+    console.error('Error removing app cookie fallback', e);
+  }
+}
+
 // Real local app storage with fallback for browser environment
 const appStorage = {
   getItem: (key: string) => {
     try {
-      return typeof window !== 'undefined' ? window.localStorage?.getItem(key) : null;
-    } catch {
-      return null;
-    }
+      const val = typeof window !== 'undefined' ? window.localStorage?.getItem(key) : null;
+      if (val !== null) return val;
+    } catch {}
+    return getAppCookie(key);
   },
   setItem: (key: string, val: string) => {
     try {
       if (typeof window !== 'undefined') window.localStorage?.setItem(key, val);
     } catch {}
+    setAppCookie(key, val);
   },
   removeItem: (key: string) => {
     try {
       if (typeof window !== 'undefined') window.localStorage?.removeItem(key);
     } catch {}
+    removeAppCookie(key);
   }
 };
 
@@ -192,7 +228,17 @@ export default function App() {
   });
 
   // Active View Tab: 'classwork' | 'homework' | 'tomorrow' | 'timetable'
-  const [activeTab, setActiveTab] = useState<'classwork' | 'homework' | 'tomorrow' | 'timetable'>('classwork');
+  const [activeTab, setActiveTab] = useState<'classwork' | 'homework' | 'tomorrow' | 'timetable'>(() => {
+    const saved = appStorage.getItem('nile_planner_active_tab_v3');
+    if (saved === 'classwork' || saved === 'homework' || saved === 'tomorrow' || saved === 'timetable') {
+      return saved;
+    }
+    return 'classwork';
+  });
+
+  useEffect(() => {
+    appStorage.setItem('nile_planner_active_tab_v3', activeTab);
+  }, [activeTab]);
 
   // Supabase Connection Status
   const [supabaseStatus, setSupabaseStatus] = useState<'connecting' | 'connected' | 'unconfigured' | 'error'>(() => {
@@ -521,6 +567,7 @@ export default function App() {
       setHomeworkList((prev) => prev.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
       showToast('تم التبديل لوضع الزائر (تُحفظ علامات الإنجاز على هذا الجهاز).');
     }
+    setIsAuthModalOpen(false);
   };
 
   // Classwork handlers with Supabase CRUD

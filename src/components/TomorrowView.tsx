@@ -100,7 +100,51 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
     if (tomorrowDay === 'Saturday') return true;
-    // User or admin manually added notes or special tn- notes must always be displayed
+
+    // Universal Arabic rule: ONLY allow Dictation (إملاء) or Quiz/Test (اختبار / كويز) for Arabic in Tomorrow!
+    // Never allow any other Arabic items (no prep, reading, library, or general notes, no matter if manual/seeded/custom)
+    const normSubjectText = (n.subject || '').trim().toLowerCase();
+    const isArabicSubject = normSubjectText === 'arabic' || normSubjectText.includes('عربي') || normSubjectText.includes('اللغة العربية');
+    if (isArabicSubject) {
+      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');
+      const isQuiz = n.isQuiz || isQuizOrTest(n) || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم') || fullText.includes('test') || fullText.includes('quiz');
+      if (!isDictation && !isQuiz) {
+        return true; // Strictly block any other Arabic items
+      }
+    }
+
+    // Strict user rule: "التاسكات اللي بتتحط بتسليم واجب دي ما بتتحطش غير للساينس والسوشيال بس"
+    // Homework submission tasks (تسليم واجب) are STRICTLY FORBIDDEN for any subject other than Science and Social Studies!
+    const normSubject = (n.subject || '').toLowerCase();
+    const isSciOrSoc =
+      normSubject.includes('science') ||
+      normSubject.includes('ساينس') ||
+      normSubject.includes('social') ||
+      normSubject.includes('دراسات');
+    const noteFullText = (
+      ((n as any).title || '') +
+      ' ' +
+      (n.note || '') +
+      ' ' +
+      (n.arabicNote || '') +
+      ' ' +
+      (n.bagItem || '')
+    ).toLowerCase();
+    const isSubmission =
+      noteFullText.includes('تسليم واجب') ||
+      noteFullText.includes('تسليم الواجب') ||
+      (noteFullText.includes('تسليم') &&
+        (noteFullText.includes('واجب') ||
+          noteFullText.includes('hw') ||
+          noteFullText.includes('homework') ||
+          noteFullText.includes('شيت') ||
+          noteFullText.includes('sheet')));
+    if (!isSciOrSoc && isSubmission) {
+      return true; // Disallow any homework submission task for subjects other than Science and Social Studies
+    }
+
+    // User or admin manually added notes or special tn- notes must always be displayed (unless they violate the submission rule above)
     if (n.isCustom || (n.id && (n.id.includes('manual') || n.id.includes('tomorrow-') || n.id.includes('note-') || n.id.includes('tn-') || n.id.includes('custom')))) {
       return false;
     }
@@ -114,6 +158,17 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       lowerText.includes('مجتمع')
     ) {
       return true;
+    }
+
+    // Universal Arabic rule: ONLY allow Dictation (إملاء) or Quiz/Test (اختبار / كويز) for Arabic in Tomorrow!
+    // Never allow any other Arabic items (no prep, reading, library, or general notes)
+    if (n.subject === 'Arabic' || n.subject === 'عربي' || n.subject === 'اللغة العربية') {
+      const fullText = ((n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.title || '')).toLowerCase();
+      const isDictation = fullText.includes('إملاء') || fullText.includes('dictation') || fullText.includes('تسميع');
+      const isQuiz = isQuizOrTest(n) || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم') || fullText.includes('test') || fullText.includes('quiz');
+      if (!isDictation && !isQuiz) {
+        return true;
+      }
     }
 
     // These rules ONLY apply when we are in Week 3
@@ -142,6 +197,24 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
       // Explicit user rule: Allow Science booklet submission for G2C on Monday as per latest user request
       // (Previously disallowed, but now explicitly requested: "يوم الحد في التومورو، طبعا للتوسي، تضيف لي تاسك بتسليم البوكليت.")
+
+      // Strict Science tools rule for Sunday (Saturday-Tomorrow view):
+      // "بوستات الليفتو إيه؟ السبت، التومارو، اللي هي يرجع إحضار أدوات الساينس ديا لا مش موجودة معانا."
+      if (tomorrowDay === 'Sunday' && n.subject === 'Science') {
+        const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        if (fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط')) {
+          return true; // Strictly disallowed!
+        }
+      }
+
+      // Strict Math test reminder rule: only show on Wednesday (tomorrowDay === 'Thursday')
+      if (n.subject === 'Mathematics' || n.subject === 'Math') {
+        const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+        const isTest = n.isQuiz || n.categoryType === 'quiz' || fullText.includes('test') || fullText.includes('quiz') || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم');
+        if (isTest && tomorrowDay !== 'Thursday') {
+          return true; // Strictly disallowed on any day other than Wednesday (where tomorrowDay === 'Thursday')
+        }
+      }
 
       // Strict user rule for Sunday (Saturday-Tomorrow view):
       // Allow quizzes, tests, French, Social Studies, or notes with materials
@@ -175,7 +248,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const getSemanticKey = (n: TomorrowSpecialNote): string => {
     const normSubject = (n.subject || '').trim().toLowerCase();
-    const text = (n.arabicNote || n.note || '').toLowerCase().replace(/[🚨📝🎒]/g, '').trim();
+    const text = ((n.title || '') + ' ' + (n.arabicNote || '') + ' ' + (n.note || '')).toLowerCase().replace(/[🚨📝🎒]/g, '').trim();
 
     // 1. Social studies homework submission
     if (normSubject.includes('social') || normSubject.includes('دراسات')) {
@@ -219,7 +292,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
     // 5. Mathematics tests
     if (normSubject.includes('math') || normSubject.includes('رياضيات')) {
-      if (text.includes('test') || text.includes('اختبار') || text.includes('unit 1')) {
+      if (text.includes('test') || text.includes('اختبار') || text.includes('unit 1') || text.includes('unit 2')) {
         return `math-test-${n.targetDay}`;
       }
     }
@@ -458,11 +531,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((txt || '').toLowerCase());
     };
 
+    const effectiveWeekForHw = tomorrowDay === 'Sunday' && currentWeek > 1 ? currentWeek - 1 : currentWeek;
+
     // 1. Linked from Homework:
     homeworkList.forEach((h) => {
       const cid = h.class_id || h.classId;
       if (cid !== currentClass && (cid as any) !== 'ALL') return;
-      if (h.week && h.week !== currentWeek) return;
+      if (h.week && h.week !== effectiveWeekForHw) return;
 
       const fullText = `${h.task} ${h.details || ''} ${h.subject}`;
       const isForTomorrow = h.dueDay === tomorrowDay || h.assignedDay === tomorrowDay;
@@ -487,10 +562,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           pdfUrl: h.pdfUrl,
         });
       }
-      // B) Due for submission tomorrow (e.g. Social Studies homework sheet due on Sunday for 2A & 2C)
-      else if (h.dueDay === tomorrowDay) {
+      // B) Due for submission tomorrow - STRICT USER MANDATE: ONLY for Social Studies and Science
+      else if (h.dueDay === tomorrowDay && (h.subject === 'Social Studies' || h.subject === 'Science')) {
         const isSocial = h.subject === 'Social Studies';
-        const isScience = h.subject === 'Science';
         alerts.push({
           id: hwDueAlertId,
           classId: currentClass,
@@ -498,15 +572,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           subject: h.subject,
           note: isSocial
             ? 'تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)'
-            : isScience
-            ? 'تسليم بوكلت الـ science'
-            : `تسليم واجب ${h.subject}: ${h.task}`,
+            : 'تسليم بوكلت الـ science',
           arabicNote: isSocial
             ? 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع'
-            : isScience
-            ? 'تسليم بوكلت الـ science'
-            : (h.details ? `تذكير: تسليم الواجب غداً (${h.details})` : `تذكير: تسليم واجب ${h.subject} غداً`),
-          bagItem: isSocial ? 'شيت واجب الدراسات الاجتماعية المرفق' : isScience ? 'بوكليت الـ science' : (h.pages || undefined),
+            : 'تسليم بوكلت الـ science',
+          bagItem: isSocial ? 'شيت واجب الدراسات الاجتماعية المرفق' : 'بوكليت الـ science',
           isQuiz: false,
           categoryType: 'note',
           block: currentBlock,
@@ -573,6 +643,24 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         hasArabicDictation = true;
       }
 
+      // Strict rule: For Math Test, user mandate: ONLY write "Test" and never display sheet
+      if (semKey.startsWith('math-test-')) {
+        n.title = 'Test';
+        n.note = 'Test';
+        n.arabicNote = 'Test';
+        n.bagItem = undefined;
+        n.pdfUrl = undefined;
+      }
+
+      // Strict rule: For French Quiz, user mandate: ONLY once before the session, no clutter
+      if (semKey.startsWith('french-quiz-')) {
+        n.title = 'Quiz';
+        n.note = 'Quiz';
+        n.arabicNote = 'كويز فرنش (Quiz)';
+        n.bagItem = undefined;
+        n.pdfUrl = undefined;
+      }
+
       if (map.has(semKey)) {
         const existing = map.get(semKey)!;
         // Merge them cleanly without duplicating:
@@ -580,12 +668,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           ...existing,
           ...(isHighPriority ? n : {}),
           id: (isHighPriority && n.id) ? n.id : existing.id || n.id,
-          pdfUrl: existing.pdfUrl || n.pdfUrl,
-          bagItem: existing.bagItem || n.bagItem,
+          pdfUrl: semKey.startsWith('math-test-') ? undefined : (existing.pdfUrl || n.pdfUrl),
+          bagItem: semKey.startsWith('math-test-') ? undefined : (existing.bagItem || n.bagItem),
           linkUrl: existing.linkUrl || n.linkUrl,
           linkTitle: existing.linkTitle || n.linkTitle,
           arabicNote: isHighPriority && n.arabicNote ? n.arabicNote : (existing.arabicNote || n.arabicNote),
           note: isHighPriority && n.note ? n.note : (existing.note || n.note),
+          title: isHighPriority && n.title ? n.title : (existing.title || n.title),
           linkedIds: Array.from(new Set([...(existing.linkedIds || []), ...(n.linkedIds || []), existing.id, n.id].filter(Boolean) as string[])),
         };
         map.set(semKey, merged);
@@ -597,10 +686,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     };
 
-    // Automatically inject French Quiz warning
+    // Automatically inject French Quiz warning (ONLY once, exactly 1 day before the session per class)
     let injectFrenchQuiz = false;
     if (currentClass === 'G2A' && tomorrowDay === 'Wednesday') injectFrenchQuiz = true;
-    if (currentClass === 'G2B' && (tomorrowDay === 'Monday' || tomorrowDay === 'Sunday')) injectFrenchQuiz = true;
+    if (currentClass === 'G2B' && tomorrowDay === 'Monday') injectFrenchQuiz = true;
     if (currentClass === 'G2C' && tomorrowDay === 'Tuesday') injectFrenchQuiz = true;
 
     if (injectFrenchQuiz) {
@@ -610,8 +699,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         classId: currentClass,
         targetDay: tomorrowDay,
         subject: 'French',
-        note: 'French Quiz',
-        arabicNote: 'كويز فرنش',
+        title: 'Quiz',
+        note: 'Quiz',
+        arabicNote: 'كويز فرنش (Quiz)',
         isQuiz: true,
         categoryType: 'quiz',
         block: currentBlock,
@@ -802,15 +892,25 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                       </a>
                     </div>
                   )}
-                  {note.pdfUrl && (
-                    <div className="pt-2">
-                      <AttachmentPdfCard
-                        pdfUrl={note.pdfUrl}
-                        subject={note.subject}
-                        label="مرفق التنبيه"
-                      />
-                    </div>
-                  )}
+                  {(() => {
+                    if (!note.pdfUrl) return null;
+                    const isAllowed =
+                      note.subject === 'Social Studies' ||
+                      (note.subject === 'English' && (
+                        ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictation') ||
+                        ((note.note || '') + ' ' + (note.arabicNote || '')).includes('إملاء')
+                      ));
+                    if (!isAllowed) return null;
+                    return (
+                      <div className="pt-2">
+                        <AttachmentPdfCard
+                          pdfUrl={note.pdfUrl}
+                          subject={note.subject}
+                          label="مرفق التنبيه"
+                        />
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}

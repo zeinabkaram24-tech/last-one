@@ -346,16 +346,27 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       );
                     })()}
 
-                    {/* PDF Worksheet if available (using Materials files system) */}
-                    {hw.pdfUrl && (
-                      <div className="pt-2">
-                        <AttachmentPdfCard
-                          pdfUrl={hw.pdfUrl}
-                          subject={hw.subject}
-                          label="مرفق شيت الواجب"
-                        />
-                      </div>
-                    )}
+                    {/* PDF Worksheet if available: strictly only allowed for Social Studies and English Dictation per school rule */}
+                    {(() => {
+                      if (!hw.pdfUrl) return null;
+                      const isAllowed =
+                        hw.subject === 'Social Studies' ||
+                        (hw.subject === 'English' && (
+                          hw.task?.toLowerCase().includes('dictation') ||
+                          hw.details?.includes('إملاء') ||
+                          hw.task?.includes('إملاء')
+                        ));
+                      if (!isAllowed) return null;
+                      return (
+                        <div className="pt-2">
+                          <AttachmentPdfCard
+                            pdfUrl={hw.pdfUrl}
+                            subject={hw.subject}
+                            label="مرفق شيت الواجب"
+                          />
+                        </div>
+                      );
+                    })()}
 
                     {/* Link if available */}
                     {hw.linkUrl && (
