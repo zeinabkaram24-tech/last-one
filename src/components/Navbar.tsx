@@ -296,18 +296,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="grid grid-cols-6 gap-1 sm:gap-1.5 w-full">
               {SCHOOL_DAYS.map((day) => {
                 const isSelected = selectedDay === day;
+                const shortDay = day.slice(0, 3);
                 return (
                   <button
                     key={day}
                     onClick={() => onSelectDay(day)}
-                    className={`w-full py-1 sm:py-1.5 px-0.5 sm:px-1 rounded-lg text-center transition-all text-[11px] sm:text-xs font-black truncate ${
+                    className={`w-full py-1.5 sm:py-2 px-1 rounded-xl text-center transition-all text-[11px] sm:text-xs font-black truncate ${
                       isSelected
                         ? 'bg-indigo-600 text-white shadow-2xs'
                         : 'bg-white text-slate-700 hover:text-slate-950 border border-slate-200 hover:bg-slate-100'
                     }`}
                     title={day}
                   >
-                    {day}
+                    <span className="sm:hidden">{shortDay}</span>
+                    <span className="hidden sm:inline">{day}</span>
                   </button>
                 );
               })}

@@ -4,6 +4,7 @@ import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
 
 export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
+  // Math tests
   {
     id: 'tn-b1-w3-G2A-Wed-math-test',
     classId: 'G2A',
@@ -40,6 +41,92 @@ export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     arabicNote: 'Test',
     isQuiz: true,
     categoryType: 'quiz',
+    block: 1,
+    week: 3
+  },
+  // G2B Science Tools on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-science-w3-G2B-Sat-materials',
+    classId: 'G2B',
+    targetDay: 'Sunday',
+    subject: 'Science',
+    title: 'Science tools required for this week',
+    note: 'Science tools required for this week',
+    arabicNote: 'تذكير لكلاس B: يرجى إحضار أدوات الساينس المطلوبة طوال هذا الأسبوع (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+    bagItem: 'أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه)',
+    categoryType: 'tools',
+    isQuiz: false,
+    block: 1,
+    week: 3
+  },
+  // G2B Science Booklet on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-science-w3-G2B-Sat-booklet',
+    classId: 'G2B',
+    targetDay: 'Sunday',
+    subject: 'Science',
+    title: 'Science booklet submission (Unit 1)',
+    note: 'Science booklet submission (Unit 1)',
+    arabicNote: 'تذكير لكلاس B: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
+    bagItem: 'Science Booklet (بوكليت الساينس)',
+    categoryType: 'note',
+    isQuiz: false,
+    block: 1,
+    week: 3
+  },
+  // G2A Science Booklet on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-science-w3-G2A-Sat-booklet',
+    classId: 'G2A',
+    targetDay: 'Sunday',
+    subject: 'Science',
+    title: 'Science booklet submission (Unit 1)',
+    note: 'Science booklet submission (Unit 1)',
+    arabicNote: 'تذكير لكلاس A: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
+    bagItem: 'Science Booklet (بوكليت الساينس)',
+    categoryType: 'note',
+    isQuiz: false,
+    block: 1,
+    week: 3
+  },
+  // G2C Science Tools on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-science-w3-G2C-Sat-materials',
+    classId: 'G2C',
+    targetDay: 'Sunday',
+    subject: 'Science',
+    title: 'Science tools required for this week',
+    note: 'Science tools required for this week',
+    arabicNote: 'تذكير لكلاس C: يرجى إحضار أدوات الساينس المطلوبة طوال هذا الأسبوع (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+    bagItem: 'أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه)',
+    categoryType: 'tools',
+    isQuiz: false,
+    block: 1,
+    week: 3
+  },
+  // G2A Social Studies submission on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-b1-w3-G2A-Sat-social-submit',
+    classId: 'G2A',
+    targetDay: 'Sunday',
+    subject: 'Social Studies',
+    note: 'تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 1)',
+    arabicNote: 'تذكير لكلاس A: تسليم واجب الدراسات الاجتماعية غداً الأحد (شيت الواجب المنزلي 1)',
+    bagItem: 'شيت واجب الدراسات الاجتماعية 1',
+    isQuiz: false,
+    block: 1,
+    week: 3
+  },
+  // G2C Social Studies submission on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-b1-w3-G2C-Sat-social-submit',
+    classId: 'G2C',
+    targetDay: 'Sunday',
+    subject: 'Social Studies',
+    note: 'تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 1)',
+    arabicNote: 'تذكير لكلاس C: تسليم واجب الدراسات الاجتماعية غداً الأحد (شيت الواجب المنزلي 1)',
+    bagItem: 'شيت واجب الدراسات الاجتماعية 1',
+    isQuiz: false,
     block: 1,
     week: 3
   }
@@ -175,6 +262,27 @@ export async function getTomorrowNotesForDay(
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       map.set(key, n);
     });
+
+    try {
+      const res = await fetch('/api/planner-data');
+      if (res.ok) {
+        const pData = await res.json();
+        if (pData && Array.isArray(pData.tomorrowNotes)) {
+          pData.tomorrowNotes.forEach((n: any) => {
+            if (
+              (n.classId === classId || n.classId === 'ALL') &&
+              n.targetDay === targetDay &&
+              (n.block || 1) === block &&
+              (n.week || 1) === week
+            ) {
+              const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+              map.set(key, n);
+            }
+          });
+        }
+      }
+    } catch {}
+
     const merged = Array.from(map.values());
     const filtered = merged.filter((n) => {
       if (isDisallowedMathNote(n)) return false;
@@ -733,12 +841,34 @@ export async function getTomorrowNotesForDay(
   }
 }
 
+const OBSOLETE_DELETED_TOMORROW_IDS = new Set([
+  'science-booklet-submission-Sunday',
+  'science-tools-Sunday',
+  'tn-science-w3-G2A-Sat-materials',
+  'tn-science-w3-G2A-Sat-materials-forced',
+  'tn-science-w3-G2B-Sat-materials',
+  'tn-science-w3-G2B-Sat-booklet',
+  'tn-science-w3-G2A-Sat-booklet',
+  'tn-science-w2-G2B-Sat-materials',
+  'tn-science-w2-G2B-Sat-booklet',
+  'tn-science-w2-G2A-Sat-booklet',
+  'linked-hw-due-hw-b1-w3-G2A-science-page38',
+  'hw-b1-w3-G2A-science-page38',
+  'linked-hw-due-hw-b1-w3-G2B-science-page38',
+  'hw-b1-w3-G2B-science-page38',
+]);
+
+function purgeObsoleteDeletedIds(list: string[]): string[] {
+  if (!Array.isArray(list)) return [];
+  return list.filter(id => !OBSOLETE_DELETED_TOMORROW_IDS.has(id));
+}
+
 export function getDeletedTomorrowNoteIdsSync(): string[] {
   try {
     const mem = IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'];
-    if (mem) return JSON.parse(mem);
+    if (mem) return purgeObsoleteDeletedIds(JSON.parse(mem));
     const raw = appStorage.getItem('nile_deleted_tomorrow_note_ids_v3');
-    if (raw) return JSON.parse(raw);
+    if (raw) return purgeObsoleteDeletedIds(JSON.parse(raw));
   } catch {}
   return [];
 }
@@ -746,12 +876,12 @@ export function getDeletedTomorrowNoteIdsSync(): string[] {
 export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
   try {
     const mem = IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'];
-    if (mem) return JSON.parse(mem);
+    if (mem) return purgeObsoleteDeletedIds(JSON.parse(mem));
     
     const raw = appStorage.getItem('nile_deleted_tomorrow_note_ids_v3');
     let localList: string[] = [];
     if (raw) {
-      localList = JSON.parse(raw);
+      localList = purgeObsoleteDeletedIds(JSON.parse(raw));
     }
     
     if (isSupabaseConfigured) {
@@ -763,7 +893,7 @@ export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
       if (data && data.value) {
         const dbList = JSON.parse(data.value);
         if (Array.isArray(dbList)) {
-          const merged = Array.from(new Set([...localList, ...dbList]));
+          const merged = purgeObsoleteDeletedIds(Array.from(new Set([...localList, ...dbList])));
           appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(merged));
           IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(merged);
           return merged;

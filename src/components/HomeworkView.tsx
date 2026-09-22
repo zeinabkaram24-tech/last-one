@@ -244,7 +244,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
             return (
               <div
                 key={hw.id}
-                className={`rounded-2xl border border-s-4 p-3.5 sm:p-4 transition-all flex items-start justify-between gap-3 shadow-2xs ${
+                className={`rounded-2xl border border-s-4 p-3.5 sm:p-4 transition-all flex flex-col sm:flex-row sm:items-start justify-between gap-3 shadow-2xs ${
                   hw.completed
                     ? 'border-emerald-300 border-s-emerald-600 bg-emerald-50/30 opacity-85'
                     : isTestOrQuiz
@@ -395,7 +395,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                 </div>
 
                 {/* Actions: Done check and Admin controls */}
-                <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center flex-wrap sm:flex-nowrap">
+                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center flex-wrap sm:flex-nowrap w-full sm:w-auto justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60">
                   {isAdminEditMode && (
                     <div className="flex items-center gap-1.5">
                       <button

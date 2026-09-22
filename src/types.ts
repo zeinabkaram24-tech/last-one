@@ -89,7 +89,7 @@ export interface TomorrowSpecialNote {
   block?: number;
   week?: number;
   isQuiz?: boolean;
-  categoryType?: 'note' | 'quiz';
+  categoryType?: 'note' | 'quiz' | 'tools';
   linkUrl?: string;
   linkTitle?: string;
   pdfUrl?: string;

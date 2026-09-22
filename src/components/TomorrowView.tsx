@@ -9,8 +9,32 @@ import {
 import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
-import { getTomorrowNotesForDay, subscribeToTomorrowNotes, getDeletedTomorrowNoteIds, getDeletedTomorrowNoteIdsSync, saveDeletedTomorrowNoteId } from '../utils/tomorrowNotesStorage';
+import {
+  getTomorrowNotesForDay,
+  subscribeToTomorrowNotes,
+  getDeletedTomorrowNoteIds,
+  getDeletedTomorrowNoteIdsSync,
+  saveDeletedTomorrowNoteId,
+  WEEK3_SPECIAL_NOTES
+} from '../utils/tomorrowNotesStorage';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
+
+const OBSOLETE_DELETED_TOMORROW_IDS = new Set([
+  'science-booklet-submission-Sunday',
+  'science-tools-Sunday',
+  'tn-science-w3-G2A-Sat-materials',
+  'tn-science-w3-G2A-Sat-materials-forced',
+  'tn-science-w3-G2B-Sat-materials',
+  'tn-science-w3-G2B-Sat-booklet',
+  'tn-science-w3-G2A-Sat-booklet',
+  'tn-science-w2-G2B-Sat-materials',
+  'tn-science-w2-G2B-Sat-booklet',
+  'tn-science-w2-G2A-Sat-booklet',
+  'linked-hw-due-hw-b1-w3-G2A-science-page38',
+  'hw-b1-w3-G2A-science-page38',
+  'linked-hw-due-hw-b1-w3-G2B-science-page38',
+  'hw-b1-w3-G2B-science-page38',
+]);
 
 interface TomorrowViewProps {
   currentClass: ClassId;
@@ -100,15 +124,19 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
 
-    // Always allow user-entered custom notes so user input is never blocked
+    // UNCONDITIONAL ADMIN / USER OVERRIDE:
+    // Any note created, added, or edited by admin or user is unconditionally allowed without ANY restrictions!
     if (
       n.isCustom ||
+      (n as any).isUserCreated ||
+      (n as any).isAdminModified ||
+      (n as any).source === 'user' ||
+      (n as any).source === 'admin' ||
       n.id?.startsWith('custom-') ||
       n.id?.startsWith('tn-custom-') ||
       n.id?.startsWith('tomorrow-note-') ||
-      (n as any).isAdminModified ||
-      (n as any).source === 'user' ||
-      (n as any).source === 'admin'
+      n.id?.startsWith('manual-') ||
+      (n as any).isCustomOrExplicit
     ) {
       return false;
     }
@@ -150,15 +178,18 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
-    // Strict Saturday G2B rule:
-    // "عايزة يوم السبت نلغي منه كويز الفرنش والديكتيشن لكلاس 2B"
-    if (currentClass === 'G2B' && (selectedDay === 'Saturday' || tomorrowDay === 'Saturday')) {
+    // Strict Saturday rules for Tomorrow view:
+    // 1) "قم بحذف task dictation من يوم السبت لـ class A و C في tomorrow." (and B as well)
+    // 2) French is disallowed on Saturday
+    if (selectedDay === 'Saturday' || tomorrowDay === 'Saturday') {
       const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isDictation = fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('إملاء');
+      if (isDictation) {
+        return true; // Strictly disallowed on Saturday for all classes!
+      }
       const isFrench = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي');
-      const isFrenchQuiz = isFrench && (n.isQuiz || fullText.includes('quiz') || fullText.includes('كويز') || fullText.includes('اختبار'));
-      const isDictation = n.subject === 'English' || fullText.includes('dictation') || fullText.includes('ديكتيشن') || fullText.includes('إملاء');
-      if (isFrenchQuiz || isDictation) {
-        return true; // Strictly disallowed on Saturday for G2B
+      if (isFrench) {
+        return true; // Strictly disallowed on Saturday
       }
     }
 
@@ -171,12 +202,24 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
-    // 3. Strict Science tools rule for Sunday (Saturday-Tomorrow view):
-    // "بوستات الليفتو إيه؟ السبت، التومارو، اللي هي يرجع إحضار أدوات الساينس ديا لا مش موجودة معانا."
-    if (tomorrowDay === 'Sunday' && n.subject === 'Science' && currentClass !== 'G2C' && currentClass !== 'G2B') {
-      const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      if (fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط')) {
-        return true; // Strictly disallowed!
+    // 3. Strict Science rules for Sunday (Saturday-Tomorrow view):
+    if (tomorrowDay === 'Sunday' && n.subject === 'Science') {
+      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isTools = fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط');
+      const isBooklet = fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('تسليم') || fullText.includes('booklet') || fullText.includes('submission');
+
+      if (isTools) {
+        // G2B and G2C have Science tools on Sunday
+        // G2A does NOT have Science tools on Sunday
+        if (currentClass === 'G2A') {
+          return true; // Strictly disallowed for G2A on Sunday
+        }
+        return false; // Explicitly allowed for G2B and G2C
+      }
+
+      if (isBooklet) {
+        // G2A and G2B have Science booklet submission on Sunday
+        return false; // Explicitly allowed for G2A and G2B
       }
     }
 
@@ -297,7 +340,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const effectiveWeek = currentWeek;
 
   // Synchronous initialization for deleted note IDs to prevent initial frame flickering
-  const [deletedNoteIds, setDeletedNoteIds] = useState<string[]>(() => getDeletedTomorrowNoteIdsSync());
+  const [deletedNoteIds, setDeletedNoteIds] = useState<string[]>(() => {
+    const raw = getDeletedTomorrowNoteIdsSync();
+    return raw.filter((id) => !OBSOLETE_DELETED_TOMORROW_IDS.has(id));
+  });
 
   const getSemanticKey = (n: TomorrowSpecialNote): string => {
     const normSubject = (n.subject || '').trim().toLowerCase();
@@ -312,11 +358,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
     // 2. Science booklet submission or tools
     if (normSubject.includes('science') || normSubject.includes('علوم') || normSubject.includes('ساينس')) {
-      if (text.includes('بوكلت') || text.includes('بوكليت') || text.includes('تسليم') || text.includes('تجميع') || n.id?.includes('hw-submit')) {
-        return `science-booklet-submission-${n.targetDay}`;
+      if (text.includes('بوكلت') || text.includes('بوكليت') || text.includes('تسليم') || text.includes('تجميع') || n.id?.includes('hw-submit') || n.id?.includes('booklet')) {
+        return `science-booklet-submission-${n.classId || currentClass || 'ALL'}-${n.targetDay}`;
       }
-      if (text.includes('أدوات') || text.includes('tools') || text.includes('خيط') || text.includes('كروشيه')) {
-        return `science-tools-${n.targetDay}`;
+      if (text.includes('أدوات') || text.includes('tools') || text.includes('خيط') || text.includes('كروشيه') || n.id?.includes('materials') || n.id?.includes('tools')) {
+        return `science-tools-${n.classId || currentClass || 'ALL'}-${n.targetDay}`;
       }
     }
 
@@ -386,7 +432,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
     const base =
-      currentBlock === 1 && (currentWeek === 2 || effectiveWeek === 2)
+      currentBlock === 1 && (currentWeek === 3 || effectiveWeek === 3)
+        ? WEEK3_SPECIAL_NOTES.filter(
+            (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
+          )
+        : currentBlock === 1 && (currentWeek === 2 || effectiveWeek === 2)
         ? WEEK2_SPECIAL_NOTES.filter(
             (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
           )
@@ -416,7 +466,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           )
         ]);
         if (isMounted) {
-          setDeletedNoteIds((prev) => Array.from(new Set([...prev, ...deletedIds])));
+          const sanitizedDeletedIds = deletedIds.filter((id) => !OBSOLETE_DELETED_TOMORROW_IDS.has(id));
+          setDeletedNoteIds((prev) => Array.from(new Set([...prev, ...sanitizedDeletedIds])));
           setTomorrowNotes(notes.filter((n) => !isDisallowedTomorrowItem(n)));
         }
       } catch (err) {
@@ -600,6 +651,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
       // A) Tests, quizzes, dictations
       if (isForTomorrow && checkText(fullText)) {
+        if (selectedDay === 'Saturday') {
+          const lower = fullText.toLowerCase();
+          if (lower.includes('dictation') || lower.includes('ديكتيشن') || lower.includes('إملاء')) {
+            return;
+          }
+        }
         alerts.push({
           id: hwAlertId,
           classId: currentClass,
@@ -783,7 +840,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     }
 
     // Automatically inject Monday English Dictation alert for all classes (G2A, G2B, G2C) when looking ahead to Monday
-    if (tomorrowDay === 'Monday' && !(currentClass === 'G2B' && selectedDay === 'Saturday')) {
+    if (tomorrowDay === 'Monday' && !(currentClass === 'G2B' && selectedDay === 'Saturday') && selectedDay !== 'Saturday') {
       const engDictationId = `eng-dictation-${currentClass}-${tomorrowDay}`;
       addOrMergeNote({
         id: engDictationId,
@@ -797,6 +854,79 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         block: currentBlock,
         week: currentWeek,
       }, true);
+    }
+
+    // Saturday / Sunday explicit Science tasks injection
+    if (selectedDay === 'Saturday' || tomorrowDay === 'Sunday') {
+      if (currentClass === 'G2B') {
+        // G2B: Science tools required
+        addOrMergeNote({
+          id: `tn-science-w${currentWeek}-G2B-Sat-materials`,
+          classId: 'G2B',
+          targetDay: 'Sunday',
+          subject: 'Science',
+          title: 'Science tools required for this week',
+          note: 'Science tools required for this week',
+          arabicNote: 'تذكير لكلاس B: يرجى إحضار أدوات الساينس المطلوبة طوال هذا الأسبوع (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+          bagItem: 'أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه)',
+          categoryType: 'tools',
+          isQuiz: false,
+          block: currentBlock,
+          week: currentWeek,
+        }, true);
+
+        // G2B: Science booklet submission
+        addOrMergeNote({
+          id: `tn-science-w${currentWeek}-G2B-Sat-booklet`,
+          classId: 'G2B',
+          targetDay: 'Sunday',
+          subject: 'Science',
+          title: 'Science booklet submission (Unit 1)',
+          note: 'Science booklet submission (Unit 1)',
+          arabicNote: 'تذكير لكلاس B: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
+          bagItem: 'Science Booklet (بوكليت الساينس)',
+          categoryType: 'note',
+          isQuiz: false,
+          block: currentBlock,
+          week: currentWeek,
+        }, true);
+      }
+
+      if (currentClass === 'G2A') {
+        // G2A: Science booklet submission
+        addOrMergeNote({
+          id: `tn-science-w${currentWeek}-G2A-Sat-booklet`,
+          classId: 'G2A',
+          targetDay: 'Sunday',
+          subject: 'Science',
+          title: 'Science booklet submission (Unit 1)',
+          note: 'Science booklet submission (Unit 1)',
+          arabicNote: 'تذكير لكلاس A: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
+          bagItem: 'Science Booklet (بوكليت الساينس)',
+          categoryType: 'note',
+          isQuiz: false,
+          block: currentBlock,
+          week: currentWeek,
+        }, true);
+      }
+
+      if (currentClass === 'G2C') {
+        // G2C: Science tools required
+        addOrMergeNote({
+          id: `tn-science-w${currentWeek}-G2C-Sat-materials`,
+          classId: 'G2C',
+          targetDay: 'Sunday',
+          subject: 'Science',
+          title: 'Science tools required for this week',
+          note: 'Science tools required for this week',
+          arabicNote: 'تذكير لكلاس C: يرجى إحضار أدوات الساينس المطلوبة طوال هذا الأسبوع (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+          bagItem: 'أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه)',
+          categoryType: 'tools',
+          isQuiz: false,
+          block: currentBlock,
+          week: currentWeek,
+        }, true);
+      }
     }
 
     // Process linked alerts first
@@ -895,15 +1025,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                   key={note.id || `${note.subject}-${note.targetDay}-${idx}`}
                   className={`rounded-2xl p-3.5 sm:p-4 transition-all space-y-2 text-xs ${badgeInfo.cardClass}`}
                 >
-                  <div className="flex items-start justify-between gap-3 text-slate-900">
-                    <div className="flex items-start gap-2.5 flex-1">
-                      <span className={`px-2.5 py-1 rounded-lg text-[11px] shrink-0 ${badgeInfo.badgeClass}`}>
-                        {badgeInfo.label} • {badgeInfo.subjectName}
-                      </span>
-                      <span className={`leading-relaxed text-xs sm:text-sm ${badgeInfo.isAlert ? 'font-black text-rose-950' : 'font-bold text-slate-900'}`}>
-                        {getNoteDisplayArabic(note)}
-                      </span>
-                    </div>
+                  {/* Top row: Badge on one side + Admin actions on the other */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-black shadow-2xs ${badgeInfo.badgeClass}`}>
+                      {badgeInfo.label} • {badgeInfo.subjectName}
+                    </span>
                     {isAdminEditMode && (
                       <div className="flex items-center gap-1 shrink-0">
                         <button
@@ -924,6 +1050,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                         </button>
                       </div>
                     )}
+                  </div>
+
+                  {/* Task text goes below the badge, extending across the entire card width */}
+                  <div className="w-full pt-0.5">
+                    <p className={`leading-relaxed text-xs sm:text-sm text-slate-950 ${badgeInfo.isAlert ? 'font-black text-rose-950' : 'font-bold'}`}>
+                      {getNoteDisplayArabic(note)}
+                    </p>
                   </div>
                   {getNoteDisplayBagItem(note) &&
                     !(

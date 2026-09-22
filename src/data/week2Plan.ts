@@ -43,6 +43,48 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
     pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
   },
+  // G2B Science Tools on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-w2-g2b-sat-science-tools',
+    classId: 'G2B',
+    targetDay: 'Sunday',
+    subject: 'Science',
+    title: 'Science tools required for this week',
+    note: 'Science tools required for this week',
+    arabicNote: 'تذكير لكلاس B: يرجى إحضار أدوات الساينس المطلوبة طوال هذا الأسبوع (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+    bagItem: 'أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه)',
+    categoryType: 'tools',
+    isQuiz: false,
+    week: 2,
+  },
+  // G2B Science Booklet on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-w2-g2b-sat-science-booklet',
+    classId: 'G2B',
+    targetDay: 'Sunday',
+    subject: 'Science',
+    title: 'Science booklet submission (Unit 1)',
+    note: 'Science booklet submission (Unit 1)',
+    arabicNote: 'تذكير لكلاس B: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
+    bagItem: 'Science Booklet (بوكليت الساينس)',
+    categoryType: 'note',
+    isQuiz: false,
+    week: 2,
+  },
+  // G2A Science Booklet on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-w2-g2a-sat-science-booklet',
+    classId: 'G2A',
+    targetDay: 'Sunday',
+    subject: 'Science',
+    title: 'Science booklet submission (Unit 1)',
+    note: 'Science booklet submission (Unit 1)',
+    arabicNote: 'تذكير لكلاس A: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
+    bagItem: 'Science Booklet (بوكليت الساينس)',
+    categoryType: 'note',
+    isQuiz: false,
+    week: 2,
+  },
   // Prep for Monday (Sunday night) - English Dictation for G2A, G2B, G2C
   {
     id: 'tn-w2-g2a-mon-eng-dictation',
