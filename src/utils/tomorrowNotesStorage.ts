@@ -3,7 +3,44 @@ import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES } from '../data/defaultWeekl
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
 
-export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [];
+export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
+  {
+    id: 'tn-b1-w3-G2A-Wed-math-test',
+    classId: 'G2A',
+    targetDay: 'Thursday',
+    subject: 'Mathematics',
+    note: 'Unit 2 Test: Review adding/subtracting single and two-digit numbers, multiples of 10, and money.',
+    arabicNote: '🚨 اختبار ماث هام (Math Unit 2 Test) غداً الخميس! يرجى مراجعة دروس الوحدة الثانية والتدرب جيداً وتجهيز الأدوات.',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 3
+  },
+  {
+    id: 'tn-b1-w3-G2B-Wed-math-test',
+    classId: 'G2B',
+    targetDay: 'Thursday',
+    subject: 'Mathematics',
+    note: 'Unit 2 Test: Review adding/subtracting single and two-digit numbers, multiples of 10, and money.',
+    arabicNote: '🚨 اختبار ماث هام (Math Unit 2 Test) غداً الخميس! يرجى مراجعة دروس الوحدة الثانية والتدرب جيداً وتجهيز الأدوات.',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 3
+  },
+  {
+    id: 'tn-b1-w3-G2C-Wed-math-test',
+    classId: 'G2C',
+    targetDay: 'Thursday',
+    subject: 'Mathematics',
+    note: 'Unit 2 Test: Review adding/subtracting single and two-digit numbers, multiples of 10, and money.',
+    arabicNote: '🚨 اختبار ماث هام (Math Unit 2 Test) غداً الخميس! يرجى مراجعة دروس الوحدة الثانية والتدرب جيداً وتجهيز الأدوات.',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 3
+  }
+];
 
 const LOCAL_CUSTOM_TOMORROW_KEY = 'tomorrow_special_notes_custom_v3';
 
@@ -614,74 +651,13 @@ export async function getTomorrowNotesForDay(
 }
 
 export function getDeletedTomorrowNoteIdsSync(): string[] {
-  let localList: string[] = [];
-  try {
-    const raw = appStorage.getItem('nile_deleted_tomorrow_note_ids_v3');
-    if (raw) {
-      let parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        parsed = parsed.filter(id => !(
-          id.includes('science') || 
-          id.includes('science-booklet') || 
-          id.includes('science-tools') ||
-          id.includes('english') ||
-          id.includes('dictation') ||
-          id.includes('eng-') ||
-          id.includes('eng_')
-        ));
-        localList = parsed;
-        appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(parsed));
-      }
-    }
-  } catch {}
-
-  try {
-    const cached = IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'];
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed)) {
-        localList = Array.from(new Set([...localList, ...parsed]));
-      }
-    }
-  } catch {}
-
-  return localList;
+  appStorage.removeItem('nile_deleted_tomorrow_note_ids_v3');
+  return [];
 }
 
 export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
-  let localList = getDeletedTomorrowNoteIdsSync();
-
-  if (isSupabaseConfigured) {
-    try {
-      const { data, error } = await supabase
-        .from('planner_settings')
-        .select('value')
-        .eq('key', 'deleted_tomorrow_note_ids')
-        .maybeSingle();
-      if (!error && data && data.value) {
-        const dbList = JSON.parse(data.value);
-        if (Array.isArray(dbList)) {
-          localList = Array.from(new Set([...localList, ...dbList]));
-        }
-      }
-    } catch (e) {
-      console.warn('Error fetching deleted tomorrow note ids from Supabase:', e);
-    }
-  }
-
-  try {
-    const res = await fetch('/api/planner-data');
-    if (res.ok) {
-      const serverData = await res.json();
-      if (Array.isArray(serverData.deletedTomorrowNoteIds)) {
-        localList = Array.from(new Set([...localList, ...serverData.deletedTomorrowNoteIds]));
-      }
-    }
-  } catch {}
-
-  appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(localList));
-  IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(localList);
-  return localList;
+  appStorage.removeItem('nile_deleted_tomorrow_note_ids_v3');
+  return [];
 }
 
 export async function saveDeletedTomorrowNoteId(noteId: string): Promise<void> {
