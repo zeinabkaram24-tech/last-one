@@ -482,6 +482,13 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
           dbItems.forEach((c) => {
             if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
           });
+          // Merge in any newly introduced baseline classwork that is not yet in the cloud database
+          const dbIds = new Set(dbItems.map((d) => d.id));
+          INITIAL_CLASSWORK.filter((c) => (c.week || 1) === 3).forEach((c) => {
+            if (c && c.id && !dbIds.has(c.id) && !deletedSet.has(c.id)) {
+              map.set(c.id, c);
+            }
+          });
           const localCustom = getLocalCustomClasswork();
           localCustom.forEach((c) => {
             if (c && c.id && (c.week || 1) === 3 && !deletedSet.has(c.id)) map.set(c.id, c);
@@ -811,30 +818,22 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         if (dbItems.length > 0) {
           // Cloud database is active: use as single source of truth without resurrecting deleted items
           dbItems.forEach((h) => {
-            // Exclude Tuesday Dictation / Dictation Alert for Week 3
-            const isTuesdayDictation = h.week === 3 && h.assignedDay === 'Tuesday' && 
-              (/dictation|إملاء|تنبيه إملاء/.test((h.task || '').toLowerCase()) || /dictation|إملاء|تنبيه إملاء/.test((h.subject || '').toLowerCase()));
-            if (isTuesdayDictation) return;
-
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+          });
+          // Merge in any newly introduced baseline homework that is not yet in the cloud database
+          const dbIds = new Set(dbItems.map((d) => d.id));
+          INITIAL_HOMEWORK.filter((h) => (h.week || 1) === 3).forEach((h) => {
+            if (h && h.id && !dbIds.has(h.id) && !deletedSet.has(h.id)) {
+              map.set(h.id, h);
+            }
           });
           const localCustom = getLocalCustomHomework();
           localCustom.forEach((h) => {
-            // Exclude Tuesday Dictation / Dictation Alert for Week 3
-            const isTuesdayDictation = h.week === 3 && h.assignedDay === 'Tuesday' && 
-              (/dictation|إملاء|تنبيه إملاء/.test((h.task || '').toLowerCase()) || /dictation|إملاء|تنبيه إملاء/.test((h.subject || '').toLowerCase()));
-            if (isTuesdayDictation) return;
-
             if (h && h.id && (h.week || 1) === 3 && !deletedSet.has(h.id)) map.set(h.id, h);
           });
         } else {
           // Fresh unseeded database for Week 3
           INITIAL_HOMEWORK.filter((h) => (h.week || 1) === 3).forEach((h) => {
-            // Exclude Tuesday Dictation / Dictation Alert for Week 3
-            const isTuesdayDictation = h.week === 3 && h.assignedDay === 'Tuesday' && 
-              (/dictation|إملاء|تنبيه إملاء/.test((h.task || '').toLowerCase()) || /dictation|إملاء|تنبيه إملاء/.test((h.subject || '').toLowerCase()));
-            if (isTuesdayDictation) return;
-
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
         }
@@ -900,19 +899,9 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   // Merge normalizedBase and localCustom
   const map = new Map<string, HomeworkEntry>();
   normalizedBase.forEach((h) => {
-    // Exclude Tuesday Dictation / Dictation Alert for Week 3
-    const isTuesdayDictation = h.week === 3 && h.assignedDay === 'Tuesday' && 
-      (/dictation|إملاء|تنبيه إملاء/.test((h.task || '').toLowerCase()) || /dictation|إملاء|تنبيه إملاء/.test((h.subject || '').toLowerCase()));
-    if (isTuesdayDictation) return;
-
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
   localCustom.forEach((h) => {
-    // Exclude Tuesday Dictation / Dictation Alert for Week 3
-    const isTuesdayDictation = h.week === 3 && h.assignedDay === 'Tuesday' && 
-      (/dictation|إملاء|تنبيه إملاء/.test((h.task || '').toLowerCase()) || /dictation|إملاء|تنبيه إملاء/.test((h.subject || '').toLowerCase()));
-    if (isTuesdayDictation) return;
-
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
   

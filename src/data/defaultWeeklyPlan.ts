@@ -2564,13 +2564,28 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     block: 1,
     week: 3
   } as HomeworkEntry)),
+  // الثلاثاء: إملاء عربي
+  ...["G2A", "G2B", "G2C"].map((cls) => ({
+    id: `hw-b1-w3-${cls}-Tue-arabic-dictation`,
+    classId: cls as "G2A" | "G2B" | "G2C",
+    assignedDay: "Tuesday" as any,
+    dueDay: "Wednesday" as any,
+    subject: "Arabic" as any,
+    task: "إملاء: الاستعداد لحصة الإملاء في كراسة الطالب",
+    details: "الوحدة الأولى: العودة إلى المدرسة - الاستعداد لإملاء الكلمات التي تمت مراجعتها وتجهيز كراسة الطالب لحصة الإملاء.",
+    pages: "كراسة الطالب",
+    completed: false,
+    priority: "normal" as any,
+    block: 1,
+    week: 3
+  } as HomeworkEntry)),
   // BLOCK 1 - WEEK 3 ENGLISH DICTATION LIST FOR ALL CLASSES & DAYS
   ...["G2A", "G2B", "G2C"].flatMap((cls) => 
     ["Sunday", "Monday", "Wednesday", "Thursday"].map((day) => ({
       id: `hw-b1-w3-${cls}-dictation-list-${day}`,
       classId: cls as "G2A" | "G2B" | "G2C",
       assignedDay: day as any,
-      dueDay: (day === "Thursday" ? "Sunday" : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"][["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"].indexOf(day) + 1]) as any,
+      dueDay: (day === "Thursday" ? "Sunday" : day === "Sunday" ? "Monday" : day === "Monday" ? "Wednesday" : "Thursday") as any,
       subject: "English" as any,
       task: "dictation",
       details: "Block 1 – W3 Dictation list:\n\nWords:\n• Teacher  • Desk  • Chair  • Computer  • Door  • Whiteboard  • Window\n• Pen  • Pencil  • Sharpener  • Eraser  • Table  • Notebook  • Glue\n• Scissors  • Book  • Bookshelf  • Backpack  • Ruler  • Cupboard  • Bookcase\n\nNote: Always start with capital letters.\nPrepared by: Mr. Mostafa Mohammed\nLearning Outcome: R7 use with some support a simple picture dictionary",

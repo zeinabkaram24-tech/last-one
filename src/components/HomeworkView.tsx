@@ -300,7 +300,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         </span>
                       )}
 
-                      {(hw.task.toLowerCase().includes('dictation') || hw.task.includes('إملاء') || (hw.details && hw.details.toLowerCase().includes('dictation'))) && (
+                      {hw.subject === 'English' && (hw.task.toLowerCase().includes('dictation') || hw.task.includes('إملاء') || (hw.details && hw.details.toLowerCase().includes('dictation'))) && (
                         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-black bg-indigo-50 text-indigo-900 border border-indigo-200 shadow-2xs">
                           <span>Dictation list 📝</span>
                         </span>
@@ -319,7 +319,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                     </p>
 
                     {/* Elegant Word Cards Grid for Dictation Lists */}
-                    {(hw.task.toLowerCase().includes('dictation') || hw.task.includes('إملاء') || (hw.details && hw.details.toLowerCase().includes('dictation'))) && (() => {
+                    {hw.subject === 'English' && (hw.task.toLowerCase().includes('dictation') || hw.task.includes('إملاء') || (hw.details && hw.details.toLowerCase().includes('dictation'))) && (() => {
                       const words = parseDictationWords(hw.details);
                       return (
                         <div className="mt-3 p-3.5 bg-slate-50/50 rounded-2xl border border-slate-150/80 space-y-2.5">
