@@ -350,7 +350,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                     {(() => {
                       if (!hw.pdfUrl) return null;
                       const isAllowed =
-                        hw.subject === 'Social Studies' ||
+                        (hw.subject === 'Social Studies' && selectedDay !== 'Thursday') ||
                         (hw.subject === 'English' && (
                           hw.task?.toLowerCase().includes('dictation') ||
                           hw.details?.includes('إملاء') ||

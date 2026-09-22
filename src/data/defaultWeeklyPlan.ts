@@ -2419,6 +2419,34 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...ALL_LINK_AND_WEEK2_HOMEWORK.map((h) => ({ ...h, block: 1, week: 2 })),
   // BLOCK 1 - WEEK 3 SCIENCE HOMEWORK
   {
+    id: "hw-b1-w3-G2B-science-Sun-booklet",
+    classId: "G2B",
+    assignedDay: "Sunday",
+    dueDay: "Sunday",
+    subject: "Science",
+    task: "تسليم بوكليت الـ science",
+    details: "تسليم بوكليت الساينس (Science Booklet) لتصحيح تمارين Unit 1.",
+    pages: "Science Booklet (بوكليت الساينس)",
+    completed: false,
+    priority: "urgent",
+    block: 1,
+    week: 3
+  },
+  {
+    id: "hw-b1-w3-G2C-science-Sun-booklet",
+    classId: "G2C",
+    assignedDay: "Sunday",
+    dueDay: "Sunday",
+    subject: "Science",
+    task: "تسليم بوكليت الـ science",
+    details: "تسليم بوكليت الساينس (Science Booklet) لتصحيح تمارين Unit 1.",
+    pages: "Science Booklet (بوكليت الساينس)",
+    completed: false,
+    priority: "urgent",
+    block: 1,
+    week: 3
+  },
+  {
     id: "hw-b1-w3-G2C-science-Mon-p36",
     classId: "G2C",
     assignedDay: "Monday",
@@ -2466,14 +2494,14 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     assignedDay: "Wednesday",
     dueDay: "Sunday",
     subject: "Social Studies",
-    task: "إكمال واجب الدرس المنزلي",
-    details: "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع (الأحد) - حل شيت الواجب المرفق",
-    pages: "شيت الواجب المنزلي",
+    task: "تسليم واجب الدراسات الاجتماعية (شيت جديد)",
+    details: "تجهيز وتسليم شيت الواجب المنزلي الجديد لدرس الدراسات الاجتماعية (يستلم في أول حصة في الأسبوع) - الشيت جديد يوزع لاحقاً ولا توجد أرقام صفحات حالياً",
+    pages: "شيت الواجب الجديد (يوزع لاحقاً)",
     completed: false,
     priority: "normal",
     block: 1,
     week: 3,
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+    pdfUrl: undefined
   },
   {
     id: "hw-b1-w3-G2B-social-Wed-1",

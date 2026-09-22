@@ -106,14 +106,42 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     // to prevent custom/manual notes from bypassing the filters!
     // =========================================================================
 
-    // 1. Strict G2A Monday rule:
+    // 0. Strict Thursday G2A rule:
+    // "يوم الخميس ضروري لازم تخش الشيت تكتب تسليم هوم ورك السوشيال بس، ما تكتبش أي حاجة فيها."
+    if (currentClass === 'G2A' && selectedDay === 'Thursday') {
+      const isSocial = n.subject === 'Social Studies';
+      const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isSocialSubmission = isSocial && (fullText.includes('تسليم') || fullText.includes('واجب') || fullText.includes('شيت'));
+      if (!isSocialSubmission) {
+        return true; // Strictly disallowed (ONLY allow Social Studies homework submission!)
+      }
+    }
+
+    // 1. Strict G2A Monday & Tuesday rule:
     // "يوم الاثنين في التومورو لكلاس 2 أ، هيتحط لي بس تاسك إحضار الأدوات للساينس."
     // "في نفس اليوم ونفس الفصل هيتشال تاسك الإملاء اللي انت عامله. بوهيتشال تاسك كويز فرنسي اللي انت عامله."
-    if (currentClass === 'G2A' && tomorrowDay === 'Monday') {
+    if (currentClass === 'G2A' && (tomorrowDay === 'Monday' || tomorrowDay === 'Tuesday')) {
       const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
       const isSciTools = n.subject === 'Science' && (fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط'));
-      if (!isSciTools) {
-        return true; // Strictly disallowed (ONLY allow Science tools!)
+      const isEnglishDictation = n.subject === 'English' && (fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن'));
+      
+      if (tomorrowDay === 'Monday') {
+        if (!isSciTools && !isEnglishDictation) {
+          return true; // Strictly disallowed (Allow ONLY Science tools or English dictation!)
+        }
+      } else {
+        if (!isSciTools) {
+          return true; // Strictly disallowed (ONLY allow Science tools!)
+        }
+      }
+    }
+
+    // G2C French Quiz on Monday (Sunday tomorrow) is disallowed!
+    if (currentClass === 'G2C' && tomorrowDay === 'Monday' && n.subject === 'French') {
+      const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      const isFrenchQuiz = fullText.includes('quiz') || fullText.includes('كويز') || fullText.includes('اختبار');
+      if (isFrenchQuiz) {
+        return true;
       }
     }
 
@@ -128,7 +156,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
     // 3. Strict Science tools rule for Sunday (Saturday-Tomorrow view):
     // "بوستات الليفتو إيه؟ السبت، التومارو، اللي هي يرجع إحضار أدوات الساينس ديا لا مش موجودة معانا."
-    if (tomorrowDay === 'Sunday' && n.subject === 'Science') {
+    if (tomorrowDay === 'Sunday' && n.subject === 'Science' && currentClass !== 'G2C' && currentClass !== 'G2B') {
       const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
       if (fullText.includes('أدوات') || fullText.includes('tools') || fullText.includes('materials') || fullText.includes('كروشيه') || fullText.includes('خيط')) {
         return true; // Strictly disallowed!
@@ -232,9 +260,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         n.subject === 'Social Studies' &&
         (currentClass === 'G2A' || currentClass === 'G2C') &&
         (fullText.includes('تسليم') || fullText.includes('submission') || fullText.includes('واجب'));
+      const isScienceBookletSubmission =
+        n.subject === 'Science' &&
+        (fullText.includes('تسليم') || fullText.includes('submission') || fullText.includes('booklet') || fullText.includes('بوكلت') || fullText.includes('بوكليت'));
       const hasBagItem = !!n.bagItem;
 
-      if (!isQuiz && !isFrench && !isSocialStudiesSubmission && !hasBagItem) {
+      if (!isQuiz && !isFrench && !isSocialStudiesSubmission && !isScienceBookletSubmission && !hasBagItem) {
         return true; // Disallowed
       }
     }
@@ -570,23 +601,26 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       // B) Due for submission tomorrow - STRICT USER MANDATE: ONLY for Social Studies and Science
       else if (h.dueDay === tomorrowDay && (h.subject === 'Social Studies' || h.subject === 'Science')) {
         const isSocial = h.subject === 'Social Studies';
+        const isG2ASocialNewSheet = isSocial && currentClass === 'G2A' && tomorrowDay === 'Sunday';
         alerts.push({
           id: hwDueAlertId,
           classId: currentClass,
           targetDay: tomorrowDay,
           subject: h.subject,
           note: isSocial
-            ? 'تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)'
+            ? (isG2ASocialNewSheet ? 'تسليم واجب الدراسات الاجتماعية الجديد' : 'تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)')
             : 'تسليم بوكلت الـ science',
           arabicNote: isSocial
-            ? 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع'
+            ? (isG2ASocialNewSheet 
+                ? 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية الجديد (الشيت جديد يوزع لاحقاً ولا توجد أرقام صفحات حالياً)'
+                : 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع')
             : 'تسليم بوكلت الـ science',
-          bagItem: isSocial ? 'شيت واجب الدراسات الاجتماعية المرفق' : 'بوكليت الـ science',
+          bagItem: isSocial ? (isG2ASocialNewSheet ? 'شيت واجب الدراسات الاجتماعية الجديد (يوزع لاحقاً)' : 'شيت واجب الدراسات الاجتماعية المرفق') : 'بوكليت الـ science',
           isQuiz: false,
           categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
-          pdfUrl: h.pdfUrl,
+          pdfUrl: (isG2ASocialNewSheet || (selectedDay === 'Thursday' && h.subject === 'Social Studies')) ? undefined : h.pdfUrl,
         });
       }
     });
@@ -666,6 +700,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         n.pdfUrl = undefined;
       }
 
+      const isG2ASocialNewSheet = currentClass === 'G2A' && n.subject === 'Social Studies' && n.targetDay === 'Sunday';
+      const isSocialOnThursday = selectedDay === 'Thursday' && n.subject === 'Social Studies';
+      if (isG2ASocialNewSheet || isSocialOnThursday) {
+        n.pdfUrl = undefined;
+      }
+
       if (map.has(semKey)) {
         const existing = map.get(semKey)!;
         // Merge them cleanly without duplicating:
@@ -673,7 +713,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           ...existing,
           ...(isHighPriority ? n : {}),
           id: (isHighPriority && n.id) ? n.id : existing.id || n.id,
-          pdfUrl: semKey.startsWith('math-test-') ? undefined : (existing.pdfUrl || n.pdfUrl),
+          pdfUrl: (semKey.startsWith('math-test-') || isG2ASocialNewSheet || isSocialOnThursday) ? undefined : (existing.pdfUrl || n.pdfUrl),
           bagItem: semKey.startsWith('math-test-') ? undefined : (existing.bagItem || n.bagItem),
           linkUrl: existing.linkUrl || n.linkUrl,
           linkTitle: existing.linkTitle || n.linkTitle,
@@ -686,6 +726,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       } else {
         map.set(semKey, {
           ...n,
+          pdfUrl: (isG2ASocialNewSheet || isSocialOnThursday) ? undefined : n.pdfUrl,
           linkedIds: n.id ? [n.id] : [],
         });
       }

@@ -369,7 +369,9 @@ export async function getTomorrowNotesForDay(
       const hasSciSub = filtered.some(
         (n) => n.subject === 'Science' && (n.arabicNote?.includes('تسليم') || n.note?.includes('تسليم') || n.note?.includes('submission'))
       );
-      if (!hasSciSub && !deletedIds.includes(sciSubId) && !deletedIds.includes(semKey)) {
+      const isG2A = classId === 'G2A';
+      const isDeleted = deletedIds.includes(sciSubId) || deletedIds.includes(semKey);
+      if (!hasSciSub && (isG2A || !isDeleted)) {
         filtered.push({
           id: sciSubId,
           classId: classId,
@@ -386,8 +388,8 @@ export async function getTomorrowNotesForDay(
         });
       }
 
-      if (classId === 'G2C') {
-        const sciToolsId = `tn-science-w3-G2C-Sat-materials`;
+      if (classId === 'G2C' || classId === 'G2B') {
+        const sciToolsId = `tn-science-w3-${classId}-Sat-materials`;
         const semKeySci = `science-tools-Sunday`;
         const hasSciTools = filtered.some(
           (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools'))
@@ -395,11 +397,11 @@ export async function getTomorrowNotesForDay(
         if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKeySci)) {
           filtered.push({
             id: sciToolsId,
-            classId: 'G2C',
+            classId: classId,
             targetDay: 'Sunday',
             subject: 'Science',
             note: 'Science tools required',
-            arabicNote: 'تذكير لكلاس C: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+            arabicNote: `تذكير لكلاس ${classId === 'G2C' ? 'C' : 'B'}: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).`,
             bagItem: 'أوراق ملونة، صمغ، ألوان خشبية، وخيط كروشيه',
             isQuiz: false,
             categoryType: 'note',
@@ -603,13 +605,13 @@ export async function getTomorrowNotesForDay(
     if (classId === 'G2A') {
       // Removed Sunday (Saturday to be): Bring tools
 
-      // Monday (Sunday to be): Only show Science tools task. Remove any dictation or French quiz.
+      // Monday (Sunday to be): Only show Science tools task and English dictation. Remove Arabic dictation and French quiz.
       if (targetDay === 'Monday') {
         finalNotes = finalNotes.filter((n) => {
           const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-          const isDictation = n.subject === 'English' || n.subject === 'Arabic' || fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع');
+          const isArabicDictation = (n.subject === 'Arabic' || n.subject === 'عربي' || n.subject === 'اللغة العربية') && (fullText.includes('إملاء') || fullText.includes('تسميع'));
           const isFrenchQuiz = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي') || fullText.includes('quiz') || fullText.includes('كويز');
-          return !isDictation && !isFrenchQuiz;
+          return !isArabicDictation && !isFrenchQuiz;
         });
 
         const sciToolsId = `tn-b1-w3-G2A-Mon-science-tools`;
@@ -634,11 +636,53 @@ export async function getTomorrowNotesForDay(
           });
         }
       }
+
+      // Tuesday (Monday to be): Only show Science tools task. Remove any dictation, French quiz, or Science booklet submission.
+      if (targetDay === 'Tuesday') {
+        finalNotes = finalNotes.filter((n) => {
+          const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+          const isDictation = n.subject === 'English' || n.subject === 'Arabic' || fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع');
+          const isFrenchQuiz = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي') || fullText.includes('quiz') || fullText.includes('كويز');
+          const isScienceBooklet = n.subject === 'Science' && (fullText.includes('تسليم') || fullText.includes('booklet') || fullText.includes('بوكلت') || fullText.includes('بوكليت'));
+          return !isDictation && !isFrenchQuiz && !isScienceBooklet;
+        });
+
+        const sciToolsId = `tn-b1-w3-G2A-Tue-science-tools`;
+        const semKey = `science-tools-Tuesday`;
+        const hasSciTools = finalNotes.some(
+          (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools') || n.arabicNote?.includes('كروشيه'))
+        );
+        if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKey)) {
+          finalNotes.push({
+            id: sciToolsId,
+            classId: 'G2A',
+            targetDay: 'Tuesday',
+            subject: 'Science',
+            note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
+            arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
+            bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
+            isQuiz: false,
+            categoryType: 'note',
+            block: 1,
+            week: 3,
+            isCustom: true
+          });
+        }
+      }
     }
 
     // For G2C (Class 2C) rules:
     if (classId === 'G2C') {
       // Removed Sunday (Saturday to be): Bring tools
+
+      // Monday (Sunday to be): Remove any French Quiz
+      if (targetDay === 'Monday') {
+        finalNotes = finalNotes.filter((n) => {
+          const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+          const isFrenchQuiz = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي') || fullText.includes('quiz') || fullText.includes('كويز');
+          return !isFrenchQuiz;
+        });
+      }
     }
 
     return finalNotes;
@@ -690,12 +734,47 @@ export async function getTomorrowNotesForDay(
 }
 
 export function getDeletedTomorrowNoteIdsSync(): string[] {
-  appStorage.removeItem('nile_deleted_tomorrow_note_ids_v3');
+  try {
+    const mem = IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'];
+    if (mem) return JSON.parse(mem);
+    const raw = appStorage.getItem('nile_deleted_tomorrow_note_ids_v3');
+    if (raw) return JSON.parse(raw);
+  } catch {}
   return [];
 }
 
 export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
-  appStorage.removeItem('nile_deleted_tomorrow_note_ids_v3');
+  try {
+    const mem = IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'];
+    if (mem) return JSON.parse(mem);
+    
+    const raw = appStorage.getItem('nile_deleted_tomorrow_note_ids_v3');
+    let localList: string[] = [];
+    if (raw) {
+      localList = JSON.parse(raw);
+    }
+    
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('planner_settings')
+        .select('value')
+        .eq('key', 'deleted_tomorrow_note_ids')
+        .single();
+      if (data && data.value) {
+        const dbList = JSON.parse(data.value);
+        if (Array.isArray(dbList)) {
+          const merged = Array.from(new Set([...localList, ...dbList]));
+          appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(merged));
+          IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(merged);
+          return merged;
+        }
+      }
+    }
+    
+    return localList;
+  } catch (err) {
+    console.error('Error fetching deleted tomorrow note ids:', err);
+  }
   return [];
 }
 

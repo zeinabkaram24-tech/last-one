@@ -160,7 +160,12 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
     }
   } catch {}
 
-  const source = (cached && cached.length > 0 ? cached : INITIAL_HOMEWORK).filter(h => !deletedSet.has(h.id));
+  const source = (cached && cached.length > 0 ? cached : INITIAL_HOMEWORK).filter(h => {
+    const isG2ASunDictation = h.classId === 'G2A' && h.assignedDay === 'Sunday' && h.id?.includes('dictation-list-Sunday');
+    const isSunScienceBooklet = (h.classId === 'G2B' || h.classId === 'G2C') && h.assignedDay === 'Sunday' && h.id?.includes('science-Sun-booklet');
+    if (isG2ASunDictation || isSunScienceBooklet) return true;
+    return !deletedSet.has(h.id);
+  });
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedHomeworkIds);
