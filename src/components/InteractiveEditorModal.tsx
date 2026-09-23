@@ -597,10 +597,12 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-black text-slate-950">
-                {mode === 'add' ? '➕ إضافة محتوى جديد تفاعلي' : '✏️ تعديل المحتوى مباشرة'}
+                {itemType === 'tomorrow' 
+                  ? (mode === 'add' ? '📝 كتابة ملاحظة' : '📝 تعديل الملاحظة') 
+                  : (mode === 'add' ? '➕ إضافة محتوى جديد تفاعلي' : '✏️ تعديل المحتوى مباشرة')}
               </h3>
               <p className="text-[11px] font-bold text-slate-400">
-                نوع المحتوى الحالي: {itemType === 'classwork' ? 'حصة صفية (Classwork)' : itemType === 'homework' ? 'واجب منزلي (Homework)' : 'تنبيه غد / اختبار (Tomorrow Notes)'}
+                نوع المحتوى الحالي: {itemType === 'classwork' ? 'حصة صفية (Classwork)' : itemType === 'homework' ? 'واجب منزلي (Homework)' : 'كتابة ملاحظة'}
               </p>
             </div>
           </div>

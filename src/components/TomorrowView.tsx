@@ -1084,7 +1084,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
               className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black rounded-lg transition-all shadow-xs cursor-pointer"
             >
               <Plus className="w-3 h-3 text-emerald-100" />
-              <span>➕ إضافة ملاحظة للغد</span>
+              <span>كتابة ملاحظة</span>
             </button>
           )}
         </div>

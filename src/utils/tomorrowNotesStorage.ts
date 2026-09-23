@@ -1026,8 +1026,8 @@ export async function saveTomorrowNotes(
       }
 
       for (const note of notes) {
-        const isQuiz = note.isQuiz || note.categoryType === 'quiz' || /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((note.note + ' ' + (note.arabicNote || '')).toLowerCase());
-        const targetId = note.id || `tomorrow-${isQuiz ? 'hw' : 'cw'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        // ALWAYS use tomorrow-cw prefix to identify tomorrow notes, preventing leaks to the homework table!
+        const targetId = note.id || `tomorrow-cw-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         const targetClasses: ClassId[] =
           (note.classId as any) === 'ALL'
             ? ['G2A', 'G2B', 'G2C']
@@ -1035,44 +1035,25 @@ export async function saveTomorrowNotes(
 
         for (const classId of targetClasses) {
           const rowId = (note.classId as any) === 'ALL' ? `${targetId}-${classId}` : targetId;
-          if (isQuiz) {
-            // Prepare row for homework table
-            const row = {
-              id: rowId,
-              class_id: classId,
-              assigned_day: 'Sunday',
-              due_day: note.targetDay,
-              subject: note.subject,
-              task: note.arabicNote || note.note || '',
-              details: note.bagItem || null,
-              completed: false,
-              priority: 'urgent',
-              block: note.block || block,
-              week: note.week || week,
-              link_url: note.linkUrl || null,
-            };
+          
+          // Prepare row strictly for classwork table to ensure tomorrow notes NEVER leak to homework
+          const row = {
+            id: rowId,
+            class_id: classId,
+            day: note.targetDay,
+            period: 1,
+            subject: note.subject,
+            title: note.note || '',
+            details: note.arabicNote || note.note || '',
+            pages: note.bagItem || null,
+            completed: false,
+            block: note.block || block,
+            week: note.week || week,
+            link_url: note.linkUrl || null,
+            link_title: note.linkTitle || null,
+          };
 
-            await supabase.from('homework').upsert(row, { onConflict: 'id' });
-          } else {
-            // Prepare row for classwork table
-            const row = {
-              id: rowId,
-              class_id: classId,
-              day: note.targetDay,
-              period: 1,
-              subject: note.subject,
-              title: note.note || '',
-              details: note.arabicNote || note.note || '',
-              pages: note.bagItem || null,
-              completed: false,
-              block: note.block || block,
-              week: note.week || week,
-              link_url: note.linkUrl || null,
-              link_title: note.linkTitle || null,
-            };
-
-            await supabase.from('classwork').upsert(row, { onConflict: 'id' });
-          }
+          await supabase.from('classwork').upsert(row, { onConflict: 'id' });
         }
       }
     } catch (err) {
