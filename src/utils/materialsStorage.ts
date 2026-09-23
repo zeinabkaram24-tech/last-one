@@ -117,19 +117,23 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
           }
         });
 
-        // Background Sync: If mobile has local files that were never uploaded to server, push them to server now!
+        // If an item is in local IndexedDB but missing on the server, it has been deleted on the server, so we should delete it locally to keep them in sync and prevent resurrection.
         const missingOnServer = localItems.filter(
           (loc) => !serverItems.some((srv) => srv.id === loc.id)
         );
         if (missingOnServer.length > 0) {
-          console.log(`[MaterialsSync] Syncing ${missingOnServer.length} local items to server for cross-device access...`);
-          missingOnServer.forEach((item) => {
-            fetch('/api/materials', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(item),
-            }).catch((err) => console.warn('Background sync item to server failed:', err));
-          });
+          console.log(`[MaterialsSync] Cleaning up ${missingOnServer.length} deleted items from local DB to match server...`);
+          try {
+            const db = await openDB();
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            missingOnServer.forEach((item) => {
+              store.delete(item.id);
+              itemsMap.delete(item.id);
+            });
+          } catch (e) {
+            console.warn('Failed to clean local deleted items from IndexedDB:', e);
+          }
         }
       }
     }

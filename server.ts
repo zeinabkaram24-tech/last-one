@@ -459,7 +459,7 @@ app.get('/api/planner-data', (req, res) => {
 
 app.post('/api/planner-data', (req, res) => {
   try {
-    const { classwork, homework, tomorrowNotes, mode = 'merge' } = req.body;
+    const { classwork, homework, tomorrowNotes, mode = 'merge', block, week, classId } = req.body;
     let current = getStoredPlannerData();
 
     // Normalize incoming items to have both classId and class_id
@@ -477,55 +477,44 @@ app.post('/api/planner-data', (req, res) => {
         })
       : [];
 
+    const normalizedTn = Array.isArray(tomorrowNotes)
+      ? tomorrowNotes.map((n: any) => {
+          const cid = n.class_id || n.classId || 'G2B';
+          return { ...n, classId: cid, class_id: cid };
+        })
+      : [];
+
     if (mode === 'replace') {
-      // If replacing, remove existing items matching the incoming items' (block, week, subject, classId) or (block, week)
-      if (normalizedCw.length > 0) {
-        const targetKeys = new Set(
-          normalizedCw.map((cw: any) => `${cw.block || 1}-${cw.week || 1}-${cw.classId}-${normalizeSubject(cw.subject)}`)
-        );
-        current.classwork = current.classwork.filter(
-          (cw: any) => !targetKeys.has(`${cw.block || 1}-${cw.week || 1}-${cw.class_id || cw.classId}-${normalizeSubject(cw.subject)}`)
-        );
-        const cwMap = new Map<string, any>();
-        current.classwork.forEach((cw: any) => { if (cw?.id) cwMap.set(cw.id, cw); });
-        normalizedCw.forEach((cw: any) => { if (cw?.id) cwMap.set(cw.id, cw); });
-        current.classwork = Array.from(cwMap.values());
-      }
+      // Intelligently infer target block, week, and classId if not explicitly provided
+      const targetBlock = Number(block) || Number(normalizedCw[0]?.block) || Number(normalizedHw[0]?.block) || Number(normalizedTn[0]?.block) || 1;
+      const targetWeek = Number(week) || Number(normalizedCw[0]?.week) || Number(normalizedHw[0]?.week) || Number(normalizedTn[0]?.week) || 1;
+      const targetClassId = classId || normalizedCw[0]?.classId || normalizedHw[0]?.classId || normalizedTn[0]?.classId || 'ALL';
 
-      if (normalizedHw.length > 0) {
-        const targetKeys = new Set(
-          normalizedHw.map((hw: any) => `${hw.block || 1}-${hw.week || 1}-${hw.classId}-${normalizeSubject(hw.subject)}`)
-        );
-        current.homework = current.homework.filter(
-          (hw: any) => !targetKeys.has(`${hw.block || 1}-${hw.week || 1}-${hw.class_id || hw.classId}-${normalizeSubject(hw.subject)}`)
-        );
-        const hwMap = new Map<string, any>();
-        current.homework.forEach((hw: any) => { if (hw?.id) hwMap.set(hw.id, hw); });
-        normalizedHw.forEach((hw: any) => { if (hw?.id) hwMap.set(hw.id, hw); });
-        current.homework = Array.from(hwMap.values());
-      }
+      // 1. Remove ALL old classwork for this block, week, and target class
+      current.classwork = current.classwork.filter((cw: any) => {
+        const isTargetBlockWeek = Number(cw.block || 1) === targetBlock && Number(cw.week || 1) === targetWeek;
+        const isTargetClass = targetClassId === 'ALL' || cw.classId === targetClassId || cw.class_id === targetClassId;
+        return !(isTargetBlockWeek && isTargetClass);
+      });
 
-      if (Array.isArray(tomorrowNotes) && tomorrowNotes.length > 0) {
-        // When replacing tomorrow notes for a specific block and week
-        const incomingBlock = tomorrowNotes[0].block || 1;
-        const incomingWeek = tomorrowNotes[0].week || 2;
-        const incomingClassId = tomorrowNotes[0].classId || 'G2B';
+      // 2. Remove ALL old homework for this block, week, and target class
+      current.homework = current.homework.filter((hw: any) => {
+        const isTargetBlockWeek = Number(hw.block || 1) === targetBlock && Number(hw.week || 1) === targetWeek;
+        const isTargetClass = targetClassId === 'ALL' || hw.classId === targetClassId || hw.class_id === targetClassId;
+        return !(isTargetBlockWeek && isTargetClass);
+      });
 
-        current.tomorrowNotes = current.tomorrowNotes.filter(
-          (n: any) => !(Number(n.block || 1) === Number(incomingBlock) && Number(n.week || 1) === Number(incomingWeek) && n.classId === incomingClassId)
-        );
+      // 3. Remove ALL old tomorrowNotes for this block, week, and target class
+      current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => {
+        const isTargetBlockWeek = Number(n.block || 1) === targetBlock && Number(n.week || 1) === targetWeek;
+        const isTargetClass = targetClassId === 'ALL' || n.classId === targetClassId || n.class_id === targetClassId;
+        return !(isTargetBlockWeek && isTargetClass);
+      });
 
-        const notesMap = new Map<string, any>();
-        current.tomorrowNotes.forEach((n: any) => {
-          const key = n.id || `${n.classId}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${n.note.slice(0, 20)}`;
-          notesMap.set(key, n);
-        });
-        tomorrowNotes.forEach((n: any) => {
-          const key = n.id || `${n.classId}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${n.note.slice(0, 20)}`;
-          notesMap.set(key, n);
-        });
-        current.tomorrowNotes = Array.from(notesMap.values());
-      }
+      // 4. Append new ones
+      current.classwork.push(...normalizedCw);
+      current.homework.push(...normalizedHw);
+      current.tomorrowNotes.push(...normalizedTn);
     } else {
       // Merge mode
       if (Array.isArray(classwork)) {

@@ -1003,6 +1003,27 @@ export async function saveTomorrowNotes(
 
   if (isSupabaseConfigured) {
     try {
+      if (mode === 'replace') {
+        const targetBlock = notes[0]?.block || block;
+        const targetWeek = notes[0]?.week || week;
+        const deletePatterns = ['tomorrow-%', 'note-%', 'tn-%'];
+        for (const pattern of deletePatterns) {
+          await supabase
+            .from('classwork')
+            .delete()
+            .eq('block', targetBlock)
+            .eq('week', targetWeek)
+            .like('id', pattern);
+
+          await supabase
+            .from('homework')
+            .delete()
+            .eq('block', targetBlock)
+            .eq('week', targetWeek)
+            .like('id', pattern);
+        }
+      }
+
       for (const note of notes) {
         const isQuiz = note.isQuiz || note.categoryType === 'quiz' || /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((note.note + ' ' + (note.arabicNote || '')).toLowerCase());
         const targetId = note.id || `tomorrow-${isQuiz ? 'hw' : 'cw'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;

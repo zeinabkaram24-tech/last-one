@@ -1009,6 +1009,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             homework: parsedResult.homework,
             tomorrowNotes: parsedResult.tomorrowNotes,
             mode: importMode,
+            block: planBlock,
+            week: planWeek,
+            classId: planClass,
           }),
         });
       } catch (serverSyncErr) {

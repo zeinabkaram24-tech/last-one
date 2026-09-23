@@ -38,13 +38,17 @@ export const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_
 
 export function getActiveSupabaseConfig(): { url: string; key: string } {
   if (typeof window !== 'undefined') {
-    const savedUrl = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL);
-    const savedKey = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY);
-    if (savedUrl && savedKey && savedUrl.trim() !== '' && savedKey.trim() !== '') {
-      return {
-        url: cleanSupabaseUrl(savedUrl),
-        key: cleanSupabaseKey(savedKey),
-      };
+    try {
+      const savedUrl = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL);
+      const savedKey = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY);
+      if (savedUrl && savedKey && savedUrl.trim() !== '' && savedKey.trim() !== '') {
+        return {
+          url: cleanSupabaseUrl(savedUrl),
+          key: cleanSupabaseKey(savedKey),
+        };
+      }
+    } catch (e) {
+      console.warn('LocalStorage is blocked inside iframe:', e);
     }
   }
   // Fall back to environment variable or central default if not saved locally
@@ -58,8 +62,12 @@ export function getActiveSupabaseConfig(): { url: string; key: string } {
 
 export function saveActiveSupabaseConfig(url: string, key: string): void {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEYS_SUPABASE.URL, cleanSupabaseUrl(url));
-    localStorage.setItem(STORAGE_KEYS_SUPABASE.KEY, cleanSupabaseKey(key));
+    try {
+      localStorage.setItem(STORAGE_KEYS_SUPABASE.URL, cleanSupabaseUrl(url));
+      localStorage.setItem(STORAGE_KEYS_SUPABASE.KEY, cleanSupabaseKey(key));
+    } catch (e) {
+      console.warn('LocalStorage save is blocked inside iframe:', e);
+    }
     window.dispatchEvent(new Event('supabase_config_updated'));
   }
 }
@@ -133,8 +141,14 @@ export function withTimeout<T>(promise: Promise<T> | PromiseLike<T>, ms: number,
 
 export async function syncSupabaseConfigWithServer(): Promise<boolean> {
   try {
-    const localUrl = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL) || '';
-    const localKey = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY) || '';
+    let localUrl = '';
+    let localKey = '';
+    try {
+      localUrl = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL) || '';
+      localKey = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY) || '';
+    } catch (e) {
+      console.warn('LocalStorage access blocked in syncSupabaseConfigWithServer:', e);
+    }
     
     // Check server-side Supabase credentials with timeout
     const res = await withTimeout(fetch('/api/supabase-config'), 2500, null as any);
@@ -755,6 +769,39 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merg
 
   if (!isSupabaseConfigured) return;
 
+  if (mode === 'replace') {
+    try {
+      const combos = new Map<string, { block: number; week: number; classes: Set<string> }>();
+      entries.forEach((e) => {
+        const key = `${e.block || 1}-${e.week || 1}`;
+        if (!combos.has(key)) {
+          combos.set(key, { block: e.block || 1, week: e.week || 1, classes: new Set() });
+        }
+        combos.get(key)!.classes.add(e.classId || e.class_id || 'ALL');
+      });
+
+      for (const combo of combos.values()) {
+        if (combo.classes.has('ALL')) {
+          await supabase
+            .from('classwork')
+            .delete()
+            .eq('block', combo.block)
+            .eq('week', combo.week);
+        } else {
+          const classList = Array.from(combo.classes);
+          await supabase
+            .from('classwork')
+            .delete()
+            .eq('block', combo.block)
+            .eq('week', combo.week)
+            .in('class_id', classList);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to clear old Supabase classwork on replace:', e);
+    }
+  }
+
   const rows = entries.map(classworkToRow);
   for (let i = 0; i < rows.length; i += 50) {
     const chunk = rows.slice(i, i + 50);
@@ -1038,6 +1085,39 @@ export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge'
   }
 
   if (!isSupabaseConfigured) return;
+
+  if (mode === 'replace') {
+    try {
+      const combos = new Map<string, { block: number; week: number; classes: Set<string> }>();
+      entries.forEach((e) => {
+        const key = `${e.block || 1}-${e.week || 1}`;
+        if (!combos.has(key)) {
+          combos.set(key, { block: e.block || 1, week: e.week || 1, classes: new Set() });
+        }
+        combos.get(key)!.classes.add(e.classId || e.class_id || 'ALL');
+      });
+
+      for (const combo of combos.values()) {
+        if (combo.classes.has('ALL')) {
+          await supabase
+            .from('homework')
+            .delete()
+            .eq('block', combo.block)
+            .eq('week', combo.week);
+        } else {
+          const classList = Array.from(combo.classes);
+          await supabase
+            .from('homework')
+            .delete()
+            .eq('block', combo.block)
+            .eq('week', combo.week)
+            .in('class_id', classList);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to clear old Supabase homework on replace:', e);
+    }
+  }
 
   const rows = entries.map(homeworkToRow);
   for (let i = 0; i < rows.length; i += 50) {

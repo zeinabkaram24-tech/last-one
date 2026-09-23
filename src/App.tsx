@@ -132,10 +132,7 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     }
   } catch {}
 
-  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK).filter(c => {
-    if (c.title === '__DELETED__') return false;
-    return !deletedSet.has(c.id);
-  });
+  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK).filter(c => !deletedSet.has(c.id));
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
@@ -164,7 +161,6 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
   } catch {}
 
   const source = (cached && cached.length > 0 ? cached : INITIAL_HOMEWORK).filter(h => {
-    if (h.task === '__DELETED__') return false;
     // Admin deleted items are strictly and unconditionally excluded
     if (deletedSet.has(h.id)) return false;
     return true;
@@ -284,7 +280,7 @@ export default function App() {
       setSupabaseStatus('connecting');
       try {
         // Auto-seed if database is empty upon connecting
-        const seedRes = await seedSupabaseFromPlannerData().catch(() => null);
+        const seedRes = await seedInitialDataIfEmpty().catch(() => null);
         if (seedRes && seedRes.seeded) {
           showToast(`🌱 تم استيراد ورفع ${seedRes.classworkCount} درساً و ${seedRes.homeworkCount} واجباً من planner_data.json إلى Supabase!`);
         }
