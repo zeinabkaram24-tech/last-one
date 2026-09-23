@@ -188,10 +188,30 @@ app.post('/api/supabase/seed-from-local', async (req, res) => {
       await Promise.all([
         client.from('classwork').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
         client.from('homework').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        client.from('planner_settings').delete().in('key', ['deleted_planner_item_ids', 'deleted_tomorrow_note_ids', 'tomorrow_special_notes'])
+        client.from('planner_settings').delete().in('key', ['tomorrow_special_notes'])
       ]);
     } catch (clearErr) {
       console.warn('Notice clearing existing Supabase data:', clearErr);
+    }
+
+    // Save deleted items lists if any to ensure deletions are preserved
+    if (Array.isArray(data.deletedPlannerItemIds) && data.deletedPlannerItemIds.length > 0) {
+      try {
+        await client.from('planner_settings').upsert({
+          key: 'deleted_planner_item_ids',
+          value: JSON.stringify(data.deletedPlannerItemIds),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key' });
+      } catch {}
+    }
+    if (Array.isArray(data.deletedTomorrowNoteIds) && data.deletedTomorrowNoteIds.length > 0) {
+      try {
+        await client.from('planner_settings').upsert({
+          key: 'deleted_tomorrow_note_ids',
+          value: JSON.stringify(data.deletedTomorrowNoteIds),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key' });
+      } catch {}
     }
 
     let cwCount = 0;

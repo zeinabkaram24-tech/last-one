@@ -1226,8 +1226,6 @@ export async function seedSupabaseFromPlannerData(options?: { force?: boolean })
     if (typeof window !== 'undefined') {
       localStorage.removeItem('classwork_planner_custom_entries_v3');
       localStorage.removeItem('homework_planner_custom_entries_v3');
-      localStorage.removeItem('nile_deleted_planner_item_ids_v3');
-      localStorage.removeItem('nile_deleted_tomorrow_note_ids_v3');
       localStorage.removeItem('nile_planner_custom_classwork');
       localStorage.removeItem('nile_planner_custom_homework');
     }
@@ -1238,7 +1236,7 @@ export async function seedSupabaseFromPlannerData(options?: { force?: boolean })
       await Promise.all([
         supabase.from('classwork').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
         supabase.from('homework').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        supabase.from('planner_settings').delete().in('key', ['deleted_planner_item_ids', 'deleted_tomorrow_note_ids', 'tomorrow_special_notes'])
+        supabase.from('planner_settings').delete().in('key', ['tomorrow_special_notes'])
       ]);
     } catch (clearErr) {
       console.warn('Notice clearing existing Supabase data:', clearErr);
