@@ -51,7 +51,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     (c) =>
       matchesClass(c) &&
       (c.block || 1) === currentBlock &&
-      (c.week || 1) === currentWeek
+      (c.week || 1) === currentWeek &&
+      !c.id?.startsWith('tomorrow-') &&
+      !c.id?.startsWith('tn-') &&
+      !c.id?.startsWith('custom-')
   );
 
   // Allow rendering for any day that has scheduled classes
@@ -110,6 +113,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           slot.periods.includes(c.period) &&
           (c.block || 1) === currentBlock &&
           (c.week || 1) === currentWeek &&
+          !c.id?.startsWith('tomorrow-') &&
+          !c.id?.startsWith('tn-') &&
+          !c.id?.startsWith('custom-') &&
           Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
       ) ||
       classworkList.find(
@@ -119,6 +125,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           c.subject === slot.subject &&
           (c.block || 1) === currentBlock &&
           (c.week || 1) === currentWeek &&
+          !c.id?.startsWith('tomorrow-') &&
+          !c.id?.startsWith('tn-') &&
+          !c.id?.startsWith('custom-') &&
           Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
       )
     );
@@ -131,6 +140,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       c.day === selectedDay &&
       (c.block || 1) === currentBlock &&
       (c.week || 1) === currentWeek &&
+      !c.id?.startsWith('tomorrow-') &&
+      !c.id?.startsWith('tn-') &&
+      !c.id?.startsWith('custom-') &&
       Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
   );
 

@@ -99,7 +99,10 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
     (h) =>
       matchesClass(h) &&
       (h.block || 1) === currentBlock &&
-      (h.week || 1) === currentWeek
+      (h.week || 1) === currentWeek &&
+      !h.id?.startsWith('tomorrow-') &&
+      !h.id?.startsWith('tn-') &&
+      !h.id?.startsWith('custom-')
   );
 
   // Homework assigned for the selected day with strict deduplication by ID
@@ -109,6 +112,11 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       if (h.assignedDay !== selectedDay) return false;
       if ((h.block || 1) !== currentBlock) return false;
       if ((h.week || 1) !== currentWeek) return false;
+
+      // Filter out tomorrow special lookahead notes/alerts from core homework lists
+      if (h.id?.startsWith('tomorrow-') || h.id?.startsWith('tn-') || h.id?.startsWith('custom-')) {
+        return false;
+      }
 
       // Strict Saturday rule:
       // User mandate: "وامسح حكاية الـ homework الـ French من يوم السبت."

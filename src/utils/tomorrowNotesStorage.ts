@@ -341,11 +341,12 @@ export async function getTomorrowNotesForDay(
 
     const dynamicNotes: TomorrowSpecialNote[] = [];
 
-    // Map classwork to TomorrowSpecialNote (only if it is a quiz/alert)
+    // Map classwork to TomorrowSpecialNote (only if it is a quiz/alert or explicitly a user-created tomorrow note)
     if (cwList && Array.isArray(cwList)) {
       cwList.forEach((cw: any) => {
         const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((cw.title + ' ' + (cw.details || '')).toLowerCase());
-        if (isQuiz) {
+        const isTomorrowNote = cw.id?.startsWith('tomorrow-') || cw.id?.startsWith('tn-') || cw.id?.startsWith('custom-');
+        if (isQuiz || isTomorrowNote) {
           dynamicNotes.push({
             id: cw.id,
             classId: cw.class_id as ClassId,
@@ -355,7 +356,7 @@ export async function getTomorrowNotesForDay(
             arabicNote: cw.details || cw.title,
             bagItem: cw.pages || undefined,
             isQuiz,
-            categoryType: 'quiz',
+            categoryType: isQuiz ? 'quiz' : 'note',
             block: cw.block,
             week: cw.week,
             linkUrl: cw.link_url || undefined,
