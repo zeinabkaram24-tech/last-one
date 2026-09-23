@@ -106,6 +106,7 @@ interface StoredPlannerData {
   tomorrowNotes: any[];
   deletedTomorrowNoteIds?: string[];
   deletedPlannerItemIds?: string[];
+  deletedHistory?: any[];
 }
 
 // Helper to read planner data
@@ -188,30 +189,10 @@ app.post('/api/supabase/seed-from-local', async (req, res) => {
       await Promise.all([
         client.from('classwork').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
         client.from('homework').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        client.from('planner_settings').delete().in('key', ['tomorrow_special_notes'])
+        client.from('planner_settings').delete().in('key', ['deleted_planner_item_ids', 'deleted_tomorrow_note_ids', 'tomorrow_special_notes'])
       ]);
     } catch (clearErr) {
       console.warn('Notice clearing existing Supabase data:', clearErr);
-    }
-
-    // Save deleted items lists if any to ensure deletions are preserved
-    if (Array.isArray(data.deletedPlannerItemIds) && data.deletedPlannerItemIds.length > 0) {
-      try {
-        await client.from('planner_settings').upsert({
-          key: 'deleted_planner_item_ids',
-          value: JSON.stringify(data.deletedPlannerItemIds),
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'key' });
-      } catch {}
-    }
-    if (Array.isArray(data.deletedTomorrowNoteIds) && data.deletedTomorrowNoteIds.length > 0) {
-      try {
-        await client.from('planner_settings').upsert({
-          key: 'deleted_tomorrow_note_ids',
-          value: JSON.stringify(data.deletedTomorrowNoteIds),
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'key' });
-      } catch {}
     }
 
     let cwCount = 0;
@@ -460,6 +441,16 @@ app.get('/api/planner-data', (req, res) => {
         return { ...h, classId: cid, class_id: cid };
       });
     }
+
+    // Filter out deleted items older than 24 hours
+    const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+    if (Array.isArray(data.deletedHistory)) {
+      data.deletedHistory = data.deletedHistory.filter((item: any) => item.deletedAt >= twentyFourHoursAgo);
+      saveStoredPlannerData(data);
+    } else {
+      data.deletedHistory = [];
+    }
+
     res.json(data);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to read planner data' });
@@ -597,8 +588,23 @@ app.post('/api/planner-data/delete', (req, res) => {
     let current = getStoredPlannerData();
     if (!current.deletedPlannerItemIds) current.deletedPlannerItemIds = [];
     if (!current.deletedTomorrowNoteIds) current.deletedTomorrowNoteIds = [];
+    if (!current.deletedHistory) current.deletedHistory = [];
+
+    const timestamp = Date.now();
 
     if (type === 'classwork') {
+      const itemsToDelete = current.classwork.filter((c: any) => targetIds.includes(c.id));
+      itemsToDelete.forEach((item) => {
+        // Prevent duplicate entries in history
+        if (!current.deletedHistory!.some((h: any) => h.id === item.id)) {
+          current.deletedHistory!.push({
+            id: item.id,
+            type: 'classwork',
+            deletedAt: timestamp,
+            itemData: item
+          });
+        }
+      });
       current.classwork = current.classwork.filter((c: any) => !targetIds.includes(c.id));
       targetIds.forEach((tId) => {
         if (!current.deletedPlannerItemIds.includes(tId)) {
@@ -606,6 +612,17 @@ app.post('/api/planner-data/delete', (req, res) => {
         }
       });
     } else if (type === 'homework') {
+      const itemsToDelete = current.homework.filter((h: any) => targetIds.includes(h.id));
+      itemsToDelete.forEach((item) => {
+        if (!current.deletedHistory!.some((h: any) => h.id === item.id)) {
+          current.deletedHistory!.push({
+            id: item.id,
+            type: 'homework',
+            deletedAt: timestamp,
+            itemData: item
+          });
+        }
+      });
       current.homework = current.homework.filter((h: any) => !targetIds.includes(h.id));
       targetIds.forEach((tId) => {
         if (!current.deletedPlannerItemIds.includes(tId)) {
@@ -613,6 +630,17 @@ app.post('/api/planner-data/delete', (req, res) => {
         }
       });
     } else if (type === 'tomorrowNotes') {
+      const itemsToDelete = current.tomorrowNotes.filter((n: any) => targetIds.includes(n.id));
+      itemsToDelete.forEach((item) => {
+        if (!current.deletedHistory!.some((h: any) => h.id === item.id)) {
+          current.deletedHistory!.push({
+            id: item.id,
+            type: 'tomorrowNotes',
+            deletedAt: timestamp,
+            itemData: item
+          });
+        }
+      });
       current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => !targetIds.includes(n.id));
       targetIds.forEach((tId) => {
         if (!current.deletedTomorrowNoteIds.includes(tId)) {
@@ -620,6 +648,11 @@ app.post('/api/planner-data/delete', (req, res) => {
         }
       });
     }
+
+    // Clear items older than 24 hours
+    const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+    current.deletedHistory = current.deletedHistory.filter((item: any) => item.deletedAt >= twentyFourHoursAgo);
+
     saveStoredPlannerData(current);
     res.json({ success: true });
   } catch (err: any) {
@@ -634,14 +667,39 @@ app.post('/api/planner-data/restore', (req, res) => {
     let current = getStoredPlannerData();
     if (!current.deletedPlannerItemIds) current.deletedPlannerItemIds = [];
     if (!current.deletedTomorrowNoteIds) current.deletedTomorrowNoteIds = [];
+    if (!current.deletedHistory) current.deletedHistory = [];
 
+    // Find and restore item(s) from deletedHistory
+    const restoredItems = current.deletedHistory.filter((item: any) => targetIds.includes(item.id));
+    restoredItems.forEach((historyItem: any) => {
+      const { type: itemType, itemData } = historyItem;
+      if (itemType === 'classwork') {
+        if (!current.classwork.some((c) => c.id === itemData.id)) {
+          current.classwork.push(itemData);
+        }
+      } else if (itemType === 'homework') {
+        if (!current.homework.some((h) => h.id === itemData.id)) {
+          current.homework.push(itemData);
+        }
+      } else if (itemType === 'tomorrowNotes') {
+        if (!current.tomorrowNotes.some((n) => n.id === itemData.id)) {
+          current.tomorrowNotes.push(itemData);
+        }
+      }
+    });
+
+    // Remove from deleted trackers
     if (type === 'classwork' || type === 'homework') {
       current.deletedPlannerItemIds = current.deletedPlannerItemIds.filter((tId: string) => !targetIds.includes(tId));
     } else if (type === 'tomorrowNotes') {
       current.deletedTomorrowNoteIds = current.deletedTomorrowNoteIds.filter((tId: string) => !targetIds.includes(tId));
     }
+
+    // Clean up from deletedHistory
+    current.deletedHistory = current.deletedHistory.filter((item: any) => !targetIds.includes(item.id));
+
     saveStoredPlannerData(current);
-    res.json({ success: true });
+    res.json({ success: true, restoredCount: restoredItems.length });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error restoring planner item' });
   }

@@ -26,6 +26,7 @@ import {
   ExternalLink,
   Globe,
   Database,
+  RotateCcw,
 } from 'lucide-react';
 import { ClassId, MaterialItem, ClassworkEntry, HomeworkEntry } from '../types';
 import { TomorrowSpecialNote } from '../data/defaultWeeklyPlan';
@@ -51,8 +52,9 @@ import {
   deleteClasswork,
   deleteHomework,
   deleteWeek3Data,
+  removeDeletedPlannerItemId,
 } from '../lib/supabase';
-import { saveTomorrowNotes, saveDeletedTomorrowNoteId, getSemanticKey, notifyTomorrowNotesListeners } from '../utils/tomorrowNotesStorage';
+import { saveTomorrowNotes, saveDeletedTomorrowNoteId, getSemanticKey, notifyTomorrowNotesListeners, removeDeletedTomorrowNoteId } from '../utils/tomorrowNotesStorage';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_CLASSWORK, ALL_LINK_AND_WEEK2_HOMEWORK, WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { fileToBase64, extractTextFromPdf } from '../utils/pdfExtractor';
@@ -448,6 +450,76 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const planFileInputRef = useRef<HTMLInputElement>(null);
 
+  const [deletedHistory, setDeletedHistory] = useState<any[]>([]);
+
+  // Load recently deleted history
+  const fetchDeletedHistory = async () => {
+    try {
+      const res = await fetch('/api/planner-data');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.deletedHistory)) {
+          // Sort with newest deletions first
+          const sorted = [...data.deletedHistory].sort((a, b) => b.deletedAt - a.deletedAt);
+          setDeletedHistory(sorted);
+        } else {
+          setDeletedHistory([]);
+        }
+      }
+    } catch (err) {
+      console.warn('Error fetching deleted history:', err);
+    }
+  };
+
+  const formatElapsedTime = (deletedAt: number): string => {
+    const elapsedMs = Date.now() - deletedAt;
+    const elapsedMinutes = Math.floor(elapsedMs / (1000 * 60));
+    if (elapsedMinutes < 1) return 'أقل من دقيقة';
+    if (elapsedMinutes === 1) return 'دقيقة واحدة';
+    if (elapsedMinutes === 2) return 'دقيقتين';
+    if (elapsedMinutes < 11) return `${elapsedMinutes} دقائق`;
+    
+    const elapsedHours = Math.floor(elapsedMinutes / 60);
+    if (elapsedHours < 1) return `${elapsedMinutes} دقيقة`;
+    if (elapsedHours === 1) return 'ساعة واحدة';
+    if (elapsedHours === 2) return 'ساعتين';
+    if (elapsedHours < 11) return `${elapsedHours} ساعات`;
+    return `${elapsedHours} ساعة`;
+  };
+
+  const handleRestoreItemFromHistory = async (id: string, type: 'classwork' | 'homework' | 'tomorrowNotes') => {
+    try {
+      setSuccessMessage('');
+      setErrorMessage('');
+      
+      const res = await fetch('/api/planner-data/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type }),
+      });
+      
+      if (res.ok) {
+        // Clear client side deleted caches
+        if (type === 'classwork' || type === 'homework') {
+          await removeDeletedPlannerItemId(id);
+        } else if (type === 'tomorrowNotes') {
+          await removeDeletedTomorrowNoteId(id);
+        }
+
+        setSuccessMessage('تم التراجع واستعادة العنصر بنجاح لجميع الأجهزة والطلاب! 🔄');
+        fetchDeletedHistory();
+        if (onPlanUpdated) {
+          onPlanUpdated();
+        }
+      } else {
+        const errData = await res.json();
+        setErrorMessage(errData.error || 'فشلت عملية استعادة العنصر');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'حدث خطأ أثناء الاتصال بالخادم لاستعادة العنصر');
+    }
+  };
+
   // Load materials
   const refreshMaterials = async () => {
     const list = await getAllMaterials();
@@ -461,6 +533,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       refreshMaterials();
+      fetchDeletedHistory();
     }
   }, [isOpen]);
 
@@ -2500,6 +2573,103 @@ Sunday:
                       </span>
                     </button>
                   </div>
+                </div>
+              )}
+            </div>
+
+            {/* سلة محذوفات التراجع - 24 ساعة */}
+            <div className="bg-rose-50/70 border border-rose-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                    <Trash2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-black text-rose-950">
+                      سلة محذوفات التراجع (24 ساعة) 🗑️
+                    </h3>
+                    <p className="text-xs text-rose-800/80 font-medium leading-normal">
+                      يمكنك كأدمن التراجع واستعادة أي درس أو واجب أو تنبيه محذوف فوراً وتحديث جميع الأجهزة والطلاب تلقائياً.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchDeletedHistory}
+                  className="p-1.5 rounded-lg text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+                  title="تحديث القائمة"
+                >
+                  <RotateCcw className="w-4 h-4 hover:rotate-180 transition-transform duration-500" />
+                </button>
+              </div>
+
+              {deletedHistory.length === 0 ? (
+                <div className="py-6 px-4 bg-white/50 rounded-xl border border-dashed border-rose-200 text-center space-y-1">
+                  <Trash2 className="w-6 h-6 text-rose-300 mx-auto opacity-60" />
+                  <p className="text-xs text-rose-900 font-bold">
+                    سلة المحذوفات فارغة حالياً.
+                  </p>
+                  <p className="text-[10px] text-rose-700/70 font-medium">
+                    أي درس أو واجب أو تنبيه تقوم بحذفه سيظهر هنا لمدة 24 ساعة لتتمكن من استعادته في أي وقت.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1 select-none">
+                  {deletedHistory.map((historyItem) => {
+                    const { id, type, deletedAt, itemData } = historyItem;
+                    if (!itemData) return null;
+
+                    const formattedTime = formatElapsedTime(deletedAt);
+                    let itemTypeLabel = '';
+                    let itemDetails = '';
+                    let badgeColor = '';
+
+                    if (type === 'classwork') {
+                      itemTypeLabel = 'حصة صفية 📘';
+                      itemDetails = `${itemData.subject || ''} • Block ${itemData.block || ''} • Week ${itemData.week || ''} • ${itemData.classId || itemData.class_id || ''} • ${itemData.day || ''}`;
+                      badgeColor = 'bg-blue-50 text-blue-800 border-blue-200';
+                    } else if (type === 'homework') {
+                      itemTypeLabel = 'واجب منزلي 📝';
+                      itemDetails = `${itemData.subject || ''} • Block ${itemData.block || ''} • Week ${itemData.week || ''} • ${itemData.classId || itemData.class_id || ''} • ${itemData.assignedDay || ''}`;
+                      badgeColor = 'bg-amber-50 text-amber-800 border-amber-200';
+                    } else if (type === 'tomorrowNotes') {
+                      itemTypeLabel = 'تنبيه الغد 🎒';
+                      itemDetails = `${itemData.subject || ''} • Block ${itemData.block || ''} • Week ${itemData.week || ''} • ${itemData.classId || itemData.class_id || ''} • ${itemData.targetDay || ''}`;
+                      badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                    }
+
+                    const itemTitle = itemData.title || itemData.task || itemData.arabicNote || itemData.note || 'عنصر بدون عنوان';
+
+                    return (
+                      <div
+                        key={id}
+                        className="p-3 bg-white border border-rose-100 rounded-xl hover:border-rose-300 hover:shadow-2xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                      >
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${badgeColor} shrink-0 mt-0.5`}>
+                            {itemTypeLabel}
+                          </span>
+                          <div className="min-w-0 text-right">
+                            <p className="text-slate-900 font-black truncate text-xs">{itemTitle}</p>
+                            <p className="text-slate-500 font-semibold text-[11px] mt-0.5 leading-tight">{itemDetails}</p>
+                            <p className="text-rose-600 text-[10px] font-bold mt-1 inline-flex items-center gap-1 bg-rose-50 px-1.5 py-0.5 rounded-md">
+                              <span>🗑️</span>
+                              <span>حُذف منذ {formattedTime}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRestoreItemFromHistory(id, type)}
+                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs hover:shadow-sm cursor-pointer transition-all self-end sm:self-auto shrink-0 flex items-center gap-1.5 active:scale-95"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>استعادة والتراجع 🔄</span>
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

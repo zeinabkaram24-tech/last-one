@@ -459,7 +459,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const deletedSet = new Set(deletedIds);
 
   // Load Week 1 and Week 2 statically to be extremely fast and lightweight as per user request
-  const staticItems = INITIAL_CLASSWORK.filter((c) => (c.week || 1) < 3);
+  const staticItems = INITIAL_CLASSWORK.filter((c) => (c.week || 1) < 3 && !deletedSet.has(c.id));
   const resultList: ClassworkEntry[] = [...staticItems];
 
   // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
@@ -480,7 +480,6 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
         if (dbItems.length > 0) {
           // Cloud database is active: use as single source of truth without resurrecting deleted items
           dbItems.forEach((c) => {
-            if (c && c.title === '__DELETED__') return; // Filter out deleted markers!
             if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
           });
           // Merge in any newly introduced baseline classwork that is not yet in the cloud database
@@ -730,21 +729,12 @@ export async function deleteClasswork(id: string): Promise<void> {
   if (!isSupabaseConfigured) return;
 
   try {
-    await supabase.from('classwork').delete().eq('id', id);
-    // Upsert a __DELETED__ placeholder to ensure database-level tracking across all devices
-    await supabase.from('classwork').upsert({
-      id: id,
-      class_id: 'G2B',
-      day: 'Sunday',
-      period: 1,
-      subject: 'English',
-      title: '__DELETED__',
-      completed: false,
-      block: 1,
-      week: 3
-    }, { onConflict: 'id' });
+    const { error } = await supabase.from('classwork').delete().eq('id', id);
+    if (error) {
+      console.warn(`Warning deleting classwork ${id}:`, error.message || error);
+    }
   } catch (e) {
-    console.warn(`Network error deleting/marking classwork ${id}:`, e);
+    console.warn(`Network error deleting classwork ${id}:`, e);
   }
 }
 
@@ -788,7 +778,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const deletedSet = new Set(deletedIds);
 
   // Load Week 1 and Week 2 statically to be extremely fast and lightweight as per user request
-  const staticItems = INITIAL_HOMEWORK.filter((h) => (h.week || 1) < 3);
+  const staticItems = INITIAL_HOMEWORK.filter((h) => (h.week || 1) < 3 && !deletedSet.has(h.id));
   const resultList: HomeworkEntry[] = [...staticItems];
 
   // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
@@ -829,7 +819,6 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           // Cloud database is active: use as single source of truth without resurrecting deleted items
           dbItems.forEach((h) => {
             if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-            if (h && h.task === '__DELETED__') return; // Filter out deleted markers!
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
           // Merge in any newly introduced baseline homework that is not yet in the cloud database
@@ -1024,22 +1013,12 @@ export async function deleteHomework(id: string): Promise<void> {
   if (!isSupabaseConfigured) return;
 
   try {
-    await supabase.from('homework').delete().eq('id', id);
-    // Upsert a __DELETED__ placeholder to ensure database-level tracking across all devices
-    await supabase.from('homework').upsert({
-      id: id,
-      class_id: 'G2B',
-      assigned_day: 'Sunday',
-      due_day: 'Sunday',
-      subject: 'English',
-      task: '__DELETED__',
-      completed: false,
-      priority: 'normal',
-      block: 1,
-      week: 3
-    }, { onConflict: 'id' });
+    const { error } = await supabase.from('homework').delete().eq('id', id);
+    if (error) {
+      console.warn(`Warning deleting homework ${id}:`, error.message || error);
+    }
   } catch (e) {
-    console.warn(`Network error deleting/marking homework ${id}:`, e);
+    console.warn(`Network error deleting homework ${id}:`, e);
   }
 }
 
@@ -1247,6 +1226,8 @@ export async function seedSupabaseFromPlannerData(options?: { force?: boolean })
     if (typeof window !== 'undefined') {
       localStorage.removeItem('classwork_planner_custom_entries_v3');
       localStorage.removeItem('homework_planner_custom_entries_v3');
+      localStorage.removeItem('nile_deleted_planner_item_ids_v3');
+      localStorage.removeItem('nile_deleted_tomorrow_note_ids_v3');
       localStorage.removeItem('nile_planner_custom_classwork');
       localStorage.removeItem('nile_planner_custom_homework');
     }
@@ -1257,7 +1238,7 @@ export async function seedSupabaseFromPlannerData(options?: { force?: boolean })
       await Promise.all([
         supabase.from('classwork').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
         supabase.from('homework').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        supabase.from('planner_settings').delete().in('key', ['tomorrow_special_notes'])
+        supabase.from('planner_settings').delete().in('key', ['deleted_planner_item_ids', 'deleted_tomorrow_note_ids', 'tomorrow_special_notes'])
       ]);
     } catch (clearErr) {
       console.warn('Notice clearing existing Supabase data:', clearErr);
