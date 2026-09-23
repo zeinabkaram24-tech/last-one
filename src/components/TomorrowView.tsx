@@ -145,8 +145,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       (n as any).source === 'user' ||
       (n as any).source === 'admin' ||
       n.id?.startsWith('custom-') ||
-      n.id?.startsWith('tn-custom-') ||
-      n.id?.startsWith('tomorrow-note-') ||
+      n.id?.startsWith('tn-') ||
+      n.id?.startsWith('tomorrow-') ||
       n.id?.startsWith('manual-') ||
       (n as any).isCustomOrExplicit
     ) {
