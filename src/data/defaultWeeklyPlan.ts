@@ -2518,21 +2518,6 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     week: 3,
     pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
   },
-  {
-    id: "hw-b1-w3-G2C-social-Wed-1",
-    classId: "G2C",
-    assignedDay: "Wednesday",
-    dueDay: "Sunday",
-    subject: "Social Studies",
-    task: "إكمال واجب الدرس المنزلي",
-    details: "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع (الأحد) - حل شيت الواجب المرفق",
-    pages: "شيت الواجب المنزلي",
-    completed: false,
-    priority: "normal",
-    block: 1,
-    week: 3,
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
-  },
   // BLOCK 1 - WEEK 3 ARABIC HOMEWORK
   // الأحد: كتابة نشيد (مدرستي بيتي الثاني)
   ...["G2A", "G2B", "G2C"].map((cls) => ({
@@ -2580,8 +2565,9 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     week: 3
   } as HomeworkEntry)),
   // BLOCK 1 - WEEK 3 ENGLISH DICTATION LIST FOR ALL CLASSES & DAYS
-  ...["G2A", "G2B", "G2C"].flatMap((cls) => 
-    ["Sunday", "Monday", "Wednesday", "Thursday"].map((day) => ({
+  ...["G2A", "G2B", "G2C"].flatMap((cls) => {
+    const days = cls === "G2C" ? ["Sunday", "Monday", "Thursday"] : ["Sunday", "Monday", "Wednesday", "Thursday"];
+    return days.map((day) => ({
       id: `hw-b1-w3-${cls}-dictation-list-${day}`,
       classId: cls as "G2A" | "G2B" | "G2C",
       assignedDay: day as any,
@@ -2594,8 +2580,8 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
       priority: "normal" as any,
       block: 1,
       week: 3
-    } as HomeworkEntry))
-  ),
+    } as HomeworkEntry));
+  }),
   // BLOCK 1 - WEEK 3 MATHEMATICS HOMEWORK
   // الأحد: حل ص 82 و 83
   ...["G2A", "G2B", "G2C"].map((cls) => ({

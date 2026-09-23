@@ -480,6 +480,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
         if (dbItems.length > 0) {
           // Cloud database is active: use as single source of truth without resurrecting deleted items
           dbItems.forEach((c) => {
+            if (c && c.title === '__DELETED__') return; // Filter out deleted markers!
             if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
           });
           // Merge in any newly introduced baseline classwork that is not yet in the cloud database
@@ -729,12 +730,21 @@ export async function deleteClasswork(id: string): Promise<void> {
   if (!isSupabaseConfigured) return;
 
   try {
-    const { error } = await supabase.from('classwork').delete().eq('id', id);
-    if (error) {
-      console.warn(`Warning deleting classwork ${id}:`, error.message || error);
-    }
+    await supabase.from('classwork').delete().eq('id', id);
+    // Upsert a __DELETED__ placeholder to ensure database-level tracking across all devices
+    await supabase.from('classwork').upsert({
+      id: id,
+      class_id: 'G2B',
+      day: 'Sunday',
+      period: 1,
+      subject: 'English',
+      title: '__DELETED__',
+      completed: false,
+      block: 1,
+      week: 3
+    }, { onConflict: 'id' });
   } catch (e) {
-    console.warn(`Network error deleting classwork ${id}:`, e);
+    console.warn(`Network error deleting/marking classwork ${id}:`, e);
   }
 }
 
@@ -819,6 +829,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           // Cloud database is active: use as single source of truth without resurrecting deleted items
           dbItems.forEach((h) => {
             if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
+            if (h && h.task === '__DELETED__') return; // Filter out deleted markers!
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
           // Merge in any newly introduced baseline homework that is not yet in the cloud database
@@ -1013,12 +1024,22 @@ export async function deleteHomework(id: string): Promise<void> {
   if (!isSupabaseConfigured) return;
 
   try {
-    const { error } = await supabase.from('homework').delete().eq('id', id);
-    if (error) {
-      console.warn(`Warning deleting homework ${id}:`, error.message || error);
-    }
+    await supabase.from('homework').delete().eq('id', id);
+    // Upsert a __DELETED__ placeholder to ensure database-level tracking across all devices
+    await supabase.from('homework').upsert({
+      id: id,
+      class_id: 'G2B',
+      assigned_day: 'Sunday',
+      due_day: 'Sunday',
+      subject: 'English',
+      task: '__DELETED__',
+      completed: false,
+      priority: 'normal',
+      block: 1,
+      week: 3
+    }, { onConflict: 'id' });
   } catch (e) {
-    console.warn(`Network error deleting homework ${id}:`, e);
+    console.warn(`Network error deleting/marking homework ${id}:`, e);
   }
 }
 
