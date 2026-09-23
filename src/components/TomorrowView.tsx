@@ -22,6 +22,12 @@ import { AttachmentPdfCard } from './AttachmentPdfCard';
 const OBSOLETE_DELETED_TOMORROW_IDS = new Set([
   'science-booklet-submission-Sunday',
   'science-tools-Sunday',
+  'science-tools-Thursday',
+  'science-tools-G2A-Thursday',
+  'science-tools-Wednesday',
+  'science-tools-G2A-Wednesday',
+  'science-booklet-submission-G2A-Thursday',
+  'science-materials-colored-sheets-with-Tuesday',
   'tn-science-w3-G2A-Sat-materials',
   'tn-science-w3-G2A-Sat-materials-forced',
   'tn-science-w3-G2B-Sat-materials',
@@ -814,8 +820,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         (n as any).source === 'user' ||
         (n as any).source === 'admin' ||
         n.id?.startsWith('custom-') ||
-        n.id?.startsWith('tomorrow-note-') ||
-        n.id?.startsWith('tn-custom-');
+        n.id?.startsWith('tomorrow-') ||
+        n.id?.startsWith('tn-');
 
       // If the note was explicitly deleted by its exact ID
       if (noteIds.some((id) => deletedNoteIds.includes(id))) {
@@ -989,6 +995,27 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           note: 'Science tools required for this week',
           arabicNote: 'تذكير لكلاس C: يرجى إحضار أدوات الساينس المطلوبة طوال هذا الأسبوع (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
           bagItem: 'أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه)',
+          categoryType: 'tools',
+          isQuiz: false,
+          block: currentBlock,
+          week: currentWeek,
+        }, true);
+      }
+    }
+
+    // Wednesday / Thursday explicit Science tools injection for G2A (when viewing tomorrow on Wednesday)
+    if (tomorrowDay === 'Thursday' && currentClass === 'G2A') {
+      const sciId = 'tn-science-w3-G2A-Wed-materials';
+      if (!deletedNoteIds.includes(sciId)) {
+        addOrMergeNote({
+          id: sciId,
+          classId: 'G2A',
+          targetDay: 'Thursday',
+          subject: 'Science',
+          title: 'Science tools required',
+          note: 'Science tools required',
+          arabicNote: 'تذكير لكلاس A: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+          bagItem: 'أدوات الساينس (أوراق ملونة، صمغ، ألوان، خيط كروشيه)',
           categoryType: 'tools',
           isQuiz: false,
           block: currentBlock,

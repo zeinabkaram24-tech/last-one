@@ -117,6 +117,38 @@ export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     block: 1,
     week: 3
   },
+  // G2A Science Tools on Thursday (Wednesday Tomorrow)
+  {
+    id: 'tn-science-w3-G2A-Wed-materials',
+    classId: 'G2A',
+    targetDay: 'Thursday',
+    subject: 'Science',
+    title: 'Science tools required',
+    note: 'Science tools required',
+    arabicNote: 'تذكير لكلاس A: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+    bagItem: 'أدوات الساينس (أوراق ملونة، صمغ، ألوان، خيط كروشيه)',
+    categoryType: 'tools',
+    isQuiz: false,
+    block: 1,
+    week: 3,
+    isCustom: true
+  },
+  // G2A Science Tools on Wednesday (Tuesday Tomorrow)
+  {
+    id: 'tn-science-w3-G2A-Tue-materials',
+    classId: 'G2A',
+    targetDay: 'Wednesday',
+    subject: 'Science',
+    title: 'Science tools required',
+    note: 'Science tools required',
+    arabicNote: 'تذكير لكلاس A: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+    bagItem: 'أدوات الساينس (أوراق ملونة، صمغ، ألوان، خيط كروشيه)',
+    categoryType: 'tools',
+    isQuiz: false,
+    block: 1,
+    week: 3,
+    isCustom: true
+  },
   // G2C Social Studies submission on Sunday (Saturday Tomorrow)
   {
     id: 'tn-b1-w3-G2C-Sat-social-submit',
@@ -389,6 +421,30 @@ export async function getTomorrowNotesForDay(
       });
     }
 
+    // 2.5 Fetch from Supabase planner_settings (tomorrow_special_notes)
+    try {
+      const { data: psRow } = await supabase
+        .from('planner_settings')
+        .select('value')
+        .eq('key', 'tomorrow_special_notes')
+        .single();
+      if (psRow && psRow.value) {
+        const parsed = JSON.parse(psRow.value);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((n: any) => {
+            if (
+              (n.classId === classId || n.classId === 'ALL') &&
+              n.targetDay === targetDay &&
+              (n.block || 1) === block &&
+              (n.week || 1) === week
+            ) {
+              dynamicNotes.push({ ...n, isCustom: true });
+            }
+          });
+        }
+      }
+    } catch {}
+
     // 3. Fetch from central planner-data endpoint
     try {
       const res = await fetch('/api/planner-data');
@@ -402,7 +458,7 @@ export async function getTomorrowNotesForDay(
               (n.block || 1) === block &&
               (n.week || 1) === week
             ) {
-              dynamicNotes.push(n);
+              dynamicNotes.push({ ...n, isCustom: true });
             }
           });
         }
@@ -788,6 +844,32 @@ export async function getTomorrowNotesForDay(
           });
         }
       }
+
+      // Thursday (Wednesday to be): Ensure Science tools task is present for G2A
+      if (targetDay === 'Thursday') {
+        const sciToolsId = 'tn-science-w3-G2A-Wed-materials';
+        const semKey = 'science-tools-Thursday';
+        const hasSciTools = finalNotes.some(
+          (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('tools') || n.arabicNote?.includes('كروشيه') || n.id === sciToolsId)
+        );
+        if (!hasSciTools && !deletedIds.includes(sciToolsId)) {
+          finalNotes.push({
+            id: sciToolsId,
+            classId: 'G2A',
+            targetDay: 'Thursday',
+            subject: 'Science',
+            title: 'Science tools required',
+            note: 'Science tools required',
+            arabicNote: 'تذكير لكلاس A: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+            bagItem: 'أدوات الساينس (أوراق ملونة، صمغ، ألوان، خيط كروشيه)',
+            isQuiz: false,
+            categoryType: 'tools',
+            block: 1,
+            week: 3,
+            isCustom: true
+          });
+        }
+      }
     }
 
     // For G2C (Class 2C) rules:
@@ -855,6 +937,12 @@ export async function getTomorrowNotesForDay(
 const OBSOLETE_DELETED_TOMORROW_IDS = new Set([
   'science-booklet-submission-Sunday',
   'science-tools-Sunday',
+  'science-tools-Thursday',
+  'science-tools-G2A-Thursday',
+  'science-tools-Wednesday',
+  'science-tools-G2A-Wednesday',
+  'science-booklet-submission-G2A-Thursday',
+  'science-materials-colored-sheets-with-Tuesday',
   'tn-science-w3-G2A-Sat-materials',
   'tn-science-w3-G2A-Sat-materials-forced',
   'tn-science-w3-G2B-Sat-materials',

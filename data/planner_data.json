@@ -3106,6 +3106,34 @@
       "isCustom": true,
       "block": 1,
       "week": 2
+    },
+    {
+      "id": "tomorrow-1790152101530",
+      "classId": "G2B",
+      "subject": "English",
+      "block": 1,
+      "week": 3,
+      "note": "dictation",
+      "arabicNote": "dictation",
+      "isQuiz": true,
+      "categoryType": "quiz",
+      "targetDay": "Sunday",
+      "isCustom": true
+    },
+    {
+      "id": "tn-science-w3-G2A-Tue-materials",
+      "classId": "G2A",
+      "targetDay": "Wednesday",
+      "subject": "Science",
+      "title": "Science tools required",
+      "note": "Science tools required",
+      "arabicNote": "تذكير لكلاس A: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).",
+      "bagItem": "أدوات الساينس (أوراق ملونة، صمغ، ألوان، خيط كروشيه)",
+      "categoryType": "tools",
+      "isQuiz": false,
+      "block": 1,
+      "week": 3,
+      "class_id": "G2A"
     }
   ],
   "deletedTomorrowNoteIds": [
