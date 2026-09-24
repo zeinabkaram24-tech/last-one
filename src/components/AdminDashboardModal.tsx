@@ -1524,7 +1524,11 @@ Sunday:
                                         {cw.details}
                                       </p>
                                     )}
-                                    {cw.linkUrl && (
+                                    {cw.linkUrl && 
+                                     cw.linkUrl.toLowerCase() !== 'video' && 
+                                     cw.linkUrl.toLowerCase() !== 'placeholder' && 
+                                     !cw.linkUrl.toLowerCase().includes('youtube.com') && 
+                                     !cw.linkUrl.toLowerCase().includes('youtu.be') && (
                                       <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-bold">
                                         🔗 {cw.linkTitle || 'رابط الدرس'}
                                       </span>
@@ -1616,7 +1620,11 @@ Sunday:
                                         {hw.details}
                                       </p>
                                     )}
-                                    {hw.linkUrl && (
+                                    {hw.linkUrl && 
+                                     hw.linkUrl.toLowerCase() !== 'video' && 
+                                     hw.linkUrl.toLowerCase() !== 'placeholder' && 
+                                     !hw.linkUrl.toLowerCase().includes('youtube.com') && 
+                                     !hw.linkUrl.toLowerCase().includes('youtu.be') && (
                                       <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 text-[10px] font-bold">
                                         🔗 رابط الواجب
                                       </span>

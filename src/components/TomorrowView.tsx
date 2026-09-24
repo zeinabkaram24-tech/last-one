@@ -1179,7 +1179,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                       الأدوات المطلوبة: {getNoteDisplayBagItem(note)}
                     </div>
                   )}
-                  {note.linkUrl && (
+                  {note.linkUrl && 
+                   note.linkUrl.toLowerCase() !== 'video' && 
+                   note.linkUrl.toLowerCase() !== 'placeholder' && 
+                   !note.linkUrl.toLowerCase().includes('youtube.com') && 
+                   !note.linkUrl.toLowerCase().includes('youtu.be') && (
                     <div className="pt-1 flex">
                       <a
                         href={note.linkUrl}

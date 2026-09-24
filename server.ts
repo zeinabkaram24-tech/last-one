@@ -131,8 +131,39 @@ function saveStoredPlannerData(data: StoredPlannerData): void {
 }
 
 // Helper to get GoogleGenAI client safely (lazy initialization)
+const GEMINI_CONFIG_FILE = path.join(DATA_DIR, 'gemini_config.json');
+
+function getStoredGeminiConfig(): { apiKey: string } {
+  try {
+    if (fs.existsSync(GEMINI_CONFIG_FILE)) {
+      const raw = fs.readFileSync(GEMINI_CONFIG_FILE, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.apiKey) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn('Error reading gemini_config.json:', err);
+  }
+  const envKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '';
+  return { apiKey: envKey.trim() };
+}
+
+function saveStoredGeminiConfig(config: { apiKey: string } | null): void {
+  try {
+    if (config) {
+      fs.writeFileSync(GEMINI_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
+    } else if (fs.existsSync(GEMINI_CONFIG_FILE)) {
+      fs.unlinkSync(GEMINI_CONFIG_FILE);
+    }
+  } catch (err) {
+    console.warn('Error saving gemini_config.json:', err);
+  }
+}
+
 function getGenAI(): GoogleGenAI | null {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  const config = getStoredGeminiConfig();
+  const apiKey = config.apiKey;
   if (!apiKey) return null;
   return new GoogleGenAI({
     apiKey,
@@ -165,6 +196,21 @@ app.post('/api/supabase-config/clear', (req, res) => {
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error clearing Supabase config' });
+  }
+});
+
+// Gemini Config Endpoints
+app.get('/api/gemini-config', (req, res) => {
+  res.json(getStoredGeminiConfig() || { apiKey: '' });
+});
+
+app.post('/api/gemini-config', (req, res) => {
+  try {
+    const { apiKey } = req.body;
+    saveStoredGeminiConfig({ apiKey: apiKey || '' });
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Error saving Gemini config' });
   }
 });
 
@@ -768,7 +814,7 @@ Return ONLY valid JSON. If a value is not mentioned, use the defaults if helpful
 `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json'
@@ -847,7 +893,7 @@ For 'tomorrow':
 Return ONLY valid JSON with no markdown backticks.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: [
         {
           inlineData: {
@@ -890,7 +936,7 @@ app.post('/api/transcribe-audio', async (req, res) => {
     const cleanMime = (mimeType || 'audio/webm').split(';')[0];
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: [
         {
           inlineData: {
