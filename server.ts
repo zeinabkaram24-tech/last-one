@@ -1838,7 +1838,7 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
     if (!ai) {
       console.log('No GEMINI_API_KEY set, using smart heuristic parser.');
       const parsed = heuristicParser(extractedPdfText, targetClass, Number(block), detectedWeek);
-      return res.json(parsed);
+      return res.json({ success: true, ...parsed });
     }
 
     const timetableContext = buildTimetableContext(targetClasses);
