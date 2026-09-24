@@ -132,7 +132,18 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     }
   } catch {}
 
-  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK).filter(c => !deletedSet.has(c.id));
+  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK)
+    .filter(c => !deletedSet.has(c.id))
+    .map(c => {
+      let corrected = { ...c };
+      if (corrected.title && corrected.title.includes('عالمات')) {
+        corrected.title = corrected.title.replace(/عالمات/g, 'علامات');
+      }
+      if (corrected.details && corrected.details.includes('عالمات')) {
+        corrected.details = corrected.details.replace(/عالمات/g, 'علامات');
+      }
+      return corrected;
+    });
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
@@ -400,7 +411,16 @@ export default function App() {
         // Apply classwork with student or guest completion checks
         if (cwData && cwData.length > 0) {
           const uniqueCwMap = new Map<string, ClassworkEntry>();
-          cwData.forEach((c) => uniqueCwMap.set(c.id, c));
+          cwData.forEach((c) => {
+            let corrected = { ...c };
+            if (corrected.title && corrected.title.includes('عالمات')) {
+              corrected.title = corrected.title.replace(/عالمات/g, 'علامات');
+            }
+            if (corrected.details && corrected.details.includes('عالمات')) {
+              corrected.details = corrected.details.replace(/عالمات/g, 'علامات');
+            }
+            uniqueCwMap.set(c.id, corrected);
+          });
           const dedupedCw = Array.from(uniqueCwMap.values());
 
           if (profile?.mode === 'student' && profile.studentName) {
