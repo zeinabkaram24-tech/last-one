@@ -346,7 +346,25 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
 // Open PDF or Link directly in our guaranteed In-App Viewer Modal
 export function openPdfItem(item: MaterialItem): void {
   try {
-    // Dispatch custom event to open In-App PDF Viewer Modal directly in place
+    const isMobile = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const targetUrl = item.storageUrl
+      ? item.storageUrl
+      : item.fileData
+      ? URL.createObjectURL(dataUrlToBlob(item.fileData))
+      : `/api/materials/${item.id}/file`;
+
+    if (isMobile && targetUrl) {
+      const win = window.open(targetUrl, '_blank');
+      if (win) {
+        win.focus();
+        return;
+      } else {
+        window.location.href = targetUrl;
+        return;
+      }
+    }
+
+    // Dispatch custom event to open In-App PDF Viewer Modal directly in place for desktop
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('open_pdf_viewer_modal', { detail: item }));
     }
