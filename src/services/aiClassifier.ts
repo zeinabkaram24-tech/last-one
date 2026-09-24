@@ -347,9 +347,9 @@ export async function parseWeeklyPlanWithAI(
 ): Promise<ParsedWeeklyPlanResponse> {
   // 1. Attempt server-side API proxy first. This is secure and works perfectly outside AI Studio
   try {
-    console.log('[Smart Reader] Attempting server-side parsing API with a 12-second timeout...');
+    console.log('[Smart Reader] Attempting server-side parsing API with a 40-second timeout...');
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const timeoutId = setTimeout(() => controller.abort(), 40000);
 
     let response: Response;
     if (pdfFile) {
