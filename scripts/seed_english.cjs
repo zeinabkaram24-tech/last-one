@@ -449,18 +449,10 @@ plannerData.homework.push(...newHomework);
 if (!plannerData.tomorrowNotes) plannerData.tomorrowNotes = [];
 plannerData.tomorrowNotes.push(...newTomorrowNotes);
 
-// Ensure lookahead works nicely for week 4 Sunday
-const lookaheadNotes = newTomorrowNotes.map(n => ({
-  ...n,
-  id: n.id + '-lookahead-w4',
-  week: 4
-}));
-plannerData.tomorrowNotes.push(...lookaheadNotes);
-
 // Save back
 fs.writeFileSync(plannerPath, JSON.stringify(plannerData, null, 2), 'utf8');
 
 console.log('Saved English Week 3 Plan to local JSON successfully!');
 console.log('Added classwork entries:', newClasswork.length);
 console.log('Added homework entries:', newHomework.length);
-console.log('Added tomorrow notes (including lookaheads):', newTomorrowNotes.length + lookaheadNotes.length);
+console.log('Added tomorrow notes:', newTomorrowNotes.length);

@@ -890,137 +890,139 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     };
 
-    // Automatically inject French Quiz warning (ONLY once, exactly 1 day before the session per class)
-    let injectFrenchQuiz = false;
-    if (currentClass === 'G2A' && tomorrowDay === 'Wednesday') injectFrenchQuiz = true;
-    if (currentClass === 'G2B' && tomorrowDay === 'Monday' && selectedDay !== 'Saturday') injectFrenchQuiz = true;
-    if (currentClass === 'G2C' && tomorrowDay === 'Tuesday') injectFrenchQuiz = true;
+    // Automatically inject French Quiz warning (ONLY for Block 1 - Week 3, exactly 1 day before the session per class)
+    if (currentBlock === 1 && currentWeek === 3) {
+      let injectFrenchQuiz = false;
+      if (currentClass === 'G2A' && tomorrowDay === 'Wednesday') injectFrenchQuiz = true;
+      if (currentClass === 'G2B' && tomorrowDay === 'Monday' && selectedDay !== 'Saturday') injectFrenchQuiz = true;
+      if (currentClass === 'G2C' && tomorrowDay === 'Tuesday') injectFrenchQuiz = true;
 
-    if (injectFrenchQuiz) {
-      const fQuizId = `french-quiz-${currentClass}-${tomorrowDay}`;
-      addOrMergeNote({
-        id: fQuizId,
-        classId: currentClass,
-        targetDay: tomorrowDay,
-        subject: 'French',
-        title: 'Quiz',
-        note: 'Quiz',
-        arabicNote: 'كويز فرنش (Quiz)',
-        isQuiz: true,
-        categoryType: 'quiz',
-        block: currentBlock,
-        week: currentWeek,
-      });
-    }
-
-    // Automatically inject Monday English Dictation alert ONLY for G2A (strictly disabled for G2B and G2C as per user request)
-    if (tomorrowDay === 'Monday' && currentClass === 'G2A' && selectedDay !== 'Saturday') {
-      const engDictationId = `eng-dictation-${currentClass}-${tomorrowDay}`;
-      addOrMergeNote({
-        id: engDictationId,
-        classId: currentClass,
-        targetDay: tomorrowDay,
-        subject: 'English',
-        note: 'Dictation',
-        arabicNote: 'ديكتيشن',
-        isQuiz: true,
-        categoryType: 'quiz',
-        block: currentBlock,
-        week: currentWeek,
-      }, true);
-    }
-
-    // Saturday / Sunday explicit Science tasks injection
-    if (selectedDay === 'Saturday' || tomorrowDay === 'Sunday') {
-      if (currentClass === 'G2B') {
-        // G2B: Science tools required
+      if (injectFrenchQuiz) {
+        const fQuizId = `french-quiz-${currentClass}-${tomorrowDay}`;
         addOrMergeNote({
-          id: `tn-science-w${currentWeek}-G2B-Sat-materials`,
-          classId: 'G2B',
-          targetDay: 'Sunday',
-          subject: 'Science',
-          title: 'Science tools required for this week',
-          note: 'Science tools required for this week',
-          arabicNote: 'تذكير لكلاس B: يرجى إحضار أدوات الساينس المطلوبة طوال هذا الأسبوع (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
-          bagItem: 'أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه)',
-          categoryType: 'tools',
-          isQuiz: false,
-          block: currentBlock,
-          week: currentWeek,
-        }, true);
+          id: fQuizId,
+          classId: currentClass,
+          targetDay: tomorrowDay,
+          subject: 'French',
+          title: 'Quiz',
+          note: 'Quiz',
+          arabicNote: 'كويز فرنش (Quiz)',
+          isQuiz: true,
+          categoryType: 'quiz',
+          block: 1,
+          week: 3,
+        });
+      }
 
-        // G2B: Science booklet submission
+      // Automatically inject Monday English Dictation alert ONLY for G2A in Week 3
+      if (tomorrowDay === 'Monday' && currentClass === 'G2A' && selectedDay !== 'Saturday') {
+        const engDictationId = `eng-dictation-${currentClass}-${tomorrowDay}`;
         addOrMergeNote({
-          id: `tn-science-w${currentWeek}-G2B-Sat-booklet`,
-          classId: 'G2B',
-          targetDay: 'Sunday',
-          subject: 'Science',
-          title: 'Science booklet submission (Unit 1)',
-          note: 'Science booklet submission (Unit 1)',
-          arabicNote: 'تذكير لكلاس B: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
-          bagItem: 'Science Booklet (بوكليت الساينس)',
-          categoryType: 'note',
-          isQuiz: false,
-          block: currentBlock,
-          week: currentWeek,
+          id: engDictationId,
+          classId: currentClass,
+          targetDay: tomorrowDay,
+          subject: 'English',
+          note: 'Dictation',
+          arabicNote: 'ديكتيشن',
+          isQuiz: true,
+          categoryType: 'quiz',
+          block: 1,
+          week: 3,
         }, true);
       }
 
-      if (currentClass === 'G2A') {
-        // G2A: Science booklet submission
-        addOrMergeNote({
-          id: `tn-science-w${currentWeek}-G2A-Sat-booklet`,
-          classId: 'G2A',
-          targetDay: 'Sunday',
-          subject: 'Science',
-          title: 'Science booklet submission (Unit 1)',
-          note: 'Science booklet submission (Unit 1)',
-          arabicNote: 'تذكير لكلاس A: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
-          bagItem: 'Science Booklet (بوكليت الساينس)',
-          categoryType: 'note',
-          isQuiz: false,
-          block: currentBlock,
-          week: currentWeek,
-        }, true);
+      // Saturday / Sunday explicit Science tasks injection (Week 3 ONLY)
+      if (selectedDay === 'Saturday' || tomorrowDay === 'Sunday') {
+        if (currentClass === 'G2B') {
+          // G2B: Science tools required
+          addOrMergeNote({
+            id: `tn-science-w3-G2B-Sat-materials`,
+            classId: 'G2B',
+            targetDay: 'Sunday',
+            subject: 'Science',
+            title: 'Science tools required for this week',
+            note: 'Science tools required for this week',
+            arabicNote: 'تذكير لكلاس B: يرجى إحضار أدوات الساينس المطلوبة طوال هذا الأسبوع (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+            bagItem: 'أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه)',
+            categoryType: 'tools',
+            isQuiz: false,
+            block: 1,
+            week: 3,
+          }, true);
+
+          // G2B: Science booklet submission
+          addOrMergeNote({
+            id: `tn-science-w3-G2B-Sat-booklet`,
+            classId: 'G2B',
+            targetDay: 'Sunday',
+            subject: 'Science',
+            title: 'Science booklet submission (Unit 1)',
+            note: 'Science booklet submission (Unit 1)',
+            arabicNote: 'تذكير لكلاس B: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
+            bagItem: 'Science Booklet (بوكليت الساينس)',
+            categoryType: 'note',
+            isQuiz: false,
+            block: 1,
+            week: 3,
+          }, true);
+        }
+
+        if (currentClass === 'G2A') {
+          // G2A: Science booklet submission
+          addOrMergeNote({
+            id: `tn-science-w3-G2A-Sat-booklet`,
+            classId: 'G2A',
+            targetDay: 'Sunday',
+            subject: 'Science',
+            title: 'Science booklet submission (Unit 1)',
+            note: 'Science booklet submission (Unit 1)',
+            arabicNote: 'تذكير لكلاس A: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
+            bagItem: 'Science Booklet (بوكليت الساينس)',
+            categoryType: 'note',
+            isQuiz: false,
+            block: 1,
+            week: 3,
+          }, true);
+        }
+
+        if (currentClass === 'G2C') {
+          // G2C: Science tools required
+          addOrMergeNote({
+            id: `tn-science-w3-G2C-Sat-materials`,
+            classId: 'G2C',
+            targetDay: 'Sunday',
+            subject: 'Science',
+            title: 'Science tools required for this week',
+            note: 'Science tools required for this week',
+            arabicNote: 'تذكير لكلاس C: يرجى إحضار أدوات الساينس المطلوبة طوال هذا الأسبوع (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+            bagItem: 'أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه)',
+            categoryType: 'tools',
+            isQuiz: false,
+            block: 1,
+            week: 3,
+          }, true);
+        }
       }
 
-      if (currentClass === 'G2C') {
-        // G2C: Science tools required
-        addOrMergeNote({
-          id: `tn-science-w${currentWeek}-G2C-Sat-materials`,
-          classId: 'G2C',
-          targetDay: 'Sunday',
-          subject: 'Science',
-          title: 'Science tools required for this week',
-          note: 'Science tools required for this week',
-          arabicNote: 'تذكير لكلاس C: يرجى إحضار أدوات الساينس المطلوبة طوال هذا الأسبوع (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
-          bagItem: 'أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه)',
-          categoryType: 'tools',
-          isQuiz: false,
-          block: currentBlock,
-          week: currentWeek,
-        }, true);
-      }
-    }
-
-    // Wednesday / Thursday explicit Science tools injection for G2A (when viewing tomorrow on Wednesday)
-    if (tomorrowDay === 'Thursday' && currentClass === 'G2A') {
-      const sciId = 'tn-science-w3-G2A-Wed-materials';
-      if (!deletedNoteIds.includes(sciId)) {
-        addOrMergeNote({
-          id: sciId,
-          classId: 'G2A',
-          targetDay: 'Thursday',
-          subject: 'Science',
-          title: 'Science tools required',
-          note: 'Science tools required',
-          arabicNote: 'تذكير لكلاس A: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
-          bagItem: 'أدوات الساينس (أوراق ملونة، صمغ، ألوان، خيط كروشيه)',
-          categoryType: 'tools',
-          isQuiz: false,
-          block: currentBlock,
-          week: currentWeek,
-        }, true);
+      // Wednesday / Thursday explicit Science tools injection for G2A (Week 3 ONLY)
+      if (tomorrowDay === 'Thursday' && currentClass === 'G2A') {
+        const sciId = 'tn-science-w3-G2A-Wed-materials';
+        if (!deletedNoteIds.includes(sciId)) {
+          addOrMergeNote({
+            id: sciId,
+            classId: 'G2A',
+            targetDay: 'Thursday',
+            subject: 'Science',
+            title: 'Science tools required',
+            note: 'Science tools required',
+            arabicNote: 'تذكير لكلاس A: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+            bagItem: 'أدوات الساينس (أوراق ملونة، صمغ، ألوان، خيط كروشيه)',
+            categoryType: 'tools',
+            isQuiz: false,
+            block: 1,
+            week: 3,
+          }, true);
+        }
       }
     }
 

@@ -171,7 +171,10 @@ export function getLocalCustomTomorrowNotes(): TomorrowSpecialNote[] {
     const raw = appStorage.getItem(LOCAL_CUSTOM_TOMORROW_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        // Sanitize out any rogue lookahead-w4 or outdated week 3 lookahead notes
+        return parsed.filter(n => !(n.id && (n.id.includes('lookahead-w4') || (n.id.includes('w3') && n.week === 4))));
+      }
     }
   } catch {}
   return [];
@@ -399,9 +402,12 @@ export async function getTomorrowNotesForDay(
       });
     }
 
-    // Map homework to TomorrowSpecialNote
+    // Map homework to TomorrowSpecialNote (ONLY if it is explicitly a quiz/test/dictation alert)
     if (hwList && Array.isArray(hwList)) {
       hwList.forEach((hw: any) => {
+        const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(((hw.task || '') + ' ' + (hw.details || '')).toLowerCase());
+        // Ordinary homework or Arabic homework must NEVER be mapped as a tomorrow quiz note!
+        if (!isQuiz || hw.subject === 'Arabic' || (hw.week && hw.week >= 4)) return;
         const unpacked = unpackHomeworkDetails(hw.details);
         dynamicNotes.push({
           id: hw.id,
@@ -510,21 +516,49 @@ export async function getTomorrowNotesForDay(
       return true;
     });
 
-    // Add specific Science Homework submission reminders for Class B and A on Wednesday/Thursday:
-    // Strictly without any page numbers as requested: "تسليم بوكلت الساينس"
-    // G2C Monday submission was removed per user request.
-    if (targetDay === 'Thursday' || targetDay === 'Wednesday') {
-      if (classId === 'G2A' || classId === 'G2B') {
-        const remId = `tn-b1-w3-${classId}-Wed-science-hw-submit`;
-        const semKey = `science-booklet-submission-${targetDay}`;
-        const hasSciRem = filtered.some(
-          (n) => n.subject === 'Science' && (n.note?.includes('تسليم') || n.arabicNote?.includes('تسليم') || n.id?.includes('hw-submit'))
+    // Block 1 - Week 3 specific curricular injections (Strictly disabled for Week 4 and all other weeks)
+    if (block === 1 && (week === 3 || effectiveWeek === 3)) {
+      // Add specific Science Homework submission reminders for Class B and A on Wednesday/Thursday:
+      // Strictly without any page numbers as requested: "تسليم بوكلت الساينس"
+      // G2C Monday submission was removed per user request.
+      if (targetDay === 'Thursday' || targetDay === 'Wednesday') {
+        if (classId === 'G2A' || classId === 'G2B') {
+          const remId = `tn-b1-w3-${classId}-Wed-science-hw-submit`;
+          const semKey = `science-booklet-submission-${targetDay}`;
+          const hasSciRem = filtered.some(
+            (n) => n.subject === 'Science' && (n.note?.includes('تسليم') || n.arabicNote?.includes('تسليم') || n.id?.includes('hw-submit'))
+          );
+          if (!hasSciRem && !deletedIds.includes(remId) && !deletedIds.includes(semKey)) {
+            filtered.push({
+              id: remId,
+              classId: classId,
+              targetDay: targetDay,
+              subject: 'Science',
+              note: 'تسليم بوكلت الساينس',
+              arabicNote: 'تسليم بوكلت الساينس',
+              bagItem: 'بوكليت الساينس',
+              isQuiz: false,
+              categoryType: 'note',
+              block: 1,
+              week: 3,
+            });
+          }
+        }
+      }
+
+      if (targetDay === 'Sunday') {
+        const sciSubId = `tn-b1-w3-${classId}-Sun-science-hw-submit`;
+        const semKey = `science-booklet-submission-Sunday`;
+        const hasSciSub = filtered.some(
+          (n) => n.subject === 'Science' && (n.arabicNote?.includes('تسليم') || n.note?.includes('تسليم') || n.note?.includes('submission'))
         );
-        if (!hasSciRem && !deletedIds.includes(remId) && !deletedIds.includes(semKey)) {
+        const isG2A = classId === 'G2A';
+        const isDeleted = deletedIds.includes(sciSubId) || deletedIds.includes(semKey);
+        if (!hasSciSub && (isG2A || !isDeleted)) {
           filtered.push({
-            id: remId,
+            id: sciSubId,
             classId: classId,
-            targetDay: targetDay,
+            targetDay: 'Sunday',
             subject: 'Science',
             note: 'تسليم بوكلت الساينس',
             arabicNote: 'تسليم بوكلت الساينس',
@@ -533,53 +567,55 @@ export async function getTomorrowNotesForDay(
             categoryType: 'note',
             block: 1,
             week: 3,
+            isCustom: true
           });
         }
-      }
-    }
 
-    if (targetDay === 'Sunday') {
-      const sciSubId = `tn-b1-w3-${classId}-Sun-science-hw-submit`;
-      const semKey = `science-booklet-submission-Sunday`;
-      const hasSciSub = filtered.some(
-        (n) => n.subject === 'Science' && (n.arabicNote?.includes('تسليم') || n.note?.includes('تسليم') || n.note?.includes('submission'))
-      );
-      const isG2A = classId === 'G2A';
-      const isDeleted = deletedIds.includes(sciSubId) || deletedIds.includes(semKey);
-      if (!hasSciSub && (isG2A || !isDeleted)) {
-        filtered.push({
-          id: sciSubId,
-          classId: classId,
-          targetDay: 'Sunday',
-          subject: 'Science',
-          note: 'تسليم بوكلت الساينس',
-          arabicNote: 'تسليم بوكلت الساينس',
-          bagItem: 'بوكليت الساينس',
-          isQuiz: false,
-          categoryType: 'note',
-          block: 1,
-          week: 3,
-          isCustom: true
-        });
+        if (classId === 'G2C' || classId === 'G2B') {
+          const sciToolsId = `tn-science-w3-${classId}-Sat-materials`;
+          const semKeySci = `science-tools-Sunday`;
+          const hasSciTools = filtered.some(
+            (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools'))
+          );
+          if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKeySci)) {
+            filtered.push({
+              id: sciToolsId,
+              classId: classId,
+              targetDay: 'Sunday',
+              subject: 'Science',
+              note: 'Science tools required',
+              arabicNote: `تذكير لكلاس ${classId === 'G2C' ? 'C' : 'B'}: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).`,
+              bagItem: 'أوراق ملونة، صمغ، ألوان خشبية، وخيط كروشيه',
+              isQuiz: false,
+              categoryType: 'note',
+              block: 1,
+              week: 3,
+              isCustom: true
+            });
+          }
+        }
+
+        // G2B French Quiz is on Monday (prepared on Sunday, targetDay: Monday)
       }
 
-      if (classId === 'G2C' || classId === 'G2B') {
-        const sciToolsId = `tn-science-w3-${classId}-Sat-materials`;
-        const semKeySci = `science-tools-Sunday`;
-        const hasSciTools = filtered.some(
-          (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools'))
+      if (targetDay === 'Monday' && classId === 'G2B') {
+        const fQuizId = `tn-b1-w3-G2B-Mon-french-quiz`;
+        const semKeyF = `french-quiz-Monday`;
+        const hasFQuiz = filtered.some(
+          (n) => n.subject === 'French' && (n.note?.toLowerCase().includes('quiz') || n.arabicNote?.includes('كويز'))
         );
-        if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKeySci)) {
+        if (!hasFQuiz && !deletedIds.includes(fQuizId) && !deletedIds.includes(semKeyF)) {
           filtered.push({
-            id: sciToolsId,
-            classId: classId,
-            targetDay: 'Sunday',
-            subject: 'Science',
-            note: 'Science tools required',
-            arabicNote: `تذكير لكلاس ${classId === 'G2C' ? 'C' : 'B'}: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).`,
-            bagItem: 'أوراق ملونة، صمغ، ألوان خشبية، وخيط كروشيه',
-            isQuiz: false,
-            categoryType: 'note',
+            id: fQuizId,
+            classId: 'G2B',
+            targetDay: 'Monday',
+            subject: 'French',
+            title: 'Quiz',
+            note: 'Quiz',
+            arabicNote: 'كويز فرنش (Quiz)',
+            bagItem: '',
+            isQuiz: true,
+            categoryType: 'quiz',
             block: 1,
             week: 3,
             isCustom: true
@@ -587,105 +623,78 @@ export async function getTomorrowNotesForDay(
         }
       }
 
-      // G2B French Quiz is on Monday (prepared on Sunday, targetDay: Monday)
-    }
-
-    if (targetDay === 'Monday' && classId === 'G2B') {
-      const fQuizId = `tn-b1-w3-G2B-Mon-french-quiz`;
-      const semKeyF = `french-quiz-Monday`;
-      const hasFQuiz = filtered.some(
-        (n) => n.subject === 'French' && (n.note?.toLowerCase().includes('quiz') || n.arabicNote?.includes('كويز'))
-      );
-      if (!hasFQuiz && !deletedIds.includes(fQuizId) && !deletedIds.includes(semKeyF)) {
-        filtered.push({
-          id: fQuizId,
-          classId: 'G2B',
-          targetDay: 'Monday',
-          subject: 'French',
-          title: 'Quiz',
-          note: 'Quiz',
-          arabicNote: 'كويز فرنش (Quiz)',
-          bagItem: '',
-          isQuiz: true,
-          categoryType: 'quiz',
-          block: 1,
-          week: 3,
-          isCustom: true
-        });
+      if (targetDay === 'Tuesday' && classId === 'G2C') {
+        const fQuizId = `tn-b1-w3-G2C-Tue-french-quiz`;
+        const semKeyF = `french-quiz-Tuesday`;
+        const hasFQuiz = filtered.some(
+          (n) => n.subject === 'French' && (n.note?.toLowerCase().includes('quiz') || n.arabicNote?.includes('كويز'))
+        );
+        if (!hasFQuiz && !deletedIds.includes(fQuizId) && !deletedIds.includes(semKeyF)) {
+          filtered.push({
+            id: fQuizId,
+            classId: 'G2C',
+            targetDay: 'Tuesday',
+            subject: 'French',
+            title: 'Quiz',
+            note: 'Quiz',
+            arabicNote: 'كويز فرنش (Quiz)',
+            bagItem: '',
+            isQuiz: true,
+            categoryType: 'quiz',
+            block: 1,
+            week: 3,
+            isCustom: true
+          });
+        }
       }
-    }
 
-    if (targetDay === 'Tuesday' && classId === 'G2C') {
-      const fQuizId = `tn-b1-w3-G2C-Tue-french-quiz`;
-      const semKeyF = `french-quiz-Tuesday`;
-      const hasFQuiz = filtered.some(
-        (n) => n.subject === 'French' && (n.note?.toLowerCase().includes('quiz') || n.arabicNote?.includes('كويز'))
-      );
-      if (!hasFQuiz && !deletedIds.includes(fQuizId) && !deletedIds.includes(semKeyF)) {
-        filtered.push({
-          id: fQuizId,
-          classId: 'G2C',
-          targetDay: 'Tuesday',
-          subject: 'French',
-          title: 'Quiz',
-          note: 'Quiz',
-          arabicNote: 'كويز فرنش (Quiz)',
-          bagItem: '',
-          isQuiz: true,
-          categoryType: 'quiz',
-          block: 1,
-          week: 3,
-          isCustom: true
-        });
+      if (targetDay === 'Wednesday' && classId === 'G2A') {
+        const fQuizId = `tn-b1-w3-G2A-Wed-french-quiz`;
+        const semKeyF = `french-quiz-Wednesday`;
+        const hasFQuiz = filtered.some(
+          (n) => n.subject === 'French' && (n.note?.toLowerCase().includes('quiz') || n.arabicNote?.includes('كويز'))
+        );
+        if (!hasFQuiz && !deletedIds.includes(fQuizId) && !deletedIds.includes(semKeyF)) {
+          filtered.push({
+            id: fQuizId,
+            classId: 'G2A',
+            targetDay: 'Wednesday',
+            subject: 'French',
+            title: 'Quiz',
+            note: 'Quiz',
+            arabicNote: 'كويز فرنش (Quiz)',
+            bagItem: '',
+            isQuiz: true,
+            categoryType: 'quiz',
+            block: 1,
+            week: 3,
+            isCustom: true
+          });
+        }
       }
-    }
 
-    if (targetDay === 'Wednesday' && classId === 'G2A') {
-      const fQuizId = `tn-b1-w3-G2A-Wed-french-quiz`;
-      const semKeyF = `french-quiz-Wednesday`;
-      const hasFQuiz = filtered.some(
-        (n) => n.subject === 'French' && (n.note?.toLowerCase().includes('quiz') || n.arabicNote?.includes('كويز'))
-      );
-      if (!hasFQuiz && !deletedIds.includes(fQuizId) && !deletedIds.includes(semKeyF)) {
-        filtered.push({
-          id: fQuizId,
-          classId: 'G2A',
-          targetDay: 'Wednesday',
-          subject: 'French',
-          title: 'Quiz',
-          note: 'Quiz',
-          arabicNote: 'كويز فرنش (Quiz)',
-          bagItem: '',
-          isQuiz: true,
-          categoryType: 'quiz',
-          block: 1,
-          week: 3,
-          isCustom: true
-        });
-      }
-    }
-
-    if (targetDay === 'Monday' && classId === 'G2A') {
-      const sciToolsId = `tn-b1-w3-G2A-Mon-science-tools`;
-      const semKey = `science-tools-Monday`;
-      const hasSciTools = filtered.some(
-        (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools') || n.arabicNote?.includes('كروشيه'))
-      );
-      if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKey)) {
-        filtered.push({
-          id: sciToolsId,
-          classId: 'G2A',
-          targetDay: 'Monday',
-          subject: 'Science',
-          note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
-          arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
-          bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
-          isQuiz: false,
-          categoryType: 'note',
-          block: 1,
-          week: 3,
-          isCustom: true
-        });
+      if (targetDay === 'Monday' && classId === 'G2A') {
+        const sciToolsId = `tn-b1-w3-G2A-Mon-science-tools`;
+        const semKey = `science-tools-Monday`;
+        const hasSciTools = filtered.some(
+          (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools') || n.arabicNote?.includes('كروشيه'))
+        );
+        if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKey)) {
+          filtered.push({
+            id: sciToolsId,
+            classId: 'G2A',
+            targetDay: 'Monday',
+            subject: 'Science',
+            note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
+            arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
+            bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
+            isQuiz: false,
+            categoryType: 'note',
+            block: 1,
+            week: 3,
+            isCustom: true
+          });
+        }
       }
     }
 
@@ -708,101 +717,24 @@ export async function getTomorrowNotesForDay(
 
     let finalNotes = [...deduplicated];
 
-    // For G2B (Class 2B) rules:
-    if (classId === 'G2B') {
-      // 1. Sunday (Saturday to be): Only bring booklet (removed Bring Tools)
-      if (targetDay === 'Sunday') {
-        // Remove any existing Science notes for G2B on Sunday to avoid duplicates
-        finalNotes = finalNotes.filter(n => n.subject !== 'Science');
-        
-        // Push Bring Booklet
-        finalNotes.push({
-          id: 'tn-science-w3-G2B-Sat-booklet-forced',
-          classId: 'G2B',
-          targetDay: 'Sunday',
-          subject: 'Science',
-          note: 'Science booklet submission (Unit 1)',
-          arabicNote: 'تذكير لكلاس B: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
-          bagItem: 'Science Booklet (بوكليت الساينس)',
-          isQuiz: false,
-          categoryType: 'note',
-          block: 1,
-          week: 3,
-          isCustom: true
-        });
-      }
-
-      // 2. Monday (Sunday to be): Cancel/Remove Bring Tools task
-      if (targetDay === 'Monday') {
-        finalNotes = finalNotes.filter(n => {
-          const isSciTools = n.subject === 'Science' && 
-            (n.arabicNote?.includes('أدوات') || n.note?.toLowerCase().includes('tools') || n.note?.toLowerCase().includes('material'));
-          return !isSciTools;
-        });
-      }
-
-      // 3. Tuesday (Monday to be): Cancel/Remove Bring Tools task
-      if (targetDay === 'Tuesday') {
-        finalNotes = finalNotes.filter(n => {
-          const isSciTools = n.subject === 'Science' && 
-            (n.arabicNote?.includes('أدوات') || n.note?.toLowerCase().includes('tools') || n.note?.toLowerCase().includes('material'));
-          return !isSciTools;
-        });
-      }
-
-      // 4. Wednesday (Tuesday to be): Bring tools
-      if (targetDay === 'Wednesday') {
-        // Remove any existing Science tools notes to avoid duplicates
-        finalNotes = finalNotes.filter(n => {
-          const isSciTools = n.subject === 'Science' && 
-            (n.arabicNote?.includes('أدوات') || n.note?.toLowerCase().includes('tools') || n.note?.toLowerCase().includes('material'));
-          return !isSciTools;
-        });
-        
-        finalNotes.push({
-          id: 'tn-science-w3-G2B-Tue-materials-forced',
-          classId: 'G2B',
-          targetDay: 'Wednesday',
-          subject: 'Science',
-          note: 'Science tools required (Science on Wednesday)',
-          arabicNote: 'تذكير لكلاس B: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه) لأن لديكم حصة ساينس غداً الأربعاء.',
-          bagItem: 'أدوات الساينس (أوراق ملونة، صمغ، ألوان، خيط كروشيه)',
-          isQuiz: false,
-          categoryType: 'note',
-          block: 1,
-          week: 3,
-          isCustom: true
-        });
-      }
-    }
-
-    // For G2A (Class 2A) rules:
-    if (classId === 'G2A') {
-      // Removed Sunday (Saturday to be): Bring tools
-
-      // Monday (Sunday to be): Only show Science tools task and English dictation. Remove Arabic dictation and French quiz.
-      if (targetDay === 'Monday') {
-        finalNotes = finalNotes.filter((n) => {
-          const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-          const isArabicDictation = (n.subject === 'Arabic' || n.subject === 'عربي' || n.subject === 'اللغة العربية') && (fullText.includes('إملاء') || fullText.includes('تسميع'));
-          const isFrenchQuiz = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي') || fullText.includes('quiz') || fullText.includes('كويز');
-          return !isArabicDictation && !isFrenchQuiz;
-        });
-
-        const sciToolsId = `tn-b1-w3-G2A-Mon-science-tools`;
-        const semKey = `science-tools-Monday`;
-        const hasSciTools = finalNotes.some(
-          (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools') || n.arabicNote?.includes('كروشيه'))
-        );
-        if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKey)) {
+    // Block 1 - Week 3 class-specific manual overrides (Strictly disabled for Week 4 and all other weeks)
+    if (block === 1 && (week === 3 || effectiveWeek === 3)) {
+      // For G2B (Class 2B) rules:
+      if (classId === 'G2B') {
+        // 1. Sunday (Saturday to be): Only bring booklet (removed Bring Tools)
+        if (targetDay === 'Sunday') {
+          // Remove any existing Science notes for G2B on Sunday to avoid duplicates
+          finalNotes = finalNotes.filter(n => n.subject !== 'Science');
+          
+          // Push Bring Booklet
           finalNotes.push({
-            id: sciToolsId,
-            classId: 'G2A',
-            targetDay: 'Monday',
+            id: 'tn-science-w3-G2B-Sat-booklet-forced',
+            classId: 'G2B',
+            targetDay: 'Sunday',
             subject: 'Science',
-            note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
-            arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
-            bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
+            note: 'Science booklet submission (Unit 1)',
+            arabicNote: 'تذكير لكلاس B: تسليم بوكليت الساينس (Science Booklet) غداً الأحد لتصحيح تمارين Unit 1.',
+            bagItem: 'Science Booklet (بوكليت الساينس)',
             isQuiz: false,
             categoryType: 'note',
             block: 1,
@@ -810,79 +742,159 @@ export async function getTomorrowNotesForDay(
             isCustom: true
           });
         }
-      }
 
-      // Tuesday (Monday to be): Only show Science tools task. Remove any dictation, French quiz, or Science booklet submission.
-      if (targetDay === 'Tuesday') {
-        finalNotes = finalNotes.filter((n) => {
-          const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-          const isDictation = n.subject === 'English' || n.subject === 'Arabic' || fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع');
-          const isFrenchQuiz = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي') || fullText.includes('quiz') || fullText.includes('كويز');
-          const isScienceBooklet = n.subject === 'Science' && (fullText.includes('تسليم') || fullText.includes('booklet') || fullText.includes('بوكلت') || fullText.includes('بوكليت'));
-          return !isDictation && !isFrenchQuiz && !isScienceBooklet;
-        });
-
-        const sciToolsId = `tn-b1-w3-G2A-Tue-science-tools`;
-        const semKey = `science-tools-Tuesday`;
-        const hasSciTools = finalNotes.some(
-          (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools') || n.arabicNote?.includes('كروشيه'))
-        );
-        if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKey)) {
-          finalNotes.push({
-            id: sciToolsId,
-            classId: 'G2A',
-            targetDay: 'Tuesday',
-            subject: 'Science',
-            note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
-            arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
-            bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
-            isQuiz: false,
-            categoryType: 'note',
-            block: 1,
-            week: 3,
-            isCustom: true
+        // 2. Monday (Sunday to be): Cancel/Remove Bring Tools task
+        if (targetDay === 'Monday') {
+          finalNotes = finalNotes.filter(n => {
+            const isSciTools = n.subject === 'Science' && 
+              (n.arabicNote?.includes('أدوات') || n.note?.toLowerCase().includes('tools') || n.note?.toLowerCase().includes('material'));
+            return !isSciTools;
           });
         }
-      }
 
-      // Thursday (Wednesday to be): Ensure Science tools task is present for G2A
-      if (targetDay === 'Thursday') {
-        const sciToolsId = 'tn-science-w3-G2A-Wed-materials';
-        const semKey = 'science-tools-Thursday';
-        const hasSciTools = finalNotes.some(
-          (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('tools') || n.arabicNote?.includes('كروشيه') || n.id === sciToolsId)
-        );
-        if (!hasSciTools && !deletedIds.includes(sciToolsId)) {
+        // 3. Tuesday (Monday to be): Cancel/Remove Bring Tools task
+        if (targetDay === 'Tuesday') {
+          finalNotes = finalNotes.filter(n => {
+            const isSciTools = n.subject === 'Science' && 
+              (n.arabicNote?.includes('أدوات') || n.note?.toLowerCase().includes('tools') || n.note?.toLowerCase().includes('material'));
+            return !isSciTools;
+          });
+        }
+
+        // 4. Wednesday (Tuesday to be): Bring tools
+        if (targetDay === 'Wednesday') {
+          // Remove any existing Science tools notes to avoid duplicates
+          finalNotes = finalNotes.filter(n => {
+            const isSciTools = n.subject === 'Science' && 
+              (n.arabicNote?.includes('أدوات') || n.note?.toLowerCase().includes('tools') || n.note?.toLowerCase().includes('material'));
+            return !isSciTools;
+          });
+          
           finalNotes.push({
-            id: sciToolsId,
-            classId: 'G2A',
-            targetDay: 'Thursday',
+            id: 'tn-science-w3-G2B-Tue-materials-forced',
+            classId: 'G2B',
+            targetDay: 'Wednesday',
             subject: 'Science',
-            title: 'Science tools required',
-            note: 'Science tools required',
-            arabicNote: 'تذكير لكلاس A: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+            note: 'Science tools required (Science on Wednesday)',
+            arabicNote: 'تذكير لكلاس B: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه) لأن لديكم حصة ساينس غداً الأربعاء.',
             bagItem: 'أدوات الساينس (أوراق ملونة، صمغ، ألوان، خيط كروشيه)',
             isQuiz: false,
-            categoryType: 'tools',
+            categoryType: 'note',
             block: 1,
             week: 3,
             isCustom: true
           });
         }
       }
-    }
 
-    // For G2C (Class 2C) rules:
-    if (classId === 'G2C') {
-      // Removed Sunday (Saturday to be): Bring tools
+      // For G2A (Class 2A) rules:
+      if (classId === 'G2A') {
+        // Removed Sunday (Saturday to be): Bring tools
 
-      // Monday (Sunday to be): Remove any French Quiz
-      if (targetDay === 'Monday') {
-        finalNotes = finalNotes.filter((n) => {
-          const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-          const isFrenchQuiz = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي') || fullText.includes('quiz') || fullText.includes('كويز');
-          return !isFrenchQuiz;
-        });
+        // Monday (Sunday to be): Only show Science tools task and English dictation. Remove Arabic dictation and French quiz.
+        if (targetDay === 'Monday') {
+          finalNotes = finalNotes.filter((n) => {
+            const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+            const isArabicDictation = (n.subject === 'Arabic' || n.subject === 'عربي' || n.subject === 'اللغة العربية') && (fullText.includes('إملاء') || fullText.includes('تسميع'));
+            const isFrenchQuiz = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي') || fullText.includes('quiz') || fullText.includes('كويز');
+            return !isArabicDictation && !isFrenchQuiz;
+          });
+
+          const sciToolsId = `tn-b1-w3-G2A-Mon-science-tools`;
+          const semKey = `science-tools-Monday`;
+          const hasSciTools = finalNotes.some(
+            (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools') || n.arabicNote?.includes('كروشيه'))
+          );
+          if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKey)) {
+            finalNotes.push({
+              id: sciToolsId,
+              classId: 'G2A',
+              targetDay: 'Monday',
+              subject: 'Science',
+              note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
+              arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
+              bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
+              isQuiz: false,
+              categoryType: 'note',
+              block: 1,
+              week: 3,
+              isCustom: true
+            });
+          }
+        }
+
+        // Tuesday (Monday to be): Only show Science tools task. Remove any dictation, French quiz, or Science booklet submission.
+        if (targetDay === 'Tuesday') {
+          finalNotes = finalNotes.filter((n) => {
+            const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+            const isDictation = n.subject === 'English' || n.subject === 'Arabic' || fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع');
+            const isFrenchQuiz = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي') || fullText.includes('quiz') || fullText.includes('كويز');
+            const isScienceBooklet = n.subject === 'Science' && (fullText.includes('تسليم') || fullText.includes('booklet') || fullText.includes('بوكلت') || fullText.includes('بوكليت'));
+            return !isDictation && !isFrenchQuiz && !isScienceBooklet;
+          });
+
+          const sciToolsId = `tn-b1-w3-G2A-Tue-science-tools`;
+          const semKey = `science-tools-Tuesday`;
+          const hasSciTools = finalNotes.some(
+            (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('Tools') || n.arabicNote?.includes('كروشيه'))
+          );
+          if (!hasSciTools && !deletedIds.includes(sciToolsId) && !deletedIds.includes(semKey)) {
+            finalNotes.push({
+              id: sciToolsId,
+              classId: 'G2A',
+              targetDay: 'Tuesday',
+              subject: 'Science',
+              note: 'Bring Science tools: Colored sheets with different colors, glue, colored pencils, and a little crochet yarn.',
+              arabicNote: 'أدوات الساينس المطلوبة: ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.',
+              bagItem: 'ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وخيط كروشيه',
+              isQuiz: false,
+              categoryType: 'note',
+              block: 1,
+              week: 3,
+              isCustom: true
+            });
+          }
+        }
+
+        // Thursday (Wednesday to be): Ensure Science tools task is present for G2A
+        if (targetDay === 'Thursday') {
+          const sciToolsId = 'tn-science-w3-G2A-Wed-materials';
+          const semKey = 'science-tools-Thursday';
+          const hasSciTools = finalNotes.some(
+            (n) => n.subject === 'Science' && (n.arabicNote?.includes('أدوات') || n.note?.includes('tools') || n.arabicNote?.includes('كروشيه') || n.id === sciToolsId)
+          );
+          if (!hasSciTools && !deletedIds.includes(sciToolsId)) {
+            finalNotes.push({
+              id: sciToolsId,
+              classId: 'G2A',
+              targetDay: 'Thursday',
+              subject: 'Science',
+              title: 'Science tools required',
+              note: 'Science tools required',
+              arabicNote: 'تذكير لكلاس A: يرجى إحضار أدوات الساينس المطلوبة (أوراق ملونة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه).',
+              bagItem: 'أدوات الساينس (أوراق ملونة، صمغ، ألوان، خيط كروشيه)',
+              isQuiz: false,
+              categoryType: 'tools',
+              block: 1,
+              week: 3,
+              isCustom: true
+            });
+          }
+        }
+      }
+
+      // For G2C (Class 2C) rules:
+      if (classId === 'G2C') {
+        // Removed Sunday (Saturday to be): Bring tools
+
+        // Monday (Sunday to be): Remove any French Quiz
+        if (targetDay === 'Monday') {
+          finalNotes = finalNotes.filter((n) => {
+            const fullText = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+            const isFrenchQuiz = n.subject === 'French' || fullText.includes('french') || fullText.includes('فرنش') || fullText.includes('فرنسي') || fullText.includes('quiz') || fullText.includes('كويز');
+            return !isFrenchQuiz;
+          });
+        }
       }
     }
 

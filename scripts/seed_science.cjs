@@ -419,21 +419,10 @@ plannerData.homework.push(...newHomework);
 if (!plannerData.tomorrowNotes) plannerData.tomorrowNotes = [];
 plannerData.tomorrowNotes.push(...newTomorrowNotes);
 
-// Ensure the week property is set appropriately to be visible on lookaheads if needed
-// (such as week 4 for the Sunday lookahead on Saturday)
-const lookaheadNotes = newTomorrowNotes
-  .filter(n => n.targetDay === 'Sunday' || n.targetDay === 'Monday')
-  .map(n => ({
-    ...n,
-    id: n.id + '-lookahead-w4',
-    week: 4
-  }));
-plannerData.tomorrowNotes.push(...lookaheadNotes);
-
 // Save back
 fs.writeFileSync(plannerPath, JSON.stringify(plannerData, null, 2), 'utf8');
 
 console.log('Saved Science Week 3 (with absolute Saturday/Wednesday 2A rules) to local JSON successfully!');
 console.log('Added classwork entries:', newClasswork.length);
 console.log('Added homework entries:', newHomework.length);
-console.log('Added tomorrow notes (including lookaheads):', newTomorrowNotes.length + lookaheadNotes.length);
+console.log('Added tomorrow notes:', newTomorrowNotes.length);

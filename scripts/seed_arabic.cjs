@@ -259,20 +259,10 @@ plannerData.classwork.push(...newClasswork);
 plannerData.homework.push(...newHomework);
 plannerData.tomorrowNotes.push(...newTomorrowNotes);
 
-// Also add lookahead for Sunday (viewed on Saturday in week 4 or week 3)
-const lookaheadNotes = newTomorrowNotes
-  .filter((n) => n.targetDay === 'Sunday' && n.week === 3)
-  .map((n) => ({
-    ...n,
-    id: n.id + '-lookahead-w4',
-    week: 4,
-  }));
-plannerData.tomorrowNotes.push(...lookaheadNotes);
-
 // Write back to data/planner_data.json
 fs.writeFileSync(plannerPath, JSON.stringify(plannerData, null, 2), 'utf8');
 
 console.log('Arabic Weekly Plan Seeding Completed Successfully!');
 console.log('Classwork items added:', newClasswork.length);
 console.log('Homework items added:', newHomework.length);
-console.log('Tomorrow notes added:', newTomorrowNotes.length + lookaheadNotes.length);
+console.log('Tomorrow notes added:', newTomorrowNotes.length);

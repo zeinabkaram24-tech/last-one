@@ -1498,6 +1498,246 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
   },
 ];
 
+// =============================================================
+// BLOCK 1 - WEEK 4 ARABIC CLASSWORK DEFINITION
+// =============================================================
+export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
+  {
+    id: "cw-b1-w4-G2A-Sunday-p7-e10ha",
+    classId: "G2A",
+    day: "Sunday",
+    period: 7,
+    subject: "Arabic",
+    title: "قراءة درس نور والحي الذي تسكن فيه",
+    details: "قراءة درس نور والحي الذي تسكن فيه",
+    pages: "ص 22-23",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2A"
+  },
+  {
+    id: "cw-b1-w4-G2B-Sunday-p4-d7ymx",
+    classId: "G2B",
+    day: "Sunday",
+    period: 4,
+    subject: "Arabic",
+    title: "قراءة درس نور والحي الذي تسكن فيه",
+    details: "قراءة درس نور والحي الذي تسكن فيه",
+    pages: "ص 22-23",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2B"
+  },
+  {
+    id: "cw-b1-w4-G2C-Sunday-p6-7uo06",
+    classId: "G2C",
+    day: "Sunday",
+    period: 6,
+    subject: "Arabic",
+    title: "قراءة درس نور والحي الذي تسكن فيه",
+    details: "قراءة درس نور والحي الذي تسكن فيه",
+    pages: "ص 22-23",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2C"
+  },
+  {
+    id: "cw-b1-w4-G2A-Monday-p1-om2w5",
+    classId: "G2A",
+    day: "Monday",
+    period: 1,
+    subject: "Arabic",
+    title: "المناقشة اللغوية و الشدة",
+    details: "المناقشة اللغوية لدرس نور والحي الذي تسكن فيه + الشدة",
+    pages: "ص 24-26",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2A"
+  },
+  {
+    id: "cw-b1-w4-G2B-Monday-p8-su77u",
+    classId: "G2B",
+    day: "Monday",
+    period: 8,
+    subject: "Arabic",
+    title: "المناقشة اللغوية و الشدة",
+    details: "المناقشة اللغوية لدرس نور والحي الذي تسكن فيه + الشدة",
+    pages: "ص 24-26",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2B"
+  },
+  {
+    id: "cw-b1-w4-G2C-Monday-p1-ezo2u",
+    classId: "G2C",
+    day: "Monday",
+    period: 1,
+    subject: "Arabic",
+    title: "المناقشة اللغوية و الشدة",
+    details: "المناقشة اللغوية لدرس نور والحي الذي تسكن فيه + الشدة",
+    pages: "ص 24-26",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2C"
+  },
+  {
+    id: "cw-b1-w4-G2A-Tuesday-p8-t1ubf",
+    classId: "G2A",
+    day: "Tuesday",
+    period: 8,
+    subject: "Arabic",
+    title: "علامات الترقيم",
+    details: "درس علامات الترقيم",
+    pages: "ص 27-28",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2A"
+  },
+  {
+    id: "cw-b1-w4-G2B-Tuesday-p5-9t3tx",
+    classId: "G2B",
+    day: "Tuesday",
+    period: 5,
+    subject: "Arabic",
+    title: "علامات الترقيم",
+    details: "درس علامات الترقيم",
+    pages: "ص 27-28",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2B"
+  },
+  {
+    id: "cw-b1-w4-G2C-Tuesday-p7-ihg4i",
+    classId: "G2C",
+    day: "Tuesday",
+    period: 7,
+    subject: "Arabic",
+    title: "علامات الترقيم",
+    details: "درس علامات الترقيم",
+    pages: "ص 27-28",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2C"
+  },
+  {
+    id: "cw-b1-w4-G2A-Wednesday-p6-1kp6n",
+    classId: "G2A",
+    day: "Wednesday",
+    period: 6,
+    subject: "Arabic",
+    title: "نص استماع حب العمل",
+    details: "نص استماع (حب العمل)",
+    pages: "ص 29",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2A"
+  },
+  {
+    id: "cw-b1-w4-G2B-Wednesday-p4-dwybn",
+    classId: "G2B",
+    day: "Wednesday",
+    period: 4,
+    subject: "Arabic",
+    title: "نص استماع حب العمل",
+    details: "نص استماع (حب العمل)",
+    pages: "ص 29",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2B"
+  },
+  {
+    id: "cw-b1-w4-G2C-Wednesday-p6-mnzea",
+    classId: "G2C",
+    day: "Wednesday",
+    period: 6,
+    subject: "Arabic",
+    title: "نص استماع حب العمل",
+    details: "نص استماع (حب العمل)",
+    pages: "ص 29",
+    completed: false,
+    block: 1,
+    week: 4,
+    linkUrl: "video",
+    linkTitle: "فيديو تعليمي 🔗",
+    class_id: "G2C"
+  },
+  {
+    id: "cw-b1-w4-G2A-Thursday-p5-e2vsu",
+    classId: "G2A",
+    day: "Thursday",
+    period: 5,
+    subject: "Arabic",
+    title: "قراءة درس زيارة نور للقرية",
+    details: "قراءة درس زيارة نور للقرية",
+    pages: "ص 31-32",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2A"
+  },
+  {
+    id: "cw-b1-w4-G2B-Thursday-p1-fp78a",
+    classId: "G2B",
+    day: "Thursday",
+    period: 1,
+    subject: "Arabic",
+    title: "قراءة درس زيارة نور للقرية",
+    details: "قراءة درس زيارة نور للقرية",
+    pages: "ص 31-32",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2B"
+  },
+  {
+    id: "cw-b1-w4-G2C-Thursday-p8-64ugf",
+    classId: "G2C",
+    day: "Thursday",
+    period: 8,
+    subject: "Arabic",
+    title: "قراءة درس زيارة نور للقرية",
+    details: "قراءة درس زيارة نور للقرية",
+    pages: "ص 31-32",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2C"
+  }
+];
+
 export const INITIAL_CLASSWORK: ClassworkEntry[] = [
   ...WEEK1_CLASSWORK.map((c) => ({ ...c, block: 1, week: 1 })),
   ...WEEK2_CLASSWORK.map((c) => ({ ...c, block: 1, week: 2 })),
@@ -2035,8 +2275,14 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     block: 1,
     week: 3,
     pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-  }
+  },
+  // =============================================================
+  // BLOCK 1 - WEEK 4 OFFICIAL ARABIC CLASSWORK (ONLY ARABIC)
+  // =============================================================
+  ...WEEK4_ARABIC_CLASSWORK
 ];
+
+
 
 // -------------------------------------------------------------
 // BLOCK 1 - WEEK 1 OFFICIAL HOMEWORK (6/9/2026 - 10/9/2026)
@@ -2412,6 +2658,99 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     priority: 'urgent',
     week: 1,
   },
+];
+
+// =============================================================
+// BLOCK 1 - WEEK 4 ARABIC HOMEWORK DEFINITION
+// =============================================================
+export const WEEK4_ARABIC_HOMEWORK: HomeworkEntry[] = [
+  {
+    id: "hw-b1-w4-G2A-arabic-Sunday-bqo91",
+    classId: "G2A",
+    assignedDay: "Sunday",
+    dueDay: "Monday",
+    subject: "Arabic",
+    task: "كراسة الواجب المنزلي",
+    pages: "ص 49",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    isLinkTask: false,
+    class_id: "G2A"
+  },
+  {
+    id: "hw-b1-w4-G2A-arabic-Tuesday-s02kv",
+    classId: "G2A",
+    assignedDay: "Tuesday",
+    dueDay: "Wednesday",
+    subject: "Arabic",
+    task: "كراسة الواجب المنزلي",
+    pages: "ص 50",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    class_id: "G2A"
+  },
+  {
+    id: "hw-b1-w4-G2B-arabic-Sunday-t1vov",
+    classId: "G2B",
+    assignedDay: "Sunday",
+    dueDay: "Monday",
+    subject: "Arabic",
+    task: "كراسة الواجب المنزلي",
+    pages: "ص 49",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    isLinkTask: false,
+    class_id: "G2B"
+  },
+  {
+    id: "hw-b1-w4-G2B-arabic-Tuesday-3xtm4",
+    classId: "G2B",
+    assignedDay: "Tuesday",
+    dueDay: "Wednesday",
+    subject: "Arabic",
+    task: "كراسة الواجب المنزلي",
+    pages: "ص 50",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    class_id: "G2B"
+  },
+  {
+    id: "hw-b1-w4-G2C-arabic-Sunday-zjlxh",
+    classId: "G2C",
+    assignedDay: "Sunday",
+    dueDay: "Monday",
+    subject: "Arabic",
+    task: "كراسة الواجب المنزلي",
+    pages: "ص 49",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    isLinkTask: false,
+    class_id: "G2C"
+  },
+  {
+    id: "hw-b1-w4-G2C-arabic-Tuesday-rfiw4",
+    classId: "G2C",
+    assignedDay: "Tuesday",
+    dueDay: "Wednesday",
+    subject: "Arabic",
+    task: "كراسة الواجب المنزلي",
+    pages: "ص 50",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    class_id: "G2C"
+  }
 ];
 
 export const INITIAL_HOMEWORK: HomeworkEntry[] = [
@@ -2856,5 +3195,11 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     priority: 'normal',
     block: 1,
     week: 3,
-  }
+  },
+  // =============================================================
+  // BLOCK 1 - WEEK 4 OFFICIAL ARABIC HOMEWORK (ONLY ARABIC)
+  // =============================================================
+  ...WEEK4_ARABIC_HOMEWORK
 ];
+
+

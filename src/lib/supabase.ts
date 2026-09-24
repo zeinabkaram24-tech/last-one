@@ -479,9 +479,9 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
   if (isSupabaseConfigured) {
     try {
-      // ONLY fetch Week 3 classwork from Supabase to dramatically reduce database overhead and speed up the app!
+      // Fetch Week 3 and Week 4 classwork from Supabase
       const res = await withTimeout<any>(
-        supabase.from('classwork').select('*').eq('week', 3).order('period', { ascending: true }),
+        supabase.from('classwork').select('*').in('week', [3, 4]).order('period', { ascending: true }),
         3500,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
       );
@@ -498,18 +498,18 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
           });
           // Merge in any newly introduced baseline classwork that is not yet in the cloud database
           const dbIds = new Set(dbItems.map((d) => d.id));
-          INITIAL_CLASSWORK.filter((c) => (c.week || 1) === 3).forEach((c) => {
+          INITIAL_CLASSWORK.filter((c) => (c.week || 1) >= 3).forEach((c) => {
             if (c && c.id && !dbIds.has(c.id) && !deletedSet.has(c.id)) {
               map.set(c.id, c);
             }
           });
           const localCustom = getLocalCustomClasswork();
           localCustom.forEach((c) => {
-            if (c && c.id && (c.week || 1) === 3 && !deletedSet.has(c.id)) map.set(c.id, c);
+            if (c && c.id && (c.week || 1) >= 3 && !deletedSet.has(c.id)) map.set(c.id, c);
           });
         } else {
           // Fresh unseeded database
-          INITIAL_CLASSWORK.filter((c) => (c.week || 1) === 3).forEach((c) => {
+          INITIAL_CLASSWORK.filter((c) => (c.week || 1) >= 3).forEach((c) => {
             if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
           });
         }
@@ -831,9 +831,9 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
   if (isSupabaseConfigured) {
     try {
-      // ONLY fetch Week 3 homework from Supabase to dramatically reduce database overhead and speed up the app!
+      // Fetch Week 3 and Week 4 homework from Supabase
       const res = await withTimeout<any>(
-        supabase.from('homework').select('*').eq('week', 3).order('created_at', { ascending: false }),
+        supabase.from('homework').select('*').in('week', [3, 4]).order('created_at', { ascending: false }),
         3500,
         { data: null, error: { message: 'Supabase homework query timeout' } }
       );
@@ -870,7 +870,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           });
           // Merge in any newly introduced baseline homework that is not yet in the cloud database
           const dbIds = new Set(dbItems.map((d) => d.id));
-          INITIAL_HOMEWORK.filter((h) => (h.week || 1) === 3).forEach((h) => {
+          INITIAL_HOMEWORK.filter((h) => (h.week || 1) >= 3).forEach((h) => {
             if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
             if (h && h.id && !dbIds.has(h.id) && !deletedSet.has(h.id)) {
               map.set(h.id, h);
@@ -879,11 +879,11 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           const localCustom = getLocalCustomHomework();
           localCustom.forEach((h) => {
             if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-            if (h && h.id && (h.week || 1) === 3 && !deletedSet.has(h.id)) map.set(h.id, h);
+            if (h && h.id && (h.week || 1) >= 3 && !deletedSet.has(h.id)) map.set(h.id, h);
           });
         } else {
-          // Fresh unseeded database for Week 3
-          INITIAL_HOMEWORK.filter((h) => (h.week || 1) === 3).forEach((h) => {
+          // Fresh unseeded database for Week 3 and Week 4
+          INITIAL_HOMEWORK.filter((h) => (h.week || 1) >= 3).forEach((h) => {
             if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });
@@ -1449,9 +1449,9 @@ export async function seedSupabaseFromPlannerData(options?: { force?: boolean })
     // Upsert default planner settings if empty
     try {
       const defaultSettings = [
-        { key: 'current_class', value: initialData.nile_planner_current_class_v3 || 'G2B' },
-        { key: 'current_week', value: initialData.nile_planner_current_week_v3 || '3' },
-        { key: 'selected_day', value: initialData.nile_planner_selected_day_v3 || 'Sunday' },
+        { key: 'current_class', value: (initialData as any).nile_planner_current_class_v3 || 'G2B' },
+        { key: 'current_week', value: (initialData as any).nile_planner_current_week_v3 || '3' },
+        { key: 'selected_day', value: (initialData as any).nile_planner_selected_day_v3 || 'Sunday' },
         { key: 'current_block', value: '1' },
       ];
       await supabase.from('planner_settings').upsert(defaultSettings, { onConflict: 'key' });
