@@ -1742,14 +1742,152 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
   }
 ];
 
+// =============================================================
+// BLOCK 1 - WEEK 4 OFFICIAL SOCIAL STUDIES CLASSWORK DEFINITION
+// =============================================================
+export const WEEK4_SOCIAL_STUDIES_CLASSWORK: ClassworkEntry[] = [
+  // --- Lesson 1: "سلوكي يحافظ على بيئتي" ---
+  {
+    id: "cw-b1-w4-G2A-Sunday-p2-social",
+    classId: "G2A",
+    day: "Sunday",
+    period: 2,
+    subject: "Social Studies",
+    title: "الدرس الأول: سلوكي يحافظ على بيئتي",
+    details: "مجتمع الصف الدراسي الثاني — شرح ومناقشة كيف يمكن لسلوكياتنا اليومية الحفاظ على البيئة المحيطة بنا.",
+    pages: "من الصفحة 21 - 22",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2A"
+  },
+  {
+    id: "cw-b1-w4-G2C-Sunday-p7-social",
+    classId: "G2C",
+    day: "Sunday",
+    period: 7,
+    subject: "Social Studies",
+    title: "الدرس الأول: سلوكي يحافظ على بيئتي",
+    details: "مجتمع الصف الدراسي الثاني — شرح ومناقشة كيف يمكن لسلوكياتنا اليومية الحفاظ على البيئة المحيطة بنا.",
+    pages: "من الصفحة 21 - 22",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2C"
+  },
+  {
+    id: "cw-b1-w4-G2B-Monday-p1-social",
+    classId: "G2B",
+    day: "Monday",
+    period: 1,
+    subject: "Social Studies",
+    title: "الدرس الأول: سلوكي يحافظ على بيئتي",
+    details: "مجتمع الصف الدراسي الثاني — شرح ومناقشة كيف يمكن لسلوكياتنا اليومية الحفاظ على البيئة المحيطة بنا.",
+    pages: "من الصفحة 21 - 22",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2B"
+  },
+
+  // --- Lesson 2: "منزلي ومدرستي" ---
+  {
+    id: "cw-b1-w4-G2A-Wednesday-p5-social",
+    classId: "G2A",
+    day: "Wednesday",
+    period: 5,
+    subject: "Social Studies",
+    title: "الدرس الثاني: منزلي ومدرستي",
+    details: "مجتمع الصف الدراسي الثاني — التعرف على كيفية الحفاظ على المنزل والمدرسة والممتلكات العامة والخاصة.",
+    pages: "الصفحة 23",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2A"
+  },
+  {
+    id: "cw-b1-w4-G2B-Wednesday-p2-social",
+    classId: "G2B",
+    day: "Wednesday",
+    period: 2,
+    subject: "Social Studies",
+    title: "الدرس الثاني: منزلي ومدرستي",
+    details: "مجتمع الصف الدراسي الثاني — التعرف على كيفية الحفاظ على المنزل والمدرسة والممتلكات العامة والخاصة.",
+    pages: "الصفحة 23",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2B"
+  },
+  {
+    id: "cw-b1-w4-G2C-Wednesday-p8-social",
+    classId: "G2C",
+    day: "Wednesday",
+    period: 8,
+    subject: "Social Studies",
+    title: "الدرس الثاني: منزلي ومدرستي",
+    details: "مجتمع الصف الدراسي الثاني — التعرف على كيفية الحفاظ على المنزل والمدرسة والممتلكات العامة والخاصة.",
+    pages: "الصفحة 23",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2C"
+  },
+
+  // --- Lesson 3: "اختلافنا سر تميزنا" ---
+  {
+    id: "cw-b1-w4-G2A-Thursday-p7-social",
+    classId: "G2A",
+    day: "Thursday",
+    period: 7,
+    subject: "Social Studies",
+    title: "الدرس الثالث: اختلافنا سر تميزنا",
+    details: "مجتمع الصف الدراسي الثاني — مناقشة وقبول الاختلافات بين البشر والصفات التي تميز كل منا عن الآخر.",
+    pages: "من الصفحة 24 - 29",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2A"
+  },
+  {
+    id: "cw-b1-w4-G2B-Thursday-p3-social",
+    classId: "G2B",
+    day: "Thursday",
+    period: 3,
+    subject: "Social Studies",
+    title: "الدرس الثالث: اختلافنا سر تميزنا",
+    details: "مجتمع الصف الدراسي الثاني — مناقشة وقبول الاختلافات بين البشر والصفات التي تميز كل منا عن الآخر.",
+    pages: "من الصفحة 24 - 29",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2B"
+  },
+  {
+    id: "cw-b1-w4-G2C-Monday-p4-social",
+    classId: "G2C",
+    day: "Monday",
+    period: 4,
+    subject: "Social Studies",
+    title: "الدرس الثالث: اختلافنا سر تميزنا",
+    details: "مجتمع الصف الدراسي الثاني — مناقشة وقبول الاختلافات بين البشر والصفات التي تميز كل منا عن الآخر.",
+    pages: "من الصفحة 24 - 29",
+    completed: false,
+    block: 1,
+    week: 4,
+    class_id: "G2C"
+  }
+];
+
 export const INITIAL_CLASSWORK: ClassworkEntry[] = [
   ...WEEK1_CLASSWORK.map((c) => ({ ...c, block: 1, week: 1 })),
   ...WEEK2_CLASSWORK.map((c) => ({ ...c, block: 1, week: 2 })),
   ...WEEK3_CLASSWORK.map((c) => ({ ...c, block: 1, week: 3 })),
   // =============================================================
-  // BLOCK 1 - WEEK 4 OFFICIAL ARABIC CLASSWORK (ONLY ARABIC)
+  // BLOCK 1 - WEEK 4 OFFICIAL CLASSWORK (ARABIC & SOCIAL STUDIES)
   // =============================================================
-  ...WEEK4_ARABIC_CLASSWORK
+  ...WEEK4_ARABIC_CLASSWORK,
+  ...WEEK4_SOCIAL_STUDIES_CLASSWORK
 ];
 
 
@@ -2223,14 +2361,66 @@ export const WEEK4_ARABIC_HOMEWORK: HomeworkEntry[] = [
   }
 ];
 
+// =============================================================
+// BLOCK 1 - WEEK 4 OFFICIAL SOCIAL STUDIES HOMEWORK DEFINITION
+// =============================================================
+export const WEEK4_SOCIAL_STUDIES_HOMEWORK: HomeworkEntry[] = [
+  {
+    id: "hw-b1-w4-G2A-social-wednesday",
+    classId: "G2A",
+    assignedDay: "Wednesday",
+    dueDay: "Sunday",
+    subject: "Social Studies",
+    task: "حل واجب الدراسات الاجتماعية الأسبوعي (يُرسل يوم الأربعاء ويُستلم أول حصة في الأسبوع القادم)",
+    details: "يرجى حل التدريبات المطلوبة في كراسة الأنشطة أو الأوراق المرسلة من المعلمة.",
+    pages: "سيتم تحديده وإرساله من المعلمة يوم الأربعاء",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    class_id: "G2A"
+  },
+  {
+    id: "hw-b1-w4-G2B-social-wednesday",
+    classId: "G2B",
+    assignedDay: "Wednesday",
+    dueDay: "Sunday",
+    subject: "Social Studies",
+    task: "حل واجب الدراسات الاجتماعية الأسبوعي (يُرسل يوم الأربعاء ويُستلم أول حصة في الأسبوع القادم)",
+    details: "يرجى حل التدريبات المطلوبة في كراسة الأنشطة أو الأوراق المرسلة من المعلمة.",
+    pages: "سيتم تحديده وإرساله من المعلمة يوم الأربعاء",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    class_id: "G2B"
+  },
+  {
+    id: "hw-b1-w4-G2C-social-wednesday",
+    classId: "G2C",
+    assignedDay: "Wednesday",
+    dueDay: "Sunday",
+    subject: "Social Studies",
+    task: "حل واجب الدراسات الاجتماعية الأسبوعي (يُرسل يوم الأربعاء ويُستلم أول حصة في الأسبوع القادم)",
+    details: "يرجى حل التدريبات المطلوبة في كراسة الأنشطة أو الأوراق المرسلة من المعلمة.",
+    pages: "سيتم تحديده وإرساله من المعلمة يوم الأربعاء",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    class_id: "G2C"
+  }
+];
+
 export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...WEEK1_BASE_HOMEWORK.map((h) => ({ ...h, block: 1, week: 1 })),
   ...ALL_LINK_AND_WEEK2_HOMEWORK.map((h) => ({ ...h, block: 1, week: 2 })),
   ...WEEK3_HOMEWORK.map((h) => ({ ...h, block: 1, week: 3 })),
   // =============================================================
-  // BLOCK 1 - WEEK 4 OFFICIAL ARABIC HOMEWORK (ONLY ARABIC)
+  // BLOCK 1 - WEEK 4 OFFICIAL HOMEWORK (ARABIC & SOCIAL STUDIES)
   // =============================================================
-  ...WEEK4_ARABIC_HOMEWORK
+  ...WEEK4_ARABIC_HOMEWORK,
+  ...WEEK4_SOCIAL_STUDIES_HOMEWORK
 ];
 
 

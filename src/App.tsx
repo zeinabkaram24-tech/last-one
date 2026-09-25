@@ -121,6 +121,16 @@ const STORAGE_KEYS = {
   WEEK: 'nile_planner_current_week_v3',
 };
 
+function cleanArabicSpelling(text: string | undefined | null): string {
+  if (!text) return '';
+  return text
+    .replace(/عالمات الترقيم/g, 'علامات الترقيم')
+    .replace(/علمات الترقيم/g, 'علامات الترقيم')
+    .replace(/علاقات الترقيم/g, 'علامات الترقيم')
+    .replace(/عالمات/g, 'علامات')
+    .replace(/علمات/g, 'علامات');
+}
+
 function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
   const cached = getLocalCustomClasswork();
   let deletedSet = new Set<string>();
@@ -136,12 +146,8 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     .filter(c => !deletedSet.has(c.id))
     .map(c => {
       let corrected = { ...c };
-      if (corrected.title && corrected.title.includes('عالمات')) {
-        corrected.title = corrected.title.replace(/عالمات/g, 'علامات');
-      }
-      if (corrected.details && corrected.details.includes('عالمات')) {
-        corrected.details = corrected.details.replace(/عالمات/g, 'علامات');
-      }
+      corrected.title = cleanArabicSpelling(corrected.title);
+      corrected.details = corrected.details ? cleanArabicSpelling(corrected.details) : undefined;
       return corrected;
     });
   if (profile?.mode === 'student' && profile.studentName) {
@@ -413,12 +419,8 @@ export default function App() {
           const uniqueCwMap = new Map<string, ClassworkEntry>();
           cwData.forEach((c) => {
             let corrected = { ...c };
-            if (corrected.title && corrected.title.includes('عالمات')) {
-              corrected.title = corrected.title.replace(/عالمات/g, 'علامات');
-            }
-            if (corrected.details && corrected.details.includes('عالمات')) {
-              corrected.details = corrected.details.replace(/عالمات/g, 'علامات');
-            }
+            corrected.title = cleanArabicSpelling(corrected.title);
+            corrected.details = corrected.details ? cleanArabicSpelling(corrected.details) : undefined;
             uniqueCwMap.set(c.id, corrected);
           });
           const dedupedCw = Array.from(uniqueCwMap.values());

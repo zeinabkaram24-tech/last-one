@@ -1081,7 +1081,7 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
       try {
         console.log(`[AI Planner] Generating with model ${model} (attempt ${attempt})...`);
         
-        // Use a Promise.race to enforce a strict 8-second timeout on the model request
+        // Use a Promise.race to enforce a strict 25-second timeout on the model request
         const generatePromise = ai.models.generateContent({
           model,
           contents,
@@ -1090,7 +1090,7 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
 
         const response = await Promise.race([
           generatePromise,
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Generation Timeout')), 8000))
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Generation Timeout')), 25000))
         ]);
 
         if (response && response.text) {
@@ -1150,6 +1150,16 @@ function normalizePageNumbers(pagesStr?: any): string | undefined {
     s = `ص ${s}`;
   }
   return s;
+}
+
+function cleanArabicSpelling(text: string | undefined | null): string {
+  if (!text) return '';
+  return text
+    .replace(/عالمات الترقيم/g, 'علامات الترقيم')
+    .replace(/علمات الترقيم/g, 'علامات الترقيم')
+    .replace(/علاقات الترقيم/g, 'علامات الترقيم')
+    .replace(/عالمات/g, 'علامات')
+    .replace(/علمات/g, 'علامات');
 }
 
 // Post-processing to enforce timetable alignment, 3rd session rules, links, quiz detection, and note categorization
@@ -1213,14 +1223,15 @@ function postProcessParsedPlan(
 
       // Check if Classwork mentions a Quiz or Test -> Route alert to Tomorrow!
       if (testRegex.test(combinedCwText)) {
+        const cleanTitleText = cleanArabicSpelling(item.title);
         rawTomorrowNotes.push({
           classId,
           targetDay: slot.day,
           subject: normSub,
-          note: item.title || 'Classroom Quiz / Test',
-          arabicNote: (item.title && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(item.title))
-            ? item.title
-            : `اختبار / Quiz في مادة ${normSub}: ${item.title || ''}`,
+          note: cleanTitleText || 'Classroom Quiz / Test',
+          arabicNote: (cleanTitleText && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(cleanTitleText))
+            ? cleanTitleText
+            : `اختبار / Quiz في مادة ${normSub}: ${cleanTitleText || ''}`,
           isQuiz: true,
           categoryType: 'quiz',
           block,
@@ -1234,8 +1245,8 @@ function postProcessParsedPlan(
         day: slot.day,
         period: slot.period,
         subject: normSub,
-        title: item.title || `${normSub} Lesson`,
-        details: item.details || undefined,
+        title: cleanArabicSpelling(item.title || `${normSub} Lesson`),
+        details: item.details ? cleanArabicSpelling(item.details) : undefined,
         pages: normalizePageNumbers(item.pages),
         completed: false,
         block,
@@ -1292,14 +1303,15 @@ function postProcessParsedPlan(
       const isTestHw = testRegex.test(combinedHwText);
       if (isTestHw) {
         const targetDay = dueDay || assignedDay;
+        const cleanTaskText = cleanArabicSpelling(item.task);
         rawTomorrowNotes.push({
           classId,
           targetDay,
           subject: normSub,
-          note: item.task || 'Homework Quiz / Test Reminder',
-          arabicNote: (item.task && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(item.task))
-            ? item.task
-            : `اختبار / Quiz (${normSub}): ${item.task || ''}`,
+          note: cleanTaskText || 'Homework Quiz / Test Reminder',
+          arabicNote: (cleanTaskText && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(cleanTaskText))
+            ? cleanTaskText
+            : `اختبار / Quiz (${normSub}): ${cleanTaskText || ''}`,
           isQuiz: true,
           categoryType: 'quiz',
           block,
@@ -1313,8 +1325,8 @@ function postProcessParsedPlan(
         assignedDay,
         dueDay,
         subject: normSub,
-        task: item.task || 'Homework task',
-        details: item.details || undefined,
+        task: cleanArabicSpelling(item.task || 'Homework task'),
+        details: item.details ? cleanArabicSpelling(item.details) : undefined,
         pages: normalizePageNumbers(item.pages),
         completed: false,
         priority: (item.priority === 'urgent' || isTestHw) ? 'urgent' : 'normal',
@@ -1362,9 +1374,9 @@ function postProcessParsedPlan(
         classId,
         targetDay,
         subject: normSub,
-        note: item.note || rawNote,
-        arabicNote: item.arabicNote || rawNote,
-        bagItem: bagItem || undefined,
+        note: cleanArabicSpelling(item.note || rawNote),
+        arabicNote: cleanArabicSpelling(item.arabicNote || rawNote),
+        bagItem: bagItem ? cleanArabicSpelling(bagItem) : undefined,
         isQuiz,
         categoryType: isQuiz ? 'quiz' : 'note',
         block,
