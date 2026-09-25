@@ -110,14 +110,14 @@ export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     classId: 'G2A',
     targetDay: 'Sunday',
     subject: 'Social Studies',
-    note: 'تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 1)',
-    arabicNote: 'تذكير لكلاس A: تسليم واجب الدراسات الاجتماعية غداً الأحد (شيت الواجب المنزلي 1)',
-    bagItem: 'شيت واجب الدراسات الاجتماعية 1',
+    note: 'تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)',
+    arabicNote: 'تذكير لكلاس A: تسليم شيت الدراسات الاجتماعية غداً الأحد (شيت 1 - الرئيسي)',
+    bagItem: 'شيت الدراسات الاجتماعية (Sheet 1 - Main)',
     isQuiz: false,
     block: 1,
     week: 3,
-    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
-    linkUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf'
+    pdfUrl: 'https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf',
+    linkUrl: 'https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf'
   },
   // G2A Science Tools on Thursday (Wednesday Tomorrow)
   {
@@ -157,14 +157,14 @@ export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     classId: 'G2C',
     targetDay: 'Sunday',
     subject: 'Social Studies',
-    note: 'تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 1)',
-    arabicNote: 'تذكير لكلاس C: تسليم واجب الدراسات الاجتماعية غداً الأحد (شيت الواجب المنزلي 1)',
-    bagItem: 'شيت واجب الدراسات الاجتماعية 1',
+    note: 'تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)',
+    arabicNote: 'تذكير لكلاس C: تسليم شيت الدراسات الاجتماعية غداً الأحد (شيت 1 - الرئيسي)',
+    bagItem: 'شيت الدراسات الاجتماعية (Sheet 1 - Main)',
     isQuiz: false,
     block: 1,
     week: 3,
-    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
-    linkUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf'
+    pdfUrl: 'https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf',
+    linkUrl: 'https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf'
   },
   // G2B Social Studies submission on Monday (Sunday Tomorrow)
   {
@@ -172,15 +172,64 @@ export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     classId: 'G2B',
     targetDay: 'Monday',
     subject: 'Social Studies',
-    note: 'تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 1)',
-    arabicNote: 'تذكير لكلاس B: تسليم واجب الدراسات الاجتماعية غداً الاثنين (شيت الواجب المنزلي 1)',
-    bagItem: 'شيت واجب الدراسات الاجتماعية (Home Work 1)',
+    note: 'تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)',
+    arabicNote: 'تذكير لكلاس B: تسليم شيت الدراسات الاجتماعية غداً الاثنين (شيت 1 - الرئيسي)',
+    bagItem: 'شيت الدراسات الاجتماعية (Sheet 1 - Main)',
     isQuiz: false,
     categoryType: 'note',
     block: 1,
     week: 3,
-    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
-    linkUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf'
+    pdfUrl: 'https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf',
+    linkUrl: 'https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf'
+  }
+];
+
+export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
+  // G2A Social Studies submission on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-b1-w4-G2A-Sat-social-submit',
+    classId: 'G2A',
+    targetDay: 'Sunday',
+    subject: 'Social Studies',
+    note: 'تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)',
+    arabicNote: 'تذكير لكلاس A: تسليم واجب الدراسات الاجتماعية غداً الأحد (شيت الواجب المنزلي 2 - إضافي)',
+    bagItem: 'شيت واجب الدراسات الاجتماعية (Home Work 2 - Extra)',
+    isQuiz: false,
+    block: 1,
+    week: 4,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf',
+    linkUrl: '/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf'
+  },
+  // G2C Social Studies submission on Sunday (Saturday Tomorrow)
+  {
+    id: 'tn-b1-w4-G2C-Sat-social-submit',
+    classId: 'G2C',
+    targetDay: 'Sunday',
+    subject: 'Social Studies',
+    note: 'تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)',
+    arabicNote: 'تذكير لكلاس C: تسليم واجب الدراسات الاجتماعية غداً الأحد (شيت الواجب المنزلي 2 - إضافي)',
+    bagItem: 'شيت واجب الدراسات الاجتماعية (Home Work 2 - Extra)',
+    isQuiz: false,
+    block: 1,
+    week: 4,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf',
+    linkUrl: '/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf'
+  },
+  // G2B Social Studies submission on Monday (Sunday Tomorrow)
+  {
+    id: 'tn-b1-w4-G2B-Sun-social-submit',
+    classId: 'G2B',
+    targetDay: 'Monday',
+    subject: 'Social Studies',
+    note: 'تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)',
+    arabicNote: 'تذكير لكلاس B: تسليم واجب الدراسات الاجتماعية غداً الاثنين (شيت الواجب المنزلي 2 - إضافي)',
+    bagItem: 'شيت واجب الدراسات الاجتماعية (Home Work 2 - Extra)',
+    isQuiz: false,
+    categoryType: 'note',
+    block: 1,
+    week: 4,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf',
+    linkUrl: '/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf'
   }
 ];
 
@@ -281,7 +330,11 @@ export async function getTomorrowNotesForDay(
 
   // Base official notes for Block/Week or EffectiveWeek from static files
   const baseNotes: TomorrowSpecialNote[] =
-    block === 1 && (week === 3 || effectiveWeek === 3)
+    block === 1 && (week === 4 || effectiveWeek === 4)
+      ? WEEK4_SPECIAL_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
+        )
+      : block === 1 && (week === 3 || effectiveWeek === 3)
       ? WEEK3_SPECIAL_NOTES.filter(
           (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
         )

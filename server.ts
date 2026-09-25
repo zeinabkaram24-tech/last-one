@@ -17,7 +17,72 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+app.get('/api/proxy-pdf', async (req, res) => {
+  const { url } = req.query;
+  if (!url || typeof url !== 'string') {
+    return res.status(400).send('URL query parameter is required');
+  }
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return res.status(response.status).send('Failed to fetch the PDF');
+    }
+    const contentType = response.headers.get('content-type') || 'application/pdf';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', 'inline');
+    const arrayBuffer = await response.arrayBuffer();
+    return res.send(Buffer.from(arrayBuffer));
+  } catch (err: any) {
+    return res.status(500).send('Error proxying PDF: ' + err.message);
+  }
+});
+
+app.get('/materials/:filename', async (req, res, next) => {
+  const { filename } = req.params;
+  const decodedFilename = decodeURIComponent(filename);
+
+  // If requesting the Week 3 Social Studies Sheet (main sheet), proxy and stream directly from Supabase
+  if (
+    decodedFilename.includes('SocialStudies-Grade2-B1-All-U1-Sheet1') ||
+    decodedFilename.includes('SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf')
+  ) {
+    const supabaseUrl = 'https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf';
+    try {
+      const response = await fetch(supabaseUrl);
+      if (response.ok) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline; filename="' + decodedFilename + '"');
+        const arrayBuffer = await response.arrayBuffer();
+        return res.send(Buffer.from(arrayBuffer));
+      }
+    } catch (e) {
+      console.warn('Error proxying week3 social studies sheet from supabase:', e);
+    }
+  }
+
+  const paths = [
+    path.join(process.cwd(), 'public', 'materials', decodedFilename),
+    path.join(process.cwd(), 'dist', 'materials', decodedFilename),
+    path.join(process.cwd(), 'uploads', 'materials', decodedFilename),
+  ];
+
+  if (decodedFilename === 'SocialStudies-Grade2-B1-HomeWork-1.pdf') {
+    paths.push(path.join(process.cwd(), 'uploads', 'materials', 'mat_social_studies_b1_hw1.pdf'));
+  }
+
+  for (const p of paths) {
+    if (fs.existsSync(p)) {
+      res.setHeader('Content-Type', decodedFilename.endsWith('.html') ? 'text/html' : 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="' + decodedFilename + '"');
+      return res.sendFile(p);
+    }
+  }
+  next();
+});
+
 app.use('/materials', express.static(path.join(process.cwd(), 'public', 'materials')));
+
 
 // Directories for server-side persistence
 const DATA_DIR = path.join(process.cwd(), 'data');

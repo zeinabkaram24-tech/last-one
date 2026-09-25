@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-console.log('Starting Social Studies Week 3 Seeder...');
+console.log('Starting Social Studies Week 3 & 4 Seeder...');
 
 // Read original data
 const plannerPath = 'data/planner_data.json';
@@ -14,19 +14,19 @@ if (fs.existsSync(plannerPath)) {
   }
 }
 
-// 1. Clean existing Week 3 Social Studies entries from local json (just in case)
+// 1. Clean existing Week 3 and Week 4 Social Studies entries from local json (just in case)
 plannerData.classwork = (plannerData.classwork || []).filter(
-  (cw) => !(cw.week === 3 && cw.subject === 'Social Studies')
+  (cw) => !((cw.week === 3 || cw.week === 4) && cw.subject === 'Social Studies')
 );
 plannerData.homework = (plannerData.homework || []).filter(
-  (hw) => !(hw.week === 3 && hw.subject === 'Social Studies')
+  (hw) => !((hw.week === 3 || hw.week === 4) && hw.subject === 'Social Studies')
 );
 plannerData.tomorrowNotes = (plannerData.tomorrowNotes || []).filter(
-  (tn) => !(tn.week === 3 && tn.subject === 'Social Studies')
+  (tn) => !((tn.week === 3 || tn.week === 4) && tn.subject === 'Social Studies')
 );
 
 // 2. Define Classwork (الكلاس وورك) for Week 3
-const newClasswork = [
+const week3Classwork = [
   // --- G2A ---
   {
     id: "cw-b1-w3-G2A-Sunday-p2-soc",
@@ -34,8 +34,8 @@ const newClasswork = [
     day: "Sunday",
     period: 2,
     subject: "Social Studies",
-    title: "الدرس الأول: فصلي الجديد",
-    details: "الدرس الأول: فصلي الجديد",
+    title: "الدرس الأول: فصلي الجديد وقواعد العمل المشترك",
+    details: "التعرف على بيئة الفصل وأهمية احترام قواعد الفصل، والتعاون مع الزملاء، واستخدام بطاقات التعلم النشط.",
     pages: "ص 14",
     completed: false,
     block: 1,
@@ -48,8 +48,8 @@ const newClasswork = [
     day: "Wednesday",
     period: 5,
     subject: "Social Studies",
-    title: "الدرس الثاني: مشاعري",
-    details: "الدرس الثاني: مشاعري",
+    title: "الدرس الثاني: مشاعري وكيفية التعبير عنها بإيجابية",
+    details: "مناقشة المشاعر المختلفة (الفرح، الغضب، الحزن، الحماس) وكيفية التعامل مع المشاعر والتواصل اللطيف مع الآخرين.",
     pages: "ص 15-18",
     completed: false,
     block: 1,
@@ -62,8 +62,8 @@ const newClasswork = [
     day: "Thursday",
     period: 7,
     subject: "Social Studies",
-    title: "الدرس الثالث: من هو الصديق",
-    details: "الدرس الثالث: من هو الصديق",
+    title: "الدرس الثالث: من هو الصديق؟ وصفات الصديق الصالح",
+    details: "استكشاف معنى الصداقة الحقيقية، والصفات الإيجابية في الصديق مثل الصدق، الأمانة، والمساعدة، والمشاركة في الأنشطة المدرسية.",
     pages: "ص 19-20",
     completed: false,
     block: 1,
@@ -78,8 +78,8 @@ const newClasswork = [
     day: "Monday",
     period: 1,
     subject: "Social Studies",
-    title: "الدرس الأول: فصلي الجديد",
-    details: "الدرس الأول: فصلي الجديد",
+    title: "الدرس الأول: فصلي الجديد وقواعد العمل المشترك",
+    details: "التعرف على بيئة الفصل وأهمية احترام قواعد الفصل، والتعاون مع الزملاء، واستخدام بطاقات التعلم النشط.",
     pages: "ص 14",
     completed: false,
     block: 1,
@@ -92,8 +92,8 @@ const newClasswork = [
     day: "Wednesday",
     period: 2,
     subject: "Social Studies",
-    title: "الدرس الثاني: مشاعري",
-    details: "الدرس الثاني: مشاعري",
+    title: "الدرس الثاني: مشاعري وكيفية التعبير عنها بإيجابية",
+    details: "مناقشة المشاعر المختلفة (الفرح، الغضب، الحزن، الحماس) وكيفية التعامل مع المشاعر والتواصل اللطيف مع الآخرين.",
     pages: "ص 15-18",
     completed: false,
     block: 1,
@@ -106,8 +106,8 @@ const newClasswork = [
     day: "Thursday",
     period: 3,
     subject: "Social Studies",
-    title: "الدرس الثالث: من هو الصديق",
-    details: "الدرس الثالث: من هو الصديق",
+    title: "الدرس الثالث: من هو الصديق؟ وصفات الصديق الصالح",
+    details: "استكشاف معنى الصداقة الحقيقية، والصفات الإيجابية في الصديق مثل الصدق، الأمانة، والمساعدة، والمشاركة في الأنشطة المدرسية.",
     pages: "ص 19-20",
     completed: false,
     block: 1,
@@ -122,8 +122,8 @@ const newClasswork = [
     day: "Sunday",
     period: 7,
     subject: "Social Studies",
-    title: "الدرس الأول: فصلي الجديد",
-    details: "الدرس الأول: فصلي الجديد",
+    title: "الدرس الأول: فصلي الجديد وقواعد العمل المشترك",
+    details: "التعرف على بيئة الفصل وأهمية احترام قواعد الفصل، والتعاون مع الزملاء، واستخدام بطاقات التعلم النشط.",
     pages: "ص 14",
     completed: false,
     block: 1,
@@ -136,8 +136,8 @@ const newClasswork = [
     day: "Monday",
     period: 4,
     subject: "Social Studies",
-    title: "الدرس الثاني: مشاعري",
-    details: "الدرس الثاني: مشاعري",
+    title: "الدرس الثاني: مشاعري وكيفية التعبير عنها بإيجابية",
+    details: "مناقشة المشاعر المختلفة (الفرح، الغضب، الحزن، الحماس) وكيفية التعامل مع المشاعر والتواصل اللطيف مع الآخرين.",
     pages: "ص 15-18",
     completed: false,
     block: 1,
@@ -150,8 +150,8 @@ const newClasswork = [
     day: "Wednesday",
     period: 8,
     subject: "Social Studies",
-    title: "الدرس الثالث: من هو الصديق",
-    details: "الدرس الثالث: من هو الصديق",
+    title: "الدرس الثالث: من هو الصديق؟ وصفات الصديق الصالح",
+    details: "استكشاف معنى الصداقة الحقيقية، والصفات الإيجابية في الصديق مثل الصدق، الأمانة، والمساعدة، والمشاركة في الأنشطة المدرسية.",
     pages: "ص 19-20",
     completed: false,
     block: 1,
@@ -161,116 +161,217 @@ const newClasswork = [
 ];
 
 // 3. Define Homework (الواجب المنزلي) for Week 3
-const newHomework = [
+const week3Homework = [
   {
-    id: "hw-b1-w3-G2A-social-Wed",
+    id: "hw-b1-w3-G2A-social-Wed-1",
     classId: "G2A",
     assignedDay: "Wednesday",
     dueDay: "Sunday",
     subject: "Social Studies",
-    task: "إرسال الواجب المنزلي",
-    details: "يتم إرسال الواجب المنزلي يوم الأربعاء (حل ورقة العمل المرفقة Home Work 1 الخاصة بقواعد الصف)",
-    pages: "Home Work 1 (ص 1-2)",
+    task: "تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)",
+    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت 1 - الرئيسي) ص 14-20.",
+    pages: "شيت الدراسات الاجتماعية (ص 14-20)",
     completed: false,
     priority: "normal",
     block: 1,
     week: 3,
     class_id: "G2A",
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf"
   },
   {
-    id: "hw-b1-w3-G2B-social-Wed",
+    id: "hw-b1-w3-G2B-social-Wed-1",
     classId: "G2B",
     assignedDay: "Wednesday",
     dueDay: "Monday",
     subject: "Social Studies",
-    task: "إرسال الواجب المنزلي",
-    details: "يتم إرسال الواجب المنزلي يوم الأربعاء (حل ورقة العمل المرفقة Home Work 1 الخاصة بقواعد الصف)",
-    pages: "Home Work 1 (ص 1-2)",
+    task: "تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)",
+    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت 1 - الرئيسي) ص 14-20.",
+    pages: "شيت الدراسات الاجتماعية (ص 14-20)",
     completed: false,
     priority: "normal",
     block: 1,
     week: 3,
     class_id: "G2B",
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf"
   },
   {
-    id: "hw-b1-w3-G2C-social-Wed",
+    id: "hw-b1-w3-G2C-social-Wed-1",
     classId: "G2C",
     assignedDay: "Wednesday",
     dueDay: "Sunday",
     subject: "Social Studies",
-    task: "إرسال الواجب المنزلي",
-    details: "يتم إرسال الواجب المنزلي يوم الأربعاء (حل ورقة العمل المرفقة Home Work 1 الخاصة بقواعد الصف)",
-    pages: "Home Work 1 (ص 1-2)",
+    task: "تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)",
+    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت 1 - الرئيسي) ص 14-20.",
+    pages: "شيت الدراسات الاجتماعية (ص 14-20)",
     completed: false,
     priority: "normal",
     block: 1,
     week: 3,
     class_id: "G2C",
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf"
   }
 ];
 
-// 4. Define Tomorrow Notes (تذكيرات شاشة الغد) for Week 3
-const newTomorrowNotes = [
+// 4. Define Tomorrow Notes (تذكيرات شاشة الغد) for Week 3 using the MAIN SHEET
+const week3TomorrowNotes = [
   {
     id: "tn-b1-w3-G2A-Sat-social-submit",
     classId: "G2A",
     targetDay: "Sunday",
     subject: "Social Studies",
-    note: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 1)",
-    arabicNote: "تذكير لكلاس A: تسليم واجب الدراسات الاجتماعية غداً الأحد (شيت الواجب المنزلي 1)",
-    bagItem: "شيت واجب الدراسات الاجتماعية (Home Work 1)",
+    note: "تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)",
+    arabicNote: "تذكير لكلاس A: تسليم شيت الدراسات الاجتماعية غداً الأحد (شيت 1 - الرئيسي)",
+    bagItem: "شيت الدراسات الاجتماعية (Sheet 1 - Main)",
     isQuiz: false,
     categoryType: "note",
     block: 1,
     week: 3,
     class_id: "G2A",
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf"
   },
   {
     id: "tn-b1-w3-G2B-Sun-social-submit",
     classId: "G2B",
     targetDay: "Monday",
     subject: "Social Studies",
-    note: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 1)",
-    arabicNote: "تذكير لكلاس B: تسليم واجب الدراسات الاجتماعية غداً الاثنين (شيت الواجب المنزلي 1)",
-    bagItem: "شيت واجب الدراسات الاجتماعية (Home Work 1)",
+    note: "تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)",
+    arabicNote: "تذكير لكلاس B: تسليم شيت الدراسات الاجتماعية غداً الاثنين (شيت 1 - الرئيسي)",
+    bagItem: "شيت الدراسات الاجتماعية (Sheet 1 - Main)",
     isQuiz: false,
     categoryType: "note",
     block: 1,
     week: 3,
     class_id: "G2B",
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf"
   },
   {
     id: "tn-b1-w3-G2C-Sat-social-submit",
     classId: "G2C",
     targetDay: "Sunday",
     subject: "Social Studies",
-    note: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 1)",
-    arabicNote: "تذكير لكلاس C: تسليم واجب الدراسات الاجتماعية غداً الأحد (شيت الواجب المنزلي 1)",
-    bagItem: "شيت واجب الدراسات الاجتماعية (Home Work 1)",
+    note: "تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)",
+    arabicNote: "تذكير لكلاس C: تسليم شيت الدراسات الاجتماعية غداً الأحد (شيت 1 - الرئيسي)",
+    bagItem: "شيت الدراسات الاجتماعية (Sheet 1 - Main)",
     isQuiz: false,
     categoryType: "note",
     block: 1,
     week: 3,
     class_id: "G2C",
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf"
   }
 ];
 
-// Append
-plannerData.classwork.push(...newClasswork);
-plannerData.homework.push(...newHomework);
+// 5. Define Homework for Week 4
+const week4Homework = [
+  {
+    id: "hw-b1-w4-G2A-social-Wed-1",
+    classId: "G2A",
+    assignedDay: "Wednesday",
+    dueDay: "Sunday",
+    subject: "Social Studies",
+    task: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)",
+    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت الواجب المنزلي 2 - إضافي) ص 1-2.",
+    pages: "شيت الواجب المنزلي 2 - إضافي (ص 1-2)",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    class_id: "G2A",
+    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf"
+  },
+  {
+    id: "hw-b1-w4-G2B-social-Wed-1",
+    classId: "G2B",
+    assignedDay: "Wednesday",
+    dueDay: "Monday",
+    subject: "Social Studies",
+    task: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)",
+    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت الواجب المنزلي 2 - إضافي) ص 1-2.",
+    pages: "شيت الواجب المنزلي 2 - إضافي (ص 1-2)",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    class_id: "G2B",
+    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf"
+  },
+  {
+    id: "hw-b1-w4-G2C-social-Wed-1",
+    classId: "G2C",
+    assignedDay: "Wednesday",
+    dueDay: "Sunday",
+    subject: "Social Studies",
+    task: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)",
+    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت الواجب المنزلي 2 - إضافي) ص 1-2.",
+    pages: "شيت الواجب المنزلي 2 - إضافي (ص 1-2)",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4,
+    class_id: "G2C",
+    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf"
+  }
+];
+
+// 6. Define Tomorrow Notes for Week 4 using Homework-2
+const week4TomorrowNotes = [
+  {
+    id: "tn-b1-w4-G2A-Sat-social-submit",
+    classId: "G2A",
+    targetDay: "Sunday",
+    subject: "Social Studies",
+    note: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)",
+    arabicNote: "تذكير لكلاس A: تسليم واجب الدراسات الاجتماعية غداً الأحد (شيت الواجب المنزلي 2 - إضافي)",
+    bagItem: "شيت واجب الدراسات الاجتماعية (Home Work 2 - Extra)",
+    isQuiz: false,
+    categoryType: "note",
+    block: 1,
+    week: 4,
+    class_id: "G2A",
+    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf"
+  },
+  {
+    id: "tn-b1-w4-G2B-Sun-social-submit",
+    classId: "G2B",
+    targetDay: "Monday",
+    subject: "Social Studies",
+    note: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)",
+    arabicNote: "تذكير لكلاس B: تسليم واجب الدراسات الاجتماعية غداً الاثنين (شيت الواجب المنزلي 2 - إضافي)",
+    bagItem: "شيت واجب الدراسات الاجتماعية (Home Work 2 - Extra)",
+    isQuiz: false,
+    categoryType: "note",
+    block: 1,
+    week: 4,
+    class_id: "G2B",
+    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf"
+  },
+  {
+    id: "tn-b1-w4-G2C-Sat-social-submit",
+    classId: "G2C",
+    targetDay: "Sunday",
+    subject: "Social Studies",
+    note: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)",
+    arabicNote: "تذكير لكلاس C: تسليم واجب الدراسات الاجتماعية غداً الأحد (شيت الواجب المنزلي 2 - إضافي)",
+    bagItem: "شيت واجب الدراسات الاجتماعية (Home Work 2 - Extra)",
+    isQuiz: false,
+    categoryType: "note",
+    block: 1,
+    week: 4,
+    class_id: "G2C",
+    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf"
+  }
+];
+
+// Append Week 3 & Week 4
+plannerData.classwork.push(...week3Classwork);
+plannerData.homework.push(...week3Homework, ...week4Homework);
 if (!plannerData.tomorrowNotes) plannerData.tomorrowNotes = [];
-plannerData.tomorrowNotes.push(...newTomorrowNotes);
+plannerData.tomorrowNotes.push(...week3TomorrowNotes, ...week4TomorrowNotes);
 
 // Save back
 fs.writeFileSync(plannerPath, JSON.stringify(plannerData, null, 2), 'utf8');
 
 console.log('Saved to local JSON successfully!');
-console.log('Added classwork entries:', newClasswork.length);
-console.log('Added homework entries:', newHomework.length);
-console.log('Added tomorrow notes:', newTomorrowNotes.length);
+console.log('Added classwork entries:', week3Classwork.length);
+console.log('Added homework entries:', week3Homework.length + week4Homework.length);
+console.log('Added tomorrow notes:', week3TomorrowNotes.length + week4TomorrowNotes.length);

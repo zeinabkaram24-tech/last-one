@@ -621,14 +621,14 @@ export const WEEK3_HOMEWORK: HomeworkEntry[] = [
     assignedDay: "Wednesday",
     dueDay: "Sunday",
     subject: "Social Studies",
-    task: "تسليم واجب الدراسات الاجتماعية (شيت جديد)",
-    details: "تجهيز وتسليم شيت الواجب المنزلي الجديد لدرس الدراسات الاجتماعية (يستلم في أول حصة في الأسبوع) - الشيت جديد يوزع لاحقاً ولا توجد أرقام صفحات حالياً",
-    pages: "شيت الواجب الجديد (يوزع لاحقاً)",
+    task: "تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)",
+    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت 1 - الرئيسي) ص 14-20.",
+    pages: "شيت الدراسات الاجتماعية (ص 14-20)",
     completed: false,
     priority: "normal",
     block: 1,
     week: 3,
-    pdfUrl: undefined
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf"
   },
   {
     id: "hw-b1-w3-G2B-social-Wed-1",
@@ -636,14 +636,14 @@ export const WEEK3_HOMEWORK: HomeworkEntry[] = [
     assignedDay: "Wednesday",
     dueDay: "Monday",
     subject: "Social Studies",
-    task: "إكمال واجب الدرس المنزلي",
-    details: "يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع (الاثنين) - حل شيت الواجب المرفق",
-    pages: "شيت الواجب المنزلي",
+    task: "تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)",
+    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت 1 - الرئيسي) ص 14-20.",
+    pages: "شيت الدراسات الاجتماعية (ص 14-20)",
     completed: false,
     priority: "normal",
     block: 1,
     week: 3,
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+    pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf"
   },
   // BLOCK 1 - WEEK 3 ARABIC HOMEWORK
   // الأحد: كتابة نشيد (مدرستي بيتي الثاني)
