@@ -81,6 +81,7 @@ export interface TomorrowSpecialNote {
   classId: ClassId;
   targetDay: SchoolDay; // The day being prepared for
   subject: string;
+  period?: number;
   title?: string;
   note: string;
   arabicNote: string;

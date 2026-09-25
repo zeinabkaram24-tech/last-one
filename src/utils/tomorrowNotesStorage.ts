@@ -3,6 +3,54 @@ import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES } from '../data/defaultWeekl
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
 
+export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
+  {
+    id: 'tn-b1-w4-G2A-math-thu-test',
+    classId: 'G2A',
+    targetDay: 'Thursday',
+    subject: 'Mathematics',
+    period: 1,
+    title: 'Task Test',
+    note: 'Task Test',
+    arabicNote: '🚨 اختبار قصير (Task Test) في مادة الرياضيات غداً - مراجعة دروس الوحدة الثالثة 2D shapes و Line of symmetry.',
+    bagItem: 'Maths-Grade2-B1-All-Sheet1 - Main',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2B-math-thu-test',
+    classId: 'G2B',
+    targetDay: 'Thursday',
+    subject: 'Mathematics',
+    period: 4,
+    title: 'Task Test',
+    note: 'Task Test',
+    arabicNote: '🚨 اختبار قصير (Task Test) في مادة الرياضيات غداً - مراجعة دروس الوحدة الثالثة 2D shapes و Line of symmetry.',
+    bagItem: 'Maths-Grade2-B1-All-Sheet1 - Main',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2C-math-thu-test',
+    classId: 'G2C',
+    targetDay: 'Thursday',
+    subject: 'Mathematics',
+    period: 6,
+    title: 'Task Test',
+    note: 'Task Test',
+    arabicNote: '🚨 اختبار قصير (Task Test) في مادة الرياضيات غداً - مراجعة دروس الوحدة الثالثة 2D shapes و Line of symmetry.',
+    bagItem: 'Maths-Grade2-B1-All-Sheet1 - Main',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 4
+  }
+];
+
 export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   // Math tests
   {
@@ -257,15 +305,15 @@ export async function getTomorrowNotesForDay(
   classId: ClassId,
   targetDay: SchoolDay
 ): Promise<TomorrowSpecialNote[]> {
-  if (week === 4) {
-    return [];
-  }
-
   const effectiveWeek = week;
 
   // Base official notes for Block/Week or EffectiveWeek from static files
   const baseNotes: TomorrowSpecialNote[] =
-    block === 1 && (week === 3 || effectiveWeek === 3)
+    block === 1 && (week === 4 || effectiveWeek === 4)
+      ? WEEK4_SPECIAL_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
+        )
+      : block === 1 && (week === 3 || effectiveWeek === 3)
       ? WEEK3_SPECIAL_NOTES.filter(
           (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
         )
@@ -411,7 +459,7 @@ export async function getTomorrowNotesForDay(
       hwList.forEach((hw: any) => {
         const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(((hw.task || '') + ' ' + (hw.details || '')).toLowerCase());
         // Ordinary homework or Arabic homework must NEVER be mapped as a tomorrow quiz note!
-        if (!isQuiz || hw.subject === 'Arabic' || (hw.week && hw.week >= 4)) return;
+        if (!isQuiz || hw.subject === 'Arabic' || (hw.week && hw.week > 4)) return;
         const unpacked = unpackHomeworkDetails(hw.details);
         dynamicNotes.push({
           id: hw.id,
