@@ -271,6 +271,25 @@ const englishHomework = [
     week: 4
   })),
 
+  // --- Dictation Alert Homework for Saturday, Sunday, Monday, Tuesday ---
+  ...['Saturday', 'Sunday', 'Monday', 'Tuesday'].flatMap((day) => 
+    ['G2A', 'G2B', 'G2C'].map((cls) => ({
+      id: `hw-b1-w4-${cls}-${day.substring(0, 3)}-english-dictation-alert`,
+      classId: cls,
+      class_id: cls,
+      assignedDay: day,
+      dueDay: 'Thursday',
+      subject: 'English',
+      task: '🚨 Dictation List: Prepare for Dictation on Thursday!',
+      details: 'Prepare for the Dictation on Thursday. Dictation list is written in simple sentences. Always start sentences with CAPITAL letters.\nWords to study:\nThere is, There are, like – love, singing, fishing, watching TV, riding a bike, running, eating chocolate, park.',
+      pages: 'Dictation List',
+      completed: false,
+      priority: 'high',
+      block: 1,
+      week: 4
+    }))
+  ),
+
   // --- Wednesday Alert Homework (Due Thursday 1/10/2026) ---
   ...['G2A', 'G2B', 'G2C'].map((cls) => ({
     id: `hw-b1-w4-${cls}-Wed-english-dictation-alert`,
