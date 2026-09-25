@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>واجب الدراسات الاجتماعية - الأسبوع الرابع - الصف الثاني</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+    .circle-active {
+      border: 3px solid #dc2626;
+      border-radius: 9999px;
+      animation: drawCircle 0.5s ease-out forwards;
+    }
+    @keyframes drawCircle {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-amber-50 to-orange-50 text-slate-800 min-h-screen p-4 sm:p-8">
+  <div class="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl border border-amber-200 overflow-hidden">
+    
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-amber-600 to-orange-600 text-white p-6 sm:p-8 relative">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="px-3 py-1 rounded-full bg-amber-800/50 border border-amber-400/30 text-amber-100 text-xs font-bold uppercase tracking-wider">
+            المستوى الثاني — الأسبوع الرابع
+          </span>
+          <h1 class="text-2xl sm:text-3xl font-black mt-2">واجب الدراسات الاجتماعية (Home Work 2)</h1>
+          <p class="text-sm text-amber-100 mt-1">البلوك الأول — مجتمع الصف الدراسي الثاني</p>
+        </div>
+        <div class="text-right text-xs text-amber-100 space-y-1 font-semibold">
+          <div>مدرسة: <span class="text-white font-bold">مدارس النيل المصرية الدولية - فرع المنيا</span></div>
+          <div>الزمن الموصى به: <span class="text-white font-bold">10 دقائق ⏱️</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Metadata Card (Interactive for Typing before Printing) -->
+    <div class="p-6 bg-amber-50/50 border-b border-amber-100 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs font-bold text-amber-700 mb-1">اسم الطالب:</label>
+        <input type="text" placeholder="اكتب اسمك هنا..." class="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold" />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-amber-700 mb-1">الفصل الدراسي:</label>
+        <select class="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold">
+          <option>2A</option>
+          <option>2B</option>
+          <option>2C</option>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button onclick="window.print()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-md">
+          <span>🖨️</span> طباعة الواجب للتسليم الورقي
+        </button>
+      </div>
+    </div>
+
+    <div class="p-6 sm:p-8 space-y-8">
+      
+      <!-- QUESTION 1: Matching (Interactive Connecting) -->
+      <div class="space-y-4">
+        <h2 class="text-lg font-black text-amber-950 border-r-4 border-amber-500 pr-3 flex items-center gap-2">
+          <span class="text-xl">🤝</span> السؤال الأول: صلْ العبارة من العمود (أ) بما يناسبها من العمود (ب):
+        </h2>
+        <p class="text-xs text-slate-500 font-bold mr-7">انقر على الخيار في العمود الأول ثم انقر على ما يناسبه في العمود الثاني للتوصيل التفاعلي.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative mt-6">
+          <!-- Column A -->
+          <div class="space-y-3" id="colA">
+            <button onclick="selectNode('A1', 'نحافظ على المقاعد')" id="node-A1" class="w-full text-right p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50/20 font-bold transition-all flex justify-between items-center">
+              <span>نحافظ على المقاعد</span>
+              <span class="w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center" id="dot-A1"><span class="w-2 h-2 rounded-full bg-amber-500 hidden"></span></span>
+            </button>
+            <button onclick="selectNode('A2', 'نتكلم سوياً في وقت واحد')" id="node-A2" class="w-full text-right p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50/20 font-bold transition-all flex justify-between items-center">
+              <span>نتكلم سوياً في وقت واحد</span>
+              <span class="w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center" id="dot-A2"><span class="w-2 h-2 rounded-full bg-amber-500 hidden"></span></span>
+            </button>
+            <button onclick="selectNode('A3', 'نرفع أيدينا قبل الكلام')" id="node-A3" class="w-full text-right p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50/20 font-bold transition-all flex justify-between items-center">
+              <span>نرفع أيدينا قبل الكلام</span>
+              <span class="w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center" id="dot-A3"><span class="w-2 h-2 rounded-full bg-amber-500 hidden"></span></span>
+            </button>
+          </div>
+
+          <!-- Column B -->
+          <div class="space-y-3" id="colB">
+            <button onclick="selectNode('B1', 'لا نفهم الدرس')" id="node-B1" class="w-full text-right p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50/20 font-bold transition-all flex justify-between items-center">
+              <span>لا نفهم الدرس</span>
+              <span class="w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center" id="dot-B1"><span class="w-2 h-2 rounded-full bg-amber-500 hidden"></span></span>
+            </button>
+            <button onclick="selectNode('B2', 'يظل الفصل نظيفاً')" id="node-B2" class="w-full text-right p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50/20 font-bold transition-all flex justify-between items-center">
+              <span>يظل الفصل نظيفاً</span>
+              <span class="w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center" id="dot-B2"><span class="w-2 h-2 rounded-full bg-amber-500 hidden"></span></span>
+            </button>
+            <button onclick="selectNode('B3', 'ليسود النظام')" id="node-B3" class="w-full text-right p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50/20 font-bold transition-all flex justify-between items-center">
+              <span>ليسود النظام</span>
+              <span class="w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center" id="dot-B3"><span class="w-2 h-2 rounded-full bg-amber-500 hidden"></span></span>
+            </button>
+          </div>
+        </div>
+
+        <div id="matchingFeedback" class="hidden text-sm font-bold text-center p-3 rounded-xl mt-4"></div>
+      </div>
+
+      <!-- QUESTION 2: Classroom Components -->
+      <div class="space-y-4 pt-4 border-t border-amber-100">
+        <h2 class="text-lg font-black text-amber-950 border-r-4 border-amber-500 pr-3 flex items-center gap-2">
+          <span class="text-xl">🏫</span> السؤال الثاني: ضع دائرة حول الكلمة التي ليست جزءاً من مكونات الفصل:
+        </h2>
+        <p class="text-xs text-slate-500 font-bold mr-7">انقر على الكلمة الغريبة أو المخالفة لوضع دائرة حمراء حولها واختبار إجابتك!</p>
+
+        <div class="space-y-6 mt-6">
+          <!-- Sub-question 1 -->
+          <div class="bg-amber-50/20 border border-amber-100 p-4 rounded-2xl space-y-3">
+            <div class="text-sm font-black text-amber-900 flex items-center gap-2">
+              <span class="bg-amber-200 text-amber-950 w-6 h-6 rounded-full flex items-center justify-center text-xs">١</span>
+              <span>مكونات غريبة في المجموعة الأولى:</span>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <button onclick="checkClassroomComponent(this, false, 'المقعد')" class="px-5 py-3 rounded-xl bg-white border border-slate-200 font-bold text-sm hover:border-amber-300 hover:bg-amber-50/10 transition-all">
+                المقعد
+              </button>
+              <button onclick="checkClassroomComponent(this, false, 'السبورة')" class="px-5 py-3 rounded-xl bg-white border border-slate-200 font-bold text-sm hover:border-amber-300 hover:bg-amber-50/10 transition-all">
+                السبورة
+              </button>
+              <button onclick="checkClassroomComponent(this, true, 'الكرة')" class="px-5 py-3 rounded-xl bg-white border-2 border-dashed border-slate-300 font-bold text-sm hover:border-red-400 hover:bg-red-50/10 transition-all">
+                الكرة ⚽
+              </button>
+              <button onclick="checkClassroomComponent(this, false, 'الشاشة الذكية')" class="px-5 py-3 rounded-xl bg-white border border-slate-200 font-bold text-sm hover:border-amber-300 hover:bg-amber-50/10 transition-all">
+                الشاشة الذكية
+              </button>
+            </div>
+          </div>
+
+          <!-- Sub-question 2 -->
+          <div class="bg-amber-50/20 border border-amber-100 p-4 rounded-2xl space-y-3">
+            <div class="text-sm font-black text-amber-900 flex items-center gap-2">
+              <span class="bg-amber-200 text-amber-950 w-6 h-6 rounded-full flex items-center justify-center text-xs">٢</span>
+              <span>مكونات غريبة في المجموعة الثانية:</span>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <button onclick="checkClassroomComponent(this, false, 'الباب')" class="px-5 py-3 rounded-xl bg-white border border-slate-200 font-bold text-sm hover:border-amber-300 hover:bg-amber-50/10 transition-all">
+                الباب
+              </button>
+              <button onclick="checkClassroomComponent(this, false, 'النافذة')" class="px-5 py-3 rounded-xl bg-white border border-slate-200 font-bold text-sm hover:border-amber-300 hover:bg-amber-50/10 transition-all">
+                النافذة
+              </button>
+              <button onclick="checkClassroomComponent(this, false, 'المكتب')" class="px-5 py-3 rounded-xl bg-white border border-slate-200 font-bold text-sm hover:border-amber-300 hover:bg-amber-50/10 transition-all">
+                المكتب
+              </button>
+              <button onclick="checkClassroomComponent(this, true, 'خزانة الملابس')" class="px-5 py-3 rounded-xl bg-white border-2 border-dashed border-slate-300 font-bold text-sm hover:border-red-400 hover:bg-red-50/10 transition-all">
+                خزانة الملابس 🧥
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Instructions / Footer -->
+    <div class="bg-slate-50 border-t border-slate-200 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="text-xs text-slate-500 font-bold">
+        📍 تأكد من حل الواجب كاملاً قبل الضغط على زر الطباعة لتسليمه للمعلمة في المدرسة.
+      </div>
+      <div class="text-xs text-amber-700 font-extrabold">
+        عمل مميز وممتع مع مادة الدراسات الاجتماعية ✨
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let selectedNode = null;
+    let connections = {};
+    const correctPairs = {
+      'A1': 'B2', // نحافظ على المقاعد -> يظل الفصل نظيفا
+      'A2': 'B1', // نتكلم سويا في وقت واحد -> لا نفهم الدرس
+      'A3': 'B3'  // نرفع أيدينا قبل الكلام -> ليسود النظام
+    };
+
+    function selectNode(id, text) {
+      const isColA = id.startsWith('A');
+      
+      if (selectedNode === null) {
+        // Start new connection selection
+        selectedNode = { id, text, isColA };
+        highlightNode(id, true);
+      } else {
+        // We already have one selected
+        if (selectedNode.isColA === isColA) {
+          // Changed mind in same column
+          highlightNode(selectedNode.id, false);
+          selectedNode = { id, text, isColA };
+          highlightNode(id, true);
+        } else {
+          // Connect A to B or B to A
+          const nodeA = isColA ? id : selectedNode.id;
+          const nodeB = isColA ? selectedNode.id : id;
+          
+          createConnection(nodeA, nodeB);
+          highlightNode(selectedNode.id, false);
+          selectedNode = null;
+        }
+      }
+    }
+
+    function highlightNode(id, highlight) {
+      const btn = document.getElementById(`node-${id}`);
+      const dot = document.getElementById(`dot-${id}`).firstElementChild;
+      
+      if (highlight) {
+        btn.classList.add('border-amber-500', 'bg-amber-50/40');
+        dot.classList.remove('hidden');
+      } else {
+        btn.classList.remove('border-amber-500', 'bg-amber-50/40');
+        if (!connections[id]) {
+          dot.classList.add('hidden');
+        }
+      }
+    }
+
+    function createConnection(nodeA, nodeB) {
+      // Clear previous connections for nodeA and nodeB to ensure 1-to-1 matching
+      for (let key in connections) {
+        if (connections[key] === nodeB || key === nodeA) {
+          deleteOldDot(key);
+          deleteOldDot(connections[key]);
+          delete connections[key];
+        }
+      }
+
+      // Record connection
+      connections[nodeA] = nodeB;
+      
+      // Visual feedback
+      setNodeConnectedState(nodeA, true);
+      setNodeConnectedState(nodeB, true);
+      
+      checkMatchingAnswers();
+    }
+
+    function deleteOldDot(id) {
+      if (!id) return;
+      const dot = document.getElementById(`dot-${id}`);
+      if (dot) dot.firstElementChild.classList.add('hidden');
+      const btn = document.getElementById(`node-${id}`);
+      if (btn) btn.classList.remove('border-green-500', 'border-red-500', 'bg-green-50/20', 'bg-red-50/20');
+    }
+
+    function setNodeConnectedState(id, connected) {
+      const btn = document.getElementById(`node-${id}`);
+      const dot = document.getElementById(`dot-${id}`).firstElementChild;
+      
+      if (connected) {
+        btn.classList.add('border-amber-400');
+        dot.classList.remove('hidden');
+      }
+    }
+
+    function checkMatchingAnswers() {
+      const totalConnections = Object.keys(connections).length;
+      if (totalConnections < 3) return; // Not fully matched yet
+
+      let correctCount = 0;
+      for (let aNode in connections) {
+        const bNode = connections[aNode];
+        const btnA = document.getElementById(`node-${aNode}`);
+        const btnB = document.getElementById(`node-${bNode}`);
+        
+        if (correctPairs[aNode] === bNode) {
+          correctCount++;
+          btnA.classList.add('border-green-500', 'bg-green-50/20');
+          btnB.classList.add('border-green-500', 'bg-green-50/20');
+        } else {
+          btnA.classList.add('border-red-400', 'bg-red-50/20');
+          btnB.classList.add('border-red-400', 'bg-red-50/20');
+        }
+      }
+
+      const feedback = document.getElementById('matchingFeedback');
+      feedback.classList.remove('hidden');
+      if (correctCount === 3) {
+        feedback.className = "text-sm font-bold text-center p-3 rounded-xl mt-4 bg-green-100 text-green-950";
+        feedback.innerText = "🎉 رائع! إجابات التوصيل كلها صحيحة وممتازة!";
+      } else {
+        feedback.className = "text-sm font-bold text-center p-3 rounded-xl mt-4 bg-amber-100 text-amber-950";
+        feedback.innerText = "💡 بعض التوصيلات غير صحيحة، حاول مرة أخرى لتصل للتوصيل السليم!";
+      }
+    }
+
+    function checkClassroomComponent(button, isCorrect, value) {
+      // Find siblings and clear any active circle class
+      const parent = button.parentElement;
+      const buttons = parent.getElementsByTagName('button');
+      for (let btn of buttons) {
+        btn.classList.remove('circle-active', 'border-red-600', 'bg-red-50/20', 'text-red-700', 'border-green-500', 'bg-green-50/20', 'text-green-700');
+      }
+
+      if (isCorrect) {
+        button.classList.add('circle-active', 'border-green-500', 'bg-green-50/20', 'text-green-700');
+        alert(`🎉 إجابة صحيحة وممتازة! "${value}" ليست من مكونات الفصل.`);
+      } else {
+        button.classList.add('circle-active', 'border-red-600', 'bg-red-50/20', 'text-red-700');
+        alert(`❌ إجابة خاطئة! "${value}" هي جزء أساسي من مكونات الفصل الدراسي، ابحث عن الكلمة الغريبة.`);
+      }
+    }
+  </script>
+</body>
+</html>

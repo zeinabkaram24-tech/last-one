@@ -4210,6 +4210,57 @@ export const WEEK4_MATH_HOMEWORK: HomeworkEntry[] = [
   }
 ];
 
+export const WEEK4_SOCIAL_HOMEWORK: HomeworkEntry[] = [
+  {
+    id: 'hw-b1-w4-G2A-Sat-social-hw2',
+    classId: 'G2A',
+    class_id: 'G2A',
+    assignedDay: 'Saturday',
+    dueDay: 'Sunday',
+    subject: 'Social Studies',
+    task: 'تسليم الواجب الأسبوعي لمادة السوشيال',
+    details: 'السؤال الأول: صل العبارة من العمود (أ) بما يناسبها من العمود (ب). السؤال الثاني: ضع دائرة حول الكلمة التي ليست جزءاً من مكونات الفصل الدراسي.',
+    pages: 'Home Work 2 (واجب 2)',
+    completed: false,
+    priority: 'urgent',
+    block: 1,
+    week: 4,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-2.html'
+  },
+  {
+    id: 'hw-b1-w4-G2B-Sun-social-hw2',
+    classId: 'G2B',
+    class_id: 'G2B',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'Social Studies',
+    task: 'تسليم الواجب الأسبوعي لمادة السوشيال',
+    details: 'السؤال الأول: صل العبارة من العمود (أ) بما يناسبها من العمود (ب). السؤال الثاني: ضع دائرة حول الكلمة التي ليست جزءاً من مكونات الفصل الدراسي.',
+    pages: 'Home Work 2 (واجب 2)',
+    completed: false,
+    priority: 'urgent',
+    block: 1,
+    week: 4,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-2.html'
+  },
+  {
+    id: 'hw-b1-w4-G2C-Sat-social-hw2',
+    classId: 'G2C',
+    class_id: 'G2C',
+    assignedDay: 'Saturday',
+    dueDay: 'Sunday',
+    subject: 'Social Studies',
+    task: 'تسليم الواجب الأسبوعي لمادة السوشيال',
+    details: 'السؤال الأول: صل العبارة من العمود (أ) بما يناسبها من العمود (ب). السؤال الثاني: ضع دائرة حول الكلمة التي ليست جزءاً من مكونات الفصل الدراسي.',
+    pages: 'Home Work 2 (واجب 2)',
+    completed: false,
+    priority: 'urgent',
+    block: 1,
+    week: 4,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-2.html'
+  }
+];
+
 export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...WEEK1_BASE_HOMEWORK.map((h) => ({ ...h, block: 1, week: 1 })),
   ...ALL_LINK_AND_WEEK2_HOMEWORK.map((h) => ({ ...h, block: 1, week: 2 })),
@@ -4656,7 +4707,8 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...WEEK4_ARABIC_HOMEWORK,
   ...WEEK4_MATH_HOMEWORK,
   ...WEEK4_FRENCH_HOMEWORK,
-  ...WEEK4_ENGLISH_HOMEWORK
+  ...WEEK4_ENGLISH_HOMEWORK,
+  ...WEEK4_SOCIAL_HOMEWORK
 ];
 
 

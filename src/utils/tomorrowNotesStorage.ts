@@ -142,6 +142,51 @@ export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     categoryType: 'quiz',
     block: 1,
     week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2A-social-hw2',
+    classId: 'G2A',
+    targetDay: 'Sunday',
+    subject: 'Social Studies',
+    period: 2,
+    title: 'Submit Social Studies HW2',
+    note: 'Submit Social Studies HW2',
+    arabicNote: '🚨 تسليم الواجب الأسبوعي لمادة الدراسات الاجتماعية (Home Work 2) غداً.',
+    bagItem: 'Social Studies HW2 Sheet (شيت واجب الدراسات)',
+    isQuiz: false,
+    categoryType: 'note',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2B-social-hw2',
+    classId: 'G2B',
+    targetDay: 'Monday',
+    subject: 'Social Studies',
+    period: 1,
+    title: 'Submit Social Studies HW2',
+    note: 'Submit Social Studies HW2',
+    arabicNote: '🚨 تسليم الواجب الأسبوعي لمادة الدراسات الاجتماعية (Home Work 2) غداً.',
+    bagItem: 'Social Studies HW2 Sheet (شيت واجب الدراسات)',
+    isQuiz: false,
+    categoryType: 'note',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2C-social-hw2',
+    classId: 'G2C',
+    targetDay: 'Sunday',
+    subject: 'Social Studies',
+    period: 7,
+    title: 'Submit Social Studies HW2',
+    note: 'Submit Social Studies HW2',
+    arabicNote: '🚨 تسليم الواجب الأسبوعي لمادة الدراسات الاجتماعية (Home Work 2) غداً.',
+    bagItem: 'Social Studies HW2 Sheet (شيت واجب الدراسات)',
+    isQuiz: false,
+    categoryType: 'note',
+    block: 1,
+    week: 4
   }
 ];
 

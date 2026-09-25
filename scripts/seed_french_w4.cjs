@@ -235,7 +235,7 @@ const frenchHomework = [
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'French',
-    task: '🚨 Tache (French Task)',
+    task: '🚨 Tache / Dictation (French Task)',
     details: '🚨 Quiz / Evaluation in class tomorrow! Revise "le verbe avoir" and Passe-passe page 50.',
     pages: 'Passe-passe p.50',
     completed: false,
@@ -243,15 +243,15 @@ const frenchHomework = [
     block: 1,
     week: 4
   },
-  // G2B: Session 2 is Monday. Alert assigned on Sunday -> due Monday.
+  // G2B: Session 2 is Monday. Alert assigned on Monday -> due Tuesday.
   {
-    id: 'hw-b1-w4-G2B-Sun-french-tache-alert',
+    id: 'hw-b1-w4-G2B-Mon-french-tache-alert',
     classId: 'G2B',
     class_id: 'G2B',
-    assignedDay: 'Sunday',
-    dueDay: 'Monday',
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
     subject: 'French',
-    task: '🚨 Tache (French Task)',
+    task: '🚨 Tache / Dictation (French Task)',
     details: '🚨 Quiz / Evaluation in class tomorrow! Revise "le verbe avoir" and Passe-passe page 50.',
     pages: 'Passe-passe p.50',
     completed: false,
@@ -267,7 +267,7 @@ const frenchHomework = [
     assignedDay: 'Monday',
     dueDay: 'Tuesday',
     subject: 'French',
-    task: '🚨 Tache (French Task)',
+    task: '🚨 Tache / Dictation (French Task)',
     details: '🚨 Quiz / Evaluation in class tomorrow! Revise "le verbe avoir" and Passe-passe page 50.',
     pages: 'Passe-passe p.50',
     completed: false,
