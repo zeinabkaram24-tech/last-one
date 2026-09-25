@@ -968,15 +968,24 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       const hw = data.homework || [];
       const notes = data.tomorrowNotes || [];
 
-      setParsedResult({
-        classwork: cw,
-        homework: hw,
-        tomorrowNotes: notes,
-      });
+      if (cw.length === 0 && hw.length === 0 && notes.length === 0) {
+        setErrorMessage('لم نتمكن من استخراج جداول نصية من الملف (قد يكون الملف عبارة عن صور ممسوحة ضوئياً). يمكنك التبديل لخيار "📋 نسخ ولصق الجدول" ولصق النص أو الجدول مباشرة لتفكيكه فوراً!');
+        setParsedResult({
+          classwork: [],
+          homework: [],
+          tomorrowNotes: [],
+        });
+      } else {
+        setParsedResult({
+          classwork: cw,
+          homework: hw,
+          tomorrowNotes: notes,
+        });
 
-      setSuccessMessage(
-        `✨ تم تفكيك وتحليل الخطة بنجاح! تم استخراج ${cw.length} حصة صفية (Classwork)، ${hw.length} واجب منزلي (Homework)، و ${notes.length} تنبيه واختبار وملاحظة (Tomorrow).`
-      );
+        setSuccessMessage(
+          `✨ تم تفكيك وتحليل الخطة بنجاح! تم استخراج ${cw.length} حصة صفية (Classwork)، ${hw.length} واجب منزلي (Homework)، و ${notes.length} تنبيه واختبار وملاحظة (Tomorrow).`
+        );
+      }
     } catch (err: any) {
       console.error('Error parsing weekly plan:', err);
 

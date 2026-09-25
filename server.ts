@@ -1816,22 +1816,41 @@ function buildTimetableContext(targetClasses: string[]) {
 }
 
 // Endpoint 1: Parse Weekly Plan from PDF buffer or text using Gemini
+async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
+  try {
+    const pdfParseMod = requireFn('pdf-parse');
+    if (typeof pdfParseMod === 'function') {
+      const res = await pdfParseMod(buffer);
+      return res?.text || '';
+    }
+    if (pdfParseMod && pdfParseMod.PDFParse) {
+      const parser = new pdfParseMod.PDFParse({ data: buffer });
+      if (typeof parser.load === 'function') await parser.load();
+      if (typeof parser.getText === 'function') {
+        const res = await parser.getText();
+        return typeof res === 'string' ? res : (res?.text || '');
+      }
+    }
+  } catch (err) {
+    console.warn('[Server PDF Parser] Exception during buffer parsing:', err);
+  }
+  return '';
+}
+
 app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
   try {
     const { pdfBase64, planText, block = 1, week = 2, targetClass = 'ALL' } = req.body;
     let extractedPdfText = (typeof planText === 'string' ? planText : '').trim();
 
-    // 1. If text is empty or very short, extract directly from PDF buffer on server with pdf-parse
+    // 1. If text is empty or very short, extract directly from PDF buffer on server
     if (extractedPdfText.length < 20 && pdfBase64 && typeof pdfBase64 === 'string') {
       try {
         const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, '').trim();
         const buffer = Buffer.from(cleanBase64, 'base64');
-        if (pdf) {
-          const parsedRes = await pdf(buffer);
-          if (parsedRes && parsedRes.text && parsedRes.text.trim().length > 0) {
-            extractedPdfText = parsedRes.text.trim();
-            console.log(`[Server PDF Parser] Successfully extracted ${extractedPdfText.length} characters from PDF!`);
-          }
+        const extracted = await extractTextFromPdfBuffer(buffer);
+        if (extracted && extracted.trim().length > 0) {
+          extractedPdfText = extracted.trim();
+          console.log(`[Server PDF Parser] Successfully extracted ${extractedPdfText.length} characters from PDF!`);
         }
       } catch (pdfErr) {
         console.warn('[Server PDF Parser] Error extracting from PDF buffer:', pdfErr);
