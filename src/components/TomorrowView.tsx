@@ -857,7 +857,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
 
       // Strict rule: For French Quiz, user mandate: ONLY once before the session, no clutter
-      if (semKey.startsWith('french-quiz-')) {
+      if (semKey.startsWith('french-quiz-') && currentWeek === 3) {
         n.title = 'Quiz';
         n.note = 'Quiz';
         n.arabicNote = 'كويز فرنش (Quiz)';

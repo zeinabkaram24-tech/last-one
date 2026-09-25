@@ -1713,6 +1713,359 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     class_id: "G2C"
   }
 ];
+export const WEEK4_FRENCH_CLASSWORK: ClassworkEntry[] = [
+  // ================== G2A French ==================
+  {
+    id: 'cw-b1-w4-G2A-Tuesday-p1-french',
+    classId: 'G2A',
+    class_id: 'G2A',
+    day: 'Tuesday',
+    period: 1,
+    subject: 'French',
+    title: 'Unité 4: Les adjectifs possessifs',
+    details: 'Unité 4: La petite sœur de Lilly - Apprendre les adjectifs possessifs & Passe-passe page 10. (Fiche de classe Pages 27 & 28).',
+    pages: 'Pages 27 & 28',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2A-Wednesday-p4-french',
+    classId: 'G2A',
+    class_id: 'G2A',
+    day: 'Wednesday',
+    period: 4,
+    subject: 'French',
+    title: 'Unité 4: Le verbe avoir',
+    details: 'Unité 4: La petite sœur de Lilly - Le verbe avoir & Passe-passe page 50. (Fiche de classe Passe-passe 50). Remarque: Tache (évaluation en classe).',
+    pages: 'Passe-passe (50)',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2A-Thursday-p2-french',
+    classId: 'G2A',
+    class_id: 'G2A',
+    day: 'Thursday',
+    period: 2,
+    subject: 'French',
+    title: 'Unité 4: Avoir à la forme négative',
+    details: 'Unité 4: La petite sœur de Lilly - Apprendre avoir à la forme négative & Passe-passe page 51. (Fiche de classe Passe-passe 51).',
+    pages: 'Passe-passe (51)',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  // ================== G2B French ==================
+  {
+    id: 'cw-b1-w4-G2B-Sunday-p5-french',
+    classId: 'G2B',
+    class_id: 'G2B',
+    day: 'Sunday',
+    period: 5,
+    subject: 'French',
+    title: 'Unité 4: Les adjectifs possessifs',
+    details: 'Unité 4: La petite sœur de Lilly - Apprendre les adjectifs possessifs & Passe-passe page 10. (Fiche de classe Pages 27 & 28).',
+    pages: 'Pages 27 & 28',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2B-Monday-p7-french',
+    classId: 'G2B',
+    class_id: 'G2B',
+    day: 'Monday',
+    period: 7,
+    subject: 'French',
+    title: 'Unité 4: Le verbe avoir',
+    details: 'Unité 4: La petite sœur de Lilly - Le verbe avoir & Passe-passe page 50. (Fiche de classe Passe-passe 50). Remarque: Tache (évaluation en classe).',
+    pages: 'Passe-passe (50)',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2B-Tuesday-p4-french',
+    classId: 'G2B',
+    class_id: 'G2B',
+    day: 'Tuesday',
+    period: 4,
+    subject: 'French',
+    title: 'Unité 4: Avoir à la forme négative',
+    details: 'Unité 4: La petite sœur de Lilly - Apprendre avoir à la forme négative & Passe-passe page 51. (Fiche de classe Passe-passe 51).',
+    pages: 'Passe-passe (51)',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  // ================== G2C French ==================
+  {
+    id: 'cw-b1-w4-G2C-Sunday-p8-french',
+    classId: 'G2C',
+    class_id: 'G2C',
+    day: 'Sunday',
+    period: 8,
+    subject: 'French',
+    title: 'Unité 4: Les adjectifs possessifs',
+    details: 'Unité 4: La petite sœur de Lilly - Apprendre les adjectifs possessifs & Passe-passe page 10. (Fiche de classe Pages 27 & 28).',
+    pages: 'Pages 27 & 28',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2C-Tuesday-p5-french',
+    classId: 'G2C',
+    class_id: 'G2C',
+    day: 'Tuesday',
+    period: 5,
+    subject: 'French',
+    title: 'Unité 4: Le verbe avoir',
+    details: 'Unité 4: La petite sœur de Lilly - Le verbe avoir & Passe-passe page 50. (Fiche de classe Passe-passe 50). Remarque: Tache (évaluation en classe).',
+    pages: 'Passe-passe (50)',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2C-Wednesday-p2-french',
+    classId: 'G2C',
+    class_id: 'G2C',
+    day: 'Wednesday',
+    period: 2,
+    subject: 'French',
+    title: 'Unité 4: Avoir à la forme négative',
+    details: 'Unité 4: La petite sœur de Lilly - Apprendre avoir à la forme négative & Passe-passe page 51. (Fiche de classe Passe-passe 51).',
+    pages: 'Passe-passe (51)',
+    completed: false,
+    block: 1,
+    week: 4
+  }
+];
+
+export const WEEK4_ENGLISH_CLASSWORK: ClassworkEntry[] = [
+  // --- Sunday (27/9/2026) ---
+  {
+    id: 'cw-b1-w4-G2A-Sunday-p5-english',
+    classId: 'G2A',
+    class_id: 'G2A',
+    day: 'Sunday',
+    period: 5,
+    subject: 'English',
+    title: 'Grammar: Look at us',
+    details: 'Unit: Look at us. Focus on Grammar lesson. Classwork exercises on pages: CW. 35, 36 and 37.',
+    pages: 'CW. 35, 36, 37',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2B-Sunday-p1-english',
+    classId: 'G2B',
+    class_id: 'G2B',
+    day: 'Sunday',
+    period: 1,
+    subject: 'English',
+    title: 'Punctuation & Listening: Look at us',
+    details: 'Unit: Look at us. Practice punctuation rules and listening comprehension. Resources: CW. 44 and CW. 38.',
+    pages: 'CW. 44, 38',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2C-Sunday-p1-english',
+    classId: 'G2C',
+    class_id: 'G2C',
+    day: 'Sunday',
+    period: 1,
+    subject: 'English',
+    title: 'Grammar: Look at us',
+    details: 'Unit: Look at us. Focus on Grammar lesson. Classwork exercises on pages: CW. 35, 36 and 37.',
+    pages: 'CW. 35, 36, 37',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+
+  // --- Monday (28/9/2026) ---
+  {
+    id: 'cw-b1-w4-G2A-Monday-p4-english',
+    classId: 'G2A',
+    class_id: 'G2A',
+    day: 'Monday',
+    period: 4,
+    subject: 'English',
+    title: 'Reading: Look at us',
+    details: 'Unit: Look at us. Reading comprehension and fluency practice. Resources: CW. 41, 42 and 43.',
+    pages: 'CW. 41, 42, 43',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2B-Monday-p5-english',
+    classId: 'G2B',
+    class_id: 'G2B',
+    day: 'Monday',
+    period: 5,
+    subject: 'English',
+    title: 'Grammar: Look at us',
+    details: 'Unit: Look at us. Grammar structures. Resources: CW. 35, 36 and 37.',
+    pages: 'CW. 35, 36, 37',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2C-Monday-p7-english',
+    classId: 'G2C',
+    class_id: 'G2C',
+    day: 'Monday',
+    period: 7,
+    subject: 'English',
+    title: 'Punctuation & Listening: Look at us',
+    details: 'Unit: Look at us. Punctuation exercises and listening activities. Resources: CW. 44 and CW. 38.',
+    pages: 'CW. 44, 38',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+
+  // --- Tuesday (29/9/2026) ---
+  {
+    id: 'cw-b1-w4-G2A-Tuesday-p7-english',
+    classId: 'G2A',
+    class_id: 'G2A',
+    day: 'Tuesday',
+    period: 7,
+    subject: 'English',
+    title: 'Revision: Look at us',
+    details: 'Unit: Look at us. General revision and exercises on Extra sheet.',
+    pages: 'Extra sheet',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2B-Tuesday-p7-english',
+    classId: 'G2B',
+    class_id: 'G2B',
+    day: 'Tuesday',
+    period: 7,
+    subject: 'English',
+    title: 'Revision & Vocabulary: Look at us',
+    details: 'Unit: Look at us. Revision of vocabulary words. Resources: Extra sheet & CW. 33, 34.',
+    pages: 'Extra sheet, CW. 33, 34',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2C-Tuesday-p6-english',
+    classId: 'G2C',
+    class_id: 'G2C',
+    day: 'Tuesday',
+    period: 6,
+    subject: 'English',
+    title: 'Revision: Look at us',
+    details: 'Unit: Look at us. General revision and exercises on Extra sheet.',
+    pages: 'Extra sheet',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+
+  // --- Wednesday (30/9/2026) ---
+  {
+    id: 'cw-b1-w4-G2A-Wednesday-p7-english',
+    classId: 'G2A',
+    class_id: 'G2A',
+    day: 'Wednesday',
+    period: 7,
+    subject: 'English',
+    title: 'Story "MR. Fox" & Punctuation',
+    details: 'Reading the story "MR. Fox" and practicing punctuation & listening. Resources: CW. 44 and CW. 38.',
+    pages: 'CW. 44, 38',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2B-Wednesday-p1-english',
+    classId: 'G2B',
+    class_id: 'G2B',
+    day: 'Wednesday',
+    period: 1,
+    subject: 'English',
+    title: 'Story "Mr. Fox"',
+    details: 'Reading and discussing the story "Mr. Fox" with focus on characters and plot.',
+    pages: 'Storybook',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2C-Wednesday-p4-english',
+    classId: 'G2C',
+    class_id: 'G2C',
+    day: 'Wednesday',
+    period: 4,
+    subject: 'English',
+    title: 'Story "Mr. Fox" & Punctuation',
+    details: 'Reading the story "Mr. Fox" and practicing punctuation & listening. Resources: CW. 44 and CW. 38.',
+    pages: 'CW. 44, 38',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+
+  // --- Thursday (1/10/2026) ---
+  {
+    id: 'cw-b1-w4-G2A-Thursday-p6-english',
+    classId: 'G2A',
+    class_id: 'G2A',
+    day: 'Thursday',
+    period: 6,
+    subject: 'English',
+    title: '🚨 Dictation & Vocabulary',
+    details: 'Dictation check in Dictation copybook and vocabulary study. Resources: CW. 33 and 34.',
+    pages: 'Dictation copybook, CW. 33, 34',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2B-Thursday-p5-english',
+    classId: 'G2B',
+    class_id: 'G2B',
+    day: 'Thursday',
+    period: 5,
+    subject: 'English',
+    title: '🚨 Dictation & Reading',
+    details: 'Dictation check in Dictation copybook and reading comprehension practice. Resources: CW. 41, 42 and 43.',
+    pages: 'Dictation copybook, CW. 41, 42, 43',
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'cw-b1-w4-G2C-Thursday-p3-english',
+    classId: 'G2C',
+    class_id: 'G2C',
+    day: 'Thursday',
+    period: 3,
+    subject: 'English',
+    title: '🚨 Dictation & Reading',
+    details: 'Dictation check in Dictation copybook and reading comprehension practice. Resources: CW. 41, 42 and 43.',
+    pages: 'Dictation copybook, CW. 41, 42, 43',
+    completed: false,
+    block: 1,
+    week: 4
+  }
+];
 
 export const WEEK4_MATH_CLASSWORK: ClassworkEntry[] = [
   {
@@ -2525,11 +2878,10 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     week: 3,
     pdfUrl: "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
   },
-  // =============================================================
-  // BLOCK 1 - WEEK 4 OFFICIAL ARABIC CLASSWORK (ONLY ARABIC)
-  // =============================================================
   ...WEEK4_ARABIC_CLASSWORK,
-  ...WEEK4_MATH_CLASSWORK
+  ...WEEK4_MATH_CLASSWORK,
+  ...WEEK4_FRENCH_CLASSWORK,
+  ...WEEK4_ENGLISH_CLASSWORK
 ];
 
 
@@ -3000,6 +3352,215 @@ export const WEEK4_ARABIC_HOMEWORK: HomeworkEntry[] = [
     block: 1,
     week: 4,
     class_id: "G2C"
+  }
+];
+
+export const WEEK4_FRENCH_HOMEWORK: HomeworkEntry[] = [
+  // Session 3 Homework: Page 30
+  {
+    id: 'hw-b1-w4-G2A-Thu-french-p30',
+    classId: 'G2A',
+    class_id: 'G2A',
+    assignedDay: 'Thursday',
+    dueDay: 'Sunday',
+    subject: 'French',
+    task: 'Cahier d’activités: Page 30',
+    details: 'Unité 4: Avoir à la forme négative - Compléter les exercices de la page 30 dans le cahier d’activités.',
+    pages: 'Page 30',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'hw-b1-w4-G2B-Tue-french-p30',
+    classId: 'G2B',
+    class_id: 'G2B',
+    assignedDay: 'Tuesday',
+    dueDay: 'Sunday',
+    subject: 'French',
+    task: 'Cahier d’activités: Page 30',
+    details: 'Unité 4: Avoir à la forme négative - Compléter les exercices de la page 30 dans le cahier d’activités.',
+    pages: 'Page 30',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'hw-b1-w4-G2C-Wed-french-p30',
+    classId: 'G2C',
+    class_id: 'G2C',
+    assignedDay: 'Wednesday',
+    dueDay: 'Sunday',
+    subject: 'French',
+    task: 'Cahier d’activités: Page 30',
+    details: 'Unité 4: Avoir à la forme négative - Compléter les exercices de la page 30 dans le cahier d’activités.',
+    pages: 'Page 30',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 4
+  },
+
+  // Tache / Quiz alerts (Remarques: tache on Session 2)
+  {
+    id: 'hw-b1-w4-G2A-Tue-french-tache-alert',
+    classId: 'G2A',
+    class_id: 'G2A',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'French',
+    task: '🚨 Tache (French Task)',
+    details: '🚨 Quiz / Evaluation in class tomorrow! Revise "le verbe avoir" and Passe-passe page 50.',
+    pages: 'Passe-passe p.50',
+    completed: false,
+    priority: 'urgent',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'hw-b1-w4-G2B-Sun-french-tache-alert',
+    classId: 'G2B',
+    class_id: 'G2B',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'French',
+    task: '🚨 Tache (French Task)',
+    details: '🚨 Quiz / Evaluation in class tomorrow! Revise "le verbe avoir" and Passe-passe page 50.',
+    pages: 'Passe-passe p.50',
+    completed: false,
+    priority: 'urgent',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'hw-b1-w4-G2C-Mon-french-tache-alert',
+    classId: 'G2C',
+    class_id: 'G2C',
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
+    subject: 'French',
+    task: '🚨 Tache (French Task)',
+    details: '🚨 Quiz / Evaluation in class tomorrow! Revise "le verbe avoir" and Passe-passe page 50.',
+    pages: 'Passe-passe p.50',
+    completed: false,
+    priority: 'urgent',
+    block: 1,
+    week: 4
+  }
+];
+
+export const WEEK4_ENGLISH_HOMEWORK: HomeworkEntry[] = [
+  // --- Monday Homework (Due Tuesday 29/9/2026) ---
+  {
+    id: 'hw-b1-w4-G2A-Mon-english-pages',
+    classId: 'G2A',
+    class_id: 'G2A',
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
+    subject: 'English',
+    task: 'English Homework: Solve Pages 67, 68 & 69',
+    details: 'Unit: Look at us. Solve exercises on Pages 67, 68, and 69 in the Activity Book.',
+    pages: 'Pages 67, 68, 69',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'hw-b1-w4-G2B-Mon-english-pages',
+    classId: 'G2B',
+    class_id: 'G2B',
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
+    subject: 'English',
+    task: 'English Homework: Solve Pages 67, 68 & 69',
+    details: 'Unit: Look at us. Solve exercises on Pages 67, 68, and 69 in the Activity Book.',
+    pages: 'Pages 67, 68, 69',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'hw-b1-w4-G2C-Mon-english-pages',
+    classId: 'G2C',
+    class_id: 'G2C',
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
+    subject: 'English',
+    task: 'English Homework: Solve Pages 67, 68 & 69',
+    details: 'Unit: Look at us. Solve exercises on Pages 67, 68, and 69 in the Activity Book.',
+    pages: 'Pages 67, 68, 69',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 4
+  },
+
+  // --- Wednesday Alert Homework (Due Thursday 1/10/2026) ---
+  {
+    id: 'hw-b1-w4-G2A-Wed-english-dictation-alert',
+    classId: 'G2A',
+    class_id: 'G2A',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'English',
+    task: '🚨 Dictation List: Prepare for Dictation tomorrow!',
+    details: 'Prepare for the Dictation tomorrow. Dictation list is written in simple sentences. Always start sentences with CAPITAL letters.\nWords to study:\nThere is, There are, like – love, singing, fishing, watching TV, riding a bike, running, eating chocolate, park.',
+    pages: 'Dictation List',
+    completed: false,
+    priority: 'high',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'hw-b1-w4-G2B-Wed-english-dictation-alert',
+    classId: 'G2B',
+    class_id: 'G2B',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'English',
+    task: '🚨 Dictation List: Prepare for Dictation tomorrow!',
+    details: 'Prepare for the Dictation tomorrow. Dictation list is written in simple sentences. Always start sentences with CAPITAL letters.\nWords to study:\nThere is, There are, like – love, singing, fishing, watching TV, riding a bike, running, eating chocolate, park.',
+    pages: 'Dictation List',
+    completed: false,
+    priority: 'high',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'hw-b1-w4-G2C-Wed-english-dictation-alert',
+    classId: 'G2C',
+    class_id: 'G2C',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'English',
+    task: '🚨 Dictation List: Prepare for Dictation tomorrow!',
+    details: 'Prepare for the Dictation tomorrow. Dictation list is written in simple sentences. Always start sentences with CAPITAL letters.\nWords to study:\nThere is, There are, like – love, singing, fishing, watching TV, riding a bike, running, eating chocolate, park.',
+    pages: 'Dictation List',
+    completed: false,
+    priority: 'high',
+    block: 1,
+    week: 4
+  },
+
+  // --- Thursday Homework for 2A ONLY (Due Sunday) ---
+  {
+    id: 'hw-b1-w4-G2A-Thu-english-pages',
+    classId: 'G2A',
+    class_id: 'G2A',
+    assignedDay: 'Thursday',
+    dueDay: 'Sunday',
+    subject: 'English',
+    task: 'English Homework: Solve Pages 71 & 72',
+    details: 'Unit: Look at us. Solve exercises on Pages 71 and 72 in the Activity book.',
+    pages: 'Pages 71, 72',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 4
   }
 ];
 
@@ -3737,11 +4298,10 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
     block: 1,
     week: 3,
   },
-  // =============================================================
-  // BLOCK 1 - WEEK 4 OFFICIAL ARABIC HOMEWORK (ONLY ARABIC)
-  // =============================================================
   ...WEEK4_ARABIC_HOMEWORK,
-  ...WEEK4_MATH_HOMEWORK
+  ...WEEK4_MATH_HOMEWORK,
+  ...WEEK4_FRENCH_HOMEWORK,
+  ...WEEK4_ENGLISH_HOMEWORK
 ];
 
 

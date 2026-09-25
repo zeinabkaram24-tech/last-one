@@ -48,6 +48,100 @@ export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     categoryType: 'quiz',
     block: 1,
     week: 4
+  },
+  // G2A: Session 2 is Wednesday (Prepare Wednesday evening)
+  {
+    id: 'tn-b1-w4-G2A-french-tache',
+    classId: 'G2A',
+    targetDay: 'Wednesday',
+    subject: 'French',
+    period: 4,
+    title: 'Tache (French Task)',
+    note: 'Tache (French Task)',
+    arabicNote: '🚨 كويز / تقييم فرنسي (Tache) غداً - مراجعة تصريف verb avoir و صفحة 50.',
+    bagItem: 'Cahier de classe / Passe-passe (50)',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 4
+  },
+  // G2B: Session 2 is Monday (Prepare Sunday evening)
+  {
+    id: 'tn-b1-w4-G2B-french-tache',
+    classId: 'G2B',
+    targetDay: 'Monday',
+    subject: 'French',
+    period: 7,
+    title: 'Tache (French Task)',
+    note: 'Tache (French Task)',
+    arabicNote: '🚨 كويز / تقييم فرنسي (Tache) غداً - مراجعة تصريف verb avoir و صفحة 50.',
+    bagItem: 'Cahier de classe / Passe-passe (50)',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 4
+  },
+  // G2C: Session 2 is Tuesday (Prepare Monday evening)
+  {
+    id: 'tn-b1-w4-G2C-french-tache',
+    classId: 'G2C',
+    targetDay: 'Tuesday',
+    subject: 'French',
+    period: 5,
+    title: 'Tache (French Task)',
+    note: 'Tache (French Task)',
+    arabicNote: '🚨 كويز / تقييم فرنسي (Tache) غداً - مراجعة تصريف verb avoir و صفحة 50.',
+    bagItem: 'Cahier de classe / Passe-passe (50)',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 4
+  },
+  // English Dictation (Prepare Wednesday evening)
+  {
+    id: 'tn-b1-w4-G2A-english-dictation',
+    classId: 'G2A',
+    targetDay: 'Thursday',
+    subject: 'English',
+    period: 6,
+    title: 'Dictation',
+    note: 'Dictation',
+    arabicNote: '🚨 ديكتيشن لغة إنجليزية غداً - مراجعة وحفظ كلمات الإملاء وكتابة جمل بسيطة تبدأ بحرف كبير (Capital Letter).',
+    bagItem: 'Dictation copybook (كشكول الإملاء)',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2B-english-dictation',
+    classId: 'G2B',
+    targetDay: 'Thursday',
+    subject: 'English',
+    period: 5,
+    title: 'Dictation',
+    note: 'Dictation',
+    arabicNote: '🚨 ديكتيشن لغة إنجليزية غداً - مراجعة وحفظ كلمات الإملاء وكتابة جمل بسيطة تبدأ بحرف كبير (Capital Letter).',
+    bagItem: 'Dictation copybook (كشكول الإملاء)',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2C-english-dictation',
+    classId: 'G2C',
+    targetDay: 'Thursday',
+    subject: 'English',
+    period: 3,
+    title: 'Dictation',
+    note: 'Dictation',
+    arabicNote: '🚨 ديكتيشن لغة إنجليزية غداً - مراجعة وحفظ كلمات الإملاء وكتابة جمل بسيطة تبدأ بحرف كبير (Capital Letter).',
+    bagItem: 'Dictation copybook (كشكول الإملاء)',
+    isQuiz: true,
+    categoryType: 'quiz',
+    block: 1,
+    week: 4
   }
 ];
 
