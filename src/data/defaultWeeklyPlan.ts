@@ -3546,11 +3546,41 @@ export const WEEK4_ENGLISH_HOMEWORK: HomeworkEntry[] = [
     week: 4
   },
 
-  // --- Thursday Homework for 2A ONLY (Due Sunday) ---
+  // --- Thursday Homework for ALL THREE CLASSES (Due Sunday) ---
   {
     id: 'hw-b1-w4-G2A-Thu-english-pages',
     classId: 'G2A',
     class_id: 'G2A',
+    assignedDay: 'Thursday',
+    dueDay: 'Sunday',
+    subject: 'English',
+    task: 'English Homework: Solve Pages 71 & 72',
+    details: 'Unit: Look at us. Solve exercises on Pages 71 and 72 in the Activity book.',
+    pages: 'Pages 71, 72',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'hw-b1-w4-G2B-Thu-english-pages',
+    classId: 'G2B',
+    class_id: 'G2B',
+    assignedDay: 'Thursday',
+    dueDay: 'Sunday',
+    subject: 'English',
+    task: 'English Homework: Solve Pages 71 & 72',
+    details: 'Unit: Look at us. Solve exercises on Pages 71 and 72 in the Activity book.',
+    pages: 'Pages 71, 72',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'hw-b1-w4-G2C-Thu-english-pages',
+    classId: 'G2C',
+    class_id: 'G2C',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'English',

@@ -288,11 +288,11 @@ const englishHomework = [
     week: 4
   })),
 
-  // --- Thursday Homework for 2A ONLY (Due Sunday) ---
-  {
-    id: 'hw-b1-w4-G2A-Thu-english-pages',
-    classId: 'G2A',
-    class_id: 'G2A',
+  // --- Thursday Homework for ALL THREE CLASSES (Due Sunday) ---
+  ...['G2A', 'G2B', 'G2C'].map((cls) => ({
+    id: `hw-b1-w4-${cls}-Thu-english-pages`,
+    classId: cls,
+    class_id: cls,
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'English',
@@ -303,7 +303,7 @@ const englishHomework = [
     priority: 'normal',
     block: 1,
     week: 4
-  }
+  }))
 ];
 
 // 4. Tomorrow Notes for Week 4 English (Wednesday evening -> targetDay: Thursday)
