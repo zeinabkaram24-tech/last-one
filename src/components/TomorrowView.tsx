@@ -763,19 +763,17 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           targetDay: tomorrowDay,
           subject: h.subject,
           note: isSocial
-            ? (isG2ASocialNewSheet ? 'تسليم واجب الدراسات الاجتماعية الجديد' : 'تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)')
+            ? 'تسليم واجب الدراسات الاجتماعية الأسبوعي'
             : 'تسليم بوكلت الـ science',
           arabicNote: isSocial
-            ? (isG2ASocialNewSheet 
-                ? 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية الجديد (الشيت جديد يوزع لاحقاً ولا توجد أرقام صفحات حالياً)'
-                : 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع')
+            ? 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية (Home Work 2) في المدرسة'
             : 'تسليم بوكلت الـ science',
-          bagItem: isSocial ? (isG2ASocialNewSheet ? 'شيت واجب الدراسات الاجتماعية الجديد (يوزع لاحقاً)' : 'شيت واجب الدراسات الاجتماعية المرفق') : 'بوكليت الـ science',
+          bagItem: isSocial ? 'شيت واجب الدراسات الاجتماعية المرفق' : 'بوكليت الـ science',
           isQuiz: false,
           categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
-          pdfUrl: (isG2ASocialNewSheet || (selectedDay === 'Thursday' && h.subject === 'Social Studies')) ? undefined : h.pdfUrl,
+          pdfUrl: (selectedDay === 'Thursday' && h.subject === 'Social Studies') ? undefined : h.pdfUrl,
         });
       }
     });
@@ -865,9 +863,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         n.pdfUrl = undefined;
       }
 
-      const isG2ASocialNewSheet = currentClass === 'G2A' && n.subject === 'Social Studies' && n.targetDay === 'Sunday';
       const isSocialOnThursday = selectedDay === 'Thursday' && n.subject === 'Social Studies';
-      if (isG2ASocialNewSheet || isSocialOnThursday) {
+      if (isSocialOnThursday) {
         n.pdfUrl = undefined;
       }
 
@@ -878,7 +875,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           ...existing,
           ...(isHighPriority ? n : {}),
           id: (isHighPriority && n.id) ? n.id : existing.id || n.id,
-          pdfUrl: (semKey.startsWith('math-test-') || isG2ASocialNewSheet || isSocialOnThursday) ? undefined : (existing.pdfUrl || n.pdfUrl),
+          pdfUrl: (semKey.startsWith('math-test-') || isSocialOnThursday) ? undefined : (n.pdfUrl || existing.pdfUrl),
           bagItem: semKey.startsWith('math-test-') ? undefined : (existing.bagItem || n.bagItem),
           linkUrl: existing.linkUrl || n.linkUrl,
           linkTitle: existing.linkTitle || n.linkTitle,
@@ -891,7 +888,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       } else {
         map.set(semKey, {
           ...n,
-          pdfUrl: (isG2ASocialNewSheet || isSocialOnThursday) ? undefined : n.pdfUrl,
+          pdfUrl: isSocialOnThursday ? undefined : n.pdfUrl,
           linkedIds: n.id ? [n.id] : [],
         });
       }

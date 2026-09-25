@@ -195,59 +195,19 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
           </div>
         </div>
 
-        {/* PDF Viewer Body */}
+        {/* PDF / HTML Viewer Body */}
         <div className="flex-1 bg-slate-100 relative min-h-0 overflow-hidden flex flex-col">
-          {typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-5 bg-white">
-              <div className="w-16 h-16 rounded-full bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center animate-bounce animate-duration-1000">
-                <FileText className="w-8 h-8" />
-              </div>
-              <div className="max-w-md space-y-2">
-                <h4 className="text-base font-black text-slate-900" dir="rtl">
-                  معاينة الـ PDF على الموبايل 📱
-                </h4>
-                <p className="text-xs text-slate-500 font-bold leading-relaxed" dir="rtl">
-                  تمنع أنظمة الهواتف المحمولة والمتصفحات عرض ملفات الـ PDF داخل الصفحات بشكل تلقائي. يرجى الضغط على الزر أدناه لفتح الملف في نافذة مستقلة للمعاينة بأعلى دقة:
-                </p>
-              </div>
-              <a
-                href={activeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm shadow-md flex items-center gap-2 transition-all active:scale-95"
-              >
-                <Maximize2 className="w-4 h-4 text-white" />
-                <span>فتح المستند والمعاينة الآن 📖</span>
-              </a>
-              <button
-                type="button"
-                onClick={handleDownload}
-                className="text-xs text-indigo-600 hover:underline font-bold animate-pulse"
-                dir="rtl"
-              >
-                أو انقر هنا لتحميل الملف مباشرة إلى جهازك
-              </button>
-            </div>
-          ) : (
-            <iframe
-              id="pdf-modal-iframe"
-              src={activeUrl}
-              title={fileTitle}
-              className="w-full h-full border-0 bg-white"
-            />
-          )}
+          <iframe
+            id="pdf-modal-iframe"
+            src={activeUrl}
+            title={fileTitle}
+            className="w-full h-full border-0 bg-white"
+          />
 
           {/* Bottom helper toolbar */}
           <div className="py-2 px-4 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-600 shrink-0 flex-wrap gap-2">
             <span>
-              إذا لم يظهر المستند تلقائياً في متصفحك، يمكنك{' '}
-              <button
-                onClick={handleDownload}
-                className="text-indigo-600 hover:underline font-bold"
-              >
-                النقر هنا لتحميله
-              </button>{' '}
-              أو{' '}
+              إذا أردت فتح المستند في نافذة مستقلة، يمكنك{' '}
               <a
                 href={activeUrl}
                 target="_blank"
@@ -256,6 +216,13 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
               >
                 فتحه في تبويب جديد
               </a>
+              {' '}أو{' '}
+              <button
+                onClick={handleDownload}
+                className="text-indigo-600 hover:underline font-bold cursor-pointer"
+              >
+                تحميله للجهاز
+              </button>
               .
             </span>
             <span className="text-[11px] text-slate-400 font-bold">

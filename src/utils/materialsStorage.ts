@@ -290,21 +290,30 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
-// Resolve a MaterialItem from a given URL or file name (supports Social Studies homework PDF and other attached documents)
+// Resolve a MaterialItem from a given URL or file name (supports Social Studies homework sheets and other attached documents)
 export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): MaterialItem {
   const all = getFallbackMaterials();
   const lower = (urlOrName || '').toLowerCase();
-  const isSocial =
-    lower.includes('socialstudies') ||
-    lower.includes('social') ||
-    lower.includes('minia') ||
-    lower.includes('homwork-1') ||
-    lower.includes('homework-1');
 
-  if (isSocial) {
-    const existing = all.find(
-      (m) => m.id === 'mat_social_studies_b1_hw1' || m.fileName?.includes('SocialStudies')
-    );
+  // If specific HomeWork 2 / Sheet 2
+  if (lower.includes('homework-2') || lower.includes('homework 2') || lower.includes('hw-2') || lower.includes('hw2')) {
+    return {
+      id: 'mat_social_studies_b1_hw2',
+      fileName: 'SocialStudies-Grade2-B1-HomeWork-2.html',
+      fileSize: 245000,
+      block: 1,
+      section: 'Week 4',
+      classId: 'ALL',
+      type: 'pdf',
+      storageUrl: urlOrName || '/materials/SocialStudies-Grade2-B1-HomeWork-2.html',
+      linkUrl: urlOrName || '/materials/SocialStudies-Grade2-B1-HomeWork-2.html',
+      uploadedAt: new Date().toISOString(),
+    };
+  }
+
+  // If specific HomeWork 1 / Sheet 1
+  if (lower.includes('homwork-1') || lower.includes('homework-1') || lower.includes('hw1')) {
+    const existing = all.find((m) => m.id === 'mat_social_studies_b1_hw1' || m.fileName?.includes('HomeWork-1'));
     return {
       id: existing?.id || 'mat_social_studies_b1_hw1',
       fileName: 'SocialStudies-Grade2-B1-HomeWork-1.pdf',
@@ -327,18 +336,32 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
         (m.fileName && urlOrName.includes(m.fileName))
     );
     if (found) return found;
+
+    const extractedName = defaultTitle || urlOrName.split('/').pop()?.split('?')[0] || 'ملف مرفق';
+    return {
+      id: `mat-${Math.random().toString(36).slice(2, 8)}`,
+      fileName: extractedName,
+      fileSize: 450000,
+      block: 1,
+      section: 'Week 4',
+      classId: 'ALL',
+      type: 'pdf',
+      storageUrl: urlOrName,
+      linkUrl: urlOrName,
+      uploadedAt: new Date().toISOString(),
+    };
   }
 
   return {
-    id: `mat-${Math.random().toString(36).slice(2, 8)}`,
-    fileName: defaultTitle || (urlOrName ? urlOrName.split('/').pop()?.split('?')[0] : 'ملف PDF مرفق.pdf') || 'ملف PDF مرفق.pdf',
-    fileSize: 678480,
+    id: 'mat_social_studies_b1_hw2',
+    fileName: 'SocialStudies-Grade2-B1-HomeWork-2.html',
+    fileSize: 245000,
     block: 1,
-    section: 'Week 3',
+    section: 'Week 4',
     classId: 'ALL',
     type: 'pdf',
-    storageUrl: urlOrName || '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
-    linkUrl: urlOrName || '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+    storageUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-2.html',
+    linkUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-2.html',
     uploadedAt: new Date().toISOString(),
   };
 }
@@ -346,25 +369,7 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
 // Open PDF or Link directly in our guaranteed In-App Viewer Modal
 export function openPdfItem(item: MaterialItem): void {
   try {
-    const isMobile = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const targetUrl = item.storageUrl
-      ? item.storageUrl
-      : item.fileData
-      ? URL.createObjectURL(dataUrlToBlob(item.fileData))
-      : `/api/materials/${item.id}/file`;
-
-    if (isMobile && targetUrl) {
-      const win = window.open(targetUrl, '_blank');
-      if (win) {
-        win.focus();
-        return;
-      } else {
-        window.location.href = targetUrl;
-        return;
-      }
-    }
-
-    // Dispatch custom event to open In-App PDF Viewer Modal directly in place for desktop
+    // Dispatch custom event to open In-App PDF Viewer Modal directly in place
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('open_pdf_viewer_modal', { detail: item }));
     }
