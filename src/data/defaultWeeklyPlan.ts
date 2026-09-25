@@ -441,7 +441,7 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     period: 8,
     subject: 'Arabic',
     title: 'مراجعة التحليل الصوتي للكلمات',
-    details: 'فيديو تعليمي وكراسة نشاط الوحدة الأولى ص 4 (المدود والمقاطع الساكنة).',
+    details: 'كراسة نشاط الوحدة الأولى ص 4 (المدود والمقاطع الساكنة).',
     pages: 'فيديو وكراسة نشاط ص 4',
     completed: false,
     linkUrl: 'https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني',
@@ -1845,7 +1845,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     subject: "Arabic",
     title: "نص استماع (مهنة أبي)",
     details: "الوحدة الأولى: العودة إلى المدرسة - نص استماع (مهنة أبي) ومناقشة فهم المسموع واستخراج المفردات.",
-    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 19",
+    pages: "كراسة نشاط الوحدة الأولى ص 19",
     completed: false,
     block: 1,
     week: 3
@@ -1858,7 +1858,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     subject: "Arabic",
     title: "نص استماع (مهنة أبي)",
     details: "الوحدة الأولى: العودة إلى المدرسة - نص استماع (مهنة أبي) ومناقشة فهم المسموع واستخراج المفردات.",
-    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 19",
+    pages: "كراسة نشاط الوحدة الأولى ص 19",
     completed: false,
     block: 1,
     week: 3
@@ -1871,7 +1871,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     subject: "Arabic",
     title: "نص استماع (مهنة أبي)",
     details: "الوحدة الأولى: العودة إلى المدرسة - نص استماع (مهنة أبي) ومناقشة فهم المسموع واستخراج المفردات.",
-    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 19",
+    pages: "كراسة نشاط الوحدة الأولى ص 19",
     completed: false,
     block: 1,
     week: 3
@@ -1885,7 +1885,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     subject: "Arabic",
     title: "ظرف الزمان وظرف المكان + حل تدريبات",
     details: "الوحدة الأولى: العودة إلى المدرسة - التعرف على ظرفي الزمان والمكان واستخدامهما في جمل مفيدة وحل تدريبات كراسة النشاط.",
-    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 16-17-18",
+    pages: "كراسة نشاط الوحدة الأولى ص 16-17-18",
     completed: false,
     block: 1,
     week: 3
@@ -1898,7 +1898,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     subject: "Arabic",
     title: "ظرف الزمان وظرف المكان + حل تدريبات",
     details: "الوحدة الأولى: العودة إلى المدرسة - التعرف على ظرفي الزمان والمكان واستخدامهما في جمل مفيدة وحل تدريبات كراسة النشاط.",
-    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 16-17-18",
+    pages: "كراسة نشاط الوحدة الأولى ص 16-17-18",
     completed: false,
     block: 1,
     week: 3
@@ -1911,7 +1911,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
     subject: "Arabic",
     title: "ظرف الزمان وظرف المكان + حل تدريبات",
     details: "الوحدة الأولى: العودة إلى المدرسة - التعرف على ظرفي الزمان والمكان واستخدامهما في جمل مفيدة وحل تدريبات كراسة النشاط.",
-    pages: "فيديو تعليمي + كراسة نشاط الوحدة الأولى ص 16-17-18",
+    pages: "كراسة نشاط الوحدة الأولى ص 16-17-18",
     completed: false,
     block: 1,
     week: 3

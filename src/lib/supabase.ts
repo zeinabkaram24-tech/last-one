@@ -419,7 +419,23 @@ export function getLocalCustomClasswork(): ClassworkEntry[] {
     const raw = appStorage.getItem(LOCAL_CUSTOM_CW_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        return parsed.map((c: any) => {
+          if (!c) return c;
+          const cleaned = { ...c };
+          if (cleaned.linkUrl === 'video' || (cleaned.linkTitle && cleaned.linkTitle.includes('فيديو'))) {
+            delete cleaned.linkUrl;
+            delete cleaned.linkTitle;
+          }
+          if (cleaned.pages && cleaned.pages.includes('فيديو تعليمي')) {
+            cleaned.pages = cleaned.pages.replace('فيديو تعليمي + ', '').replace('فيديو تعليمي و', '').replace('فيديو تعليمي', '').trim();
+          }
+          if (cleaned.details && cleaned.details.includes('فيديو تعليمي')) {
+            cleaned.details = cleaned.details.replace('فيديو تعليمي + ', '').replace('فيديو تعليمي و', '').replace('فيديو تعليمي', '').trim();
+          }
+          return cleaned;
+        });
+      }
     }
   } catch {}
   return [];
