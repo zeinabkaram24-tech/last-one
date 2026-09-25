@@ -249,13 +249,17 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
               checkText.includes('شيت');
 
             const isTestOrQuiz =
-              !isHomeworkOrTools && (
-                (hw.task || '').toLowerCase().includes('test') ||
-                (hw.task || '').toLowerCase().includes('quiz') ||
-                (hw.task || '').includes('اختبار') ||
-                (hw.task || '').includes('كويز') ||
-                (hw.task || '').includes('امتحان')
-              );
+              (hw.task || '').toLowerCase().includes('test') ||
+              (hw.task || '').toLowerCase().includes('quiz') ||
+              (hw.task || '').includes('اختبار') ||
+              (hw.task || '').includes('كويز') ||
+              (hw.task || '').includes('امتحان') ||
+              (!isHomeworkOrTools && (
+                (hw.details || '').toLowerCase().includes('test') ||
+                (hw.details || '').toLowerCase().includes('quiz') ||
+                (hw.details || '').includes('اختبار') ||
+                (hw.details || '').includes('كويز')
+              ));
 
             return (
               <div
@@ -264,7 +268,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                   hw.completed
                     ? 'border-emerald-300 border-s-emerald-600 bg-emerald-50/30 opacity-85'
                     : isTestOrQuiz
-                    ? 'border-amber-300 border-s-amber-600 bg-amber-50/25 shadow-xs'
+                    ? 'border-rose-300 border-s-rose-600 bg-rose-50/30 shadow-xs animate-pulse-subtle'
                     : `${theme.hwCard} ${theme.hwAccentBorder} shadow-xs`
                 }`}
               >
@@ -295,9 +299,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       </span>
 
                       {isTestOrQuiz && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs">
-                          <AlertCircle className="w-3 h-3 text-amber-700" />
-                          تنبيه اختبار / كويز
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black bg-rose-100 text-rose-950 border border-rose-300 shadow-2xs">
+                          <AlertCircle className="w-3 h-3 text-rose-700 animate-bounce" />
+                          تنبيه اختبار / كويز 🚨
                         </span>
                       )}
 

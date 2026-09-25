@@ -25,3 +25,18 @@
 .animate-balloon {
   animation: balloonFloat 2.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.93;
+    transform: scale(0.995);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 3s ease-in-out infinite;
+}

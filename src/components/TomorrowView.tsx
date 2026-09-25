@@ -505,10 +505,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     let isMounted = true;
     const loadNotes = async () => {
       try {
-        if (currentWeek === 4) {
-          if (isMounted) setTomorrowNotes([]);
-          return;
-        }
 
         const [deletedIds, notes] = await Promise.all([
           getDeletedTomorrowNoteIds(),
@@ -715,10 +711,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Automatically link and synchronize tests/quizzes/dictations and homework submissions from homework and classwork
   const linkedAlerts = useMemo<TomorrowSpecialNote[]>(() => {
-    if (currentWeek === 4) {
-      return [];
-    }
-
     const alerts: TomorrowSpecialNote[] = [];
     const checkText = (txt: string) => {
       return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((txt || '').toLowerCase());
@@ -820,10 +812,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Merge tomorrowNotes with linkedAlerts without duplicates
   const mergedNotes = useMemo<TomorrowSpecialNote[]>(() => {
-    if (currentWeek === 4) {
-      return [];
-    }
-
     const map = new Map<string, TomorrowSpecialNote>();
     let hasArabicDictation = false;
 
