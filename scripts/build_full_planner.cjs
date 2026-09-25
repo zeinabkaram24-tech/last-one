@@ -531,14 +531,14 @@ for (const cls of classes) {
     assignedDay: 'Wednesday',
     dueDay: cls === 'G2B' ? 'Monday' : 'Sunday',
     subject: 'Social Studies',
-    task: 'تسليم شيت الدراسات الاجتماعية (شيت 1 - الرئيسي)',
-    details: 'حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت 1 - الرئيسي) ص 14-20.',
-    pages: 'شيت الدراسات الاجتماعية (ص 14-20)',
+    task: 'إكمال واجب الدرس المنزلي (شيت الواجب المرفق ص 14)',
+    details: 'يتم إرسال الواجب المنزلي يوم الأربعاء ويتم استلامه أول حصة في الأسبوع - حل شيت الواجب المرفق صفحة 14.',
+    pages: 'شيت الواجب المنزلي ص 14',
     completed: false,
     priority: 'normal',
     block: 1,
     week: 3,
-    pdfUrl: 'https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf',
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
   });
 
   // 6. French Homework:

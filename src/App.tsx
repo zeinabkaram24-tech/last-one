@@ -121,16 +121,6 @@ const STORAGE_KEYS = {
   WEEK: 'nile_planner_current_week_v3',
 };
 
-function cleanArabicSpelling(text: string | undefined | null): string {
-  if (!text) return '';
-  return text
-    .replace(/عالمات الترقيم/g, 'علامات الترقيم')
-    .replace(/علمات الترقيم/g, 'علامات الترقيم')
-    .replace(/علاقات الترقيم/g, 'علامات الترقيم')
-    .replace(/عالمات/g, 'علامات')
-    .replace(/علمات/g, 'علامات');
-}
-
 function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
   const cached = getLocalCustomClasswork();
   let deletedSet = new Set<string>();
@@ -142,14 +132,7 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     }
   } catch {}
 
-  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK)
-    .filter(c => !deletedSet.has(c.id))
-    .map(c => {
-      let corrected = { ...c };
-      corrected.title = cleanArabicSpelling(corrected.title);
-      corrected.details = corrected.details ? cleanArabicSpelling(corrected.details) : undefined;
-      return corrected;
-    });
+  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK).filter(c => !deletedSet.has(c.id));
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
@@ -417,12 +400,7 @@ export default function App() {
         // Apply classwork with student or guest completion checks
         if (cwData && cwData.length > 0) {
           const uniqueCwMap = new Map<string, ClassworkEntry>();
-          cwData.forEach((c) => {
-            let corrected = { ...c };
-            corrected.title = cleanArabicSpelling(corrected.title);
-            corrected.details = corrected.details ? cleanArabicSpelling(corrected.details) : undefined;
-            uniqueCwMap.set(c.id, corrected);
-          });
+          cwData.forEach((c) => uniqueCwMap.set(c.id, c));
           const dedupedCw = Array.from(uniqueCwMap.values());
 
           if (profile?.mode === 'student' && profile.studentName) {

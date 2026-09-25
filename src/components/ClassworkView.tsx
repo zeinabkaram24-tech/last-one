@@ -313,19 +313,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
               }
             }
 
-            // Filter out placeholder videos or search-results youtube links as per user request
-            if (activeLinkUrl) {
-              const lowerUrl = activeLinkUrl.toLowerCase();
-              if (
-                lowerUrl === 'video' ||
-                lowerUrl === 'placeholder' ||
-                lowerUrl.includes('youtube.com') ||
-                lowerUrl.includes('youtu.be')
-              ) {
-                activeLinkUrl = undefined;
-              }
-            }
-
             const handleToggleLesson = () => {
               if (cwEntry) {
                 if (!cwEntry.completed) {

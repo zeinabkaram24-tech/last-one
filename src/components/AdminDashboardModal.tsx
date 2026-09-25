@@ -939,14 +939,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       const hw = data.homework || [];
       const notes = data.tomorrowNotes || [];
 
-      if (cw.length === 0 && hw.length === 0 && notes.length === 0) {
-        setErrorMessage(
-          'عذراً، لم نتمكن من استخراج أي حصص أو واجبات أو ملاحظات من الملف أو النص المرفق. يرجى التأكد من أن ملف الـ PDF يحتوي على نصوص صالحة وقابلة للقراءة (وليس صوراً ممسوحة ضوئياً فقط)، أو استخدم خيار "نسخ ولصق الجدول" للنسخ مباشرة من الـ Word أو Excel لتسهيل التفكيك والتحليل بنجاح!'
-        );
-        setParsedResult(null);
-        return;
-      }
-
       setParsedResult({
         classwork: cw,
         homework: hw,
@@ -954,7 +946,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       });
 
       setSuccessMessage(
-        `✨ تم تفكيك وتحليل الخطة بنجاح! تم استخراج ${cw.length} حصة صفية (Classwork)، ${hw.length} واجب منزلي (Homework)، و ${notes.length} تنبيه واختبار وملاحظة (Tomorrow). يرجى الضغط على زر "تأكيد وحفظ ونشر الخطة" بالأسفل لاعتمادها!`
+        `✨ تم تفكيك وتحليل الخطة بنجاح! تم استخراج ${cw.length} حصة صفية (Classwork)، ${hw.length} واجب منزلي (Homework)، و ${notes.length} تنبيه واختبار وملاحظة (Tomorrow).`
       );
     } catch (err: any) {
       console.error('Error parsing weekly plan:', err);
@@ -968,7 +960,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           if (localParsed.classwork.length > 0 || localParsed.homework.length > 0 || localParsed.tomorrowNotes.length > 0) {
             setParsedResult(localParsed);
             setSuccessMessage(
-              `✨ تم تفكيك وتحليل الخطة بنجاح (المعالج السريع): تم استخراج ${localParsed.classwork.length} حصة صفية، ${localParsed.homework.length} واجب، و ${localParsed.tomorrowNotes.length} تنبيه واختبار. يرجى الضغط على زر "تأكيد وحفظ ونشر الخطة" بالأسفل لاعتمادها!`
+              `✨ تم تفكيك وتحليل الخطة بنجاح (المعالج السريع): تم استخراج ${localParsed.classwork.length} حصة صفية، ${localParsed.homework.length} واجب، و ${localParsed.tomorrowNotes.length} تنبيه واختبار.`
             );
             return;
           }
@@ -977,9 +969,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         }
       }
 
-      setErrorMessage(
-        `تعذر تحليل الخطة الأسبوعية: ${err.message || 'حدث خطأ أثناء المعالجة'}. يرجى التأكد من كتابة/لصق نصوص واضحة أو تعيين مفتاح الـ Gemini API Key من نافذة إعدادات السحابة بالخارج لضمان المعالجة الذكية!`
-      );
+      setErrorMessage(`تعذر تحليل الخطة الأسبوعية: ${err.message || 'حدث خطأ أثناء المعالجة'}`);
     } finally {
       setIsParsingPlan(false);
       setParsingStep('');
@@ -1534,11 +1524,7 @@ Sunday:
                                         {cw.details}
                                       </p>
                                     )}
-                                    {cw.linkUrl && 
-                                     cw.linkUrl.toLowerCase() !== 'video' && 
-                                     cw.linkUrl.toLowerCase() !== 'placeholder' && 
-                                     !cw.linkUrl.toLowerCase().includes('youtube.com') && 
-                                     !cw.linkUrl.toLowerCase().includes('youtu.be') && (
+                                    {cw.linkUrl && (
                                       <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-bold">
                                         🔗 {cw.linkTitle || 'رابط الدرس'}
                                       </span>
@@ -1630,11 +1616,7 @@ Sunday:
                                         {hw.details}
                                       </p>
                                     )}
-                                    {hw.linkUrl && 
-                                     hw.linkUrl.toLowerCase() !== 'video' && 
-                                     hw.linkUrl.toLowerCase() !== 'placeholder' && 
-                                     !hw.linkUrl.toLowerCase().includes('youtube.com') && 
-                                     !hw.linkUrl.toLowerCase().includes('youtu.be') && (
+                                    {hw.linkUrl && (
                                       <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 text-[10px] font-bold">
                                         🔗 رابط الواجب
                                       </span>

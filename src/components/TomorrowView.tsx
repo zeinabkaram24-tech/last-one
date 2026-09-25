@@ -768,7 +768,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
-          pdfUrl: (isG2ASocialNewSheet || (selectedDay === 'Thursday' && h.subject === 'Social Studies')) ? undefined : (h.pdfUrl || h.linkUrl),
+          pdfUrl: (isG2ASocialNewSheet || (selectedDay === 'Thursday' && h.subject === 'Social Studies')) ? undefined : h.pdfUrl,
         });
       }
     });
@@ -1179,11 +1179,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                       الأدوات المطلوبة: {getNoteDisplayBagItem(note)}
                     </div>
                   )}
-                  {note.linkUrl && 
-                   note.linkUrl.toLowerCase() !== 'video' && 
-                   note.linkUrl.toLowerCase() !== 'placeholder' && 
-                   !note.linkUrl.toLowerCase().includes('youtube.com') && 
-                   !note.linkUrl.toLowerCase().includes('youtu.be') && (
+                  {note.linkUrl && (
                     <div className="pt-1 flex">
                       <a
                         href={note.linkUrl}

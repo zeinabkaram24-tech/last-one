@@ -84,30 +84,13 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const blocks = [1, 2, 3, 4];
   const weeks = [1, 2, 3, 4];
 
-  const formatUploadDate = (dateStr?: string) => {
-    if (!dateStr) return '';
-    try {
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return '';
-      return d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-    } catch {
-      return '';
-    }
-  };
-
-  // Filter items for current selection and sort by download/upload date (newest on top)
-  const currentSectionMaterials = [...materials]
-    .filter(
-      (item) =>
-        item.block === selectedBlock &&
-        item.section === selectedSection &&
-        (!item.classId || item.classId === 'ALL' || item.classId === currentClass)
-    )
-    .sort((a, b) => {
-      const timeA = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
-      const timeB = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
-      return timeB - timeA;
-    });
+  // Filter items for current selection
+  const currentSectionMaterials = materials.filter(
+    (item) =>
+      item.block === selectedBlock &&
+      item.section === selectedSection &&
+      (!item.classId || item.classId === 'ALL' || item.classId === currentClass)
+  );
 
   return (
     <>
@@ -304,18 +287,10 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                                 <h4 className="text-sm font-black text-slate-900 truncate">
                                   {file.fileName}
                                 </h4>
-                                <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5 flex-wrap">
+                                <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
                                   <span className="text-indigo-600 font-black bg-indigo-50 px-1.5 py-0.5 rounded text-[10px] border border-indigo-200">
                                     رابط إلكتروني / فيديو 🔗
                                   </span>
-                                  {file.uploadedAt && (
-                                    <>
-                                      <span>•</span>
-                                      <span className="text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] font-black border border-amber-200">
-                                        تاريخ التنزيل: {formatUploadDate(file.uploadedAt)}
-                                      </span>
-                                    </>
-                                  )}
                                   {file.classId && file.classId !== 'ALL' && (
                                     <>
                                       <span>•</span>
@@ -356,18 +331,10 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                               <h4 className="text-sm font-black text-slate-900 truncate">
                                 {file.fileName}
                               </h4>
-                              <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5 flex-wrap">
+                              <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
                                 <span>{formatBytes(file.fileSize)}</span>
                                 <span>•</span>
                                 <span>PDF</span>
-                                {file.uploadedAt && (
-                                  <>
-                                    <span>•</span>
-                                    <span className="text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] font-black border border-amber-200">
-                                      تاريخ التنزيل: {formatUploadDate(file.uploadedAt)}
-                                    </span>
-                                  </>
-                                )}
                                 {file.storageUrl && (
                                   <>
                                     <span>•</span>

@@ -17,72 +17,7 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-app.get('/api/proxy-pdf', async (req, res) => {
-  const { url } = req.query;
-  if (!url || typeof url !== 'string') {
-    return res.status(400).send('URL query parameter is required');
-  }
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      return res.status(response.status).send('Failed to fetch the PDF');
-    }
-    const contentType = response.headers.get('content-type') || 'application/pdf';
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', 'inline');
-    const arrayBuffer = await response.arrayBuffer();
-    return res.send(Buffer.from(arrayBuffer));
-  } catch (err: any) {
-    return res.status(500).send('Error proxying PDF: ' + err.message);
-  }
-});
-
-app.get('/materials/:filename', async (req, res, next) => {
-  const { filename } = req.params;
-  const decodedFilename = decodeURIComponent(filename);
-
-  // If requesting the Week 3 Social Studies Sheet (main sheet), proxy and stream directly from Supabase
-  if (
-    decodedFilename.includes('SocialStudies-Grade2-B1-All-U1-Sheet1') ||
-    decodedFilename.includes('SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf')
-  ) {
-    const supabaseUrl = 'https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf';
-    try {
-      const response = await fetch(supabaseUrl);
-      if (response.ok) {
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline; filename="' + decodedFilename + '"');
-        const arrayBuffer = await response.arrayBuffer();
-        return res.send(Buffer.from(arrayBuffer));
-      }
-    } catch (e) {
-      console.warn('Error proxying week3 social studies sheet from supabase:', e);
-    }
-  }
-
-  const paths = [
-    path.join(process.cwd(), 'public', 'materials', decodedFilename),
-    path.join(process.cwd(), 'dist', 'materials', decodedFilename),
-    path.join(process.cwd(), 'uploads', 'materials', decodedFilename),
-  ];
-
-  if (decodedFilename === 'SocialStudies-Grade2-B1-HomeWork-1.pdf') {
-    paths.push(path.join(process.cwd(), 'uploads', 'materials', 'mat_social_studies_b1_hw1.pdf'));
-  }
-
-  for (const p of paths) {
-    if (fs.existsSync(p)) {
-      res.setHeader('Content-Type', decodedFilename.endsWith('.html') ? 'text/html' : 'application/pdf');
-      res.setHeader('Content-Disposition', 'inline; filename="' + decodedFilename + '"');
-      return res.sendFile(p);
-    }
-  }
-  next();
-});
-
 app.use('/materials', express.static(path.join(process.cwd(), 'public', 'materials')));
-
 
 // Directories for server-side persistence
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -196,39 +131,8 @@ function saveStoredPlannerData(data: StoredPlannerData): void {
 }
 
 // Helper to get GoogleGenAI client safely (lazy initialization)
-const GEMINI_CONFIG_FILE = path.join(DATA_DIR, 'gemini_config.json');
-
-function getStoredGeminiConfig(): { apiKey: string } {
-  try {
-    if (fs.existsSync(GEMINI_CONFIG_FILE)) {
-      const raw = fs.readFileSync(GEMINI_CONFIG_FILE, 'utf-8');
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.apiKey) {
-        return parsed;
-      }
-    }
-  } catch (err) {
-    console.warn('Error reading gemini_config.json:', err);
-  }
-  const envKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '';
-  return { apiKey: envKey.trim() };
-}
-
-function saveStoredGeminiConfig(config: { apiKey: string } | null): void {
-  try {
-    if (config) {
-      fs.writeFileSync(GEMINI_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
-    } else if (fs.existsSync(GEMINI_CONFIG_FILE)) {
-      fs.unlinkSync(GEMINI_CONFIG_FILE);
-    }
-  } catch (err) {
-    console.warn('Error saving gemini_config.json:', err);
-  }
-}
-
 function getGenAI(): GoogleGenAI | null {
-  const config = getStoredGeminiConfig();
-  const apiKey = config.apiKey;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
   if (!apiKey) return null;
   return new GoogleGenAI({
     apiKey,
@@ -261,21 +165,6 @@ app.post('/api/supabase-config/clear', (req, res) => {
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error clearing Supabase config' });
-  }
-});
-
-// Gemini Config Endpoints
-app.get('/api/gemini-config', (req, res) => {
-  res.json(getStoredGeminiConfig() || { apiKey: '' });
-});
-
-app.post('/api/gemini-config', (req, res) => {
-  try {
-    const { apiKey } = req.body;
-    saveStoredGeminiConfig({ apiKey: apiKey || '' });
-    res.json({ success: true });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message || 'Error saving Gemini config' });
   }
 });
 
@@ -879,7 +768,7 @@ Return ONLY valid JSON. If a value is not mentioned, use the defaults if helpful
 `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-3.5-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json'
@@ -958,7 +847,7 @@ For 'tomorrow':
 Return ONLY valid JSON with no markdown backticks.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-3.5-flash',
       contents: [
         {
           inlineData: {
@@ -1001,7 +890,7 @@ app.post('/api/transcribe-audio', async (req, res) => {
     const cleanMime = (mimeType || 'audio/webm').split(';')[0];
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-3.5-flash',
       contents: [
         {
           inlineData: {
@@ -1146,7 +1035,7 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
       try {
         console.log(`[AI Planner] Generating with model ${model} (attempt ${attempt})...`);
         
-        // Use a Promise.race to enforce a strict 25-second timeout on the model request
+        // Use a Promise.race to enforce a strict 8-second timeout on the model request
         const generatePromise = ai.models.generateContent({
           model,
           contents,
@@ -1155,7 +1044,7 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
 
         const response = await Promise.race([
           generatePromise,
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Generation Timeout')), 25000))
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Generation Timeout')), 8000))
         ]);
 
         if (response && response.text) {
@@ -1215,16 +1104,6 @@ function normalizePageNumbers(pagesStr?: any): string | undefined {
     s = `ص ${s}`;
   }
   return s;
-}
-
-function cleanArabicSpelling(text: string | undefined | null): string {
-  if (!text) return '';
-  return text
-    .replace(/عالمات الترقيم/g, 'علامات الترقيم')
-    .replace(/علمات الترقيم/g, 'علامات الترقيم')
-    .replace(/علاقات الترقيم/g, 'علامات الترقيم')
-    .replace(/عالمات/g, 'علامات')
-    .replace(/علمات/g, 'علامات');
 }
 
 // Post-processing to enforce timetable alignment, 3rd session rules, links, quiz detection, and note categorization
@@ -1288,15 +1167,14 @@ function postProcessParsedPlan(
 
       // Check if Classwork mentions a Quiz or Test -> Route alert to Tomorrow!
       if (testRegex.test(combinedCwText)) {
-        const cleanTitleText = cleanArabicSpelling(item.title);
         rawTomorrowNotes.push({
           classId,
           targetDay: slot.day,
           subject: normSub,
-          note: cleanTitleText || 'Classroom Quiz / Test',
-          arabicNote: (cleanTitleText && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(cleanTitleText))
-            ? cleanTitleText
-            : `اختبار / Quiz في مادة ${normSub}: ${cleanTitleText || ''}`,
+          note: item.title || 'Classroom Quiz / Test',
+          arabicNote: (item.title && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(item.title))
+            ? item.title
+            : `اختبار / Quiz في مادة ${normSub}: ${item.title || ''}`,
           isQuiz: true,
           categoryType: 'quiz',
           block,
@@ -1310,8 +1188,8 @@ function postProcessParsedPlan(
         day: slot.day,
         period: slot.period,
         subject: normSub,
-        title: cleanArabicSpelling(item.title || `${normSub} Lesson`),
-        details: item.details ? cleanArabicSpelling(item.details) : undefined,
+        title: item.title || `${normSub} Lesson`,
+        details: item.details || undefined,
         pages: normalizePageNumbers(item.pages),
         completed: false,
         block,
@@ -1368,15 +1246,14 @@ function postProcessParsedPlan(
       const isTestHw = testRegex.test(combinedHwText);
       if (isTestHw) {
         const targetDay = dueDay || assignedDay;
-        const cleanTaskText = cleanArabicSpelling(item.task);
         rawTomorrowNotes.push({
           classId,
           targetDay,
           subject: normSub,
-          note: cleanTaskText || 'Homework Quiz / Test Reminder',
-          arabicNote: (cleanTaskText && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(cleanTaskText))
-            ? cleanTaskText
-            : `اختبار / Quiz (${normSub}): ${cleanTaskText || ''}`,
+          note: item.task || 'Homework Quiz / Test Reminder',
+          arabicNote: (item.task && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(item.task))
+            ? item.task
+            : `اختبار / Quiz (${normSub}): ${item.task || ''}`,
           isQuiz: true,
           categoryType: 'quiz',
           block,
@@ -1390,8 +1267,8 @@ function postProcessParsedPlan(
         assignedDay,
         dueDay,
         subject: normSub,
-        task: cleanArabicSpelling(item.task || 'Homework task'),
-        details: item.details ? cleanArabicSpelling(item.details) : undefined,
+        task: item.task || 'Homework task',
+        details: item.details || undefined,
         pages: normalizePageNumbers(item.pages),
         completed: false,
         priority: (item.priority === 'urgent' || isTestHw) ? 'urgent' : 'normal',
@@ -1439,9 +1316,9 @@ function postProcessParsedPlan(
         classId,
         targetDay,
         subject: normSub,
-        note: cleanArabicSpelling(item.note || rawNote),
-        arabicNote: cleanArabicSpelling(item.arabicNote || rawNote),
-        bagItem: bagItem ? cleanArabicSpelling(bagItem) : undefined,
+        note: item.note || rawNote,
+        arabicNote: item.arabicNote || rawNote,
+        bagItem: bagItem || undefined,
         isQuiz,
         categoryType: isQuiz ? 'quiz' : 'note',
         block,
@@ -1915,7 +1792,7 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
     if (!ai) {
       console.log('No GEMINI_API_KEY set, using smart heuristic parser.');
       const parsed = heuristicParser(extractedPdfText, targetClass, Number(block), detectedWeek);
-      return res.json({ success: true, ...parsed });
+      return res.json(parsed);
     }
 
     const timetableContext = buildTimetableContext(targetClasses);

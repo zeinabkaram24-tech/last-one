@@ -6,8 +6,6 @@ import {
   saveMaterialToSupabase,
   deleteMaterialFromSupabase,
 } from '../lib/supabase';
-import staticMaterials from '../../data/materials.json';
-
 
 const DB_NAME = 'SchoolMaterialsDB';
 const STORE_NAME = 'materials';
@@ -48,16 +46,11 @@ const IN_MEMORY_MATERIALS_FALLBACK: Record<string, string> = {};
 function getFallbackMaterials(): MaterialItem[] {
   try {
     const raw = IN_MEMORY_MATERIALS_FALLBACK[FALLBACK_KEY];
-    const items = raw ? JSON.parse(raw) : [];
-    if (items.length === 0 && Array.isArray(staticMaterials)) {
-      return staticMaterials as MaterialItem[];
-    }
-    return items;
+    return raw ? JSON.parse(raw) : [];
   } catch {
-    return Array.isArray(staticMaterials) ? (staticMaterials as MaterialItem[]) : [];
+    return [];
   }
 }
-
 
 function saveFallbackMaterials(items: MaterialItem[]) {
   try {
@@ -301,17 +294,16 @@ export function dataUrlToBlob(dataUrl: string): Blob {
 export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): MaterialItem {
   const all = getFallbackMaterials();
   const lower = (urlOrName || '').toLowerCase();
-
-  // ONLY intercept if it's explicitly the specific Homework-1 sheet
-  const isSocialHw1 =
-    lower.includes('homework-1') ||
-    lower.includes('homework1') ||
+  const isSocial =
+    lower.includes('socialstudies') ||
+    lower.includes('social') ||
+    lower.includes('minia') ||
     lower.includes('homwork-1') ||
-    lower.includes('mat_social_studies_b1_hw1');
+    lower.includes('homework-1');
 
-  if (isSocialHw1) {
+  if (isSocial) {
     const existing = all.find(
-      (m) => m.id === 'mat_social_studies_b1_hw1' || m.fileName?.includes('HomeWork-1')
+      (m) => m.id === 'mat_social_studies_b1_hw1' || m.fileName?.includes('SocialStudies')
     );
     return {
       id: existing?.id || 'mat_social_studies_b1_hw1',
@@ -332,8 +324,7 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
       (m) =>
         m.storageUrl === urlOrName ||
         m.linkUrl === urlOrName ||
-        (m.fileName && urlOrName.includes(m.fileName)) ||
-        (m.fileName && m.fileName.toLowerCase() === urlOrName.toLowerCase())
+        (m.fileName && urlOrName.includes(m.fileName))
     );
     if (found) return found;
   }
@@ -355,38 +346,9 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
 // Open PDF or Link directly in our guaranteed In-App Viewer Modal
 export function openPdfItem(item: MaterialItem): void {
   try {
-    const isMobile = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    let targetUrl = item.storageUrl
-      ? item.storageUrl
-      : item.fileData
-      ? URL.createObjectURL(dataUrlToBlob(item.fileData))
-      : `/api/materials/${item.id}/file`;
-
-    // Convert external Supabase URLs to local proxy URLs on desktop to prevent iframe blockages
-    if (!isMobile && targetUrl && targetUrl.startsWith('https://')) {
-      if (targetUrl.includes('SocialStudies-Grade2-B1-All-U1-Sheet1')) {
-        targetUrl = '/materials/SocialStudies-Grade2-B1-All-U1-Sheet1 - Main (1).pdf';
-        item.storageUrl = targetUrl;
-      } else {
-        targetUrl = `/api/proxy-pdf?url=${encodeURIComponent(targetUrl)}`;
-        item.storageUrl = targetUrl;
-      }
-    }
-
-    if (isMobile && targetUrl) {
-      const win = window.open(targetUrl, '_blank');
-      if (win) {
-        win.focus();
-        return;
-      } else {
-        window.location.href = targetUrl;
-        return;
-      }
-    }
-
-    // Dispatch custom event to open In-App PDF Viewer Modal directly in place for desktop
+    // Dispatch custom event to open In-App PDF Viewer Modal directly in place
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('open_pdf_viewer_modal', { detail: { ...item, storageUrl: targetUrl } }));
+      window.dispatchEvent(new CustomEvent('open_pdf_viewer_modal', { detail: item }));
     }
   } catch (e) {
     console.error('Error opening PDF in modal:', e);
