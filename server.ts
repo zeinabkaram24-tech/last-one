@@ -304,13 +304,13 @@ app.post('/api/supabase/delete-week3', async (req, res) => {
     // 1. Delete week 3 from local planner_data.json
     const data = getStoredPlannerData();
     if (Array.isArray(data.classwork)) {
-      data.classwork = data.classwork.filter((c: any) => c.week !== 3);
+      data.classwork = data.classwork.filter((c: any) => Number(c.week) !== 3);
     }
     if (Array.isArray(data.homework)) {
-      data.homework = data.homework.filter((h: any) => h.week !== 3);
+      data.homework = data.homework.filter((h: any) => Number(h.week) !== 3);
     }
     if (Array.isArray(data.tomorrowNotes)) {
-      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => n.week !== 3);
+      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => Number(n.week) !== 3);
     }
     saveStoredPlannerData(data);
 
@@ -332,6 +332,66 @@ app.post('/api/supabase/delete-week3', async (req, res) => {
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error deleting Week 3 data' });
+  }
+});
+
+// Delete all Tomorrow items for Week 4 across all classes
+app.post('/api/supabase/delete-tomorrow-week4', async (req, res) => {
+  try {
+    const storedConfig = getStoredSupabaseConfig();
+    const effectiveUrl = cleanSupabaseUrl(storedConfig?.url || process.env.VITE_SUPABASE_URL || '');
+    const effectiveKey = (storedConfig?.key || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+
+    // 1. Delete week 4 tomorrow notes from local planner_data.json
+    const data = getStoredPlannerData();
+    if (Array.isArray(data.tomorrowNotes)) {
+      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week-4') && !n.id?.includes('week4'));
+    }
+    // Also remove any rogue tomorrow items stored directly in classwork or homework table
+    if (Array.isArray(data.classwork)) {
+      data.classwork = data.classwork.filter((c: any) => !(Number(c.week) === 4 && (c.id?.startsWith('tomorrow-') || c.id?.startsWith('tn-w4'))));
+    }
+    if (Array.isArray(data.deletedTomorrowNoteIds)) {
+      data.deletedTomorrowNoteIds = data.deletedTomorrowNoteIds.filter((id: string) => !id.includes('w4') && !id.includes('week4') && !id.includes('week-4'));
+    }
+    saveStoredPlannerData(data);
+
+    // 2. If Supabase is configured, update tomorrow notes in Supabase
+    let deletedFromSupabase = false;
+    if (effectiveUrl && effectiveKey) {
+      const client = createClient(effectiveUrl, effectiveKey);
+      try {
+        // Delete any tomorrow-row in classwork for week 4
+        await client.from('classwork').delete().eq('week', 4).like('id', 'tomorrow-%');
+        
+        // Update planner_settings for tomorrow_special_notes
+        const { data: psRow } = await client.from('planner_settings').select('value').eq('key', 'tomorrow_special_notes').single();
+        if (psRow && psRow.value) {
+          try {
+            const parsed = JSON.parse(psRow.value);
+            if (Array.isArray(parsed)) {
+              const updated = parsed.filter((n: any) => Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week4'));
+              await client.from('planner_settings').upsert({
+                key: 'tomorrow_special_notes',
+                value: JSON.stringify(updated),
+                updated_at: new Date().toISOString(),
+              }, { onConflict: 'key' });
+            }
+          } catch {}
+        }
+        deletedFromSupabase = true;
+      } catch (sbErr) {
+        console.warn('Supabase cleanup notice for week 4 tomorrow notes:', sbErr);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'تم مسح أي ملاحظات أو تنبيهات موجودة في التومارو لجميع فصول الأسبوع الرابع (Week 4) بنجاح، ويمكنك الآن إدخالها من جديد!',
+      deletedFromSupabase
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Error deleting Week 4 tomorrow data' });
   }
 });
 

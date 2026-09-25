@@ -34,6 +34,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
 }) => {
   const [url, setUrl] = useState('');
   const [anonKey, setAnonKey] = useState('');
+  const [geminiKey, setGeminiKey] = useState('');
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{
     success: boolean;
@@ -53,6 +54,22 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
       setAnonKey(config.key);
       setTestResult(null);
       setSavedSuccess(false);
+
+      // Fetch server-stored Gemini API key
+      fetch('/api/gemini-config')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.apiKey) {
+            setGeminiKey(data.apiKey);
+          } else {
+            const savedLocal = localStorage.getItem('nile_gemini_api_key');
+            if (savedLocal) setGeminiKey(savedLocal);
+          }
+        })
+        .catch(() => {
+          const savedLocal = localStorage.getItem('nile_gemini_api_key');
+          if (savedLocal) setGeminiKey(savedLocal);
+        });
     }
   }, [isOpen]);
 
@@ -138,11 +155,18 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
   const handleSavePermanently = async () => {
     const cleanedUrl = url.trim();
     const cleanedKey = anonKey.trim();
+    const cleanedGeminiKey = geminiKey.trim();
 
     saveActiveSupabaseConfig(cleanedUrl, cleanedKey);
     updateSupabaseClient(cleanedUrl, cleanedKey);
 
-    // Synchronize configuration to backend server
+    if (cleanedGeminiKey) {
+      localStorage.setItem('nile_gemini_api_key', cleanedGeminiKey);
+    } else {
+      localStorage.removeItem('nile_gemini_api_key');
+    }
+
+    // Synchronize configurations to backend server
     try {
       await fetch('/api/supabase-config', {
         method: 'POST',
@@ -151,6 +175,16 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
       });
     } catch (err) {
       console.warn('Failed to save Supabase config on server:', err);
+    }
+
+    try {
+      await fetch('/api/gemini-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: cleanedGeminiKey }),
+      });
+    } catch (err) {
+      console.warn('Failed to save Gemini config on server:', err);
     }
 
     // Auto-seed if database is empty upon saving
@@ -260,7 +294,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
           {/* Supabase Anon / Publishable Key */}
           <div className="space-y-1.5">
             <label className="block text-xs font-black text-slate-700">
-              2. مفتاح الـ API العام (Anon / Publishable API Key):
+              2. مفتاح الـ API العام لـ Supabase (Anon Key):
             </label>
             <div className="relative">
               <Key className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -275,7 +309,30 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
               />
             </div>
             <span className="text-[11px] text-slate-400 font-medium block">
-              يقبل كلاً من المفاتيح الجديدة (sb_publishable_...) ومفاتيح JWT السابقة.
+              يقبل كلاً من المفاتيح الجديدة ومفاتيح JWT السابقة.
+            </span>
+          </div>
+
+          {/* Gemini API Key */}
+          <div className="space-y-1.5 border-t border-slate-100 pt-3">
+            <label className="block text-xs font-black text-indigo-950 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span>3. مفتاح ذكاء اصطناعي Gemini API Key (للتحليل والتفكيك الذكي):</span>
+            </label>
+            <div className="relative">
+              <Key className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={geminiKey}
+                onChange={(e) => setGeminiKey(e.target.value)}
+                placeholder="AIzaSy... مفتاح Gemini الخاص بك"
+                className="w-full text-xs font-mono border border-indigo-200 rounded-xl py-2.5 pr-3 pl-9 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-left bg-indigo-50/10"
+                dir="ltr"
+                id="gemini_key_input"
+              />
+            </div>
+            <span className="text-[11px] text-indigo-600/80 font-medium block">
+              اختياري. يسمح بتفعيل تفكيك وقراءة الجداول والـ PDF ذكياً عند استخدام التطبيق من متصفح خارجي أو على الموبايل خارج الـ AI Studio!
             </span>
           </div>
         </div>

@@ -44,7 +44,7 @@ export const AttachmentPdfCard: React.FC<AttachmentPdfCardProps> = ({
           <div className="text-xs sm:text-sm font-black text-slate-900 truncate group-hover:text-indigo-700 transition-colors" dir="ltr">
             {item.fileName}
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-slate-500 font-semibold mt-0.5">
+          <div className="flex items-center gap-2 text-[11px] text-slate-500 font-semibold mt-0.5 flex-wrap">
             <span className="font-bold text-rose-600">PDF</span>
             <span>•</span>
             <span>{formatBytes(item.fileSize)}</span>
@@ -52,6 +52,14 @@ export const AttachmentPdfCard: React.FC<AttachmentPdfCardProps> = ({
               <>
                 <span>•</span>
                 <span className="text-slate-700 font-bold">{subject}</span>
+              </>
+            )}
+            {item.uploadedAt && (
+              <>
+                <span>•</span>
+                <span className="text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] font-black border border-amber-200">
+                  تاريخ التنزيل: {new Date(item.uploadedAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </span>
               </>
             )}
           </div>

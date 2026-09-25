@@ -1605,6 +1605,69 @@ export async function deleteWeek3Data(): Promise<{ success: boolean; message: st
   }
 }
 
+export async function deleteWeek4TomorrowData(): Promise<{ success: boolean; message: string }> {
+  try {
+    // 1. Clear local custom tomorrow notes for week 4
+    if (typeof window !== 'undefined') {
+      const LOCAL_CUSTOM_TOMORROW_KEY = 'tomorrow_special_notes_custom_v3';
+      const storedTn = localStorage.getItem(LOCAL_CUSTOM_TOMORROW_KEY);
+      if (storedTn) {
+        try {
+          const list = JSON.parse(storedTn);
+          if (Array.isArray(list)) {
+            const filtered = list.filter((n: any) => Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week4'));
+            localStorage.setItem(LOCAL_CUSTOM_TOMORROW_KEY, JSON.stringify(filtered));
+          }
+        } catch {}
+      }
+
+      // Unblock deleted IDs for week 4 so newly entered items are visible
+      const DELETED_TN_KEY = 'nile_deleted_tomorrow_note_ids_v3';
+      const storedDel = localStorage.getItem(DELETED_TN_KEY);
+      if (storedDel) {
+        try {
+          const list = JSON.parse(storedDel);
+          if (Array.isArray(list)) {
+            const filtered = list.filter((id: string) => !id.includes('w4') && !id.includes('week4') && !id.includes('week-4'));
+            localStorage.setItem(DELETED_TN_KEY, JSON.stringify(filtered));
+          }
+        } catch {}
+      }
+    }
+
+    // 2. Call backend endpoint
+    const response = await fetch('/api/supabase/delete-tomorrow-week4', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const resJson = await response.json();
+
+    // 3. Update Supabase if configured
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('classwork').delete().eq('week', 4).like('id', 'tomorrow-%');
+      } catch {}
+    }
+
+    // Dispatch custom events to notify all components to reload their tomorrow notes!
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('nile-tomorrow-notes-updated'));
+      window.dispatchEvent(new CustomEvent('supabase_data_seeded'));
+    }
+
+    return {
+      success: true,
+      message: resJson.message || 'تم مسح جميع ملاحظات وتنبيهات التومارو للأسبوع الرابع بنجاح!'
+    };
+  } catch (err: any) {
+    console.error('Error during deleteWeek4TomorrowData:', err);
+    return {
+      success: false,
+      message: `خطأ أثناء الحذف: ${err.message || 'خطأ غير معروف'}`
+    };
+  }
+}
+
 // =============================================================================
 // Materials & PDF Cloud Storage Functions (Supabase Storage + Database)
 // =============================================================================

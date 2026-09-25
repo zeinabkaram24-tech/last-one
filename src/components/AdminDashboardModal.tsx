@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Shield,
   ArrowRight,
@@ -52,9 +52,10 @@ import {
   deleteClasswork,
   deleteHomework,
   deleteWeek3Data,
+  deleteWeek4TomorrowData,
   removeDeletedPlannerItemId,
 } from '../lib/supabase';
-import { saveTomorrowNotes, saveDeletedTomorrowNoteId, getSemanticKey, notifyTomorrowNotesListeners, removeDeletedTomorrowNoteId } from '../utils/tomorrowNotesStorage';
+import { saveTomorrowNotes, saveDeletedTomorrowNoteId, getSemanticKey, notifyTomorrowNotesListeners, removeDeletedTomorrowNoteId, WEEK3_SPECIAL_NOTES } from '../utils/tomorrowNotesStorage';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_CLASSWORK, ALL_LINK_AND_WEEK2_HOMEWORK, WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { fileToBase64, extractTextFromPdf } from '../utils/pdfExtractor';
@@ -66,6 +67,9 @@ interface AdminDashboardModalProps {
   onPlanUpdated?: (block?: number, week?: number) => void;
   isAdminEditMode: boolean;
   onToggleAdminEditMode: (enabled: boolean) => void;
+  currentBlock?: number;
+  currentWeek?: number;
+  currentClass?: ClassId;
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
@@ -74,6 +78,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   onPlanUpdated,
   isAdminEditMode,
   onToggleAdminEditMode,
+  currentBlock = 1,
+  currentWeek = 4,
+  currentClass = 'ALL',
 }) => {
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -81,7 +88,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
   // Materials Upload Form State
   const [materialUploadMode, setMaterialUploadMode] = useState<'pdf' | 'link'>('pdf');
-  const [targetBlock, setTargetBlock] = useState<number>(1);
+  const [targetBlock, setTargetBlock] = useState<number>(currentBlock || 1);
   const [targetSection, setTargetSection] = useState<string>('Main sheet');
   const [targetClass, setTargetClass] = useState<ClassId | 'ALL'>('ALL');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -90,8 +97,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
   // Weekly Plan Upload State (Set to true by default so all controls are immediately visible!)
   const [showPlanUploadForm, setShowPlanUploadForm] = useState(true);
-  const [planBlock, setPlanBlock] = useState<number>(1);
-  const [planWeek, setPlanWeek] = useState<number>(2);
+  const [planBlock, setPlanBlock] = useState<number>(currentBlock || 1);
+  const [planWeek, setPlanWeek] = useState<number>(currentWeek || 4);
   const [planClass, setPlanClass] = useState<ClassId | 'ALL'>('ALL');
   const [planFile, setPlanFile] = useState<File | null>(null);
   const [planTextInput, setPlanTextInput] = useState<string>('');
@@ -107,6 +114,14 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [isPublishingPlan, setIsPublishingPlan] = useState(false);
   const [previewTab, setPreviewTab] = useState<'classwork' | 'homework' | 'tomorrow'>('classwork');
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
+
+  // Synchronize when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      if (currentBlock) setPlanBlock(currentBlock);
+      if (currentWeek) setPlanWeek(currentWeek);
+    }
+  }, [isOpen, currentBlock, currentWeek]);
 
   // Editing state for parsed weekly plan before publishing
   const [editingItemType, setEditingItemType] = useState<'classwork' | 'homework' | 'tomorrow' | null>(null);
@@ -235,9 +250,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const handleDeleteItem = async (type: 'classwork' | 'homework' | 'tomorrow', index: number) => {
-    if (!parsedResult) return;
+    const currentParsed = parsedResult || { classwork: [], homework: [], tomorrowNotes: [] };
     if (type === 'classwork') {
-      const item = parsedResult.classwork[index];
+      const item = currentParsed.classwork[index];
       if (item?.id) {
         await deleteClasswork(item.id);
         await fetch('/api/planner-data/delete', {
@@ -247,12 +262,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         }).catch(() => {});
       }
       setParsedResult({
-        ...parsedResult,
-        classwork: parsedResult.classwork.filter((_, i) => i !== index),
+        ...currentParsed,
+        classwork: currentParsed.classwork.filter((_, i) => i !== index),
       });
       if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
     } else if (type === 'homework') {
-      const item = parsedResult.homework[index];
+      const item = currentParsed.homework[index];
       if (item?.id) {
         await deleteHomework(item.id);
         await fetch('/api/planner-data/delete', {
@@ -262,12 +277,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         }).catch(() => {});
       }
       setParsedResult({
-        ...parsedResult,
-        homework: parsedResult.homework.filter((_, i) => i !== index),
+        ...currentParsed,
+        homework: currentParsed.homework.filter((_, i) => i !== index),
       });
       if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
     } else if (type === 'tomorrow') {
-      const item = parsedResult.tomorrowNotes[index];
+      const item = currentParsed.tomorrowNotes[index];
       if (item) {
         const itemIds = [
           item.id,
@@ -286,8 +301,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         }).catch(() => {});
       }
       setParsedResult({
-        ...parsedResult,
-        tomorrowNotes: parsedResult.tomorrowNotes.filter((_, i) => i !== index),
+        ...currentParsed,
+        tomorrowNotes: currentParsed.tomorrowNotes.filter((_, i) => i !== index),
       });
       notifyTomorrowNotesListeners();
       if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
@@ -295,7 +310,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const handleSaveModalItem = async () => {
-    if (!parsedResult || !editingItemType) return;
+    if (!editingItemType) return;
+    const currentParsed = parsedResult || { classwork: [], homework: [], tomorrowNotes: [] };
 
     let finalPdfUrl = formPdfUrl;
 
@@ -330,7 +346,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       const entry: ClassworkEntry = {
         id: isAddingNewItem || editingItemIndex === null
           ? `cw-manual-${Date.now()}`
-          : parsedResult.classwork[editingItemIndex]?.id || `cw-manual-${Date.now()}`,
+          : currentParsed.classwork[editingItemIndex]?.id || `cw-manual-${Date.now()}`,
         classId: formClassId as any,
         day: formDay as any,
         period: Number(formPeriod) || 1,
@@ -349,15 +365,15 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       // Persist immediately to Supabase and local storage
       await upsertClasswork(entry);
 
-      if (isAddingNewItem) {
+      if (isAddingNewItem || editingItemIndex === null) {
         setParsedResult({
-          ...parsedResult,
-          classwork: [entry, ...parsedResult.classwork],
+          ...currentParsed,
+          classwork: [entry, ...currentParsed.classwork],
         });
-      } else if (editingItemIndex !== null) {
+      } else {
         setParsedResult({
-          ...parsedResult,
-          classwork: parsedResult.classwork.map((c, i) => (i === editingItemIndex ? entry : c)),
+          ...currentParsed,
+          classwork: currentParsed.classwork.map((c, i) => (i === editingItemIndex ? entry : c)),
         });
       }
       if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
@@ -365,7 +381,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       const entry: HomeworkEntry = {
         id: isAddingNewItem || editingItemIndex === null
           ? `hw-manual-${Date.now()}`
-          : parsedResult.homework[editingItemIndex]?.id || `hw-manual-${Date.now()}`,
+          : currentParsed.homework[editingItemIndex]?.id || `hw-manual-${Date.now()}`,
         classId: formClassId as any,
         assignedDay: formDay as any,
         dueDay: formDueDay as any,
@@ -385,15 +401,15 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       // Persist immediately to Supabase and local storage
       await upsertHomework(entry);
 
-      if (isAddingNewItem) {
+      if (isAddingNewItem || editingItemIndex === null) {
         setParsedResult({
-          ...parsedResult,
-          homework: [entry, ...parsedResult.homework],
+          ...currentParsed,
+          homework: [entry, ...currentParsed.homework],
         });
-      } else if (editingItemIndex !== null) {
+      } else {
         setParsedResult({
-          ...parsedResult,
-          homework: parsedResult.homework.map((h, i) => (i === editingItemIndex ? entry : h)),
+          ...currentParsed,
+          homework: currentParsed.homework.map((h, i) => (i === editingItemIndex ? entry : h)),
         });
       }
       if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
@@ -401,7 +417,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       const entry: TomorrowSpecialNote = {
         id: isAddingNewItem || editingItemIndex === null
           ? `note-manual-${Date.now()}`
-          : parsedResult.tomorrowNotes[editingItemIndex]?.id || `note-manual-${Date.now()}`,
+          : currentParsed.tomorrowNotes[editingItemIndex]?.id || `note-manual-${Date.now()}`,
         classId: formClassId as any,
         targetDay: formDay as any,
         subject: formSubject as any,
@@ -422,15 +438,15 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       await saveTomorrowNotes(planBlock, planWeek, [entry], 'merge');
       notifyTomorrowNotesListeners();
 
-      if (isAddingNewItem) {
+      if (isAddingNewItem || editingItemIndex === null) {
         setParsedResult({
-          ...parsedResult,
-          tomorrowNotes: [entry, ...parsedResult.tomorrowNotes],
+          ...currentParsed,
+          tomorrowNotes: [entry, ...currentParsed.tomorrowNotes],
         });
-      } else if (editingItemIndex !== null) {
+      } else {
         setParsedResult({
-          ...parsedResult,
-          tomorrowNotes: parsedResult.tomorrowNotes.map((n, i) => (i === editingItemIndex ? entry : n)),
+          ...currentParsed,
+          tomorrowNotes: currentParsed.tomorrowNotes.map((n, i) => (i === editingItemIndex ? entry : n)),
         });
       }
       if (onPlanUpdated) await onPlanUpdated(planBlock, planWeek);
@@ -451,6 +467,25 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const planFileInputRef = useRef<HTMLInputElement>(null);
 
   const [deletedHistory, setDeletedHistory] = useState<any[]>([]);
+
+  // Dynamically filtered items based on selected class filter (planClass)
+  const displayClasswork = useMemo(() => {
+    return (parsedResult?.classwork || []).filter(
+      (c: any) => planClass === 'ALL' || (c.class_id || c.classId) === planClass
+    );
+  }, [parsedResult?.classwork, planClass]);
+
+  const displayHomework = useMemo(() => {
+    return (parsedResult?.homework || []).filter(
+      (h: any) => planClass === 'ALL' || (h.class_id || h.classId) === planClass
+    );
+  }, [parsedResult?.homework, planClass]);
+
+  const displayTomorrow = useMemo(() => {
+    return (parsedResult?.tomorrowNotes || []).filter(
+      (n: any) => planClass === 'ALL' || (n.class_id || n.classId) === planClass
+    );
+  }, [parsedResult?.tomorrowNotes, planClass]);
 
   // Load recently deleted history
   const fetchDeletedHistory = async () => {
@@ -555,12 +590,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             (n: any) => Number(n.block || 1) === b && Number(n.week || 1) === w
           );
 
-          if (planClass !== 'ALL') {
-            fc = fc.filter((c: any) => (c.class_id || c.classId) === planClass);
-            fh = fh.filter((h: any) => (h.class_id || h.classId) === planClass);
-            ft = ft.filter((n: any) => (n.class_id || n.classId) === planClass);
-          }
-
           setParsedResult({
             classwork: fc,
             homework: fh,
@@ -587,9 +616,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         try {
           const localCw = getLocalCustomClasswork();
           const localHw = getLocalCustomHomework();
-          const defaultCw = w === 2 ? WEEK2_CLASSWORK : INITIAL_CLASSWORK;
-          const defaultHw = w === 2 ? ALL_LINK_AND_WEEK2_HOMEWORK : INITIAL_HOMEWORK;
-          const defaultTn = w === 2 ? WEEK2_SPECIAL_NOTES : SPECIAL_TEACHER_NOTES;
+          const defaultCw = w === 2 ? WEEK2_CLASSWORK : w === 1 ? INITIAL_CLASSWORK : [];
+          const defaultHw = w === 2 ? ALL_LINK_AND_WEEK2_HOMEWORK : w === 1 ? INITIAL_HOMEWORK : [];
+          const defaultTn = w === 2 ? WEEK2_SPECIAL_NOTES : w === 3 ? WEEK3_SPECIAL_NOTES : w === 1 ? SPECIAL_TEACHER_NOTES : [];
 
           const cwMap = new Map<string, any>();
           defaultCw.forEach((c) => cwMap.set(c.id, c));
@@ -606,7 +635,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       };
       loadActiveDataQuietly();
     }
-  }, [isOpen, planBlock, planWeek, planClass]);
+  }, [isOpen, planBlock, planWeek]);
 
   useEffect(() => {
     const unsubscribe = subscribeToMaterials(() => {
@@ -858,9 +887,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         // Assemble from local storage and default baseline plan
         const localCw = getLocalCustomClasswork();
         const localHw = getLocalCustomHomework();
-        const defaultCw = w === 2 ? WEEK2_CLASSWORK : INITIAL_CLASSWORK;
-        const defaultHw = w === 2 ? ALL_LINK_AND_WEEK2_HOMEWORK : INITIAL_HOMEWORK;
-        const defaultTn = w === 2 ? WEEK2_SPECIAL_NOTES : SPECIAL_TEACHER_NOTES;
+        const defaultCw = w === 2 ? WEEK2_CLASSWORK : w === 1 ? INITIAL_CLASSWORK : [];
+        const defaultHw = w === 2 ? ALL_LINK_AND_WEEK2_HOMEWORK : w === 1 ? INITIAL_HOMEWORK : [];
+        const defaultTn = w === 2 ? WEEK2_SPECIAL_NOTES : w === 3 ? WEEK3_SPECIAL_NOTES : w === 1 ? SPECIAL_TEACHER_NOTES : [];
 
         const cwMap = new Map<string, any>();
         defaultCw.forEach((c) => cwMap.set(c.id, c));
@@ -1065,6 +1094,31 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  const yes = window.confirm('هل أنتِ متأكدة من رغبتكِ في مسح أي ملاحظات أو تنبيهات موجودة في التومارو للأسبوع الرابع (Week 4) لكل الفصول للبدء من أول وجديد؟');
+                  if (!yes) return;
+                  try {
+                    setIsPublishingPlan(true);
+                    const res = await deleteWeek4TomorrowData();
+                    alert(res.message);
+                    if (res.success) {
+                      window.location.reload();
+                    }
+                  } catch (err: any) {
+                    alert('حدث خطأ أثناء الحذف: ' + err.message);
+                  } finally {
+                    setIsPublishingPlan(false);
+                  }
+                }}
+                disabled={isPublishingPlan}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-colors cursor-pointer shadow-2xs"
+                title="مسح تنبيهات وملاحظات التومارو للأسبوع الرابع لكل الفصول"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-amber-600" />
+                <span>🧹 مسح تومارو ويك 4</span>
+              </button>
               <button
                 type="button"
                 onClick={async () => {
@@ -1418,13 +1472,13 @@ Sunday:
                         {/* Summary Badges */}
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
-                            📘 {parsedResult.classwork.length} أعمال فصل (CW)
+                            📘 {displayClasswork.length} أعمال فصل (CW)
                           </span>
                           <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">
-                            📝 {parsedResult.homework.length} واجب (HW)
+                            📝 {displayHomework.length} واجب (HW)
                           </span>
                           <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
-                            🎒 {parsedResult.tomorrowNotes.length} ملاحظات وكويزات (Tomorrow)
+                            🎒 {displayTomorrow.length} ملاحظات وكويزات (Tomorrow)
                           </span>
                         </div>
                       </div>
@@ -1440,7 +1494,7 @@ Sunday:
                               : 'border-transparent text-slate-500 hover:text-slate-800'
                           }`}
                         >
-                          أعمال الفصل (Classwork) ({parsedResult.classwork.length})
+                          أعمال الفصل (Classwork) ({displayClasswork.length})
                         </button>
                         <button
                           type="button"
@@ -1451,7 +1505,7 @@ Sunday:
                               : 'border-transparent text-slate-500 hover:text-slate-800'
                           }`}
                         >
-                          الواجبات المنزلية (Homework) ({parsedResult.homework.length})
+                          الواجبات المنزلية (Homework) ({displayHomework.length})
                         </button>
                         <button
                           type="button"
@@ -1462,7 +1516,7 @@ Sunday:
                               : 'border-transparent text-slate-500 hover:text-slate-800'
                           }`}
                         >
-                          تنبيهات الغد والكويزات (Tomorrow) ({parsedResult.tomorrowNotes.length})
+                          تنبيهات الغد والكويزات (Tomorrow) ({displayTomorrow.length})
                         </button>
                       </div>
 
@@ -1485,12 +1539,12 @@ Sunday:
                               </button>
                             </div>
 
-                            {parsedResult.classwork.length === 0 ? (
+                            {displayClasswork.length === 0 ? (
                               <p className="text-center py-4 text-slate-400 font-bold">
                                 لا توجد حصص مستخرجة حالياً. يمكنك الضغط على "+ إضافة حصة" لإضافة حصص يدوياً.
                               </p>
                             ) : (
-                              parsedResult.classwork.map((cw, idx) => (
+                              displayClasswork.map((cw, idx) => (
                                 <div
                                   key={`preview-cw-${cw.id || 'item'}-${idx}`}
                                   className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/10 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
@@ -1574,12 +1628,12 @@ Sunday:
                               </button>
                             </div>
 
-                            {parsedResult.homework.length === 0 ? (
+                            {displayHomework.length === 0 ? (
                               <p className="text-center py-4 text-slate-400 font-bold">
                                 لا توجد واجبات مستخرجة حالياً. يمكنك الضغط على "+ إضافة واجب" لإضافة واجب يدوياً.
                               </p>
                             ) : (
-                              parsedResult.homework.map((hw, idx) => (
+                              displayHomework.map((hw, idx) => (
                                 <div
                                   key={`preview-hw-${hw.id || 'item'}-${idx}`}
                                   className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-amber-300 hover:bg-amber-50/10 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
@@ -1666,12 +1720,12 @@ Sunday:
                               </button>
                             </div>
 
-                            {parsedResult.tomorrowNotes.length === 0 ? (
+                            {displayTomorrow.length === 0 ? (
                               <p className="text-center py-4 text-slate-400 font-bold">
                                 لا توجد تنبيهات مستخرجة حالياً. يمكنك الضغط على "+ إضافة تنبيه" لإضافة تنبيهات يدوياً.
                               </p>
                             ) : (
-                              parsedResult.tomorrowNotes.map((note, idx) => {
+                              displayTomorrow.map((note, idx) => {
                                 const isQuiz =
                                   note.isQuiz ||
                                   note.categoryType === 'quiz' ||

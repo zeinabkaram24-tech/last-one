@@ -1267,6 +1267,9 @@ export default function App() {
         onClose={() => setIsAdminDashboardOpen(false)}
         isAdminEditMode={isAdminEditMode}
         onToggleAdminEditMode={setIsAdminEditMode}
+        currentBlock={currentBlock}
+        currentWeek={currentWeek}
+        currentClass={currentClass}
         onPlanUpdated={async (updatedBlock?: number, updatedWeek?: number) => {
           try {
             if (updatedBlock) {

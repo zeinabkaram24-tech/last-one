@@ -115,6 +115,16 @@ function cleanAndParseJson(text: string): any {
   return JSON.parse(clean);
 }
 
+function cleanArabicSpelling(text: string | undefined | null): string {
+  if (!text) return '';
+  return text
+    .replace(/عالمات الترقيم/g, 'علامات الترقيم')
+    .replace(/علمات الترقيم/g, 'علامات الترقيم')
+    .replace(/علاقات الترقيم/g, 'علامات الترقيم')
+    .replace(/عالمات/g, 'علامات')
+    .replace(/علمات/g, 'علامات');
+}
+
 // Post-process response to align with timetable
 function postProcessParsedPlan(
   raw: { classwork?: any[]; homework?: any[]; tomorrowNotes?: any[] },
@@ -168,14 +178,15 @@ function postProcessParsedPlan(
       }
 
       if (testRegex.test(combinedCwText)) {
+        const cleanTitleText = cleanArabicSpelling(item.title);
         rawTomorrowNotes.push({
           classId,
           targetDay: slot.day,
           subject: normSub,
-          note: item.title || 'Classroom Quiz / Test',
-          arabicNote: (item.title && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(item.title))
-            ? item.title
-            : `اختبار / Quiz في مادة ${normSub}: ${item.title || ''}`,
+          note: cleanTitleText || 'Classroom Quiz / Test',
+          arabicNote: (cleanTitleText && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(cleanTitleText))
+            ? cleanTitleText
+            : `اختبار / Quiz في مادة ${normSub}: ${cleanTitleText || ''}`,
           isQuiz: true,
           categoryType: 'quiz',
           block,
@@ -189,8 +200,8 @@ function postProcessParsedPlan(
         day: slot.day,
         period: slot.period,
         subject: normSub,
-        title: item.title || `${normSub} Lesson`,
-        details: item.details || undefined,
+        title: cleanArabicSpelling(item.title || `${normSub} Lesson`),
+        details: item.details ? cleanArabicSpelling(item.details) : undefined,
         pages: normalizePageNumbers(item.pages),
         completed: false,
         block,
@@ -243,14 +254,15 @@ function postProcessParsedPlan(
       const isTestHw = testRegex.test(combinedHwText);
       if (isTestHw) {
         const targetDay = dueDay || assignedDay;
+        const cleanTaskText = cleanArabicSpelling(item.task);
         rawTomorrowNotes.push({
           classId,
           targetDay,
           subject: normSub,
-          note: item.task || 'Homework Quiz / Test Reminder',
-          arabicNote: (item.task && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(item.task))
-            ? item.task
-            : `اختبار / Quiz (${normSub}): ${item.task || ''}`,
+          note: cleanTaskText || 'Homework Quiz / Test Reminder',
+          arabicNote: (cleanTaskText && /اختبار|امتحان|كويز|إملاء|تسميع|تقييم/.test(cleanTaskText))
+            ? cleanTaskText
+            : `اختبار / Quiz (${normSub}): ${cleanTaskText || ''}`,
           isQuiz: true,
           categoryType: 'quiz',
           block,
@@ -264,8 +276,8 @@ function postProcessParsedPlan(
         assignedDay,
         dueDay,
         subject: normSub,
-        task: item.task || 'Homework task',
-        details: item.details || undefined,
+        task: cleanArabicSpelling(item.task || 'Homework task'),
+        details: item.details ? cleanArabicSpelling(item.details) : undefined,
         pages: normalizePageNumbers(item.pages),
         completed: false,
         priority: (item.priority === 'urgent' || isTestHw) ? 'urgent' : 'normal',
@@ -309,9 +321,9 @@ function postProcessParsedPlan(
         classId,
         targetDay,
         subject: normSub,
-        note: item.note || rawNote,
-        arabicNote: item.arabicNote || rawNote,
-        bagItem: bagItem || undefined,
+        note: cleanArabicSpelling(item.note || rawNote),
+        arabicNote: cleanArabicSpelling(item.arabicNote || rawNote),
+        bagItem: bagItem ? cleanArabicSpelling(bagItem) : undefined,
         isQuiz,
         categoryType: isQuiz ? 'quiz' : 'note',
         block,
@@ -347,9 +359,9 @@ export async function parseWeeklyPlanWithAI(
 ): Promise<ParsedWeeklyPlanResponse> {
   // 1. Attempt server-side API proxy first. This is secure and works perfectly outside AI Studio
   try {
-    console.log('[Smart Reader] Attempting server-side parsing API with a 12-second timeout...');
+    console.log('[Smart Reader] Attempting server-side parsing API with a 55-second timeout...');
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const timeoutId = setTimeout(() => controller.abort(), 55000);
 
     let response: Response;
     if (pdfFile) {

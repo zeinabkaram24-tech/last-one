@@ -153,8 +153,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       n.id?.startsWith('custom-') ||
       n.id?.startsWith('tn-') ||
       n.id?.startsWith('tomorrow-') ||
+      n.id?.startsWith('note-') ||
       n.id?.startsWith('manual-') ||
-      (n as any).isCustomOrExplicit
+      (n as any).isCustomOrExplicit ||
+      currentWeek >= 4
     ) {
       return false;
     }
@@ -474,6 +476,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   };
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
+    if (currentWeek === 4 || effectiveWeek === 4) {
+      return [];
+    }
+
     const base =
       currentBlock === 1 && (currentWeek === 3 || effectiveWeek === 3)
         ? WEEK3_SPECIAL_NOTES.filter(
@@ -499,6 +505,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     let isMounted = true;
     const loadNotes = async () => {
       try {
+        if (currentWeek === 4) {
+          if (isMounted) setTomorrowNotes([]);
+          return;
+        }
+
         const [deletedIds, notes] = await Promise.all([
           getDeletedTomorrowNoteIds(),
           getTomorrowNotesForDay(
@@ -704,6 +715,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Automatically link and synchronize tests/quizzes/dictations and homework submissions from homework and classwork
   const linkedAlerts = useMemo<TomorrowSpecialNote[]>(() => {
+    if (currentWeek === 4) {
+      return [];
+    }
+
     const alerts: TomorrowSpecialNote[] = [];
     const checkText = (txt: string) => {
       return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((txt || '').toLowerCase());
@@ -805,6 +820,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Merge tomorrowNotes with linkedAlerts without duplicates
   const mergedNotes = useMemo<TomorrowSpecialNote[]>(() => {
+    if (currentWeek === 4) {
+      return [];
+    }
+
     const map = new Map<string, TomorrowSpecialNote>();
     let hasArabicDictation = false;
 
