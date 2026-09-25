@@ -124,14 +124,6 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         return false;
       }
 
-      // Strict user rule: "حذف باسكال الإملاء من class B وclass C يوم الاثنين."
-      if (selectedDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
-        const fullText = ((h.task || '') + ' ' + (h.details || '') + ' ' + (h.subject || '')).toLowerCase();
-        if (fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع')) {
-          return false;
-        }
-      }
-
       return true;
     }
   );

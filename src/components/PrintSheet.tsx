@@ -48,13 +48,6 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
         (h.week || 1) === currentWeek;
       if (!isMatch) return false;
 
-      // Filter out Monday dictation due for Class B and C
-      if (tomorrowDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
-        const fullText = ((h.task || '') + ' ' + (h.details || '')).toLowerCase();
-        if (fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن') || fullText.includes('تسميع')) {
-          return false;
-        }
-      }
       return true;
     }
   );
