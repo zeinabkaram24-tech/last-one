@@ -978,7 +978,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2B-Sunday-p2-math",
@@ -992,7 +993,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2C-Sunday-p3-math",
@@ -1006,7 +1008,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2A-Monday-p8-math",
@@ -1020,7 +1023,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2B-Monday-p3-math",
@@ -1034,7 +1038,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2C-Monday-p8-math",
@@ -1048,7 +1053,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2A-Tuesday-p3-math",
@@ -1062,7 +1068,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2B-Tuesday-p1-math",
@@ -1076,7 +1083,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2C-Tuesday-p3-math",
@@ -1090,7 +1098,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2A-Wednesday-p1-math",
@@ -1104,7 +1113,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2B-Wednesday-p5-math",
@@ -1118,7 +1128,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2C-Wednesday-p7-math",
@@ -1132,7 +1143,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2A-Thursday-p1-math",
@@ -1146,7 +1158,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2B-Thursday-p4-math",
@@ -1160,7 +1173,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2C-Thursday-p6-math",
@@ -1174,7 +1188,8 @@
       "completed": false,
       "block": 1,
       "week": 3,
-      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2A-Tuesday-p1-french",
@@ -1187,7 +1202,8 @@
       "pages": "Pages 20 & 21",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Wednesday-p4-french",
@@ -1200,7 +1216,8 @@
       "pages": "Pages 24 & 25",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Thursday-p2-french",
@@ -1213,7 +1230,8 @@
       "pages": "Passe-passe (8 & 9)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2B-Sunday-p5-french",
@@ -1226,7 +1244,8 @@
       "pages": "Pages 20 & 21",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Monday-p7-french",
@@ -1239,7 +1258,8 @@
       "pages": "Pages 24 & 25",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Tuesday-p4-french",
@@ -1252,7 +1272,8 @@
       "pages": "Passe-passe (8 & 9)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2C-Sunday-p8-french",
@@ -1265,7 +1286,8 @@
       "pages": "Pages 20 & 21",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Tuesday-p5-french",
@@ -1278,7 +1300,8 @@
       "pages": "Pages 24 & 25",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Wednesday-p2-french",
@@ -1291,7 +1314,8 @@
       "pages": "Passe-passe (8 & 9)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w2-G2A-Tuesday-p8-8xmie",
@@ -1304,7 +1328,8 @@
       "pages": "ص 27-28",
       "completed": false,
       "block": 1,
-      "week": 2
+      "week": 2,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w2-G2B-Tuesday-p5-8lc3p",
@@ -1317,7 +1342,8 @@
       "pages": "ص 27-28",
       "completed": false,
       "block": 1,
-      "week": 2
+      "week": 2,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w2-G2C-Tuesday-p7-24ysp",
@@ -1330,7 +1356,8 @@
       "pages": "ص 27-28",
       "completed": false,
       "block": 1,
-      "week": 2
+      "week": 2,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w2-G2A-Thursday-p5-l0rc9",
@@ -1343,7 +1370,8 @@
       "pages": "ص 31-32",
       "completed": false,
       "block": 1,
-      "week": 2
+      "week": 2,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w2-G2B-Thursday-p1-erxsr",
@@ -1356,7 +1384,8 @@
       "pages": "ص 31-32",
       "completed": false,
       "block": 1,
-      "week": 2
+      "week": 2,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w2-G2C-Thursday-p8-3sfpt",
@@ -1369,7 +1398,8 @@
       "pages": "ص 31-32",
       "completed": false,
       "block": 1,
-      "week": 2
+      "week": 2,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w4-G2A-Sunday-p7-e10ha",
@@ -1681,9 +1711,9 @@
       "day": "Wednesday",
       "period": 8,
       "subject": "Social Studies",
-      "title": "الدرس الثاني: منزلي ومدرستي",
-      "details": "مجتمع الصف الدراسي الثاني — التعرف على كيفية الحفاظ على المنزل والمدرسة والممتلكات العامة والخاصة.",
-      "pages": "الصفحة 23",
+      "title": "الدرس الثالث: اختلافنا سر تميزنا",
+      "details": "مجتمع الصف الدراسي الثاني — مناقشة وقبول الاختلافات بين البشر والصفات التي تميز كل منا عن الآخر.",
+      "pages": "من الصفحة 24 - 29",
       "completed": false,
       "block": 1,
       "week": 4,
@@ -1723,9 +1753,9 @@
       "day": "Monday",
       "period": 4,
       "subject": "Social Studies",
-      "title": "الدرس الثالث: اختلافنا سر تميزنا",
-      "details": "مجتمع الصف الدراسي الثاني — مناقشة وقبول الاختلافات بين البشر والصفات التي تميز كل منا عن الآخر.",
-      "pages": "من الصفحة 24 - 29",
+      "title": "الدرس الثاني: منزلي ومدرستي",
+      "details": "مجتمع الصف الدراسي الثاني — التعرف على كيفية الحفاظ على المنزل والمدرسة والممتلكات العامة والخاصة.",
+      "pages": "الصفحة 23",
       "completed": false,
       "block": 1,
       "week": 4,
@@ -2291,7 +2321,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2B-Sun-math-82-83",
@@ -2305,7 +2336,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2C-Sun-math-82-83",
@@ -2319,7 +2351,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2A-Mon-math-88",
@@ -2333,7 +2366,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2B-Mon-math-88",
@@ -2347,7 +2381,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2C-Mon-math-88",
@@ -2361,7 +2396,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2A-Tue-math-89",
@@ -2375,7 +2411,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2B-Tue-math-89",
@@ -2389,7 +2426,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2C-Tue-math-89",
@@ -2403,7 +2441,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2A-Wed-math-89-money",
@@ -2417,7 +2456,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2B-Wed-math-89-money",
@@ -2431,7 +2471,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2C-Wed-math-89-money",
@@ -2445,7 +2486,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2A-Wed-math-test-alert",
@@ -2459,7 +2501,8 @@
       "completed": false,
       "priority": "urgent",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2B-Wed-math-test-alert",
@@ -2473,7 +2516,8 @@
       "completed": false,
       "priority": "urgent",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2C-Wed-math-test-alert",
@@ -2487,7 +2531,8 @@
       "completed": false,
       "priority": "urgent",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2A-Tue-french-quiz-alert",
@@ -2501,7 +2546,8 @@
       "completed": false,
       "priority": "urgent",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-Thu-french-page26",
@@ -2515,7 +2561,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2B-Sun-french-quiz-alert",
@@ -2529,7 +2576,8 @@
       "completed": false,
       "priority": "urgent",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-Tue-french-page26",
@@ -2543,7 +2591,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2C-Mon-french-quiz-alert",
@@ -2557,7 +2606,8 @@
       "completed": false,
       "priority": "urgent",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-Wed-french-page26",
@@ -2571,7 +2621,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w2-G2A-Sat-english-dictation",
@@ -2681,7 +2732,8 @@
       "priority": "normal",
       "block": 1,
       "week": 2,
-      "isLinkTask": false
+      "isLinkTask": false,
+      "class_id": "ALL"
     },
     {
       "id": "hw-b1-w4-G2A-arabic-Sunday-bqo91",
@@ -2789,7 +2841,7 @@
       "id": "hw-b1-w4-G2B-social-wednesday",
       "classId": "G2B",
       "assignedDay": "Wednesday",
-      "dueDay": "Sunday",
+      "dueDay": "Monday",
       "subject": "Social Studies",
       "task": "حل واجب الدراسات الاجتماعية الأسبوعي (يُرسل يوم الأربعاء ويُستلم أول حصة في الأسبوع القادم)",
       "details": "يرجى حل التدريبات المطلوبة في كراسة الأنشطة أو الأوراق المرسلة من المعلمة.",
@@ -2814,6 +2866,57 @@
       "block": 1,
       "week": 4,
       "class_id": "G2C"
+    },
+    {
+      "id": "hw-b1-w4-G2A-social-saturday-extra",
+      "classId": "G2A",
+      "assignedDay": "Saturday",
+      "dueDay": "Sunday",
+      "subject": "Social Studies",
+      "task": "تسليم هوم ورك السوشيال + حل ورقة العمل الإضافية (Social Studies Extra)",
+      "details": "يرجى تسليم واجب الدراسات الاجتماعية وحل ورقة العمل الإضافية المرفقة.",
+      "pages": "ورقة العمل الإضافية المرفقة (Extra)",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 4,
+      "linkUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
+      "class_id": "G2A"
+    },
+    {
+      "id": "hw-b1-w4-G2C-social-saturday-extra",
+      "classId": "G2C",
+      "assignedDay": "Saturday",
+      "dueDay": "Sunday",
+      "subject": "Social Studies",
+      "task": "تسليم هوم ورك السوشيال + حل ورقة العمل الإضافية (Social Studies Extra)",
+      "details": "يرجى تسليم واجب الدراسات الاجتماعية وحل ورقة العمل الإضافية المرفقة.",
+      "pages": "ورقة العمل الإضافية المرفقة (Extra)",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 4,
+      "linkUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
+      "class_id": "G2C"
+    },
+    {
+      "id": "hw-b1-w4-G2B-social-sunday-extra",
+      "classId": "G2B",
+      "assignedDay": "Sunday",
+      "dueDay": "Monday",
+      "subject": "Social Studies",
+      "task": "تسليم هوم ورك السوشيال + حل ورقة العمل الإضافية (Social Studies Extra)",
+      "details": "يرجى تسليم واجب الدراسات الاجتماعية وحل ورقة العمل الإضافية المرفقة.",
+      "pages": "ورقة العمل الإضافية المرفقة (Extra)",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 4,
+      "linkUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
+      "class_id": "G2B"
     }
   ],
   "tomorrowNotes": [
@@ -3526,6 +3629,9 @@
     "hw-b1-w3-G2A-science-page38"
   ],
   "deletedPlannerItemIds": [
-    "homework-1789888292062"
-  ]
+    "homework-1789888292062",
+    "cw-manual-1790283681153",
+    "cw-manual-1790283685366"
+  ],
+  "deletedHistory": []
 }

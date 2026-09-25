@@ -768,7 +768,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
-          pdfUrl: (isG2ASocialNewSheet || (selectedDay === 'Thursday' && h.subject === 'Social Studies')) ? undefined : h.pdfUrl,
+          pdfUrl: (isG2ASocialNewSheet || (selectedDay === 'Thursday' && h.subject === 'Social Studies')) ? undefined : (h.pdfUrl || h.linkUrl),
         });
       }
     });

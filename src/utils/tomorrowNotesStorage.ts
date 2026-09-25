@@ -115,7 +115,9 @@ export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'شيت واجب الدراسات الاجتماعية 1',
     isQuiz: false,
     block: 1,
-    week: 3
+    week: 3,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+    linkUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf'
   },
   // G2A Science Tools on Thursday (Wednesday Tomorrow)
   {
@@ -160,7 +162,25 @@ export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'شيت واجب الدراسات الاجتماعية 1',
     isQuiz: false,
     block: 1,
-    week: 3
+    week: 3,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+    linkUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf'
+  },
+  // G2B Social Studies submission on Monday (Sunday Tomorrow)
+  {
+    id: 'tn-b1-w3-G2B-Sun-social-submit',
+    classId: 'G2B',
+    targetDay: 'Monday',
+    subject: 'Social Studies',
+    note: 'تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 1)',
+    arabicNote: 'تذكير لكلاس B: تسليم واجب الدراسات الاجتماعية غداً الاثنين (شيت الواجب المنزلي 1)',
+    bagItem: 'شيت واجب الدراسات الاجتماعية (Home Work 1)',
+    isQuiz: false,
+    categoryType: 'note',
+    block: 1,
+    week: 3,
+    pdfUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
+    linkUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf'
   }
 ];
 
