@@ -550,31 +550,35 @@ app.post('/api/planner-data', (req, res) => {
       const targetWeek = Number(week) || Number(normalizedCw[0]?.week) || Number(normalizedHw[0]?.week) || Number(normalizedTn[0]?.week) || 1;
       const targetClassId = classId || normalizedCw[0]?.classId || normalizedHw[0]?.classId || normalizedTn[0]?.classId || 'ALL';
 
-      // 1. Remove ALL old classwork for this block, week, and target class
-      current.classwork = current.classwork.filter((cw: any) => {
-        const isTargetBlockWeek = Number(cw.block || 1) === targetBlock && Number(cw.week || 1) === targetWeek;
-        const isTargetClass = targetClassId === 'ALL' || cw.classId === targetClassId || cw.class_id === targetClassId;
-        return !(isTargetBlockWeek && isTargetClass);
-      });
+      // 1. If classwork is provided, replace classwork for this block, week, and target class
+      if (Array.isArray(classwork)) {
+        current.classwork = current.classwork.filter((cw: any) => {
+          const isTargetBlockWeek = Number(cw.block || 1) === targetBlock && Number(cw.week || 1) === targetWeek;
+          const isTargetClass = targetClassId === 'ALL' || cw.classId === targetClassId || cw.class_id === targetClassId;
+          return !(isTargetBlockWeek && isTargetClass);
+        });
+        current.classwork.push(...normalizedCw);
+      }
 
-      // 2. Remove ALL old homework for this block, week, and target class
-      current.homework = current.homework.filter((hw: any) => {
-        const isTargetBlockWeek = Number(hw.block || 1) === targetBlock && Number(hw.week || 1) === targetWeek;
-        const isTargetClass = targetClassId === 'ALL' || hw.classId === targetClassId || hw.class_id === targetClassId;
-        return !(isTargetBlockWeek && isTargetClass);
-      });
+      // 2. If homework is provided, replace homework for this block, week, and target class
+      if (Array.isArray(homework)) {
+        current.homework = current.homework.filter((hw: any) => {
+          const isTargetBlockWeek = Number(hw.block || 1) === targetBlock && Number(hw.week || 1) === targetWeek;
+          const isTargetClass = targetClassId === 'ALL' || hw.classId === targetClassId || hw.class_id === targetClassId;
+          return !(isTargetBlockWeek && isTargetClass);
+        });
+        current.homework.push(...normalizedHw);
+      }
 
-      // 3. Remove ALL old tomorrowNotes for this block, week, and target class
-      current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => {
-        const isTargetBlockWeek = Number(n.block || 1) === targetBlock && Number(n.week || 1) === targetWeek;
-        const isTargetClass = targetClassId === 'ALL' || n.classId === targetClassId || n.class_id === targetClassId;
-        return !(isTargetBlockWeek && isTargetClass);
-      });
-
-      // 4. Append new ones
-      current.classwork.push(...normalizedCw);
-      current.homework.push(...normalizedHw);
-      current.tomorrowNotes.push(...normalizedTn);
+      // 3. If tomorrowNotes is provided, replace tomorrowNotes for this block, week, and target class
+      if (Array.isArray(tomorrowNotes)) {
+        current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => {
+          const isTargetBlockWeek = Number(n.block || 1) === targetBlock && Number(n.week || 1) === targetWeek;
+          const isTargetClass = targetClassId === 'ALL' || n.classId === targetClassId || n.class_id === targetClassId;
+          return !(isTargetBlockWeek && isTargetClass);
+        });
+        current.tomorrowNotes.push(...normalizedTn);
+      }
     } else {
       // Merge mode
       if (Array.isArray(classwork)) {

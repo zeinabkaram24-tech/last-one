@@ -1047,6 +1047,22 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         console.warn('Failed to sync plan data to server:', serverSyncErr);
       }
 
+      // 5. Trigger cloud sync from local planner data to ensure Supabase tables are 100% updated
+      try {
+        await fetch('/api/supabase/seed-from-local', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch (seedErr) {
+        console.warn('Seed sync notice:', seedErr);
+      }
+
+      // 6. Broadcast event so other components and open windows refresh
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('supabase_data_seeded'));
+        window.dispatchEvent(new Event('planner_updated'));
+      }
+
       setSuccessMessage(
         importMode === 'replace'
           ? `🎉 تم بنجاح استبدال الخطة القديمة ونشر الخطة الأسبوعية الجديدة (Block ${planBlock} — Week ${planWeek}) وتحديث التطبيق لجميع الطلاب والأجهزة!`
@@ -1057,7 +1073,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       if (planFileInputRef.current) planFileInputRef.current.value = '';
 
       if (onPlanUpdated) {
-        onPlanUpdated(planBlock, planWeek);
+        await onPlanUpdated(planBlock, planWeek);
       }
     } catch (err: any) {
       console.error('Error publishing plan:', err);
@@ -1469,17 +1485,39 @@ Sunday:
                           </p>
                         </div>
 
-                        {/* Summary Badges */}
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
-                            📘 {displayClasswork.length} أعمال فصل (CW)
-                          </span>
-                          <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">
-                            📝 {displayHomework.length} واجب (HW)
-                          </span>
-                          <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
-                            🎒 {displayTomorrow.length} ملاحظات وكويزات (Tomorrow)
-                          </span>
+                        {/* Summary Badges & Quick Action */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                              📘 {displayClasswork.length} أعمال فصل (CW)
+                            </span>
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">
+                              📝 {displayHomework.length} واجب (HW)
+                            </span>
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
+                              🎒 {displayTomorrow.length} ملاحظات وكويزات (Tomorrow)
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={isPublishingPlan}
+                            onClick={handlePublishPlan}
+                            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 transition-all cursor-pointer shadow-xs shrink-0"
+                            title="نشر فوري لجميع الأجهزة والمتصفحات والموبايل"
+                          >
+                            {isPublishingPlan ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>جاري النشر...</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>☁️ نشر للسحابة والموبايل الآن</span>
+                              </>
+                            )}
+                          </button>
                         </div>
                       </div>
 
