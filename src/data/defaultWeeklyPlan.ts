@@ -7,81 +7,6 @@ import {
 
 export type { TomorrowSpecialNote };
 
-export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
-  {
-    classId: 'G2A',
-    targetDay: 'Wednesday',
-    subject: 'Social Studies',
-    note: 'Social Studies homework sheet will be sent today.',
-    arabicNote: 'سيتم إرسال شيت الواجب المنزلي لمادة الدراسات الاجتماعية اليوم الأربعاء.',
-    bagItem: 'شيت الواجب المنزلي للدراسات',
-    isQuiz: false,
-    categoryType: 'note',
-    block: 1,
-    week: 4
-  },
-  {
-    classId: 'G2B',
-    targetDay: 'Wednesday',
-    subject: 'Social Studies',
-    note: 'Social Studies homework sheet will be sent today.',
-    arabicNote: 'سيتم إرسال شيت الواجب المنزلي لمادة الدراسات الاجتماعية اليوم الأربعاء.',
-    bagItem: 'شيت الواجب المنزلي للدراسات',
-    isQuiz: false,
-    categoryType: 'note',
-    block: 1,
-    week: 4
-  },
-  {
-    classId: 'G2C',
-    targetDay: 'Wednesday',
-    subject: 'Social Studies',
-    note: 'Social Studies homework sheet will be sent today.',
-    arabicNote: 'سيتم إرسال شيت الواجب المنزلي لمادة الدراسات الاجتماعية اليوم الأربعاء.',
-    bagItem: 'شيت الواجب المنزلي للدراسات',
-    isQuiz: false,
-    categoryType: 'note',
-    block: 1,
-    week: 4
-  },
-  {
-    classId: 'G2A',
-    targetDay: 'Sunday',
-    subject: 'Social Studies',
-    note: 'Social Studies homework sheet submission.',
-    arabicNote: 'تنبيه هام: يرجى تسليم شيت الواجب المنزلي لدرس (منزلي ومدرستي) في أول حصة اليوم الأحد.',
-    bagItem: 'شيت الواجب المنزلي للدراسات المحلول',
-    isQuiz: false,
-    categoryType: 'note',
-    block: 1,
-    week: 4
-  },
-  {
-    classId: 'G2C',
-    targetDay: 'Sunday',
-    subject: 'Social Studies',
-    note: 'Social Studies homework sheet submission.',
-    arabicNote: 'تنبيه هام: يرجى تسليم شيت الواجب المنزلي لدرس (منزلي ومدرستي) في أول حصة اليوم الأحد.',
-    bagItem: 'شيت الواجب المنزلي للدراسات المحلول',
-    isQuiz: false,
-    categoryType: 'note',
-    block: 1,
-    week: 4
-  },
-  {
-    classId: 'G2B',
-    targetDay: 'Monday',
-    subject: 'Social Studies',
-    note: 'Social Studies homework sheet submission.',
-    arabicNote: 'تنبيه هام: يرجى تسليم شيت الواجب المنزلي لدرس (منزلي ومدرستي) في أول حصة اليوم الإثنين.',
-    bagItem: 'شيت الواجب المنزلي للدراسات المحلول',
-    isQuiz: false,
-    categoryType: 'note',
-    block: 1,
-    week: 4
-  }
-];
-
 export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
   // --- PREPARING FOR MONDAY (Packed on Sunday night) ---
   {
@@ -255,7 +180,6 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     arabicNote: 'إملاء أسبوعي في كراسة الطالب',
   },
   ...WEEK2_SPECIAL_NOTES,
-  ...WEEK4_SPECIAL_NOTES,
 ];
 
 // -------------------------------------------------------------
@@ -1590,8 +1514,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2A"
   },
   {
@@ -1606,8 +1528,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2B"
   },
   {
@@ -1622,8 +1542,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2C"
   },
   {
@@ -1638,8 +1556,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2A"
   },
   {
@@ -1654,8 +1570,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2B"
   },
   {
@@ -1670,8 +1584,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2C"
   },
   {
@@ -1686,8 +1598,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2A"
   },
   {
@@ -1702,8 +1612,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2B"
   },
   {
@@ -1718,8 +1626,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2C"
   },
   {
@@ -1734,8 +1640,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2A"
   },
   {
@@ -1750,8 +1654,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2B"
   },
   {
@@ -1766,8 +1668,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     block: 1,
     week: 4,
-    linkUrl: "video",
-    linkTitle: "فيديو تعليمي 🔗",
     class_id: "G2C"
   },
   {
@@ -1811,147 +1711,6 @@ export const WEEK4_ARABIC_CLASSWORK: ClassworkEntry[] = [
     block: 1,
     week: 4,
     class_id: "G2C"
-  }
-];
-
-// =============================================================
-// BLOCK 1 - WEEK 4 SOCIAL STUDIES CLASSWORK DEFINITION
-// =============================================================
-export const WEEK4_SOCIAL_STUDIES_CLASSWORK: ClassworkEntry[] = [
-  {
-    id: "cw-b1-w4-G2A-Sunday-p2-soc1",
-    classId: "G2A",
-    day: "Sunday",
-    period: 2,
-    subject: "Social Studies",
-    title: "الدرس الأول: سلوكي يحافظ على بيئتي + تسليم واجب الدراسات الاجتماعية (شيت 2)",
-    details: "الدرس الأول: سلوكي يحافظ على بيئتي - التعرف على السلوكيات الإيجابية والمسؤولة التي تساعد في الحفاظ على البيئة المحيطة بنا وحمايتها من التلوث، بالإضافة لتسليم واستلام شيت الواجب المنزلي 2 - إضافي.",
-    pages: "من الصفحة 21 - 22 + شيت 2",
-    completed: false,
-    block: 1,
-    week: 4,
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf",
-    linkUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-2.html",
-    linkTitle: "شيت الواجب التفاعلي (رقم 2)",
-    class_id: "G2A"
-  },
-  {
-    id: "cw-b1-w4-G2C-Sunday-p7-soc1",
-    classId: "G2C",
-    day: "Sunday",
-    period: 7,
-    subject: "Social Studies",
-    title: "الدرس الأول: سلوكي يحافظ على بيئتي + تسليم واجب الدراسات الاجتماعية (شيت 2)",
-    details: "الدرس الأول: سلوكي يحافظ على بيئتي - التعرف على السلوكيات الإيجابية والمسؤولة التي تساعد في الحفاظ على البيئة المحيطة بنا وحمايتها من التلوث، بالإضافة لتسليم واستلام شيت الواجب المنزلي 2 - إضافي.",
-    pages: "من الصفحة 21 - 22 + شيت 2",
-    completed: false,
-    block: 1,
-    week: 4,
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf",
-    linkUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-2.html",
-    linkTitle: "شيت الواجب التفاعلي (رقم 2)",
-    class_id: "G2C"
-  },
-  {
-    id: "cw-b1-w4-G2B-Monday-p1-soc1",
-    classId: "G2B",
-    day: "Monday",
-    period: 1,
-    subject: "Social Studies",
-    title: "الدرس الأول: سلوكي يحافظ على بيئتي + تسليم واجب الدراسات الاجتماعية (شيت 2)",
-    details: "الدرس الأول: سلوكي يحافظ على بيئتي - التعرف على السلوكيات الإيجابية والمسؤولة التي تساعد في الحفاظ على البيئة المحيطة بنا وحمايتها من التلوث، بالإضافة لتسليم واستلام شيت الواجب المنزلي 2 - إضافي.",
-    pages: "من الصفحة 21 - 22 + شيت 2",
-    completed: false,
-    block: 1,
-    week: 4,
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf",
-    linkUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-2.html",
-    linkTitle: "شيت الواجب التفاعلي (رقم 2)",
-    class_id: "G2B"
-  },
-  {
-    id: "cw-b1-w4-G2C-Wednesday-p8-soc2",
-    classId: "G2C",
-    day: "Wednesday",
-    period: 8,
-    subject: "Social Studies",
-    title: "الدرس الثاني: منزلي ومدرستي",
-    details: "الدرس الثاني: منزلي ومدرستي - فهم أهمية الحفاظ على نظافة وترتيب المنزل والمدرسة والالتزام بالقواعد والواجبات داخل كل منهما.",
-    pages: "الصفحة 23",
-    completed: false,
-    block: 1,
-    week: 4,
-    class_id: "G2C"
-  },
-  {
-    id: "cw-b1-w4-G2B-Wednesday-p2-soc2",
-    classId: "G2B",
-    day: "Wednesday",
-    period: 2,
-    subject: "Social Studies",
-    title: "الدرس الثاني: منزلي ومدرستي",
-    details: "الدرس الثاني: منزلي ومدرستي - فهم أهمية الحفاظ على نظافة وترتيب المنزل والمدرسة والالتزام بالقواعد والواجبات داخل كل منهما.",
-    pages: "الصفحة 23",
-    completed: false,
-    block: 1,
-    week: 4,
-    class_id: "G2B"
-  },
-  {
-    id: "cw-b1-w4-G2A-Wednesday-p5-soc2",
-    classId: "G2A",
-    day: "Wednesday",
-    period: 5,
-    subject: "Social Studies",
-    title: "الدرس الثاني: منزلي ومدرستي",
-    details: "الدرس الثاني: منزلي ومدرستي - فهم أهمية الحفاظ على نظافة وترتيب المنزل والمدرسة والالتزام بالقواعد والواجبات داخل كل منهما.",
-    pages: "الصفحة 23",
-    completed: false,
-    block: 1,
-    week: 4,
-    class_id: "G2A"
-  },
-  {
-    id: "cw-b1-w4-G2C-Thursday-p4-soc3",
-    classId: "G2C",
-    day: "Thursday",
-    period: 4,
-    subject: "Social Studies",
-    title: "الدرس الثالث: اختلافنا سر تميزنا",
-    details: "الدرس الثالث: اختلافنا سر تميزنا - تقدير الاختلاف بين البشر في المظهر والقدرات والاهتمامات، وفهم أن الاختلاف يكمل بعضنا البعض وهو سر تميز مجتمعنا.",
-    pages: "من الصفحة 24 - 29",
-    completed: false,
-    block: 1,
-    week: 4,
-    class_id: "G2C"
-  },
-  {
-    id: "cw-b1-w4-G2B-Thursday-p3-soc3",
-    classId: "G2B",
-    day: "Thursday",
-    period: 3,
-    subject: "Social Studies",
-    title: "الدرس الثالث: اختلافنا سر تميزنا",
-    details: "الدرس الثالث: اختلافنا سر تميزنا - تقدير الاختلاف بين البشر في المظهر والقدرات والاهتمامات، وفهم أن الاختلاف يكمل بعضنا البعض وهو سر تميز مجتمعنا.",
-    pages: "من الصفحة 24 - 29",
-    completed: false,
-    block: 1,
-    week: 4,
-    class_id: "G2B"
-  },
-  {
-    id: "cw-b1-w4-G2A-Thursday-p7-soc3",
-    classId: "G2A",
-    day: "Thursday",
-    period: 7,
-    subject: "Social Studies",
-    title: "الدرس الثالث: اختلافنا سر تميزنا",
-    details: "الدرس الثالث: اختلافنا سر تميزنا - تقدير الاختلاف بين البشر في المظهر والقدرات والاهتمامات، وفهم أن الاختلاف يكمل بعضنا البعض وهو سر تميز مجتمعنا.",
-    pages: "من الصفحة 24 - 29",
-    completed: false,
-    block: 1,
-    week: 4,
-    class_id: "G2A"
   }
 ];
 
@@ -2496,8 +2255,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
   // =============================================================
   // BLOCK 1 - WEEK 4 OFFICIAL ARABIC CLASSWORK (ONLY ARABIC)
   // =============================================================
-  ...WEEK4_ARABIC_CLASSWORK,
-  ...WEEK4_SOCIAL_STUDIES_CLASSWORK
+  ...WEEK4_ARABIC_CLASSWORK
 ];
 
 
@@ -2971,63 +2729,6 @@ export const WEEK4_ARABIC_HOMEWORK: HomeworkEntry[] = [
   }
 ];
 
-// =============================================================
-// BLOCK 1 - WEEK 4 SOCIAL STUDIES HOMEWORK DEFINITION
-// =============================================================
-export const WEEK4_SOCIAL_STUDIES_HOMEWORK: HomeworkEntry[] = [
-  {
-    id: "hw-b1-w4-G2A-social-Wed-1",
-    classId: "G2A",
-    assignedDay: "Wednesday",
-    dueDay: "Sunday",
-    subject: "Social Studies",
-    task: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)",
-    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت الواجب المنزلي 2 - إضافي) ص 1-2.",
-    pages: "شيت الواجب المنزلي 2 - إضافي (ص 1-2)",
-    completed: false,
-    priority: "normal",
-    block: 1,
-    week: 4,
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf",
-    linkUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-2.html",
-    class_id: "G2A"
-  },
-  {
-    id: "hw-b1-w4-G2B-social-Wed-1",
-    classId: "G2B",
-    assignedDay: "Wednesday",
-    dueDay: "Monday",
-    subject: "Social Studies",
-    task: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)",
-    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت الواجب المنزلي 2 - إضافي) ص 1-2.",
-    pages: "شيت الواجب المنزلي 2 - إضافي (ص 1-2)",
-    completed: false,
-    priority: "normal",
-    block: 1,
-    week: 4,
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf",
-    linkUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-2.html",
-    class_id: "G2B"
-  },
-  {
-    id: "hw-b1-w4-G2C-social-Wed-1",
-    classId: "G2C",
-    assignedDay: "Wednesday",
-    dueDay: "Sunday",
-    subject: "Social Studies",
-    task: "تسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي 2 - إضافي)",
-    details: "حل ومراجعة شيت الدراسات الاجتماعية المرفق (شيت الواجب المنزلي 2 - إضافي) ص 1-2.",
-    pages: "شيت الواجب المنزلي 2 - إضافي (ص 1-2)",
-    completed: false,
-    priority: "normal",
-    block: 1,
-    week: 4,
-    pdfUrl: "/materials/SocialStudies-Grade2-B1-W3-U1-HomeWork2 - Extra- (Minia).pdf",
-    linkUrl: "/materials/SocialStudies-Grade2-B1-HomeWork-2.html",
-    class_id: "G2C"
-  }
-];
-
 export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...WEEK1_BASE_HOMEWORK.map((h) => ({ ...h, block: 1, week: 1 })),
   ...ALL_LINK_AND_WEEK2_HOMEWORK.map((h) => ({ ...h, block: 1, week: 2 })),
@@ -3474,8 +3175,7 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   // =============================================================
   // BLOCK 1 - WEEK 4 OFFICIAL ARABIC HOMEWORK (ONLY ARABIC)
   // =============================================================
-  ...WEEK4_ARABIC_HOMEWORK,
-  ...WEEK4_SOCIAL_STUDIES_HOMEWORK
+  ...WEEK4_ARABIC_HOMEWORK
 ];
 
 
