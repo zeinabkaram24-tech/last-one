@@ -80,15 +80,15 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   const timetablePeriods: GroupedPeriodSlot[] = [];
   for (const slot of rawTimetablePeriods) {
-    const existing = timetablePeriods.find((p) => p.subject === slot.subject);
-    if (existing) {
-      existing.periods.push(slot.period);
-      existing.periods.sort((a, b) => a - b);
-      const startTime = existing.time.split(' - ')[0];
+    const lastSlot = timetablePeriods[timetablePeriods.length - 1];
+    // Only group contiguous consecutive periods of the exact same subject (e.g. P1 & P2)
+    if (lastSlot && lastSlot.subject === slot.subject && lastSlot.periods[lastSlot.periods.length - 1] === slot.period - 1) {
+      lastSlot.periods.push(slot.period);
+      const startTime = lastSlot.time.split(' - ')[0];
       const endTime = slot.time.split(' - ')[1] || slot.time;
-      existing.time = `${startTime} - ${endTime}`;
-      existing.periodLabel = existing.periods.map((p) => `P${p}`).join(' & ');
-      existing.slotId = `tt-${selectedDay}-${existing.periodLabel}-${existing.subject}-${existing.periods.join('_')}`;
+      lastSlot.time = `${startTime} - ${endTime}`;
+      lastSlot.periodLabel = lastSlot.periods.map((p) => `P${p}`).join(' & ');
+      lastSlot.slotId = `tt-${selectedDay}-${lastSlot.periodLabel}-${lastSlot.subject}-${lastSlot.periods.join('_')}`;
     } else {
       timetablePeriods.push({
         slotId: `tt-${selectedDay}-P${slot.period}-${slot.subject}-${slot.period}`,
@@ -191,9 +191,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     }
   }
 
-  // Also include any standalone custom classwork entries for this class/day/block/week that weren't in standard timetable
-  const additionalCustomEntries = availableClasswork.filter((c) => !matchedCwIds.has(c.id));
-  const additionalSlots: GroupedPeriodSlot[] = additionalCustomEntries.map((c, i) => ({
+  // Only include user-added custom entries if they were explicitly created during live edit mode
+  const customOnlyEntries = availableClasswork.filter((c) => !matchedCwIds.has(c.id) && c.id?.startsWith('custom-user-'));
+  const additionalSlots: GroupedPeriodSlot[] = customOnlyEntries.map((c, i) => ({
     slotId: `custom-${selectedDay}-${c.id || i}`,
     periods: [c.period || 1],
     periodLabel: `P${c.period || 1}`,
