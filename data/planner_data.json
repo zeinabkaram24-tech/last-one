@@ -1331,7 +1331,8 @@
       "pages": "كراسة الرسم والألوان",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Sunday-p2-social-studies",
@@ -1344,7 +1345,8 @@
       "pages": "كتاب الدراسات الاجتماعية ص 10-12",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Sunday-p3-ict",
@@ -1357,7 +1359,8 @@
       "pages": "ICT Booklet / Computer Lab Session",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Sunday-p4-pe",
@@ -1370,7 +1373,8 @@
       "pages": "الزي الرياضي المدرسي والحذاء الرياضي",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Sunday-p5-english",
@@ -1383,7 +1387,8 @@
       "pages": "Pupil's Book p. 12-14, Activity Book p. 10",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Sunday-p6-english",
@@ -1396,7 +1401,8 @@
       "pages": "Pupil's Book p. 15-16",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Sunday-p7-arabic",
@@ -1409,7 +1415,8 @@
       "pages": "كتاب اللغة العربية ص 28-30",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Sunday-p8-mathematics",
@@ -1422,7 +1429,8 @@
       "pages": "Math Learner's Book p. 24-25, Practice Sheet 1 (Main)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Monday-p1-arabic",
@@ -1435,7 +1443,8 @@
       "pages": "كتاب اللغة العربية ص 31-33",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Monday-p2-arabic",
@@ -1448,7 +1457,8 @@
       "pages": "كتاب اللغة العربية ص 34-35",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Monday-p3-english",
@@ -1461,7 +1471,8 @@
       "pages": "Pupil's Book p. 17-18, Copybook",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Monday-p4-english",
@@ -1474,7 +1485,8 @@
       "pages": "Storybook, Picture Dictionary",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Monday-p5-pe",
@@ -1487,7 +1499,8 @@
       "pages": "أدوات التربية الرياضية بالملعب",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Monday-p6-mathematics",
@@ -1500,7 +1513,8 @@
       "pages": "Math Practice Book p. 26-27, Grid Notebook",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Monday-p7-science",
@@ -1513,7 +1527,8 @@
       "pages": "Learner's Book p. 34-36 — Required: Colored sheets, glue, colored pencils, crochet yarn",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Monday-p8-music",
@@ -1526,7 +1541,8 @@
       "pages": "غرفة الموسيقى المدرسية",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Tuesday-p1-french",
@@ -1541,7 +1557,8 @@
       "block": 1,
       "week": 3,
       "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
-      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄"
+      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄",
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Tuesday-p2-religion",
@@ -1554,7 +1571,8 @@
       "pages": "كتاب التربية الدينية ص 18-20",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Tuesday-p3-mathematics",
@@ -1567,7 +1585,8 @@
       "pages": "Math Learner's Book p. 28-29",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Tuesday-p4-mathematics",
@@ -1580,7 +1599,8 @@
       "pages": "Math Learner's Book p. 30-31, Math Sheet 1",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Tuesday-p5-science",
@@ -1593,7 +1613,8 @@
       "pages": "Learner's Book p. 37 — Required: Colored sheets, glue, colored pencils, crochet yarn",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Tuesday-p6-ict",
@@ -1606,7 +1627,8 @@
       "pages": "Computer Lab Activities",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Tuesday-p7-english",
@@ -1619,7 +1641,8 @@
       "pages": "Activity Book p. 15-16",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Tuesday-p8-arabic",
@@ -1632,7 +1655,8 @@
       "pages": "المكتبة المدرسية - قصة قصيرة",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Wednesday-p1-mathematics",
@@ -1645,7 +1669,8 @@
       "pages": "Math Practice Book p. 32-33",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Wednesday-p2-ict",
@@ -1658,7 +1683,8 @@
       "pages": "ICT Booklet / Computer Lab Session",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Wednesday-p3-religion",
@@ -1671,7 +1697,8 @@
       "pages": "كتاب التربية الدينية ص 21-23",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Wednesday-p4-french",
@@ -1686,7 +1713,8 @@
       "block": 1,
       "week": 3,
       "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
-      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄"
+      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄",
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Wednesday-p5-social-studies",
@@ -1699,7 +1727,8 @@
       "pages": "كتاب الدراسات الاجتماعية ص 13-14",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Wednesday-p6-arabic",
@@ -1712,7 +1741,8 @@
       "pages": "كراسة الإملاء ص 15",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Wednesday-p7-english",
@@ -1725,7 +1755,8 @@
       "pages": "Pupil's Book p. 19-20",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Wednesday-p8-english",
@@ -1738,7 +1769,8 @@
       "pages": "Activity Book p. 17-18",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Thursday-p1-arts",
@@ -1751,7 +1783,8 @@
       "pages": "الأوراق الملونة ومقص آمن وصمغ",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Thursday-p2-mathematics",
@@ -1764,7 +1797,8 @@
       "pages": "Math Learner's Book p. 24-25, Practice Sheet 1 (Main)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Thursday-p3-french",
@@ -1779,7 +1813,8 @@
       "block": 1,
       "week": 3,
       "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
-      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄"
+      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄",
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Thursday-p4-music",
@@ -1792,7 +1827,8 @@
       "pages": "غرفة الموسيقى المدرسية",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Thursday-p5-arabic",
@@ -1805,7 +1841,8 @@
       "pages": "أوراق العمل الإثرائية",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Thursday-p6-english",
@@ -1818,7 +1855,8 @@
       "pages": "Copybook (Dictation Sheet 1)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Thursday-p7-social-studies",
@@ -1831,7 +1869,8 @@
       "pages": "كتاب الدراسات الاجتماعية ص 15-16",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2A-Thursday-p8-science",
@@ -1844,7 +1883,8 @@
       "pages": "Learner's Book p. 39 — Required: Colored sheets, glue, colored pencils, crochet yarn",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "cw-b1-w3-G2B-Sunday-p1-english",
@@ -1857,7 +1897,8 @@
       "pages": "Pupil's Book p. 12-14, Activity Book p. 10",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Sunday-p2-science",
@@ -1870,7 +1911,8 @@
       "pages": "Learner's Book p. 34-36 — Required: Colored sheets, glue, colored pencils, crochet yarn",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Sunday-p3-mathematics",
@@ -1883,7 +1925,8 @@
       "pages": "Math Learner's Book p. 24-25, Practice Sheet 1 (Main)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Sunday-p4-arabic",
@@ -1896,7 +1939,8 @@
       "pages": "كتاب اللغة العربية ص 28-30",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Sunday-p5-french",
@@ -1911,7 +1955,8 @@
       "block": 1,
       "week": 3,
       "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
-      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄"
+      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄",
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Sunday-p6-arts",
@@ -1924,7 +1969,8 @@
       "pages": "كراسة الرسم والألوان",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Sunday-p7-ict",
@@ -1937,7 +1983,8 @@
       "pages": "ICT Booklet / Computer Lab Session",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Sunday-p8-music",
@@ -1950,7 +1997,8 @@
       "pages": "غرفة الموسيقى المدرسية",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Monday-p1-social-studies",
@@ -1963,7 +2011,8 @@
       "pages": "كتاب الدراسات الاجتماعية ص 10-12",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Monday-p2-pe",
@@ -1976,7 +2025,8 @@
       "pages": "الزي الرياضي المدرسي والحذاء الرياضي",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Monday-p3-mathematics",
@@ -1989,7 +2039,8 @@
       "pages": "Math Practice Book p. 26-27, Grid Notebook",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Monday-p4-mathematics",
@@ -2002,7 +2053,8 @@
       "pages": "Math Learner's Book p. 28-29",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Monday-p5-english",
@@ -2015,7 +2067,8 @@
       "pages": "Pupil's Book p. 15-16",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Monday-p6-english",
@@ -2028,7 +2081,8 @@
       "pages": "Pupil's Book p. 17-18, Copybook",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Monday-p7-french",
@@ -2043,7 +2097,8 @@
       "block": 1,
       "week": 3,
       "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
-      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄"
+      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄",
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Monday-p8-arabic",
@@ -2056,7 +2111,8 @@
       "pages": "كتاب اللغة العربية ص 31-33",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Tuesday-p1-mathematics",
@@ -2069,7 +2125,8 @@
       "pages": "Math Learner's Book p. 30-31, Math Sheet 1",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Tuesday-p2-religion",
@@ -2082,7 +2139,8 @@
       "pages": "كتاب التربية الدينية ص 18-20",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Tuesday-p3-ict",
@@ -2095,7 +2153,8 @@
       "pages": "Computer Lab Activities",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Tuesday-p4-arabic",
@@ -2108,7 +2167,8 @@
       "pages": "كتاب اللغة العربية ص 34-35",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Tuesday-p5-arabic",
@@ -2121,7 +2181,8 @@
       "pages": "المكتبة المدرسية - قصة قصيرة",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Tuesday-p6-music",
@@ -2134,7 +2195,8 @@
       "pages": "غرفة الموسيقى المدرسية",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Tuesday-p7-english",
@@ -2147,7 +2209,8 @@
       "pages": "Storybook, Picture Dictionary",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Tuesday-p8-english",
@@ -2160,7 +2223,8 @@
       "pages": "Activity Book p. 15-16",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Wednesday-p1-english",
@@ -2173,7 +2237,8 @@
       "pages": "Pupil's Book p. 19-20",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Wednesday-p2-arts",
@@ -2186,7 +2251,8 @@
       "pages": "الأوراق الملونة ومقص آمن وصمغ",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Wednesday-p3-religion",
@@ -2199,7 +2265,8 @@
       "pages": "كتاب التربية الدينية ص 21-23",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Wednesday-p4-arabic",
@@ -2212,7 +2279,8 @@
       "pages": "كراسة الإملاء ص 15",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Wednesday-p5-mathematics",
@@ -2225,7 +2293,8 @@
       "pages": "Math Practice Book p. 32-33",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Wednesday-p6-pe",
@@ -2238,7 +2307,8 @@
       "pages": "أدوات التربية الرياضية بالملعب",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Wednesday-p7-science",
@@ -2251,7 +2321,8 @@
       "pages": "Learner's Book p. 37 — Required: Colored sheets, glue, colored pencils, crochet yarn",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Wednesday-p8-social-studies",
@@ -2264,7 +2335,8 @@
       "pages": "كتاب الدراسات الاجتماعية ص 13-14",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Thursday-p1-ict",
@@ -2277,7 +2349,8 @@
       "pages": "ICT Booklet / Computer Lab Session",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Thursday-p2-social-studies",
@@ -2290,7 +2363,8 @@
       "pages": "كتاب الدراسات الاجتماعية ص 15-16",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Thursday-p3-english",
@@ -2303,7 +2377,8 @@
       "pages": "Activity Book p. 17-18",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Thursday-p4-english",
@@ -2316,7 +2391,8 @@
       "pages": "Copybook (Dictation Sheet 1)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Thursday-p5-french",
@@ -2331,7 +2407,8 @@
       "block": 1,
       "week": 3,
       "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
-      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄"
+      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄",
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Thursday-p6-mathematics",
@@ -2344,7 +2421,8 @@
       "pages": "Math Learner's Book p. 24-25, Practice Sheet 1 (Main)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Thursday-p7-science",
@@ -2357,7 +2435,8 @@
       "pages": "Learner's Book p. 39 — Required: Colored sheets, glue, colored pencils, crochet yarn",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2B-Thursday-p8-arabic",
@@ -2370,7 +2449,8 @@
       "pages": "أوراق العمل الإثرائية",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "cw-b1-w3-G2C-Sunday-p1-english",
@@ -2383,7 +2463,8 @@
       "pages": "Pupil's Book p. 12-14, Activity Book p. 10",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Sunday-p2-english",
@@ -2396,7 +2477,8 @@
       "pages": "Pupil's Book p. 15-16",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Sunday-p3-mathematics",
@@ -2409,7 +2491,8 @@
       "pages": "Math Learner's Book p. 24-25, Practice Sheet 1 (Main)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Sunday-p4-mathematics",
@@ -2422,7 +2505,8 @@
       "pages": "Math Practice Book p. 26-27, Grid Notebook",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Sunday-p5-science",
@@ -2435,7 +2519,8 @@
       "pages": "Learner's Book p. 34-36 — Required: Colored sheets, glue, colored pencils, crochet yarn",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Sunday-p6-arabic",
@@ -2448,7 +2533,8 @@
       "pages": "كتاب اللغة العربية ص 28-30",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Sunday-p7-social-studies",
@@ -2461,7 +2547,8 @@
       "pages": "كتاب الدراسات الاجتماعية ص 10-12",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Sunday-p8-french",
@@ -2476,7 +2563,8 @@
       "block": 1,
       "week": 3,
       "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
-      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄"
+      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄",
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Monday-p1-arabic",
@@ -2489,7 +2577,8 @@
       "pages": "كتاب اللغة العربية ص 31-33",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Monday-p2-arabic",
@@ -2502,7 +2591,8 @@
       "pages": "كتاب اللغة العربية ص 34-35",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Monday-p3-science",
@@ -2515,7 +2605,8 @@
       "pages": "Learner's Book p. 37 — Required: Colored sheets, glue, colored pencils, crochet yarn",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Monday-p4-social-studies",
@@ -2528,7 +2619,8 @@
       "pages": "كتاب الدراسات الاجتماعية ص 13-14",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Monday-p5-music",
@@ -2541,7 +2633,8 @@
       "pages": "غرفة الموسيقى المدرسية",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Monday-p6-english",
@@ -2554,7 +2647,8 @@
       "pages": "Pupil's Book p. 17-18, Copybook",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Monday-p7-ict",
@@ -2567,7 +2661,8 @@
       "pages": "ICT Booklet / Computer Lab Session",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Monday-p8-mathematics",
@@ -2580,7 +2675,8 @@
       "pages": "Math Learner's Book p. 28-29",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Tuesday-p1-ict",
@@ -2593,7 +2689,8 @@
       "pages": "Computer Lab Activities",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Tuesday-p2-religion",
@@ -2606,7 +2703,8 @@
       "pages": "كتاب التربية الدينية ص 18-20",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Tuesday-p3-mathematics",
@@ -2619,7 +2717,8 @@
       "pages": "Math Learner's Book p. 30-31, Math Sheet 1",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Tuesday-p4-english",
@@ -2632,7 +2731,8 @@
       "pages": "Storybook, Picture Dictionary",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Tuesday-p5-pe",
@@ -2645,7 +2745,8 @@
       "pages": "الزي الرياضي المدرسي والحذاء الرياضي",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Tuesday-p6-french",
@@ -2660,7 +2761,8 @@
       "block": 1,
       "week": 3,
       "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
-      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄"
+      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄",
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Tuesday-p7-arabic",
@@ -2673,7 +2775,8 @@
       "pages": "المكتبة المدرسية - قصة قصيرة",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Tuesday-p8-arts",
@@ -2686,7 +2789,8 @@
       "pages": "كراسة الرسم والألوان",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Wednesday-p1-social-studies",
@@ -2699,7 +2803,8 @@
       "pages": "كتاب الدراسات الاجتماعية ص 15-16",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Wednesday-p2-french",
@@ -2714,7 +2819,8 @@
       "block": 1,
       "week": 3,
       "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
-      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄"
+      "linkTitle": "شيت درس أفراد العائلة - Les membres de la famille 📄",
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Wednesday-p3-religion",
@@ -2727,7 +2833,8 @@
       "pages": "كتاب التربية الدينية ص 21-23",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Wednesday-p4-english",
@@ -2740,7 +2847,8 @@
       "pages": "Activity Book p. 15-16",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Wednesday-p5-english",
@@ -2753,7 +2861,8 @@
       "pages": "Pupil's Book p. 19-20",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Wednesday-p6-arabic",
@@ -2766,7 +2875,8 @@
       "pages": "كراسة الإملاء ص 15",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Wednesday-p7-mathematics",
@@ -2779,7 +2889,8 @@
       "pages": "Math Practice Book p. 32-33",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Wednesday-p8-music",
@@ -2792,7 +2903,8 @@
       "pages": "غرفة الموسيقى المدرسية",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Thursday-p1-science",
@@ -2805,7 +2917,8 @@
       "pages": "Learner's Book p. 39 — Required: Colored sheets, glue, colored pencils, crochet yarn",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Thursday-p2-ict",
@@ -2818,7 +2931,8 @@
       "pages": "ICT Booklet / Computer Lab Session",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Thursday-p3-english",
@@ -2831,7 +2945,8 @@
       "pages": "Activity Book p. 17-18",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Thursday-p4-english",
@@ -2844,7 +2959,8 @@
       "pages": "Copybook (Dictation Sheet 1)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Thursday-p5-pe",
@@ -2857,7 +2973,8 @@
       "pages": "أدوات التربية الرياضية بالملعب",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Thursday-p6-mathematics",
@@ -2870,7 +2987,8 @@
       "pages": "Math Learner's Book p. 24-25, Practice Sheet 1 (Main)",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Thursday-p7-arabic",
@@ -2883,7 +3001,8 @@
       "pages": "أوراق العمل الإثرائية",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "cw-b1-w3-G2C-Thursday-p8-arts",
@@ -2896,7 +3015,143 @@
       "pages": "الأوراق الملونة ومقص آمن وصمغ",
       "completed": false,
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
+    },
+    {
+      "id": "cw-b1-w4-G2B-Sunday-p2-sci",
+      "classId": "G2B",
+      "class_id": "G2B",
+      "day": "Sunday",
+      "period": 2,
+      "subject": "Science",
+      "title": "Unit 2: Plant life cycle",
+      "details": "Unit 2: Getting to know plants - Plant life cycle",
+      "pages": "كتاب الطالب",
+      "completed": false,
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
+    },
+    {
+      "id": "cw-b1-w4-G2C-Sunday-p5-sci",
+      "classId": "G2C",
+      "class_id": "G2C",
+      "day": "Sunday",
+      "period": 5,
+      "subject": "Science",
+      "title": "Unit 2: Plant life cycle",
+      "details": "Unit 2: Getting to know plants - Plant life cycle",
+      "pages": "كتاب الطالب",
+      "completed": false,
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
+    },
+    {
+      "id": "cw-b1-w4-G2A-Monday-p7-sci",
+      "classId": "G2A",
+      "class_id": "G2A",
+      "day": "Monday",
+      "period": 7,
+      "subject": "Science",
+      "title": "Unit 2: Plant life cycle",
+      "details": "Unit 2: Getting to know plants - Plant life cycle",
+      "pages": "كتاب الطالب",
+      "completed": false,
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
+    },
+    {
+      "id": "cw-b1-w4-G2C-Monday-p3-sci",
+      "classId": "G2C",
+      "class_id": "G2C",
+      "day": "Monday",
+      "period": 3,
+      "subject": "Science",
+      "title": "Unit 2: Plant habitats",
+      "details": "Unit 2: Getting to know plants - Plant habitats",
+      "pages": "كتاب الطالب",
+      "completed": false,
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
+    },
+    {
+      "id": "cw-b1-w4-G2A-Tuesday-p5-sci",
+      "classId": "G2A",
+      "class_id": "G2A",
+      "day": "Tuesday",
+      "period": 5,
+      "subject": "Science",
+      "title": "Unit 2: Plant habitats",
+      "details": "Unit 2: Getting to know plants - Plant habitats",
+      "pages": "كتاب الطالب",
+      "completed": false,
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
+    },
+    {
+      "id": "cw-b1-w4-G2B-Wednesday-p7-sci",
+      "classId": "G2B",
+      "class_id": "G2B",
+      "day": "Wednesday",
+      "period": 7,
+      "subject": "Science",
+      "title": "Unit 2: Plant habitats",
+      "details": "Unit 2: Getting to know plants - Plant habitats",
+      "pages": "كتاب الطالب",
+      "completed": false,
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
+    },
+    {
+      "id": "cw-b1-w4-G2A-Thursday-p8-sci",
+      "classId": "G2A",
+      "class_id": "G2A",
+      "day": "Thursday",
+      "period": 8,
+      "subject": "Science",
+      "title": "Unit 2: Sorting of plants",
+      "details": "Unit 2: Getting to know plants - Sorting of plants",
+      "pages": "كتاب الطالب",
+      "completed": false,
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
+    },
+    {
+      "id": "cw-b1-w4-G2B-Thursday-p7-sci",
+      "classId": "G2B",
+      "class_id": "G2B",
+      "day": "Thursday",
+      "period": 7,
+      "subject": "Science",
+      "title": "Unit 2: Sorting of plants",
+      "details": "Unit 2: Getting to know plants - Sorting of plants",
+      "pages": "كتاب الطالب",
+      "completed": false,
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
+    },
+    {
+      "id": "cw-b1-w4-G2C-Thursday-p1-sci",
+      "classId": "G2C",
+      "class_id": "G2C",
+      "day": "Thursday",
+      "period": 1,
+      "subject": "Science",
+      "title": "Unit 2: Sorting of plants",
+      "details": "Unit 2: Getting to know plants - Sorting of plants",
+      "pages": "كتاب الطالب",
+      "completed": false,
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
     }
   ],
   "homework": [
@@ -3839,7 +4094,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-eng-dictation-Monday",
@@ -3853,7 +4109,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-eng-dictation-Tuesday",
@@ -3867,7 +4124,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-eng-dictation-Wednesday",
@@ -3881,7 +4139,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-eng-dictation-Thursday",
@@ -3895,7 +4154,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-eng-act-tue",
@@ -3909,7 +4169,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-eng-act-thu",
@@ -3923,7 +4184,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-math-sun-p79",
@@ -3937,7 +4199,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-math-tue-pairs20",
@@ -3951,7 +4214,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-math-wed-p85",
@@ -3965,7 +4229,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-arabic-sun-nasheed",
@@ -3979,7 +4244,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-arabic-tue-p37",
@@ -3993,7 +4259,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-arabic-wed-imlaa",
@@ -4007,7 +4274,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-science-mon-p36",
@@ -4021,7 +4289,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-science-wed-p38",
@@ -4035,7 +4304,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-social-wed-sheet",
@@ -4050,7 +4320,8 @@
       "priority": "normal",
       "block": 1,
       "week": 3,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-french-p26",
@@ -4065,7 +4336,8 @@
       "priority": "normal",
       "block": 1,
       "week": 3,
-      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view"
+      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-french-quiz-rev",
@@ -4080,7 +4352,8 @@
       "priority": "urgent",
       "block": 1,
       "week": 3,
-      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view"
+      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2A-religion-tin",
@@ -4094,7 +4367,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2A"
     },
     {
       "id": "hw-b1-w3-G2B-eng-dictation-Sunday",
@@ -4108,7 +4382,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-eng-dictation-Monday",
@@ -4122,7 +4397,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-eng-dictation-Tuesday",
@@ -4136,7 +4412,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-eng-dictation-Wednesday",
@@ -4150,7 +4427,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-eng-dictation-Thursday",
@@ -4164,7 +4442,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-eng-act-tue",
@@ -4178,7 +4457,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-eng-act-thu",
@@ -4192,7 +4472,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-math-sun-p79",
@@ -4206,7 +4487,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-math-tue-pairs20",
@@ -4220,7 +4502,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-math-wed-p85",
@@ -4234,7 +4517,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-arabic-sun-nasheed",
@@ -4248,7 +4532,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-arabic-tue-p37",
@@ -4262,7 +4547,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-arabic-wed-imlaa",
@@ -4276,7 +4562,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-science-mon-p36",
@@ -4290,7 +4577,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-science-wed-p38",
@@ -4304,7 +4592,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-social-wed-sheet",
@@ -4319,7 +4608,8 @@
       "priority": "normal",
       "block": 1,
       "week": 3,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-french-p26",
@@ -4334,7 +4624,8 @@
       "priority": "normal",
       "block": 1,
       "week": 3,
-      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view"
+      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-french-quiz-rev",
@@ -4349,7 +4640,8 @@
       "priority": "urgent",
       "block": 1,
       "week": 3,
-      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view"
+      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2B-religion-tin",
@@ -4363,7 +4655,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2B"
     },
     {
       "id": "hw-b1-w3-G2C-eng-dictation-Sunday",
@@ -4377,7 +4670,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-eng-dictation-Monday",
@@ -4391,7 +4685,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-eng-dictation-Tuesday",
@@ -4405,7 +4700,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-eng-dictation-Wednesday",
@@ -4419,7 +4715,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-eng-dictation-Thursday",
@@ -4433,7 +4730,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-eng-act-tue",
@@ -4447,7 +4745,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-eng-act-thu",
@@ -4461,7 +4760,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-math-sun-p79",
@@ -4475,7 +4775,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-math-tue-pairs20",
@@ -4489,7 +4790,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-math-wed-p85",
@@ -4503,7 +4805,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-arabic-sun-nasheed",
@@ -4517,7 +4820,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-arabic-tue-p37",
@@ -4531,7 +4835,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-arabic-wed-imlaa",
@@ -4545,7 +4850,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-science-mon-p36",
@@ -4559,7 +4865,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-science-wed-p38",
@@ -4573,7 +4880,8 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-social-wed-sheet",
@@ -4588,7 +4896,8 @@
       "priority": "normal",
       "block": 1,
       "week": 3,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-french-p26",
@@ -4603,7 +4912,8 @@
       "priority": "normal",
       "block": 1,
       "week": 3,
-      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view"
+      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-french-quiz-rev",
@@ -4618,7 +4928,8 @@
       "priority": "urgent",
       "block": 1,
       "week": 3,
-      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view"
+      "linkUrl": "https://drive.google.com/file/d/1IbBjKLoRTzA7gjQ72VXFOJO4R1NpRdJk/view",
+      "class_id": "G2C"
     },
     {
       "id": "hw-b1-w3-G2C-religion-tin",
@@ -4632,7 +4943,56 @@
       "completed": false,
       "priority": "normal",
       "block": 1,
-      "week": 3
+      "week": 3,
+      "class_id": "G2C"
+    },
+    {
+      "id": "hw-b1-w4-G2A-science-page41",
+      "classId": "G2A",
+      "class_id": "G2A",
+      "assignedDay": "Monday",
+      "dueDay": "Tuesday",
+      "subject": "Science",
+      "task": "Page 41 (حل ص 41)",
+      "details": "حل صفحة 41 في كتاب الساينس (Page 41)",
+      "pages": "ص 41",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
+    },
+    {
+      "id": "hw-b1-w4-G2C-science-page41",
+      "classId": "G2C",
+      "class_id": "G2C",
+      "assignedDay": "Monday",
+      "dueDay": "Thursday",
+      "subject": "Science",
+      "task": "Page 41 (حل ص 41)",
+      "details": "حل صفحة 41 في كتاب الساينس (Page 41)",
+      "pages": "ص 41",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
+    },
+    {
+      "id": "hw-b1-w4-G2B-science-page42-43",
+      "classId": "G2B",
+      "class_id": "G2B",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Science",
+      "task": "Page 42, 43 (حل ص 42 و 43)",
+      "details": "حل صفحة 42 وصفحة 43 في كتاب الساينس (Page 42 & 43)",
+      "pages": "ص 42-43",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 4,
+      "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483060058_Science-Grade2-B1-All-Sheet1_-_Main.pdf"
     }
   ],
   "tomorrowNotes": [
@@ -5506,6 +5866,76 @@
       "categoryType": "note",
       "block": 1,
       "week": 4
+    },
+    {
+      "id": "tn-science-w4-G2A-Sat-materials",
+      "classId": "G2A",
+      "class_id": "G2A",
+      "targetDay": "Sunday",
+      "subject": "Science",
+      "note": "Materials required for Plant life cycle lesson",
+      "arabicNote": "تنبيه لدرس Plant life cycle: يرجى إحضار لوحة (A Chart) + نسخة مطبوعة من الشيت على EduMaster + صمغ (Glue) + مقص (Scissors).",
+      "bagItem": "لوحة (A Chart)، شيت مطبوع من EduMaster، صمغ (Glue)، مقص (Scissors)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "block": 1,
+      "week": 4
+    },
+    {
+      "id": "tn-science-w4-G2B-Sat-materials",
+      "classId": "G2B",
+      "class_id": "G2B",
+      "targetDay": "Sunday",
+      "subject": "Science",
+      "note": "Materials required for Plant life cycle lesson",
+      "arabicNote": "تنبيه لدرس Plant life cycle: يرجى إحضار لوحة (A Chart) + نسخة مطبوعة من الشيت على EduMaster + صمغ (Glue) + مقص (Scissors).",
+      "bagItem": "لوحة (A Chart)، شيت مطبوع من EduMaster، صمغ (Glue)، مقص (Scissors)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "block": 1,
+      "week": 4
+    },
+    {
+      "id": "tn-science-w4-G2C-Sat-materials",
+      "classId": "G2C",
+      "class_id": "G2C",
+      "targetDay": "Sunday",
+      "subject": "Science",
+      "note": "Materials required for Plant life cycle lesson",
+      "arabicNote": "تنبيه لدرس Plant life cycle: يرجى إحضار لوحة (A Chart) + نسخة مطبوعة من الشيت على EduMaster + صمغ (Glue) + مقص (Scissors).",
+      "bagItem": "لوحة (A Chart)، شيت مطبوع من EduMaster، صمغ (Glue)، مقص (Scissors)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "block": 1,
+      "week": 4
+    },
+    {
+      "id": "tn-science-w4-G2A-Sun-materials",
+      "classId": "G2A",
+      "class_id": "G2A",
+      "targetDay": "Monday",
+      "subject": "Science",
+      "note": "Materials required for Plant life cycle lesson",
+      "arabicNote": "تنبيه لدرس Plant life cycle: يرجى إحضار لوحة (A Chart) + نسخة مطبوعة من الشيت على EduMaster + صمغ (Glue) + مقص (Scissors).",
+      "bagItem": "لوحة (A Chart)، شيت مطبوع من EduMaster، صمغ (Glue)، مقص (Scissors)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "block": 1,
+      "week": 4
+    },
+    {
+      "id": "tn-science-w4-G2C-Sun-materials",
+      "classId": "G2C",
+      "class_id": "G2C",
+      "targetDay": "Monday",
+      "subject": "Science",
+      "note": "Materials required for Plant life cycle lesson",
+      "arabicNote": "تنبيه لدرس Plant life cycle: يرجى إحضار لوحة (A Chart) + نسخة مطبوعة من الشيت على EduMaster + صمغ (Glue) + مقص (Scissors).",
+      "bagItem": "لوحة (A Chart)، شيت مطبوع من EduMaster، صمغ (Glue)، مقص (Scissors)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "block": 1,
+      "week": 4
     }
   ],
   "deletedTomorrowNoteIds": [
@@ -5540,7 +5970,16 @@
     "tn-b1-w3-G2A-Wed-science-hw-submit",
     "science-booklet-submission-Wednesday",
     "linked-hw-due-hw-b1-w3-G2A-science-page38",
-    "hw-b1-w3-G2A-science-page38"
+    "hw-b1-w3-G2A-science-page38",
+    "linked-hw-due-hw-b1-w4-G2A-science-page41",
+    "science-booklet-submission-G2A-Tuesday",
+    "hw-b1-w4-G2A-science-page41",
+    "linked-hw-due-hw-b1-w4-G2B-science-page42-43",
+    "science-booklet-submission-G2B-Thursday",
+    "hw-b1-w4-G2B-science-page42-43",
+    "linked-hw-due-hw-b1-w4-G2C-science-page41",
+    "science-booklet-submission-G2C-Thursday",
+    "hw-b1-w4-G2C-science-page41"
   ],
   "deletedPlannerItemIds": [
     "homework-1789888292062",
@@ -5554,195 +5993,5 @@
     "hw-b1-w4-G2C-Tue-math",
     "hw-b1-w4-G2C-Thu-math"
   ],
-  "deletedHistory": [
-    {
-      "id": "hw-b1-w4-G2A-Sun-math",
-      "type": "homework",
-      "deletedAt": 1790357565445,
-      "itemData": {
-        "id": "hw-b1-w4-G2A-Sun-math",
-        "classId": "G2A",
-        "class_id": "G2A",
-        "assignedDay": "Sunday",
-        "dueDay": "Monday",
-        "subject": "Mathematics",
-        "task": "Maths Sheet 1: Solve Sunday Homework",
-        "details": "Unit 3: 2D shapes - Solve exercises on Sunday homework section in Maths-Grade2-B1-All-Sheet1 - Main.",
-        "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-        "completed": false,
-        "priority": "normal",
-        "block": 1,
-        "week": 4,
-        "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-      }
-    },
-    {
-      "id": "hw-b1-w4-G2A-Tue-math",
-      "type": "homework",
-      "deletedAt": 1790357572841,
-      "itemData": {
-        "id": "hw-b1-w4-G2A-Tue-math",
-        "classId": "G2A",
-        "class_id": "G2A",
-        "assignedDay": "Tuesday",
-        "dueDay": "Wednesday",
-        "subject": "Mathematics",
-        "task": "Maths Sheet 1: Solve Tuesday Homework",
-        "details": "Unit 3: Line of symmetry - Solve symmetric drawing exercises on Tuesday homework section in Maths-Grade2-B1-All-Sheet1 - Main.",
-        "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-        "completed": false,
-        "priority": "normal",
-        "block": 1,
-        "week": 4,
-        "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-      }
-    },
-    {
-      "id": "hw-b1-w4-G2A-Thu-math",
-      "type": "homework",
-      "deletedAt": 1790357582627,
-      "itemData": {
-        "id": "hw-b1-w4-G2A-Thu-math",
-        "classId": "G2A",
-        "class_id": "G2A",
-        "assignedDay": "Thursday",
-        "dueDay": "Sunday",
-        "subject": "Mathematics",
-        "task": "Maths Sheet 1: Solve Thursday Homework",
-        "details": "Unit 3: Post-test revision - Solve Thursday exercises in Maths-Grade2-B1-All-Sheet1 - Main.",
-        "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-        "completed": false,
-        "priority": "normal",
-        "block": 1,
-        "week": 4,
-        "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-      }
-    },
-    {
-      "id": "hw-b1-w4-G2B-Sun-math",
-      "type": "homework",
-      "deletedAt": 1790357597891,
-      "itemData": {
-        "id": "hw-b1-w4-G2B-Sun-math",
-        "classId": "G2B",
-        "class_id": "G2B",
-        "assignedDay": "Sunday",
-        "dueDay": "Monday",
-        "subject": "Mathematics",
-        "task": "Maths Sheet 1: Solve Sunday Homework",
-        "details": "Unit 3: 2D shapes - Solve exercises on Sunday homework section in Maths-Grade2-B1-All-Sheet1 - Main.",
-        "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-        "completed": false,
-        "priority": "normal",
-        "block": 1,
-        "week": 4,
-        "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-      }
-    },
-    {
-      "id": "hw-b1-w4-G2B-Tue-math",
-      "type": "homework",
-      "deletedAt": 1790357604395,
-      "itemData": {
-        "id": "hw-b1-w4-G2B-Tue-math",
-        "classId": "G2B",
-        "class_id": "G2B",
-        "assignedDay": "Tuesday",
-        "dueDay": "Wednesday",
-        "subject": "Mathematics",
-        "task": "Maths Sheet 1: Solve Tuesday Homework",
-        "details": "Unit 3: Line of symmetry - Solve symmetric drawing exercises on Tuesday homework section in Maths-Grade2-B1-All-Sheet1 - Main.",
-        "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-        "completed": false,
-        "priority": "normal",
-        "block": 1,
-        "week": 4,
-        "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-      }
-    },
-    {
-      "id": "hw-b1-w4-G2B-Thu-math",
-      "type": "homework",
-      "deletedAt": 1790357613501,
-      "itemData": {
-        "id": "hw-b1-w4-G2B-Thu-math",
-        "classId": "G2B",
-        "class_id": "G2B",
-        "assignedDay": "Thursday",
-        "dueDay": "Sunday",
-        "subject": "Mathematics",
-        "task": "Maths Sheet 1: Solve Thursday Homework",
-        "details": "Unit 3: Post-test revision - Solve Thursday exercises in Maths-Grade2-B1-All-Sheet1 - Main.",
-        "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-        "completed": false,
-        "priority": "normal",
-        "block": 1,
-        "week": 4,
-        "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-      }
-    },
-    {
-      "id": "hw-b1-w4-G2C-Sun-math",
-      "type": "homework",
-      "deletedAt": 1790357624324,
-      "itemData": {
-        "id": "hw-b1-w4-G2C-Sun-math",
-        "classId": "G2C",
-        "class_id": "G2C",
-        "assignedDay": "Sunday",
-        "dueDay": "Monday",
-        "subject": "Mathematics",
-        "task": "Maths Sheet 1: Solve Sunday Homework",
-        "details": "Unit 3: 2D shapes - Solve exercises on Sunday homework section in Maths-Grade2-B1-All-Sheet1 - Main.",
-        "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-        "completed": false,
-        "priority": "normal",
-        "block": 1,
-        "week": 4,
-        "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-      }
-    },
-    {
-      "id": "hw-b1-w4-G2C-Tue-math",
-      "type": "homework",
-      "deletedAt": 1790357629652,
-      "itemData": {
-        "id": "hw-b1-w4-G2C-Tue-math",
-        "classId": "G2C",
-        "class_id": "G2C",
-        "assignedDay": "Tuesday",
-        "dueDay": "Wednesday",
-        "subject": "Mathematics",
-        "task": "Maths Sheet 1: Solve Tuesday Homework",
-        "details": "Unit 3: Line of symmetry - Solve symmetric drawing exercises on Tuesday homework section in Maths-Grade2-B1-All-Sheet1 - Main.",
-        "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-        "completed": false,
-        "priority": "normal",
-        "block": 1,
-        "week": 4,
-        "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-      }
-    },
-    {
-      "id": "hw-b1-w4-G2C-Thu-math",
-      "type": "homework",
-      "deletedAt": 1790357635602,
-      "itemData": {
-        "id": "hw-b1-w4-G2C-Thu-math",
-        "classId": "G2C",
-        "class_id": "G2C",
-        "assignedDay": "Thursday",
-        "dueDay": "Sunday",
-        "subject": "Mathematics",
-        "task": "Maths Sheet 1: Solve Thursday Homework",
-        "details": "Unit 3: Post-test revision - Solve Thursday exercises in Maths-Grade2-B1-All-Sheet1 - Main.",
-        "pages": "Maths-Grade2-B1-All-Sheet1 - Main",
-        "completed": false,
-        "priority": "normal",
-        "block": 1,
-        "week": 4,
-        "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-      }
-    }
-  ]
+  "deletedHistory": []
 }

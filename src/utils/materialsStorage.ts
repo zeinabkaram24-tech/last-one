@@ -11,6 +11,31 @@ const DB_NAME = 'SchoolMaterialsDB';
 const STORE_NAME = 'materials';
 const DB_VERSION = 1;
 const EVENT_NAME = 'school_materials_updated';
+const DELETED_IDS_KEY = 'school_materials_deleted_ids';
+
+export function getLocalDeletedMaterialIds(): string[] {
+  try {
+    if (typeof window !== 'undefined') {
+      const raw = localStorage.getItem(DELETED_IDS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }
+  } catch {
+    return [];
+  }
+  return [];
+}
+
+export function recordLocalDeletedMaterialId(id: string): void {
+  try {
+    if (typeof window !== 'undefined') {
+      const set = new Set(getLocalDeletedMaterialIds());
+      set.add(id);
+      localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(Array.from(set)));
+    }
+  } catch (e) {
+    console.warn('Error saving deleted material id:', e);
+  }
+}
 
 // Helper to open IndexedDB
 function openDB(): Promise<IDBDatabase> {
@@ -160,7 +185,8 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
     }
   }
 
-  const finalItems = Array.from(itemsMap.values());
+  const deletedSet = new Set(getLocalDeletedMaterialIds());
+  const finalItems = Array.from(itemsMap.values()).filter((item) => !deletedSet.has(item.id));
 
   // Cache back to local DB so it's always accessible offline on laptop as well
   saveItemsToLocalDB(finalItems).catch(() => {});
@@ -220,7 +246,17 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
 
 // Delete a material (deletes locally, from server, and from Supabase Cloud)
 export async function deleteMaterial(id: string, storageUrl?: string): Promise<void> {
-  // 1. Delete from local IndexedDB
+  // 0. Record deleted ID locally so it is filtered out everywhere
+  recordLocalDeletedMaterialId(id);
+
+  // 1. Delete from local IndexedDB and fallback cache
+  try {
+    const existing = getFallbackMaterials().filter((m) => m.id !== id);
+    saveFallbackMaterials(existing);
+  } catch (fe) {
+    console.warn('Error clearing fallback material:', fe);
+  }
+
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -232,9 +268,7 @@ export async function deleteMaterial(id: string, storageUrl?: string): Promise<v
       req.onerror = () => reject(req.error);
     });
   } catch (e) {
-    console.warn('Failed to delete from IndexedDB, deleting from fallback', e);
-    const existing = getFallbackMaterials().filter((m) => m.id !== id);
-    saveFallbackMaterials(existing);
+    console.warn('Failed to delete from IndexedDB:', e);
   }
 
   // 2. Delete from centralized server

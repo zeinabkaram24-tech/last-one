@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ChevronRight,
   FileText,
+  Image as ImageIcon,
   Calendar,
   Eye,
   Printer,
@@ -68,6 +69,14 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
 
   // Helper to open PDF directly in new tab (no extra steps/modals)
   const handlePreview = (item: MaterialItem) => {
+    const url = item.storageUrl || item.linkUrl || (item.id ? `/api/materials/${item.id}/file` : '');
+    if (url && typeof window !== 'undefined') {
+      try {
+        window.open(url, '_blank');
+      } catch (e) {
+        console.warn('Could not open in new tab:', e);
+      }
+    }
     openPdfItem(item);
   };
 
@@ -342,6 +351,15 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                         );
                       }
 
+                      const isImageFile = Boolean(
+                        file.type === 'image' ||
+                        /\.(jpg|jpeg|png|webp|gif)$/i.test(file.fileName || '')
+                      );
+                      const isDocFile = Boolean(
+                        file.type === 'doc' ||
+                        /\.(doc|docx)$/i.test(file.fileName || '')
+                      );
+
                       return (
                         <div
                           key={file.id}
@@ -349,17 +367,39 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                         >
                           {/* File Details */}
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
-                              <FileText className="w-5 h-5" />
+                            <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${
+                              isImageFile
+                                ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                : isDocFile
+                                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                                : 'bg-rose-50 border-rose-200 text-rose-600'
+                            }`}>
+                              {isImageFile ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h4 className="text-sm font-black text-slate-900 truncate">
-                                {file.fileName}
-                              </h4>
+                              <div className="flex items-center justify-between gap-2">
+                                <h4 className="text-sm font-black text-slate-900 truncate">
+                                  {file.fileName}
+                                </h4>
+                                {(file.storageUrl || file.linkUrl) && (
+                                  <a
+                                    href={file.storageUrl || file.linkUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="shrink-0 px-2 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] border border-indigo-200 flex items-center gap-1 transition-colors cursor-pointer"
+                                    title="فتح المستند في تبويب جديد"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                    <span>فتح مباشر ↗</span>
+                                  </a>
+                                )}
+                              </div>
                               <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5 flex-wrap">
                                 <span>{formatBytes(file.fileSize)}</span>
                                 <span>•</span>
-                                <span>PDF</span>
+                                <span className="font-bold text-slate-700">
+                                  {isImageFile ? 'صورة JPG/PNG' : isDocFile ? 'مستند Word' : 'PDF'}
+                                </span>
                                 {file.uploadedAt && (
                                   <>
                                     <span>•</span>

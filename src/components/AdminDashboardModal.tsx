@@ -653,8 +653,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      setErrorMessage('عفواً، الملف المحدد ليس بصيغة PDF. يرجى اختيار ملف PDF فقط.');
+    const lowerName = file.name.toLowerCase();
+    const isPdf = file.type === 'application/pdf' || lowerName.endsWith('.pdf');
+    const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif)$/i.test(lowerName);
+    const isDoc = file.type.includes('word') || /\.(doc|docx)$/i.test(lowerName);
+
+    if (!isPdf && !isImage && !isDoc) {
+      setErrorMessage('عفواً، يرجى اختيار ملف بصيغة PDF أو صورة (JPG, PNG, WEBP) أو مستند Word.');
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
@@ -663,11 +668,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setSelectedFile(file);
   };
 
-  // Submit Upload (PDF or External Link)
+  // Submit Upload (PDF, Image, Word or External Link)
   const handleConfirmUpload = async () => {
     if (materialUploadMode === 'pdf') {
       if (!selectedFile) {
-        setErrorMessage('يرجى اختيار ملف PDF أولاً.');
+        setErrorMessage('يرجى اختيار ملف (PDF أو صورة JPG/PNG أو Word) أولاً.');
         return;
       }
 
@@ -689,13 +694,21 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           try {
             const fileData = reader.result as string;
 
+            let fileType: 'pdf' | 'image' | 'doc' = 'pdf';
+            const lowerName = selectedFile.name.toLowerCase();
+            if (/\.(jpg|jpeg|png|webp|gif)$/i.test(lowerName) || selectedFile.type.startsWith('image/')) {
+              fileType = 'image';
+            } else if (/\.(doc|docx)$/i.test(lowerName) || selectedFile.type.includes('word')) {
+              fileType = 'doc';
+            }
+
             const newItem: MaterialItem = {
               id: 'mat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
               fileName: selectedFile.name,
               fileSize: selectedFile.size,
               fileData: fileData,
               storageUrl: cloudUrl || undefined,
-              type: 'pdf',
+              type: fileType,
               block: targetBlock,
               section: targetSection,
               classId: targetClass,
@@ -726,7 +739,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         };
 
         reader.onerror = () => {
-          setErrorMessage('تعذر قراءة ملف الـ PDF. يرجى التحقق من الملف.');
+          setErrorMessage('تعذر قراءة الملف. يرجى التحقق من الملف.');
           setIsUploading(false);
         };
 
@@ -790,22 +803,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  // Handle Delete with Confirmation
+  // Handle Delete (Direct & Instant - avoids window.confirm popup blocking in iframe)
   const handleDelete = async (item: MaterialItem) => {
-    const itemTypeName = item.type === 'link' || item.linkUrl ? 'الرابط' : 'الملف';
-    const confirmed = window.confirm(
-      `هل أنت متأكد من مسح ${itemTypeName} "${item.fileName}" نهائياً من Block ${item.block} (${item.section})؟`
-    );
-    if (!confirmed) return;
-
     try {
+      setMaterials((prev) => prev.filter((m) => m.id !== item.id));
       await deleteMaterial(item.id, item.storageUrl);
       await refreshMaterials();
-      setSuccessMessage(`تم مسح الملف "${item.fileName}" بنجاح.`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      setSuccessMessage(`تم مسح "${item.fileName}" بنجاح.`);
+      setTimeout(() => setSuccessMessage(null), 3500);
     } catch (err) {
-      console.error(err);
+      console.error('Delete error:', err);
       setErrorMessage('فشل مسح الملف.');
+      await refreshMaterials();
     }
   };
 
@@ -2581,17 +2590,17 @@ Sunday:
                     </div>
                   </div>
 
-                  {/* Step 4: Mode Specific Form (PDF File Input vs Link Input) */}
+                  {/* Step 4: Mode Specific Form (PDF / Image / Word File Input vs Link Input) */}
                   {materialUploadMode === 'pdf' ? (
                     <div>
                       <label className="block text-xs font-black text-slate-800 mb-1.5">
-                        5. اختيار ملف الـ PDF المطلوب رفعه:
+                        5. اختيار الملف المطلوب رفعه (PDF, صورة JPG/PNG, مستند Word):
                       </label>
                       <div className="flex flex-col sm:flex-row items-center gap-3">
                         <input
                           ref={fileInputRef}
                           type="file"
-                          accept=".pdf,application/pdf"
+                          accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,application/pdf,image/*,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                           onChange={handleFileChange}
                           className="block w-full text-xs text-slate-500 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-amber-600 file:text-white hover:file:bg-amber-700 file:cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs"
                         />

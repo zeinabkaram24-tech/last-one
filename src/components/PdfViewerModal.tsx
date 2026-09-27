@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download, ExternalLink, Printer, FileText, Maximize2 } from 'lucide-react';
+import { X, Download, ExternalLink, Printer, FileText, Image as ImageIcon, Maximize2 } from 'lucide-react';
 import { MaterialItem, formatBytes, downloadPdfItem, printPdfItem } from '../utils/materialsStorage';
 
 interface PdfViewerModalProps {
@@ -22,6 +22,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   const [activeUrl, setActiveUrl] = useState<string>('');
   const [activeTitle, setActiveTitle] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [viewMode, setViewMode] = useState<'proxy' | 'direct' | 'google'>('proxy');
 
   // Listen to global open_pdf_viewer_modal custom events
   useEffect(() => {
@@ -31,13 +32,13 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
 
       if (typeof detail === 'string') {
         setActiveUrl(detail);
-        const name = detail.split('/').pop()?.split('?')[0] || 'مستند PDF';
+        const name = detail.split('/').pop()?.split('?')[0] || 'مستند مرفق';
         setActiveTitle(name);
         setActiveItem(null);
       } else if (detail && typeof detail === 'object') {
-        const url = detail.storageUrl || detail.linkUrl || (detail.id ? `/api/materials/${detail.id}/file` : '');
+        const url = detail.fileData || detail.storageUrl || detail.linkUrl || (detail.id ? `/api/materials/${detail.id}/file` : '');
         setActiveUrl(url || '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf');
-        setActiveTitle(detail.fileName || 'SocialStudies-Grade2-B1-HomeWork-1.pdf');
+        setActiveTitle(detail.fileName || 'ملف مرفق');
         setActiveItem(detail);
       }
       setInternalOpen(true);
@@ -63,7 +64,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     if (propItem) {
       setActiveItem(propItem);
       if (propItem.fileName) setActiveTitle(propItem.fileName);
-      const url = propItem.storageUrl || propItem.linkUrl || (propItem.id ? `/api/materials/${propItem.id}/file` : '');
+      const url = propItem.fileData || propItem.storageUrl || propItem.linkUrl || (propItem.id ? `/api/materials/${propItem.id}/file` : '');
       if (url) setActiveUrl(url);
     }
   }, [propIsOpen, propPdfUrl, propFileName, propItem]);
@@ -77,7 +78,32 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
 
   if (!isOpen || !activeUrl) return null;
 
-  const fileTitle = activeTitle || activeItem?.fileName || 'SocialStudies-Grade2-B1-HomeWork-1.pdf';
+  const fileTitle = activeTitle || activeItem?.fileName || 'مستند مرفق';
+  const isImage = Boolean(
+    activeItem?.type === 'image' ||
+    activeUrl.startsWith('data:image/') ||
+    /\.(jpg|jpeg|png|webp|gif)$/i.test(fileTitle || activeUrl)
+  );
+
+  // Compute optimal viewer URL
+  let iframeSrc = activeUrl;
+  if (!isImage && !activeUrl.startsWith('data:')) {
+    const isLocalUrl =
+      activeUrl.startsWith('/') ||
+      activeUrl.startsWith('.') ||
+      (typeof window !== 'undefined' && activeUrl.includes(window.location.host));
+
+    if (isLocalUrl) {
+      // Direct native loading for local/relative files (e.g. /materials/...)
+      iframeSrc = activeUrl;
+    } else if (viewMode === 'proxy') {
+      iframeSrc = `/api/proxy-file?url=${encodeURIComponent(activeUrl)}`;
+    } else if (viewMode === 'google') {
+      iframeSrc = `https://docs.google.com/gview?url=${encodeURIComponent(activeUrl)}&embedded=true`;
+    } else {
+      iframeSrc = activeUrl;
+    }
+  }
 
   const handleDownload = () => {
     if (activeItem) {
@@ -115,19 +141,23 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-slate-50/90 shrink-0 gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
-              <FileText className="w-5 h-5" />
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shrink-0 ${
+              isImage ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-rose-100 text-rose-600 border-rose-200'
+            }`}>
+              {isImage ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
             </div>
             <div className="min-w-0">
               <h3 className="text-sm sm:text-base font-black text-slate-900 truncate" title={fileTitle}>
                 {fileTitle}
               </h3>
               <div className="flex items-center gap-2 text-[11px] text-slate-500 font-semibold">
-                <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-bold border border-rose-200/60">
-                  PDF
+                <span className={`px-1.5 py-0.5 rounded font-bold border ${
+                  isImage ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200/60'
+                }`}>
+                  {isImage ? 'صورة JPG/PNG 🖼️' : 'PDF / مستند 📄'}
                 </span>
                 {activeItem?.fileSize ? <span>• {formatBytes(activeItem.fileSize)}</span> : null}
-                <span>• معاينة المستند المرفق</span>
+                <span>• معاينة المستند</span>
               </div>
             </div>
           </div>
@@ -195,40 +225,88 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
           </div>
         </div>
 
-        {/* PDF / HTML Viewer Body */}
-        <div className="flex-1 bg-slate-100 relative min-h-0 overflow-hidden flex flex-col">
-          <iframe
-            id="pdf-modal-iframe"
-            src={activeUrl}
-            title={fileTitle}
-            className="w-full h-full border-0 bg-white"
-          />
+        {/* Viewer Body (Images vs PDF/Doc) */}
+        <div className="flex-1 bg-slate-900/90 relative min-h-0 overflow-auto flex items-center justify-center p-2 sm:p-4">
+          {isImage ? (
+            <div className="flex flex-col items-center justify-center max-w-full max-h-full space-y-3 my-auto">
+              <img
+                src={activeUrl}
+                alt={fileTitle}
+                className="max-w-full max-h-[78vh] object-contain rounded-2xl shadow-2xl border-2 border-white/20 bg-white"
+              />
+            </div>
+          ) : (
+            <object
+              id="pdf-modal-object"
+              data={iframeSrc}
+              type="application/pdf"
+              className="w-full h-full border-0 bg-white rounded-xl shadow-lg"
+            >
+              <iframe
+                id="pdf-modal-iframe"
+                src={iframeSrc}
+                title={fileTitle}
+                className="w-full h-full border-0 bg-white rounded-xl shadow-lg"
+              />
+            </object>
+          )}
+        </div>
 
-          {/* Bottom helper toolbar */}
-          <div className="py-2 px-4 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-600 shrink-0 flex-wrap gap-2">
+        {/* Bottom helper toolbar */}
+        <div className="py-2.5 px-4 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-600 shrink-0 flex-wrap gap-2">
+          <div className="flex items-center gap-3 flex-wrap">
             <span>
-              إذا أردت فتح المستند في نافذة مستقلة، يمكنك{' '}
-              <a
-                href={activeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-indigo-600 hover:underline font-bold"
-              >
-                فتحه في تبويب جديد
-              </a>
-              {' '}أو{' '}
-              <button
-                onClick={handleDownload}
-                className="text-indigo-600 hover:underline font-bold cursor-pointer"
-              >
-                تحميله للجهاز
-              </button>
-              .
+              إذا لم يظهر المستند:
             </span>
-            <span className="text-[11px] text-slate-400 font-bold">
-              {fileTitle}
-            </span>
+            {!isImage && (
+              <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 font-bold text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('google')}
+                  className={`px-2 py-1 rounded-md transition-colors cursor-pointer ${
+                    viewMode === 'google' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  عرض Google 🌐
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('proxy')}
+                  className={`px-2 py-1 rounded-md transition-colors cursor-pointer ${
+                    viewMode === 'proxy' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  الخادم المحلي ⚡
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('direct')}
+                  className={`px-2 py-1 rounded-md transition-colors cursor-pointer ${
+                    viewMode === 'direct' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  مباشر 🔗
+                </button>
+              </div>
+            )}
+            <a
+              href={activeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-600 hover:underline font-bold"
+            >
+              فتح في تبويب جديد ↗
+            </a>
+            <button
+              onClick={handleDownload}
+              className="text-emerald-700 hover:underline font-bold cursor-pointer"
+            >
+              تحميل الملف 📥
+            </button>
           </div>
+          <span className="text-[11px] text-slate-400 font-bold truncate max-w-xs">
+            {fileTitle}
+          </span>
         </div>
       </div>
     </div>

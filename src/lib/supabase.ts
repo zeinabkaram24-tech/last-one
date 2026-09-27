@@ -1835,9 +1835,11 @@ export async function deleteMaterialFromSupabase(id: string, storageUrl?: string
 
     // 2. If storageUrl points to materials, attempt file deletion
     if (storageUrl && (storageUrl.includes('school_materials') || storageUrl.includes('materials'))) {
-      const parts = storageUrl.split(storageUrl.includes('school_materials') ? '/school_materials/' : '/materials/');
+      const isSchoolMaterials = storageUrl.includes('school_materials');
+      const parts = storageUrl.split(isSchoolMaterials ? '/school_materials/' : '/materials/');
       if (parts[1]) {
-        await supabase.storage.from('materials').remove([parts[1]]);
+        const bucketName = isSchoolMaterials ? 'school_materials' : 'materials';
+        await supabase.storage.from(bucketName).remove([parts[1]]);
       }
     }
   } catch (err) {

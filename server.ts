@@ -23,6 +23,28 @@ app.use('/materials', express.static(path.join(process.cwd(), 'public', 'materia
 const DATA_DIR = path.join(process.cwd(), 'data');
 const MATERIALS_DIR = path.join(process.cwd(), 'uploads', 'materials');
 const MATERIALS_FILE = path.join(DATA_DIR, 'materials.json');
+const DELETED_MATERIALS_FILE = path.join(DATA_DIR, 'deleted_materials.json');
+
+function getDeletedMaterialIds(): string[] {
+  try {
+    if (fs.existsSync(DELETED_MATERIALS_FILE)) {
+      return JSON.parse(fs.readFileSync(DELETED_MATERIALS_FILE, 'utf-8'));
+    }
+  } catch {}
+  return [];
+}
+
+function recordDeletedMaterialId(id: string): void {
+  try {
+    const list = getDeletedMaterialIds();
+    if (!list.includes(id)) {
+      list.push(id);
+      fs.writeFileSync(DELETED_MATERIALS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+    }
+  } catch (e) {
+    console.warn('Error recording deleted material id:', e);
+  }
+}
 const PLANNER_DATA_FILE = path.join(DATA_DIR, 'planner_data.json');
 const SUPABASE_CONFIG_FILE = path.join(DATA_DIR, 'supabase_config.json');
 
@@ -400,9 +422,60 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Universal File Proxy Endpoint to bypass browser CORS / iframe restrictions on mobile & desktop
+app.get('/api/proxy-file', async (req, res) => {
+  try {
+    const rawUrl = req.query.url as string;
+    if (!rawUrl) return res.status(400).send('URL query parameter is required');
+
+    let targetUrl = decodeURIComponent(rawUrl);
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      targetUrl = 'https://' + targetUrl;
+    }
+
+    const response = await fetch(targetUrl);
+    if (!response.ok) {
+      return res.status(response.status).send(`Failed to fetch upstream file: ${response.statusText}`);
+    }
+
+    const contentType = response.headers.get('content-type') || getMaterialMimeType(targetUrl);
+    const contentLength = response.headers.get('content-length');
+
+    res.setHeader('Content-Type', contentType);
+    if (contentLength) res.setHeader('Content-Length', contentLength);
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    res.send(buffer);
+  } catch (err: any) {
+    console.error('Error in /api/proxy-file:', err);
+    res.status(500).send('Proxy error: ' + (err.message || 'Unknown error'));
+  }
+});
+
+// Helper to determine mime type from extension or data URL
+function getMaterialMimeType(fileName?: string, dataUrl?: string): string {
+  if (dataUrl && dataUrl.startsWith('data:')) {
+    const mimeMatch = dataUrl.match(/^data:([^;]+);/);
+    if (mimeMatch && mimeMatch[1]) return mimeMatch[1];
+  }
+  const ext = (fileName || '').split('.').pop()?.toLowerCase();
+  if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+  if (ext === 'png') return 'image/png';
+  if (ext === 'webp') return 'image/webp';
+  if (ext === 'gif') return 'image/gif';
+  if (ext === 'doc') return 'application/msword';
+  if (ext === 'docx') return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  if (ext === 'html' || ext === 'htm') return 'text/html';
+  return 'application/pdf';
+}
+
 // Materials endpoints (Accessible across Mobile, Laptop & Desktop)
 app.get('/api/materials', (req, res) => {
-  const list = getStoredMaterials();
+  const deletedSet = new Set(getDeletedMaterialIds());
+  const list = getStoredMaterials().filter((m: any) => !deletedSet.has(m.id));
   res.json(list);
 });
 
@@ -413,12 +486,27 @@ app.post('/api/materials', (req, res) => {
       return res.status(400).json({ error: 'Valid material item with id is required' });
     }
 
+    // Auto-detect item type if not provided
+    if (!item.type) {
+      const fn = (item.fileName || '').toLowerCase();
+      if (/\.(jpg|jpeg|png|webp|gif)$/i.test(fn)) {
+        item.type = 'image';
+      } else if (/\.(doc|docx)$/i.test(fn)) {
+        item.type = 'doc';
+      } else if (item.linkUrl || item.type === 'link') {
+        item.type = 'link';
+      } else {
+        item.type = 'pdf';
+      }
+    }
+
     // If fileData (base64) is provided, persist it to disk as well
     if (item.fileData && typeof item.fileData === 'string' && item.fileData.includes(',')) {
       try {
         const base64Data = item.fileData.split(',')[1];
         const buffer = Buffer.from(base64Data, 'base64');
-        const filePath = path.join(MATERIALS_DIR, `${item.id}.pdf`);
+        const ext = (item.fileName || 'file').split('.').pop() || 'bin';
+        const filePath = path.join(MATERIALS_DIR, `${item.id}.${ext}`);
         fs.writeFileSync(filePath, buffer);
         item.storageUrl = `/api/materials/${item.id}/file`;
       } catch (fErr) {
@@ -442,22 +530,33 @@ app.post('/api/materials', (req, res) => {
 
 app.get('/api/materials/:id/file', (req, res) => {
   const { id } = req.params;
-  const filePath = path.join(MATERIALS_DIR, `${id}.pdf`);
-  if (fs.existsSync(filePath)) {
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
-    const stream = fs.createReadStream(filePath);
-    return stream.pipe(res);
+  const list = getStoredMaterials();
+  const found = list.find((m: any) => m.id === id);
+
+  const fileName = found?.fileName || 'material.pdf';
+  const mimeType = getMaterialMimeType(fileName, found?.fileData);
+
+  // Check disk for matching file with any extension
+  try {
+    const files = fs.readdirSync(MATERIALS_DIR);
+    const matchedFile = files.find((f) => f.startsWith(`${id}.`) || f === id);
+    if (matchedFile) {
+      const filePath = path.join(MATERIALS_DIR, matchedFile);
+      res.setHeader('Content-Type', mimeType);
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(fileName)}"`);
+      const stream = fs.createReadStream(filePath);
+      return stream.pipe(res);
+    }
+  } catch (e) {
+    console.warn('Error reading MATERIALS_DIR:', e);
   }
 
   // Check if fileData in materials.json
-  const list = getStoredMaterials();
-  const found = list.find((m: any) => m.id === id);
   if (found && found.fileData && found.fileData.includes(',')) {
     const base64Data = found.fileData.split(',')[1];
     const buffer = Buffer.from(base64Data, 'base64');
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(fileName)}"`);
     return res.send(buffer);
   }
 
@@ -466,13 +565,17 @@ app.get('/api/materials/:id/file', (req, res) => {
 
 app.delete('/api/materials/:id', (req, res) => {
   const { id } = req.params;
+  recordDeletedMaterialId(id);
   const current = getStoredMaterials().filter((m: any) => m.id !== id);
   saveStoredMaterials(current);
-  const filePath = path.join(MATERIALS_DIR, `${id}.pdf`);
-  if (fs.existsSync(filePath)) {
-    try { fs.unlinkSync(filePath); } catch {}
-  }
-  res.json({ success: true });
+  try {
+    const files = fs.readdirSync(MATERIALS_DIR);
+    const matchedFiles = files.filter((f) => f.startsWith(`${id}.`) || f === id);
+    matchedFiles.forEach((f) => {
+      try { fs.unlinkSync(path.join(MATERIALS_DIR, f)); } catch {}
+    });
+  } catch {}
+  res.json({ success: true, id });
 });
 
 // Planner Data endpoints (Backup & sync across all devices)
