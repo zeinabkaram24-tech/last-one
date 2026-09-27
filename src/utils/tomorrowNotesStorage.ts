@@ -187,6 +187,152 @@ export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     categoryType: 'note',
     block: 1,
     week: 4
+  },
+
+  // =========================================================================
+  // ICT WEEK 4 TASKS: "Please ensure the students bring flash drive"
+  // Written before each session for each class in Tomorrow
+  // =========================================================================
+
+  // --- Class A (G2A): Sessions on Sunday (P3), Tuesday (P6), Wednesday (P2) ---
+  {
+    id: 'tn-b1-w4-G2A-ict-sun-flash',
+    classId: 'G2A',
+    targetDay: 'Sunday',
+    subject: 'ICT',
+    period: 3,
+    title: 'Task: Please ensure the students bring flash drive',
+    note: 'Please ensure the students bring flash drive',
+    arabicNote: 'مهمة / تنبيه لمادة ICT: يرجى التأكد من إحضار الفلاش ميموري (Flash drive) لحصة الـ ICT.',
+    bagItem: 'Flash drive (فلاشة)',
+    isQuiz: false,
+    categoryType: 'tools',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2A-ict-tue-flash',
+    classId: 'G2A',
+    targetDay: 'Tuesday',
+    subject: 'ICT',
+    period: 6,
+    title: 'Task: Please ensure the students bring flash drive',
+    note: 'Please ensure the students bring flash drive',
+    arabicNote: 'مهمة / تنبيه لمادة ICT: يرجى التأكد من إحضار الفلاش ميموري (Flash drive) لحصة الـ ICT.',
+    bagItem: 'Flash drive (فلاشة)',
+    isQuiz: false,
+    categoryType: 'tools',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2A-ict-wed-flash',
+    classId: 'G2A',
+    targetDay: 'Wednesday',
+    subject: 'ICT',
+    period: 2,
+    title: 'Task: Please ensure the students bring flash drive',
+    note: 'Please ensure the students bring flash drive',
+    arabicNote: 'مهمة / تنبيه لمادة ICT: يرجى التأكد من إحضار الفلاش ميموري (Flash drive) لحصة الـ ICT.',
+    bagItem: 'Flash drive (فلاشة)',
+    isQuiz: false,
+    categoryType: 'tools',
+    block: 1,
+    week: 4
+  },
+
+  // --- Class B (G2B): Sessions on Sunday (P7), Tuesday (P3), Thursday (P2) ---
+  {
+    id: 'tn-b1-w4-G2B-ict-sun-flash',
+    classId: 'G2B',
+    targetDay: 'Sunday',
+    subject: 'ICT',
+    period: 7,
+    title: 'Task: Please ensure the students bring flash drive',
+    note: 'Please ensure the students bring flash drive',
+    arabicNote: 'مهمة / تنبيه لمادة ICT: يرجى التأكد من إحضار الفلاش ميموري (Flash drive) لحصة الـ ICT.',
+    bagItem: 'Flash drive (فلاشة)',
+    isQuiz: false,
+    categoryType: 'tools',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2B-ict-tue-flash',
+    classId: 'G2B',
+    targetDay: 'Tuesday',
+    subject: 'ICT',
+    period: 3,
+    title: 'Task: Please ensure the students bring flash drive',
+    note: 'Please ensure the students bring flash drive',
+    arabicNote: 'مهمة / تنبيه لمادة ICT: يرجى التأكد من إحضار الفلاش ميموري (Flash drive) لحصة الـ ICT.',
+    bagItem: 'Flash drive (فلاشة)',
+    isQuiz: false,
+    categoryType: 'tools',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2B-ict-thu-flash',
+    classId: 'G2B',
+    targetDay: 'Thursday',
+    subject: 'ICT',
+    period: 2,
+    title: 'Task: Please ensure the students bring flash drive',
+    note: 'Please ensure the students bring flash drive',
+    arabicNote: 'مهمة / تنبيه لمادة ICT: يرجى التأكد من إحضار الفلاش ميموري (Flash drive) لحصة الـ ICT.',
+    bagItem: 'Flash drive (فلاشة)',
+    isQuiz: false,
+    categoryType: 'tools',
+    block: 1,
+    week: 4
+  },
+
+  // --- Class C (G2C): Sessions on Monday (P7), Tuesday (P1), Thursday (P2) ---
+  {
+    id: 'tn-b1-w4-G2C-ict-mon-flash',
+    classId: 'G2C',
+    targetDay: 'Monday',
+    subject: 'ICT',
+    period: 7,
+    title: 'Task: Please ensure the students bring flash drive',
+    note: 'Please ensure the students bring flash drive',
+    arabicNote: 'مهمة / تنبيه لمادة ICT: يرجى التأكد من إحضار الفلاش ميموري (Flash drive) لحصة الـ ICT.',
+    bagItem: 'Flash drive (فلاشة)',
+    isQuiz: false,
+    categoryType: 'tools',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2C-ict-tue-flash',
+    classId: 'G2C',
+    targetDay: 'Tuesday',
+    subject: 'ICT',
+    period: 1,
+    title: 'Task: Please ensure the students bring flash drive',
+    note: 'Please ensure the students bring flash drive',
+    arabicNote: 'مهمة / تنبيه لمادة ICT: يرجى التأكد من إحضار الفلاش ميموري (Flash drive) لحصة الـ ICT.',
+    bagItem: 'Flash drive (فلاشة)',
+    isQuiz: false,
+    categoryType: 'tools',
+    block: 1,
+    week: 4
+  },
+  {
+    id: 'tn-b1-w4-G2C-ict-thu-flash',
+    classId: 'G2C',
+    targetDay: 'Thursday',
+    subject: 'ICT',
+    period: 2,
+    title: 'Task: Please ensure the students bring flash drive',
+    note: 'Please ensure the students bring flash drive',
+    arabicNote: 'مهمة / تنبيه لمادة ICT: يرجى التأكد من إحضار الفلاش ميموري (Flash drive) لحصة الـ ICT.',
+    bagItem: 'Flash drive (فلاشة)',
+    isQuiz: false,
+    categoryType: 'tools',
+    block: 1,
+    week: 4
   }
 ];
 

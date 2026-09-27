@@ -2660,6 +2660,191 @@ export const WEEK4_SCIENCE_CLASSWORK: ClassworkEntry[] = [
   }
 ];
 
+export const WEEK4_ICT_CLASSWORK: ClassworkEntry[] = [
+  // --- Class A (G2A): Sun P3, Tue P6, Wed P2 ---
+  {
+    id: "cw-b1-w4-G2A-Sunday-p3-ict",
+    classId: "G2A",
+    class_id: "G2A",
+    day: "Sunday",
+    period: 3,
+    subject: "ICT",
+    title: "Create prose text from notes, Take notes (Session 1)",
+    details: "Create prose text from notes, Take notes: • Taking Notes • The importance of taking notes • Ways to Take Notes • Create a mind map",
+    pages: "Study sheet W4, Classwork W4 pg.52",
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: "cw-b1-w4-G2A-Tuesday-p6-ict",
+    classId: "G2A",
+    class_id: "G2A",
+    day: "Tuesday",
+    period: 6,
+    subject: "ICT",
+    title: "Create a Mind map using Microsoft Word (Session 2)",
+    details: "Create prose text from notes, Take notes: Create a Mind map using Microsoft Word.",
+    pages: "Microsoft Word / Computer Lab",
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: "cw-b1-w4-G2A-Wednesday-p2-ict",
+    classId: "G2A",
+    class_id: "G2A",
+    day: "Wednesday",
+    period: 2,
+    subject: "ICT",
+    title: "Standards of an effective presentation & Feedback (Session 3)",
+    details: "Create prose text from notes, Take notes: • The standards of an effective presentation • Use two stars and a wish to provide feedback.",
+    pages: "ICT Booklet / Presentation",
+    completed: false,
+    block: 1,
+    week: 4
+  },
+
+  // --- Class B (G2B): Sun P7, Tue P3, Thu P2 ---
+  {
+    id: "cw-b1-w4-G2B-Sunday-p7-ict",
+    classId: "G2B",
+    class_id: "G2B",
+    day: "Sunday",
+    period: 7,
+    subject: "ICT",
+    title: "Create prose text from notes, Take notes (Session 1)",
+    details: "Create prose text from notes, Take notes: • Taking Notes • The importance of taking notes • Ways to Take Notes • Create a mind map",
+    pages: "Study sheet W4, Classwork W4 pg.52",
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: "cw-b1-w4-G2B-Tuesday-p3-ict",
+    classId: "G2B",
+    class_id: "G2B",
+    day: "Tuesday",
+    period: 3,
+    subject: "ICT",
+    title: "Create a Mind map using Microsoft Word (Session 2)",
+    details: "Create prose text from notes, Take notes: Create a Mind map using Microsoft Word.",
+    pages: "Microsoft Word / Computer Lab",
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: "cw-b1-w4-G2B-Thursday-p2-ict",
+    classId: "G2B",
+    class_id: "G2B",
+    day: "Thursday",
+    period: 2,
+    subject: "ICT",
+    title: "Standards of an effective presentation & Feedback (Session 3)",
+    details: "Create prose text from notes, Take notes: • The standards of an effective presentation • Use two stars and a wish to provide feedback.",
+    pages: "ICT Booklet / Presentation",
+    completed: false,
+    block: 1,
+    week: 4
+  },
+
+  // --- Class C (G2C): Mon P7, Tue P1, Thu P2 ---
+  {
+    id: "cw-b1-w4-G2C-Monday-p7-ict",
+    classId: "G2C",
+    class_id: "G2C",
+    day: "Monday",
+    period: 7,
+    subject: "ICT",
+    title: "Create prose text from notes, Take notes (Session 1)",
+    details: "Create prose text from notes, Take notes: • Taking Notes • The importance of taking notes • Ways to Take Notes • Create a mind map",
+    pages: "Study sheet W4, Classwork W4 pg.52",
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: "cw-b1-w4-G2C-Tuesday-p1-ict",
+    classId: "G2C",
+    class_id: "G2C",
+    day: "Tuesday",
+    period: 1,
+    subject: "ICT",
+    title: "Create a Mind map using Microsoft Word (Session 2)",
+    details: "Create prose text from notes, Take notes: Create a Mind map using Microsoft Word.",
+    pages: "Microsoft Word / Computer Lab",
+    completed: false,
+    block: 1,
+    week: 4
+  },
+  {
+    id: "cw-b1-w4-G2C-Thursday-p2-ict",
+    classId: "G2C",
+    class_id: "G2C",
+    day: "Thursday",
+    period: 2,
+    subject: "ICT",
+    title: "Standards of an effective presentation & Feedback (Session 3)",
+    details: "Create prose text from notes, Take notes: • The standards of an effective presentation • Use two stars and a wish to provide feedback.",
+    pages: "ICT Booklet / Presentation",
+    completed: false,
+    block: 1,
+    week: 4
+  }
+];
+
+export const WEEK4_ICT_HOMEWORK: HomeworkEntry[] = [
+  // Class A: Homework is assigned on Wednesday (last session)
+  {
+    id: "hw-b1-w4-G2A-ict-wed-pg53",
+    classId: "G2A",
+    class_id: "G2A",
+    assignedDay: "Wednesday",
+    dueDay: "Sunday",
+    subject: "ICT",
+    task: "Homework W4 Pg. 53",
+    details: "حل واجب الـ ICT صفحة 53 (Homework W4 Pg. 53)",
+    pages: "Pg. 53",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4
+  },
+  // Class B: Homework is assigned on Thursday (last session)
+  {
+    id: "hw-b1-w4-G2B-ict-thu-pg53",
+    classId: "G2B",
+    class_id: "G2B",
+    assignedDay: "Thursday",
+    dueDay: "Sunday",
+    subject: "ICT",
+    task: "Homework W4 Pg. 53",
+    details: "حل واجب الـ ICT صفحة 53 (Homework W4 Pg. 53)",
+    pages: "Pg. 53",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4
+  },
+  // Class C: Homework is assigned on Thursday (last session)
+  {
+    id: "hw-b1-w4-G2C-ict-thu-pg53",
+    classId: "G2C",
+    class_id: "G2C",
+    assignedDay: "Thursday",
+    dueDay: "Monday",
+    subject: "ICT",
+    task: "Homework W4 Pg. 53",
+    details: "حل واجب الـ ICT صفحة 53 (Homework W4 Pg. 53)",
+    pages: "Pg. 53",
+    completed: false,
+    priority: "normal",
+    block: 1,
+    week: 4
+  }
+];
+
 export const WEEK4_SCIENCE_HOMEWORK: HomeworkEntry[] = [
   {
     id: "hw-b1-w4-G2A-science-page41",
@@ -3254,7 +3439,8 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
   ...WEEK4_FRENCH_CLASSWORK,
   ...WEEK4_ENGLISH_CLASSWORK,
   ...WEEK4_SOCIAL_CLASSWORK,
-  ...WEEK4_SCIENCE_CLASSWORK
+  ...WEEK4_SCIENCE_CLASSWORK,
+  ...WEEK4_ICT_CLASSWORK
 ];
 
 
@@ -4945,7 +5131,8 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...WEEK4_FRENCH_HOMEWORK,
   ...WEEK4_ENGLISH_HOMEWORK,
   ...WEEK4_SOCIAL_HOMEWORK,
-  ...WEEK4_SCIENCE_HOMEWORK
+  ...WEEK4_SCIENCE_HOMEWORK,
+  ...WEEK4_ICT_HOMEWORK
 ];
 
 

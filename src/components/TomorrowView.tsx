@@ -15,7 +15,8 @@ import {
   getDeletedTomorrowNoteIds,
   getDeletedTomorrowNoteIdsSync,
   saveDeletedTomorrowNoteId,
-  WEEK3_SPECIAL_NOTES
+  WEEK3_SPECIAL_NOTES,
+  WEEK4_SPECIAL_NOTES
 } from '../utils/tomorrowNotesStorage';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
 
@@ -476,12 +477,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   };
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
-    if (currentWeek === 4 || effectiveWeek === 4) {
-      return [];
-    }
-
     const base =
-      currentBlock === 1 && (currentWeek === 3 || effectiveWeek === 3)
+      currentBlock === 1 && (currentWeek === 4 || effectiveWeek === 4)
+        ? WEEK4_SPECIAL_NOTES.filter(
+            (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
+          )
+        : currentBlock === 1 && (currentWeek === 3 || effectiveWeek === 3)
         ? WEEK3_SPECIAL_NOTES.filter(
             (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
           )
