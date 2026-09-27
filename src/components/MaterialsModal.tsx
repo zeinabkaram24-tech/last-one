@@ -67,16 +67,8 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
     onClose();
   };
 
-  // Helper to open PDF directly in new tab (no extra steps/modals)
+  // Open in-app viewer modal directly (no unwanted external popups)
   const handlePreview = (item: MaterialItem) => {
-    const url = item.storageUrl || item.linkUrl || (item.id ? `/api/materials/${item.id}/file` : '');
-    if (url && typeof window !== 'undefined') {
-      try {
-        window.open(url, '_blank');
-      } catch (e) {
-        console.warn('Could not open in new tab:', e);
-      }
-    }
     openPdfItem(item);
   };
 

@@ -22,7 +22,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   const [activeUrl, setActiveUrl] = useState<string>('');
   const [activeTitle, setActiveTitle] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [viewMode, setViewMode] = useState<'proxy' | 'direct' | 'google'>('proxy');
+  const [viewMode, setViewMode] = useState<'proxy' | 'direct'>('proxy');
 
   // Listen to global open_pdf_viewer_modal custom events
   useEffect(() => {
@@ -37,7 +37,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         setActiveItem(null);
       } else if (detail && typeof detail === 'object') {
         const url = detail.fileData || detail.storageUrl || detail.linkUrl || (detail.id ? `/api/materials/${detail.id}/file` : '');
-        setActiveUrl(url || '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf');
+        setActiveUrl(url);
         setActiveTitle(detail.fileName || 'ملف مرفق');
         setActiveItem(detail);
       }
@@ -94,12 +94,9 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
       (typeof window !== 'undefined' && activeUrl.includes(window.location.host));
 
     if (isLocalUrl) {
-      // Direct native loading for local/relative files (e.g. /materials/...)
       iframeSrc = activeUrl;
     } else if (viewMode === 'proxy') {
       iframeSrc = `/api/proxy-file?url=${encodeURIComponent(activeUrl)}`;
-    } else if (viewMode === 'google') {
-      iframeSrc = `https://docs.google.com/gview?url=${encodeURIComponent(activeUrl)}&embedded=true`;
     } else {
       iframeSrc = activeUrl;
     }
@@ -164,6 +161,19 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
 
           {/* Action buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Open in full tab - guaranteed 1-click view on any device */}
+            <a
+              id="pdf-modal-external-link"
+              href={activeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs text-xs font-black transition-all cursor-pointer"
+              title="فتح المستند في تبويب مستقل بملء الشاشة"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>فتح مباشر ↗</span>
+            </a>
+
             {/* Download */}
             <button
               id="pdf-modal-download-btn"
@@ -187,19 +197,6 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
               <Printer className="w-3.5 h-3.5 text-slate-600" />
               <span className="hidden sm:inline">طباعة</span>
             </button>
-
-            {/* Open in new tab */}
-            <a
-              id="pdf-modal-external-link"
-              href={activeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-xs font-black transition-colors"
-              title="فتح في تبويب مستقل"
-            >
-              <ExternalLink className="w-3.5 h-3.5 text-indigo-700" />
-              <span className="hidden sm:inline">تبويب جديد</span>
-            </a>
 
             {/* Fullscreen toggle */}
             <button
@@ -226,9 +223,9 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         </div>
 
         {/* Viewer Body (Images vs PDF/Doc) */}
-        <div className="flex-1 bg-slate-900/90 relative min-h-0 overflow-auto flex items-center justify-center p-2 sm:p-4">
+        <div className="flex-1 bg-slate-900/90 relative min-h-0 overflow-hidden flex flex-col p-2 sm:p-4">
           {isImage ? (
-            <div className="flex flex-col items-center justify-center max-w-full max-h-full space-y-3 my-auto">
+            <div className="flex flex-col items-center justify-center max-w-full max-h-full space-y-3 my-auto overflow-auto">
               <img
                 src={activeUrl}
                 alt={fileTitle}
@@ -236,56 +233,62 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
               />
             </div>
           ) : (
-            <object
-              id="pdf-modal-object"
-              data={iframeSrc}
-              type="application/pdf"
-              className="w-full h-full border-0 bg-white rounded-xl shadow-lg"
-            >
-              <iframe
-                id="pdf-modal-iframe"
-                src={iframeSrc}
-                title={fileTitle}
-                className="w-full h-full border-0 bg-white rounded-xl shadow-lg"
-              />
-            </object>
+            <div className="w-full h-full flex flex-col relative rounded-xl overflow-hidden shadow-lg border border-slate-700/50 bg-white">
+              {/* Notice bar at top of viewer */}
+              <div className="px-4 py-2 bg-slate-800 text-white flex items-center justify-between text-xs gap-2 shrink-0">
+                <div className="flex items-center gap-2 truncate">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                  <span className="truncate text-slate-200 font-bold">معاينة الملف داخل التطبيق</span>
+                </div>
+                <a
+                  href={activeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-lg shrink-0 flex items-center gap-1 transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>عرض بملء الشاشة ↗</span>
+                </a>
+              </div>
+
+              {/* Direct Native PDF Frame */}
+              <div className="flex-1 w-full min-h-0 relative bg-slate-100">
+                <iframe
+                  id="pdf-modal-iframe"
+                  src={iframeSrc}
+                  title={fileTitle}
+                  className="w-full h-full border-0 bg-white"
+                />
+              </div>
+            </div>
           )}
         </div>
 
         {/* Bottom helper toolbar */}
         <div className="py-2.5 px-4 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-600 shrink-0 flex-wrap gap-2">
           <div className="flex items-center gap-3 flex-wrap">
-            <span>
-              إذا لم يظهر المستند:
+            <span className="font-semibold text-slate-500">
+              طريقة العرض:
             </span>
             {!isImage && (
               <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 font-bold text-[11px]">
                 <button
                   type="button"
-                  onClick={() => setViewMode('google')}
-                  className={`px-2 py-1 rounded-md transition-colors cursor-pointer ${
-                    viewMode === 'google' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  عرض Google 🌐
-                </button>
-                <button
-                  type="button"
                   onClick={() => setViewMode('proxy')}
-                  className={`px-2 py-1 rounded-md transition-colors cursor-pointer ${
-                    viewMode === 'proxy' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                    viewMode === 'proxy' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  الخادم المحلي ⚡
+                  الخادم السريع ⚡
                 </button>
                 <button
                   type="button"
                   onClick={() => setViewMode('direct')}
-                  className={`px-2 py-1 rounded-md transition-colors cursor-pointer ${
-                    viewMode === 'direct' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                    viewMode === 'direct' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  مباشر 🔗
+                  رابط مباشر 🔗
                 </button>
               </div>
             )}
@@ -293,9 +296,10 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
               href={activeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-indigo-600 hover:underline font-bold"
+              className="text-indigo-600 hover:underline font-black flex items-center gap-1"
             >
-              فتح في تبويب جديد ↗
+              <ExternalLink className="w-3 h-3" />
+              <span>فتح في تبويب مستقل ↗</span>
             </a>
             <button
               onClick={handleDownload}
