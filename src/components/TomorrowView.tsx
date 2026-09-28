@@ -337,6 +337,24 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true; // Disallow any homework submission task for subjects other than Science and Social Studies
     }
 
+    // 7. Strict user mandate for Week 4:
+    // "الـ task بتاعة الـ dictation الموجودة في الـ tomorrow لكل الفصول وكل الأيام امسحها ما عدا يوم الأربعاء فقط، وده لـ week 4 فقط"
+    if (currentWeek === 4 || effectiveWeek === 4) {
+      const fullText = (
+        ((n as any).title || '') +
+        ' ' +
+        (n.note || '') +
+        ' ' +
+        (n.arabicNote || '') +
+        ' ' +
+        (n.bagItem || '')
+      ).toLowerCase();
+      const isDictation = fullText.includes('dictation') || fullText.includes('إملاء') || fullText.includes('ديكتيشن');
+      if (isDictation && selectedDay !== 'Wednesday') {
+        return true; // Strictly disallowed on all days except Wednesday!
+      }
+    }
+
     // =========================================================================
     // DEFAULT DISPLAY LOGIC FOR MANUAL / SPECIAL / GENERIC ITEMS
     // =========================================================================
@@ -733,6 +751,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
       // A) Tests, quizzes, dictations
       if (isForTomorrow && checkText(fullText)) {
+        if ((currentWeek === 4 || effectiveWeekForHw === 4) && selectedDay !== 'Wednesday') {
+          const lower = fullText.toLowerCase();
+          if (lower.includes('dictation') || lower.includes('ديكتيشن') || lower.includes('إملاء')) {
+            return;
+          }
+        }
         if (selectedDay === 'Saturday') {
           const lower = fullText.toLowerCase();
           if (lower.includes('dictation') || lower.includes('ديكتيشن') || lower.includes('إملاء')) {
@@ -790,6 +814,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
       const fullText = `${cw.title} ${cw.details || ''} ${cw.subject}`;
       if (checkText(fullText)) {
+        if ((currentWeek === 4 || effectiveWeekForHw === 4) && selectedDay !== 'Wednesday') {
+          const lower = fullText.toLowerCase();
+          if (lower.includes('dictation') || lower.includes('ديكتيشن') || lower.includes('إملاء')) {
+            return;
+          }
+        }
         alerts.push({
           id: cwAlertId,
           classId: currentClass,
