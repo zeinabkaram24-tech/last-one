@@ -3965,21 +3965,6 @@ export const WEEK4_FRENCH_HOMEWORK: HomeworkEntry[] = [
     week: 4
   },
   {
-    id: 'hw-b1-w4-G2B-Thu-french-tache-alert',
-    classId: 'G2B',
-    class_id: 'G2B',
-    assignedDay: 'Thursday',
-    dueDay: 'Sunday',
-    subject: 'French',
-    task: '🚨 Tache (French Task)',
-    details: '🚨 Quiz / Evaluation in class! Revise "le verbe avoir" and Passe-passe page 50.',
-    pages: 'Passe-passe p.50',
-    completed: false,
-    priority: 'urgent',
-    block: 1,
-    week: 4
-  },
-  {
     id: 'hw-b1-w4-G2C-Mon-french-tache-alert',
     classId: 'G2C',
     class_id: 'G2C',
