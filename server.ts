@@ -580,6 +580,9 @@ app.delete('/api/materials/:id', (req, res) => {
 
 // Planner Data endpoints (Backup & sync across all devices)
 app.get('/api/planner-data', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   try {
     const data = getStoredPlannerData();
     if (Array.isArray(data.deletedTomorrowNoteIds) && data.deletedTomorrowNoteIds.length > 0) {

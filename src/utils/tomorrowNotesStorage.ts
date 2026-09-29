@@ -575,7 +575,7 @@ export async function getTomorrowNotesForDay(
     });
 
     try {
-      const res = await fetch('/api/planner-data');
+      const res = await fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const pData = await res.json();
         if (pData && Array.isArray(pData.tomorrowNotes)) {
@@ -729,7 +729,7 @@ export async function getTomorrowNotesForDay(
 
     // 3. Fetch from central planner-data endpoint
     try {
-      const res = await fetch('/api/planner-data');
+      const res = await fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const pData = await res.json();
         if (pData && Array.isArray(pData.tomorrowNotes)) {

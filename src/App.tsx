@@ -268,11 +268,68 @@ export default function App() {
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [undoAction, setUndoAction] = useState<(() => Promise<void>) | null>(null);
+  const [isRefreshingData, setIsRefreshingData] = useState<boolean>(false);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
   const [isSupabaseConfigOpen, setIsSupabaseConfigOpen] = useState(false);
+
+  const handleManualForceRefresh = async () => {
+    setIsRefreshingData(true);
+    showToast('🔄 جارٍ جلب وتحديث أحدث البيانات من السحابة...');
+    try {
+      const keysToClear = [
+        'classwork_planner_custom_entries_v3',
+        'homework_planner_custom_entries_v3',
+        'tomorrow_special_notes_custom_v3',
+        'nile_planner_custom_classwork_v2',
+        'nile_planner_custom_homework_v2',
+      ];
+      keysToClear.forEach((k) => {
+        try { localStorage.removeItem(k); } catch {}
+      });
+
+      const [cwData, hwData] = await Promise.all([
+        fetchAllClasswork(),
+        fetchAllHomework(),
+      ]);
+
+      if (cwData && cwData.length > 0) {
+        const uniqueCwMap = new Map<string, ClassworkEntry>();
+        cwData.forEach((c) => uniqueCwMap.set(c.id, c));
+        const dedupedCw = Array.from(uniqueCwMap.values());
+        const profile = getActiveUserProfile();
+        const progress = profile?.mode === 'student' && profile.studentName
+          ? getStudentProgress(profile.studentName)
+          : getGuestProgress();
+        const cwSet = new Set(progress.completedClassworkIds);
+        setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+      }
+
+      if (hwData && hwData.length > 0) {
+        const uniqueHwMap = new Map<string, HomeworkEntry>();
+        hwData.forEach((h) => uniqueHwMap.set(h.id, h));
+        const dedupedHw = Array.from(uniqueHwMap.values());
+        const profile = getActiveUserProfile();
+        const progress = profile?.mode === 'student' && profile.studentName
+          ? getStudentProgress(profile.studentName)
+          : getGuestProgress();
+        const hwSet = new Set(progress.completedHomeworkIds);
+        setHomeworkList(dedupedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+      }
+
+      window.dispatchEvent(new CustomEvent('supabase_config_updated'));
+      window.dispatchEvent(new CustomEvent('planner_force_refresh'));
+
+      showToast('✅ تم تحديث ومزامنة أحدث البيانات من السحابة بنجاح!');
+    } catch (e) {
+      console.error('Error during manual refresh:', e);
+      showToast('⚠️ حدث خطأ أثناء التحديث، يُرجى المحاولة مجدداً.');
+    } finally {
+      setIsRefreshingData(false);
+    }
+  };
 
   // Listen for Supabase config updates (saving URL / API Key from UI)
   useEffect(() => {
@@ -1044,6 +1101,8 @@ export default function App() {
         onOpenMaterials={() => setIsMaterialsModalOpen(true)}
         onOpenSupabaseConfig={() => setIsSupabaseConfigOpen(true)}
         supabaseStatus={supabaseStatus}
+        onRefreshData={handleManualForceRefresh}
+        isRefreshing={isRefreshingData}
       />
 
       {/* Main Container */}

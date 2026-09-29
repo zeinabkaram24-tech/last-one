@@ -543,7 +543,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
 
   // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
   try {
-    const res = await fetch('/api/planner-data');
+    const res = await fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' });
     if (res.ok) {
       const srvData = await res.json();
       if (srvData && Array.isArray(srvData.classwork) && srvData.classwork.length > 0) {
@@ -662,7 +662,7 @@ export async function getDeletedPlannerItemIds(): Promise<string[]> {
   } catch {}
 
   try {
-    const res = await fetch('/api/planner-data');
+    const res = await fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' });
     if (res.ok) {
       const srvData = await res.json();
       if (Array.isArray(srvData.deletedPlannerItemIds)) {
@@ -919,7 +919,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
 
   // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
   try {
-    const res = await fetch('/api/planner-data');
+    const res = await fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' });
     if (res.ok) {
       const srvData = await res.json();
       if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {

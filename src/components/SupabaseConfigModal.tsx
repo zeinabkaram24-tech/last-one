@@ -205,11 +205,29 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
         'هل تريد مسح البيانات المؤقتة القديمة المخزنة محلياً بالمتصفح؟ سيتم الاعتماد بالكامل على بيانات السحابة (Supabase) ومنع أي تكرار.'
       )
     ) {
-      localStorage.removeItem('nile_planner_custom_classwork_v2');
-      localStorage.removeItem('nile_planner_custom_homework_v2');
-      localStorage.removeItem('nile_planner_guest_progress_v2');
-      alert('تم مسح البيانات المحلية المؤقتة بنجاح! سيتم الآن الاعتماد بالكامل على بيانات Supabase السحابية.');
+      const keysToClear = [
+        'classwork_planner_custom_entries_v3',
+        'homework_planner_custom_entries_v3',
+        'tomorrow_special_notes_custom_v3',
+        'nile_planner_custom_classwork_v2',
+        'nile_planner_custom_homework_v2',
+        'nile_planner_guest_progress_v2',
+        'nile_planner_guest_progress_v3',
+        'nile_deleted_planner_item_ids_v3',
+        'nile_deleted_tomorrow_note_ids_v3',
+        'nile_planner_active_tab_v3',
+      ];
+      keysToClear.forEach((k) => {
+        try {
+          localStorage.removeItem(k);
+          sessionStorage?.removeItem(k);
+        } catch {}
+      });
+      alert('تم مسح البيانات المحلية المؤقتة بنجاح! سيتم الآن إعادة تحميل الصفحة وقراءة أحدث البيانات من السحابة.');
       if (onConfigSaved) onConfigSaved();
+      setTimeout(() => {
+        window.location.reload();
+      }, 300);
     }
   };
 

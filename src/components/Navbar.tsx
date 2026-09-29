@@ -12,6 +12,7 @@ import {
   GraduationCap,
   FolderOpen,
   Database,
+  RotateCw,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
 import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
@@ -35,6 +36,8 @@ interface NavbarProps {
   onOpenMaterials?: () => void;
   onOpenSupabaseConfig?: () => void;
   supabaseStatus?: 'connecting' | 'connected' | 'unconfigured' | 'error';
+  onRefreshData?: () => void;
+  isRefreshing?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -55,6 +58,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenMaterials,
   onOpenSupabaseConfig,
   supabaseStatus = 'unconfigured',
+  onRefreshData,
+  isRefreshing = false,
 }) => {
   const tabs = [
     {
@@ -135,6 +140,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }`}
                 />
               </button>
+
+              {/* Force Refresh & Sync Button */}
+              {onRefreshData && (
+                <button
+                  type="button"
+                  onClick={onRefreshData}
+                  disabled={isRefreshing}
+                  className={`inline-flex items-center gap-1.5 bg-blue-500/25 hover:bg-blue-500/40 active:bg-blue-500/60 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-blue-400/40 active:scale-95 shrink-0 ${
+                    isRefreshing ? 'opacity-70 cursor-wait' : ''
+                  }`}
+                  title="تحديث فوري ومزامنة البيانات من السحابة"
+                >
+                  <RotateCw className={`w-3.5 h-3.5 text-cyan-300 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <span>تحديث</span>
+                </button>
+              )}
 
               {/* Admin Button directly inside the top blue bar without any separation */}
               <button
