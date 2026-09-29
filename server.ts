@@ -335,6 +335,7 @@ app.post('/api/supabase/delete-week3', async (req, res) => {
       data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => Number(n.week) !== 3);
     }
     saveStoredPlannerData(data);
+    broadcastPlannerUpdate('planner_updated', { source: 'delete_week3' });
 
     // 2. If Supabase is configured, delete week 3 rows from Supabase
     let deletedFromSupabase = false;
@@ -377,6 +378,7 @@ app.post('/api/supabase/delete-tomorrow-week4', async (req, res) => {
       data.deletedTomorrowNoteIds = data.deletedTomorrowNoteIds.filter((id: string) => !id.includes('w4') && !id.includes('week4') && !id.includes('week-4'));
     }
     saveStoredPlannerData(data);
+    broadcastPlannerUpdate('planner_updated', { source: 'delete_tomorrow_week4' });
 
     // 2. If Supabase is configured, update tomorrow notes in Supabase
     let deletedFromSupabase = false;
@@ -578,6 +580,53 @@ app.delete('/api/materials/:id', (req, res) => {
   res.json({ success: true, id });
 });
 
+// =========================================================================
+// Real-time WhatsApp-style Live Synchronization (Server-Sent Events)
+// =========================================================================
+const sseClients = new Set<express.Response>();
+
+export function broadcastPlannerUpdate(changeType: string, payload?: any) {
+  const message = `data: ${JSON.stringify({
+    type: changeType,
+    timestamp: Date.now(),
+    payload: payload || null,
+  })}\n\n`;
+
+  for (const client of Array.from(sseClients)) {
+    try {
+      client.write(message);
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}
+
+app.get('/api/realtime-stream', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  res.write(`data: ${JSON.stringify({ type: 'connected', timestamp: Date.now() })}\n\n`);
+
+  sseClients.add(res);
+
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(': heartbeat\n\n');
+    } catch {
+      clearInterval(heartbeat);
+      sseClients.delete(res);
+    }
+  }, 15000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    sseClients.delete(res);
+  });
+});
+
 // Planner Data endpoints (Backup & sync across all devices)
 app.get('/api/planner-data', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -734,6 +783,7 @@ app.post('/api/planner-data', (req, res) => {
     }
 
     saveStoredPlannerData(current);
+    broadcastPlannerUpdate('planner_updated', { source: 'api_save' });
     res.json({ success: true, count: { classwork: current.classwork.length, homework: current.homework.length } });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error saving planner data' });
@@ -813,6 +863,7 @@ app.post('/api/planner-data/delete', (req, res) => {
     current.deletedHistory = current.deletedHistory.filter((item: any) => item.deletedAt >= twentyFourHoursAgo);
 
     saveStoredPlannerData(current);
+    broadcastPlannerUpdate('planner_updated', { source: 'api_delete', targetIds });
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error deleting planner item' });
@@ -858,6 +909,7 @@ app.post('/api/planner-data/restore', (req, res) => {
     current.deletedHistory = current.deletedHistory.filter((item: any) => !targetIds.includes(item.id));
 
     saveStoredPlannerData(current);
+    broadcastPlannerUpdate('planner_updated', { source: 'api_restore', targetIds });
     res.json({ success: true, restoredCount: restoredItems.length });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error restoring planner item' });

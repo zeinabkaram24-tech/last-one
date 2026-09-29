@@ -269,6 +269,7 @@ export default function App() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [undoAction, setUndoAction] = useState<(() => Promise<void>) | null>(null);
   const [isRefreshingData, setIsRefreshingData] = useState<boolean>(false);
+  const [isLiveConnected, setIsLiveConnected] = useState<boolean>(true);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
@@ -540,43 +541,135 @@ export default function App() {
 
     initializeFromSupabase();
 
-    // Setup Supabase Realtime Channels only if configured
-    if (!isSupabaseConfigured) return;
-    const channel = supabase
-      .channel('planner-realtime-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const newCw = rowToClasswork(payload.new as ClassworkRow);
-          setClassworkList((prev) => [newCw, ...prev.filter((c) => c.id !== newCw.id)]);
-        } else if (payload.eventType === 'UPDATE') {
-          const updatedCw = rowToClasswork(payload.new as ClassworkRow);
-          setClassworkList((prev) =>
-            prev.map((c) => (c.id === updatedCw.id ? { ...c, ...updatedCw, completed: c.completed } : c))
-          );
-        } else if (payload.eventType === 'DELETE') {
-          const oldId = payload.old.id;
-          setClassworkList((prev) => prev.filter((c) => c.id !== oldId));
+    // =========================================================================
+    // Unified WhatsApp-style Live Synchronization Engine
+    // (Server SSE + Supabase Realtime + BroadcastChannel + Window Visibility/Focus)
+    // =========================================================================
+    let syncDebounceTimer: any = null;
+
+    const performLiveSync = async (sourceDesc?: string) => {
+      if (!isMounted) return;
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+
+      syncDebounceTimer = setTimeout(async () => {
+        if (!isMounted) return;
+        try {
+          const [cwData, hwData] = await Promise.all([
+            fetchAllClasswork(),
+            fetchAllHomework(),
+          ]);
+
+          if (cwData && cwData.length > 0 && isMounted) {
+            const uniqueCwMap = new Map<string, ClassworkEntry>();
+            cwData.forEach((c) => uniqueCwMap.set(c.id, c));
+            const dedupedCw = Array.from(uniqueCwMap.values());
+            const profile = getActiveUserProfile();
+            const progress = profile?.mode === 'student' && profile.studentName
+              ? getStudentProgress(profile.studentName)
+              : getGuestProgress();
+            const cwSet = new Set(progress.completedClassworkIds);
+            setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+          }
+
+          if (hwData && hwData.length > 0 && isMounted) {
+            const uniqueHwMap = new Map<string, HomeworkEntry>();
+            hwData.forEach((h) => uniqueHwMap.set(h.id, h));
+            const dedupedHw = Array.from(uniqueHwMap.values());
+            const profile = getActiveUserProfile();
+            const progress = profile?.mode === 'student' && profile.studentName
+              ? getStudentProgress(profile.studentName)
+              : getGuestProgress();
+            const hwSet = new Set(progress.completedHomeworkIds);
+            setHomeworkList(dedupedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+          }
+
+          // Trigger Tomorrow view update
+          window.dispatchEvent(new CustomEvent('planner_force_refresh'));
+          if (sourceDesc) {
+            showToast(`⚡ مزامنة فورية: تم تحديث البيانات تلقائياً (${sourceDesc})`);
+          }
+        } catch (err) {
+          console.warn('Realtime live sync refresh failed:', err);
         }
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const newHw = rowToHomework(payload.new as HomeworkRow);
-          setHomeworkList((prev) => [newHw, ...prev.filter((h) => h.id !== newHw.id)]);
-        } else if (payload.eventType === 'UPDATE') {
-          const updatedHw = rowToHomework(payload.new as HomeworkRow);
-          setHomeworkList((prev) =>
-            prev.map((h) => (h.id === updatedHw.id ? { ...h, ...updatedHw, completed: h.completed } : h))
-          );
-        } else if (payload.eventType === 'DELETE') {
-          const oldId = payload.old.id;
-          setHomeworkList((prev) => prev.filter((h) => h.id !== oldId));
-        }
-      })
-      .subscribe();
+      }, 200);
+    };
+
+    // 1. Server-Sent Events (SSE) Live Stream
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource('/api/realtime-stream');
+      eventSource.onopen = () => {
+        if (isMounted) setIsLiveConnected(true);
+      };
+      eventSource.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'planner_updated') {
+            performLiveSync('تحديث لحظي');
+          }
+        } catch {}
+      };
+      eventSource.onerror = () => {
+        // SSE auto-reconnects automatically
+      };
+    } catch {}
+
+    // 2. Supabase Realtime Channels (PostgreSQL changes)
+    let sbChannel: any = null;
+    if (isSupabaseConfigured) {
+      try {
+        sbChannel = supabase
+          .channel('planner-live-realtime-channel')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, () => {
+            performLiveSync('تحديث سحابي');
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, () => {
+            performLiveSync('تحديث سحابي');
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_settings' }, () => {
+            performLiveSync('تحديث سحابي');
+          })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED' && isMounted) {
+              setIsLiveConnected(true);
+            }
+          });
+      } catch {}
+    }
+
+    // 3. Inter-Tab BroadcastChannel (Sync across tabs on same device)
+    let bc: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        bc = new BroadcastChannel('nile_planner_live_sync');
+        bc.onmessage = (ev) => {
+          if (ev.data === 'sync') {
+            performLiveSync();
+          }
+        };
+      }
+    } catch {}
+
+    // 4. Window Visibility & Focus (Mobile screen unlock / tab switch)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        performLiveSync();
+      }
+    };
+    const handleWindowFocus = () => {
+      performLiveSync();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleWindowFocus);
 
     return () => {
       isMounted = false;
-      supabase.removeChannel(channel);
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      if (eventSource) eventSource.close();
+      if (sbChannel) supabase.removeChannel(sbChannel);
+      if (bc) bc.close();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleWindowFocus);
     };
   }, []);
 
@@ -1103,6 +1196,7 @@ export default function App() {
         supabaseStatus={supabaseStatus}
         onRefreshData={handleManualForceRefresh}
         isRefreshing={isRefreshingData}
+        isLiveConnected={isLiveConnected}
       />
 
       {/* Main Container */}

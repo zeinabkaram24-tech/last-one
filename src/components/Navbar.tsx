@@ -38,6 +38,7 @@ interface NavbarProps {
   supabaseStatus?: 'connecting' | 'connected' | 'unconfigured' | 'error';
   onRefreshData?: () => void;
   isRefreshing?: boolean;
+  isLiveConnected?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -60,6 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   supabaseStatus = 'unconfigured',
   onRefreshData,
   isRefreshing = false,
+  isLiveConnected = true,
 }) => {
   const tabs = [
     {
@@ -115,6 +117,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* WhatsApp-style Live Realtime Sync Status Indicator */}
+              <div
+                className="hidden sm:inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 px-2.5 py-1.5 rounded-xl text-xs font-black shrink-0 shadow-xs select-none"
+                title="مزامنة لحظية مباشرة مثل الواتساب: أي تعديل من الأدمن يظهر هنا تلقائياً في نفس اللحظة بدون لمس أي زرار"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isLiveConnected ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isLiveConnected ? 'bg-emerald-400' : 'bg-amber-500'}`}></span>
+                </span>
+                <span>مزامنة مباشرة ⚡</span>
+              </div>
+
               {/* Supabase Cloud Connection & Settings */}
               <button
                 type="button"
