@@ -52,7 +52,7 @@ const NEXT_SCHOOL_DAY: Record<SchoolDay, SchoolDay> = {
 
 const parseDictationWords = (details: string | undefined): string[] => {
   if (!details) return [];
-  const match = details.match(/(?:Words:|الكلمات:)\s*([\s\S]+?)(?:\n\n|Note:|ملحوظة:|$)/i);
+  const match = details.match(/(?:Words to study:|Words:|الكلمات:)\s*([\s\S]+?)(?:\n\n|Note:|ملحوظة:|$)/i);
   const content = match ? match[1] : details;
   
   const rawWords = content
