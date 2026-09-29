@@ -949,11 +949,11 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
 
     if (
       isTargetArabicHw &&
-      (item.task.includes('46') || (item.pages && item.pages.includes('46')) || (item.details && item.details.includes('46')))
+      ((item.task && item.task.includes('46')) || (item.pages && item.pages.includes('46')) || (item.details && item.details.includes('46')))
     ) {
       const corrected: HomeworkEntry = {
         ...item,
-        task: item.task.replace(/46/g, '47'),
+        task: item.task ? item.task.replace(/46/g, '47') : item.task,
         pages: item.pages ? item.pages.replace(/46/g, '47') : '47',
         details: item.details ? item.details.replace(/46/g, '47') : item.details,
       };

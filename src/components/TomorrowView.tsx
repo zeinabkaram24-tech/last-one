@@ -355,6 +355,41 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
+    // 8. Strict user mandate: "امسح الـ task الموجودة في كلاس A وكلاس C في تنبيهات الغد بتاعة اختبار الـ Math"
+    // Math test in Tomorrow is strictly disallowed for all classes (Class A, Class B, Class C) in Week 4!
+    if (currentWeek === 4 || effectiveWeek === 4) {
+      const fullText = (
+        ((n as any).title || '') +
+        ' ' +
+        (n.note || '') +
+        ' ' +
+        (n.arabicNote || '') +
+        ' ' +
+        (n.subject || '')
+      ).toLowerCase();
+      const isMath = fullText.includes('math') || fullText.includes('رياضيات') || (n.subject && n.subject.toLowerCase().includes('math'));
+      const isTestOrQuiz = fullText.includes('test') || fullText.includes('quiz') || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم');
+      if (isMath && isTestOrQuiz) {
+        return true; // Strictly disallowed in Tomorrow for all classes in Week 4!
+      }
+    }
+
+    // 9. Strict user mandate: "وما تنزلهاليش في التومورو" - No French in Tomorrow for 2B Week 4!
+    if ((currentClass === 'G2B' || (n as any).classId === 'G2B') && (currentWeek === 4 || effectiveWeek === 4)) {
+      const fullText = (
+        ((n as any).title || '') +
+        ' ' +
+        (n.note || '') +
+        ' ' +
+        (n.arabicNote || '') +
+        ' ' +
+        (n.subject || '')
+      ).toLowerCase();
+      if (fullText.includes('french') || fullText.includes('فرنساوي') || fullText.includes('فرنسي') || fullText.includes('tache') || n.subject === 'French') {
+        return true; // Strictly disallowed in Tomorrow!
+      }
+    }
+
     // =========================================================================
     // DEFAULT DISPLAY LOGIC FOR MANUAL / SPECIAL / GENERIC ITEMS
     // =========================================================================
@@ -751,6 +786,15 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
       // A) Tests, quizzes, dictations
       if (isForTomorrow && checkText(fullText)) {
+        if (currentWeek === 4 || effectiveWeekForHw === 4) {
+          const lower = fullText.toLowerCase();
+          if ((lower.includes('math') || lower.includes('رياضيات') || h.subject === 'Mathematics') && (lower.includes('test') || lower.includes('quiz') || lower.includes('اختبار') || lower.includes('كويز'))) {
+            return;
+          }
+        }
+        if (currentClass === 'G2B' && (h.subject === 'French' || fullText.toLowerCase().includes('french'))) {
+          return;
+        }
         if ((currentWeek === 4 || effectiveWeekForHw === 4) && selectedDay !== 'Wednesday') {
           const lower = fullText.toLowerCase();
           if (lower.includes('dictation') || lower.includes('ديكتيشن') || lower.includes('إملاء')) {

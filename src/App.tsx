@@ -425,13 +425,13 @@ export default function App() {
                 h.id === 'hw-w2-ar-tue-g2b-wb' ||
                 h.id === 'hw-w2-ar-tue-g2c-wb' ||
                 (h.subject === 'Arabic' && h.assignedDay === 'Tuesday' && h.week === 2)) &&
-              (h.task.includes('46') || h.pages.includes('46') || h.details.includes('46'))
+              ((h.task && h.task.includes('46')) || (h.pages && h.pages.includes('46')) || (h.details && h.details.includes('46')))
             ) {
               return {
                 ...h,
-                task: h.task.replace(/46/g, '47'),
-                pages: h.pages.replace(/46/g, '47'),
-                details: h.details.replace(/46/g, '47'),
+                task: h.task ? h.task.replace(/46/g, '47') : h.task,
+                pages: h.pages ? h.pages.replace(/46/g, '47') : h.pages,
+                details: h.details ? h.details.replace(/46/g, '47') : h.details,
               };
             }
             return h;

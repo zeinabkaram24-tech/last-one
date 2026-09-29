@@ -4,51 +4,6 @@ import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
 
 export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
-  {
-    id: 'tn-b1-w4-G2A-math-thu-test',
-    classId: 'G2A',
-    targetDay: 'Thursday',
-    subject: 'Mathematics',
-    period: 1,
-    title: 'Task Test',
-    note: 'Task Test',
-    arabicNote: '🚨 اختبار قصير (Task Test) في مادة الرياضيات غداً - مراجعة دروس الوحدة الثالثة 2D shapes و Line of symmetry.',
-    bagItem: 'Maths-Grade2-B1-All-Sheet1 - Main',
-    isQuiz: true,
-    categoryType: 'quiz',
-    block: 1,
-    week: 4
-  },
-  {
-    id: 'tn-b1-w4-G2B-math-thu-test',
-    classId: 'G2B',
-    targetDay: 'Thursday',
-    subject: 'Mathematics',
-    period: 4,
-    title: 'Task Test',
-    note: 'Task Test',
-    arabicNote: '🚨 اختبار قصير (Task Test) في مادة الرياضيات غداً - مراجعة دروس الوحدة الثالثة 2D shapes و Line of symmetry.',
-    bagItem: 'Maths-Grade2-B1-All-Sheet1 - Main',
-    isQuiz: true,
-    categoryType: 'quiz',
-    block: 1,
-    week: 4
-  },
-  {
-    id: 'tn-b1-w4-G2C-math-thu-test',
-    classId: 'G2C',
-    targetDay: 'Thursday',
-    subject: 'Mathematics',
-    period: 6,
-    title: 'Task Test',
-    note: 'Task Test',
-    arabicNote: '🚨 اختبار قصير (Task Test) في مادة الرياضيات غداً - مراجعة دروس الوحدة الثالثة 2D shapes و Line of symmetry.',
-    bagItem: 'Maths-Grade2-B1-All-Sheet1 - Main',
-    isQuiz: true,
-    categoryType: 'quiz',
-    block: 1,
-    week: 4
-  },
   // G2A: Session 2 is Wednesday (Prepare Wednesday evening)
   {
     id: 'tn-b1-w4-G2A-french-tache',
@@ -56,22 +11,6 @@ export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     targetDay: 'Wednesday',
     subject: 'French',
     period: 4,
-    title: 'Tache (French Task)',
-    note: 'Tache (French Task)',
-    arabicNote: '🚨 كويز / تقييم فرنسي (Tache) غداً - مراجعة تصريف verb avoir و صفحة 50.',
-    bagItem: 'Cahier de classe / Passe-passe (50)',
-    isQuiz: true,
-    categoryType: 'quiz',
-    block: 1,
-    week: 4
-  },
-  // G2B: Session 2 is Monday (Prepare Sunday evening)
-  {
-    id: 'tn-b1-w4-G2B-french-tache',
-    classId: 'G2B',
-    targetDay: 'Monday',
-    subject: 'French',
-    period: 7,
     title: 'Tache (French Task)',
     note: 'Tache (French Task)',
     arabicNote: '🚨 كويز / تقييم فرنسي (Tache) غداً - مراجعة تصريف verb avoir و صفحة 50.',
