@@ -403,12 +403,24 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
 // Open PDF or Link directly in our guaranteed In-App Viewer Modal
 export function openPdfItem(item: MaterialItem): void {
   try {
-    // Dispatch custom event to open In-App PDF Viewer Modal directly in place
+    const url = item.fileData || item.storageUrl || item.linkUrl || (item.id ? `/api/materials/${item.id}/file` : '');
+    
+    // Check if the current device is mobile (iOS/Android)
+    const isMobile = typeof window !== 'undefined' && 
+      /iphone|ipad|ipod|android|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase());
+
+    if (isMobile && url && !url.startsWith('data:')) {
+      // Mobile native PDF viewers inside Safari/Chrome are 100% accurate and support high-fidelity print/zoom
+      window.open(url, '_blank');
+      return;
+    }
+
+    // Dispatch custom event to open In-App PDF Viewer Modal directly in place for desktop
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('open_pdf_viewer_modal', { detail: item }));
     }
   } catch (e) {
-    console.error('Error opening PDF in modal:', e);
+    console.error('Error opening PDF:', e);
   }
 }
 

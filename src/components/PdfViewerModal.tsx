@@ -76,8 +76,6 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     if (propOnClose) propOnClose();
   };
 
-  if (!isOpen || !activeUrl) return null;
-
   const fileTitle = activeTitle || activeItem?.fileName || 'مستند مرفق';
   const isImage = Boolean(
     activeItem?.type === 'image' ||
@@ -146,6 +144,8 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     document.addEventListener('fullscreenchange', onFsChange);
     return () => document.removeEventListener('fullscreenchange', onFsChange);
   }, []);
+
+  if (!isOpen || !activeUrl) return null;
 
   return (
     <div

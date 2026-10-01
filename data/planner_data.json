@@ -5918,7 +5918,9 @@
       "isLinkTask": true,
       "is_link_task": true,
       "block": 1,
-      "week": 5
+      "week": 5,
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-Week5.pdf",
+      "pdf_url": "/materials/SocialStudies-Grade2-B1-HomeWork-Week5.pdf"
     },
     {
       "id": "hw-b1-w5-G2C-sat-social-hw",
@@ -5939,16 +5941,18 @@
       "isLinkTask": true,
       "is_link_task": true,
       "block": 1,
-      "week": 5
+      "week": 5,
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-Week5.pdf",
+      "pdf_url": "/materials/SocialStudies-Grade2-B1-HomeWork-Week5.pdf"
     },
     {
-      "id": "hw-b1-w5-G2B-mon-social-hw",
+      "id": "hw-b1-w5-G2B-sun-social-hw",
       "classId": "G2B",
       "class_id": "G2B",
-      "assignedDay": "Monday",
-      "assigned_day": "Monday",
-      "dueDay": "Wednesday",
-      "due_day": "Wednesday",
+      "assignedDay": "Sunday",
+      "assigned_day": "Sunday",
+      "dueDay": "Monday",
+      "due_day": "Monday",
       "subject": "Social Studies",
       "task": "تسليم الواجب المدرسي",
       "details": "واجب الدراسات الاجتماعية الأسبوعي (شيت قواعد الصف المرفق).",
@@ -5960,7 +5964,9 @@
       "isLinkTask": true,
       "is_link_task": true,
       "block": 1,
-      "week": 5
+      "week": 5,
+      "pdfUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-Week5.pdf",
+      "pdf_url": "/materials/SocialStudies-Grade2-B1-HomeWork-Week5.pdf"
     }
   ],
   "tomorrowNotes": [
@@ -7233,10 +7239,10 @@
       "week": 5
     },
     {
-      "id": "tn-b1-w5-G2B-mon-social-hw-submit",
+      "id": "tn-b1-w5-G2B-sun-social-hw-submit",
       "classId": "G2B",
       "class_id": "G2B",
-      "targetDay": "Tuesday",
+      "targetDay": "Monday",
       "subject": "Social Studies",
       "title": "تسليم الواجب المدرسي",
       "note": "تسليم الواجب المدرسي",
