@@ -656,6 +656,12 @@ app.get('/api/planner-data', (req, res) => {
         return { ...h, classId: cid, class_id: cid };
       });
     }
+    if (Array.isArray(data.tomorrowNotes)) {
+      data.tomorrowNotes = data.tomorrowNotes.map((n: any) => {
+        const cid = n.class_id || n.classId || 'G2B';
+        return { ...n, classId: cid, class_id: cid };
+      });
+    }
 
     // Filter out deleted items older than 24 hours
     const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
@@ -2053,90 +2059,59 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
     const timetableContext = buildTimetableContext(targetClasses);
 
     const systemPrompt = `
-You are the expert Senior Academic Coordinator for Nile Egyptian International Schools (Grade 2).
-You are analyzing an official Nile School Grade 2 Weekly Plan (Block ${block}, Week ${detectedWeek}) for class(es): ${targetClasses.join(', ')}.
+You are the world-class Expert Academic Coordinator and Planner Parser for Nile Egyptian International Schools (Grade 2).
+Your goal is to parse a Weekly Lesson Plan document (which can be a single subject plan like Science/Arabic or a multi-subject school-wide plan) for Grade 2 (Classes: G2A, G2B, G2C) for Block ${block}, Week ${detectedWeek}.
 
-The weekly plan is often structured as a table with columns or rows for:
-- Day (اليوم): Sunday (الأحد), Monday (الاثنين), Tuesday (الثلاثاء), Wednesday (الأربعاء), Thursday (الخميس)
-- Subject (المادة): English, Mathematics, Arabic, Science, Social Studies, French, Religion, ICT, Arts, Music, PE
-- Classwork (أعمال الفصل / الصف / الحصة / CW / C.W)
-- Homework (الواجب المنزلي / الواجب / HW / H.W / Devoir)
-- Notes & Remarks (ملاحظات / Remarque / Notes / تنبيهات)
-- Tests & Quizzes (Quiz / Test / اختبار / امتحان / كويز / تقييم / إملاء)
-- Links & URLs (روابط / منصات إلكترونية / Kahoot / Wordwall / YouTube / Google Drive / Forms)
+CRITICAL PARSING & LOGICAL RECONSTRUCTION RULES (THINK LIKE AN EXPERT COORDINATOR):
 
-MANDATORY PARSING & MAPPING RULES:
+1. HEADER & META-DATA EXTRACTION:
+   - Identify the Subject (e.g., Science, Arabic, Mathematics, English, French, Religion, Social Studies, ICT).
+   - Identify the Week (Week 1 to 5).
+   - Identify the Teacher.
 
-1. "classwork" (أعمال الفصل):
-   - "الـ Classwork هو هو أعمال الفصل": Map all in-class lessons, page numbers, and practice exercises to "classwork".
+2. LOGICAL CLASS TARGETING (VERY IMPORTANT FOR SINGLE-SUBJECT PLANS):
+   - Single-subject plans often have a "classes" or "صفوف" column.
+   - You must parse this column to route each day's content to the correct class(es)!
+   - Examples of class notations and how to expand them:
+     * "B-C" or "ب-ج" on Sunday -> Create one classwork item for Class B (G2B) and one for Class C (G2C) on Sunday.
+     * "C-A" or "ج-أ" on Monday -> Create one classwork item for Class C (G2C) and one for Class A (G2A) on Monday.
+     * "A" or "أ" on Tuesday -> Create one classwork item for Class A (G2A) on Tuesday.
+     * "B" or "ب" on Wednesday -> Create one classwork item for Class B (G2B) on Wednesday.
+   - For class-specific differentiations like:
+     * "C- Quiz on unit 2 / A- Final revision" on Monday:
+       - For Class C (G2C): The classwork is "Quiz on unit 2".
+       - For Class A (G2A): The classwork is "Final revision".
+     You must split these logically into separate items per class!
+
+3. TIMETABLE RESOLUTION (CLASSWORK SLOT ALLOCATION):
    - Match each lesson to the EXACT period slot for that day from the class timetable:
 ${JSON.stringify(timetableContext, null, 2)}
-   - LINKS: If there are ANY links or URLs in the classwork (e.g. Kahoot, Wordwall, YouTube, Drive), extract them into "linkUrl" and set a descriptive "linkTitle" (e.g. "Lien Kahoot / Activité 🔗" or "رابط الدرس 🔗").
-   - Format:
-     {
-       "classId": "${targetClasses[0]}",
-       "day": "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday",
-       "period": 1 to 8,
-       "subject": "Mathematics" | "English" | "Arabic" | "Science" | "Social Studies" | "French" | "Religion" | "ICT" | "Arts" | "Music" | "PE",
-       "title": "Short descriptive lesson title",
-       "details": "Details or workbook exercises",
-       "pages": "Page numbers (e.g. p. 24-26 or ص 47)",
-       "linkUrl": "Optional URL if present",
-       "linkTitle": "Optional title for link"
-     }
+   - If a class has a lesson on a day, find the exact period for that subject on that day from the timetable. If multiple sessions exist, map them in sequence.
 
-2. "homework" (الواجب المنزلي):
-   - "الـ Homework هو هو الواجب المنزلي": Map all homework, workbook exercises, and home tasks to "homework".
-   - STRICT RULE: For French and ICT, homework is ALWAYS assigned on the 3rd period/session of the week:
-     * G2A: French 3rd session is Thursday (period 2). ICT 3rd session is Wednesday (period 3).
-     * G2B: French 3rd session is Tuesday (period 7). ICT 3rd session is Wednesday (period 8).
-     * G2C: French 3rd session is Wednesday (period 2). ICT 3rd session is Thursday (period 1).
-   - For other subjects (Arabic, Math, English, Science, Social Studies, Religion), homework is assigned on the lesson day.
-   - LINKS: If there are links or URLs in the homework, extract them into "linkUrl" and set "isLinkTask": true.
-   - Format:
-     {
-       "classId": "${targetClasses[0]}",
-       "assignedDay": "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday",
-       "dueDay": "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday",
-       "subject": "Subject name",
-       "task": "Clear homework description",
-       "details": "Extra notes or links",
-       "pages": "Page numbers",
-       "priority": "normal" | "urgent",
-       "linkUrl": "Optional URL if present",
-       "isLinkTask": true // if link present
-     }
+4. AUTOMATIC QUIZ / TEST ROUTING TO TOMORROW:
+   - Nile School regulations require that ANY test, quiz, exam, dictation (كويز, اختبار, امتحان, تقييم, إملاء, تسميع) MUST be notified to students the day before!
+   - Therefore, if a classwork topic is a "Quiz on unit 2" on "Tuesday" (e.g. for Class A on Tuesday):
+     * You MUST create a classwork item for Class A on Tuesday with that title.
+     * AND you MUST create a corresponding "tomorrowNotes" entry:
+       {
+         "classId": "G2A",
+         "targetDay": "Tuesday", // This means it prepares for Tuesday, so it will show up on Monday's Tomorrow panel!
+         "subject": "Science",
+         "note": "Science: Quiz on Unit 2 tomorrow Tuesday.",
+         "arabicNote": "اختبار ساينس (Science Quiz) غداً الثلاثاء على الوحدة الثانية",
+         "isQuiz": true,
+         "categoryType": "quiz"
+       }
+     * If the quiz is on Wednesday: targetDay is "Wednesday" (shows on Tuesday).
+     * If the quiz is on Monday: targetDay is "Monday" (shows on Sunday).
 
-3. "tomorrowNotes" (تنبيهات الغد، الملاحظات، الكويزات والاختبارات):
-   - STRICT USER REQUIREMENT 1: "ولو في كلمة Quiz أو Test أو اختبار بتنزل في الـ Tomorrow"
-     * ANY Quiz, Test, Exam, Short Test, Dictation, اختبار, كويز, امتحان, تسميع, تقييم mentioned in the plan MUST be added to "tomorrowNotes" for the target day so students are alerted immediately!
-     * Set "isQuiz": true and "categoryType": "quiz".
-   - STRICT USER REQUIREMENT 2: "الملاحظات في العربي والسوشيال بتبقى اسمها ملاحظات، في الفرنش بتبقى اسمها Remarque، في باقي المواد بتبقى اسمها Notes"
-     * For Arabic & Social Studies: Notes and instructions must be classified as "ملاحظات".
-     * For French: Notes and instructions must be classified as "Remarque".
-     * For all other subjects (English, Math, Science, ICT, Arts, PE, Religion): Notes must be classified as "Notes".
-   - Supplies & Bag Items: If specific supplies (whiteboard, sketch, sports kit, colors, notebook, كشكول، ألوان، مسطرة) are required, populate "bagItem".
-   - Format:
-     {
-       "classId": "${targetClasses[0]}",
-       "targetDay": "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday",
-       "subject": "Subject name",
-       "note": "Original note text",
-       "arabicNote": "Clear Arabic translation or original note",
-       "bagItem": "Specific school bag item or tool needed if any",
-       "isQuiz": true | false,
-       "categoryType": "quiz" | "note"
-     }
+5. GENERAL NOTES & REMARKS VS PARENTAL REMARKS:
+   - Academic "Notes" or reminders (like "Bring Flash drive", "Bring Whiteboard") should be mapped to "tomorrowNotes".
+   - General parent messages (e.g., "Dear Parents, I will be checking and correcting worksheets...") are non-actionable school policy. Avoid adding non-actionable fluff to tomorrowNotes unless requested. Keep tomorrowNotes clean and focused on action items (quizzes, materials to bring).
 
-CRITICAL RULES TO PREVENT DUPLICATION & PHANTOM SESSIONS:
-- "الحصص التي لا يذكر لها أي بيانات أو لا يكون لها محتوى في الخطة لا تنزل مطلقاً في الـ Classwork".
-- NEVER generate placeholder or filler sessions. Only create a classwork or homework item if the plan explicitly lists real educational content (lesson title, book pages, exercises).
-- If a subject has 3 sessions per week (like Social Studies, which is 3 sessions/week = 9 sessions over 3 weeks), output EXACTLY those 3 lessons per week. DO NOT repeat them across every period or produce 21 sessions!
-- Multi-Week Documents: If the document contains multiple weeks (e.g. Week 1, Week 2, Week 3), attach the correct "week": 1 | 2 | 3 | 4 | 5 to every single object in "classwork", "homework", and "tomorrowNotes".
-
-CRITICAL ARABIC PAGE NUMBERS RULE:
-- Arabic PDF extractors often reverse digit order (e.g. extracting "24" as "42", "14-24" as "41-42", "15-18" as "81-51", "29-32" as "49-50" or "94-05").
-- Always output CORRECT, un-reversed page numbers and ranges formatted with "ص" or "p." (e.g. "ص 24", "ص 14-24", "ص 15-18", "ص 29-32", or "p. 24-26"). Never output reversed digit artifacts!
+6. PAGE NUMBERS REVERSAL PROTECTION:
+   - Arabic PDF extractors often reverse digit order (e.g. extracting "24" as "42", "14-24" as "41-42", "15-18" as "81-51").
+   - Always output CORRECT, un-reversed page numbers and ranges (e.g. "ص 24", "ص 14-24", "ص 15-18" or "p. 24-26").
 
 Return ONLY valid JSON matching this schema:
 {

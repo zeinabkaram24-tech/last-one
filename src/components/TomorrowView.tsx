@@ -457,8 +457,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
-    // 2. Science booklet submission or tools
+    // 2. Science booklet submission, tools, or quiz
     if (normSubject.includes('science') || normSubject.includes('علوم') || normSubject.includes('ساينس')) {
+      if (text.includes('quiz') || text.includes('كويز') || text.includes('test') || text.includes('اختبار') || n.id?.includes('quiz') || n.id?.includes('test')) {
+        return `science-quiz-${n.targetDay}`;
+      }
       if (text.includes('بوكلت') || text.includes('بوكليت') || text.includes('تسليم') || text.includes('تجميع') || n.id?.includes('hw-submit') || n.id?.includes('booklet')) {
         return `science-booklet-submission-${n.classId || currentClass || 'ALL'}-${n.targetDay}`;
       }
@@ -846,7 +849,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     // 2. Linked from Classwork:
     // If any classwork on tomorrowDay mentions a test/quiz/dictation
     classworkList.forEach((cw) => {
-      if (cw.classId !== currentClass && (cw.classId as any) !== 'ALL') return;
+      const cid = cw.class_id || cw.classId;
+      if (cid !== currentClass && cid !== 'ALL') return;
       if (cw.day !== tomorrowDay) return;
       if (cw.week && cw.week !== currentWeek) return;
       const cwAlertId = `linked-cw-${cw.id}`;
