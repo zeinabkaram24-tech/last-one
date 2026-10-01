@@ -51,8 +51,6 @@ import {
   upsertHomework,
   deleteClasswork,
   deleteHomework,
-  deleteWeek3Data,
-  deleteWeek4TomorrowData,
   removeDeletedPlannerItemId,
 } from '../lib/supabase';
 import { saveTomorrowNotes, saveDeletedTomorrowNoteId, getSemanticKey, notifyTomorrowNotesListeners, removeDeletedTomorrowNoteId, WEEK3_SPECIAL_NOTES } from '../utils/tomorrowNotesStorage';
@@ -959,12 +957,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       let availableText = planTextInput;
 
       if (planInputMode === 'pdf' && planFile) {
-        setParsingStep('جاري استخراج النصوص والجداول من ملف الـ PDF...');
+        setParsingStep('جاري قراءة ملف الـ PDF وتجهيز المستند للمعالجة...');
         const extractedText = await extractTextFromPdf(planFile);
         availableText = extractedText;
       }
 
-      setParsingStep('الذكاء الاصطناعي يحلل الجداول، يوزع Classwork و Homework، وينقل Quiz والاختبارات والملاحظات إلى Tomorrow...');
+      setParsingStep('الذكاء الاصطناعي (Gemini AI) يحلل جداول الخطة، يوزع Classwork و Homework، وينقل الاختبارات والملاحظات إلى Tomorrow...');
       const data = await parseWeeklyPlanWithAI(
         availableText,
         planClass,
@@ -991,8 +989,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           tomorrowNotes: notes,
         });
 
+        const isAi = data.isAiParsed !== false;
         setSuccessMessage(
-          `✨ تم تفكيك وتحليل الخطة بنجاح! تم استخراج ${cw.length} حصة صفية (Classwork)، ${hw.length} واجب منزلي (Homework)، و ${notes.length} تنبيه واختبار وملاحظة (Tomorrow).`
+          isAi
+            ? `🤖✨ تم تفكيك وتحليل الخطة بنجاح فائق عبر الذكاء الاصطناعي (Gemini AI)! تم استخراج ${cw.length} حصة صفية (Classwork)، ${hw.length} واجب منزلي (Homework)، و ${notes.length} تنبيه واختبار وملاحظة (Tomorrow).`
+            : `⚡ تم تفكيك وتحليل الخطة بنجاح عبر المعالج السريع! تم استخراج ${cw.length} حصة صفية، ${hw.length} واجب، و ${notes.length} تنبيه واختبار.`
         );
       }
     } catch (err: any) {
@@ -1102,8 +1103,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const blocks = [1, 2, 3, 4];
-  const planWeeks = [1, 2, 3, 4];
-  const sections = ['Main sheet', 'Week 1', 'Week 2', 'Week 3', 'Week 4'];
+  const planWeeks = [1, 2, 3, 4, 5];
+  const sections = ['Main sheet', 'Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'];
 
   return (
     <>
@@ -1128,58 +1129,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  const yes = window.confirm('هل أنتِ متأكدة من رغبتكِ في مسح أي ملاحظات أو تنبيهات موجودة في التومارو للأسبوع الرابع (Week 4) لكل الفصول للبدء من أول وجديد؟');
-                  if (!yes) return;
-                  try {
-                    setIsPublishingPlan(true);
-                    const res = await deleteWeek4TomorrowData();
-                    alert(res.message);
-                    if (res.success) {
-                      window.location.reload();
-                    }
-                  } catch (err: any) {
-                    alert('حدث خطأ أثناء الحذف: ' + err.message);
-                  } finally {
-                    setIsPublishingPlan(false);
-                  }
-                }}
-                disabled={isPublishingPlan}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-colors cursor-pointer shadow-2xs"
-                title="مسح تنبيهات وملاحظات التومارو للأسبوع الرابع لكل الفصول"
-              >
-                <Trash2 className="w-3.5 h-3.5 text-amber-600" />
-                <span>🧹 مسح تومارو ويك 4</span>
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  const yes = window.confirm('هل أنتِ متأكدة من رغبتكِ في مسح جميع بيانات الأسبوع الثالث لكل الفصول والأيام والتبويبات؟ لا يمكن التراجع عن هذا الإجراء!');
-                  if (!yes) return;
-                  try {
-                    setIsPublishingPlan(true);
-                    const res = await deleteWeek3Data();
-                    if (res.success) {
-                      alert(res.message);
-                      window.location.reload();
-                    } else {
-                      alert(res.message);
-                    }
-                  } catch (err: any) {
-                    alert('حدث خطأ أثناء الحذف: ' + err.message);
-                  } finally {
-                    setIsPublishingPlan(false);
-                  }
-                }}
-                disabled={isPublishingPlan}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-300 transition-colors cursor-pointer shadow-2xs"
-                title="مسح كامل لبيانات الأسبوع الثالث"
-              >
-                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                <span>🗑️ مسح الأسبوع الثالث</span>
-              </button>
               <button
                 type="button"
                 onClick={() => setIsSupabaseModalOpen(true)}

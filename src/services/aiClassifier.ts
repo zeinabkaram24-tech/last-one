@@ -359,9 +359,9 @@ export async function parseWeeklyPlanWithAI(
 ): Promise<ParsedWeeklyPlanResponse> {
   // 1. Attempt server-side API proxy first. This is secure and works perfectly outside AI Studio
   try {
-    console.log('[Smart Reader] Attempting server-side parsing API with a 55-second timeout...');
+    console.log('[Smart Reader] Attempting server-side parsing API with a 60-second timeout...');
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 55000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     let response: Response;
     if (pdfFile) {
@@ -397,11 +397,12 @@ export async function parseWeeklyPlanWithAI(
     if (response.ok) {
       const serverData = await response.json();
       if (serverData && serverData.success) {
-        console.log('[Smart Reader] Server-side parsing completed successfully (AI or heuristic)!');
+        console.log('[Smart Reader] Server-side parsing completed successfully!', serverData.fallbackMode ? '(Heuristic mode)' : '(Gemini AI mode)');
         return {
           classwork: serverData.classwork || [],
           homework: serverData.homework || [],
           tomorrowNotes: serverData.tomorrowNotes || [],
+          isAiParsed: !serverData.fallbackMode,
         };
       }
     } else {

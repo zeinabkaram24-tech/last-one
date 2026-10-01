@@ -18,7 +18,7 @@ export function fileToBase64(file: File): Promise<string> {
 
 export async function extractTextFromPdf(file: File): Promise<string> {
   try {
-    const timeoutPromise = new Promise<string>((resolve) => setTimeout(() => resolve(''), 4000));
+    const timeoutPromise = new Promise<string>((resolve) => setTimeout(() => resolve(''), 2500));
     
     const extractionPromise = (async () => {
       try {

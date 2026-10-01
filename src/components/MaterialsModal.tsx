@@ -83,7 +83,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   };
 
   const blocks = [1, 2, 3, 4];
-  const weeks = [1, 2, 3, 4];
+  const weeks = [1, 2, 3, 4, 5];
 
   const formatUploadDate = (dateStr?: string) => {
     if (!dateStr) return '';

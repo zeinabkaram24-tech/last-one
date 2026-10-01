@@ -955,7 +955,7 @@ Valid options to map:
 - Class IDs: "G2A", "G2B", "G2C", "ALL"
 - Days of the week (must capitalize first letter): "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"
 - Blocks: 1, 2, 3, 4
-- Weeks: 1, 2, 3, 4
+- Weeks: 1, 2, 3, 4, 5
 
 Response format MUST be strictly a JSON block containing only the fields that were specified or can be intelligently inferred from the command:
 
@@ -1234,7 +1234,12 @@ function cleanAndParseJson(text: string): any {
 const modelCoolDown = new Map<string, number>();
 
 async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any): Promise<string> {
-  const baseModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
+  const baseModels = [
+    'gemini-3.1-flash-lite',
+    'gemini-3.8-flash',
+    'gemini-3-flash-preview',
+    'gemini-flash-latest',
+  ];
   const now = Date.now();
 
   // Prioritize healthy models that are NOT currently in a 503 high-demand cooldown
@@ -1257,7 +1262,7 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
       try {
         console.log(`[AI Planner] Generating with model ${model} (attempt ${attempt})...`);
         
-        // Use a Promise.race to enforce a strict 8-second timeout on the model request
+        // Allow up to 45 seconds for comprehensive multimodal / tabular weekly plan JSON analysis
         const generatePromise = ai.models.generateContent({
           model,
           contents,
@@ -1266,7 +1271,7 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
 
         const response = await Promise.race([
           generatePromise,
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Generation Timeout')), 8000))
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Generation Timeout')), 45000))
         ]);
 
         if (response && response.text) {
@@ -1977,17 +1982,15 @@ function buildTimetableContext(targetClasses: string[]) {
 async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
   try {
     const pdfParseMod = requireFn('pdf-parse');
+    if (pdfParseMod && pdfParseMod.PDFParse) {
+      const parser = new pdfParseMod.PDFParse({ data: buffer });
+      const res = await parser.getText();
+      if (typeof res === 'string') return res;
+      if (res && typeof res.text === 'string') return res.text;
+    }
     if (typeof pdfParseMod === 'function') {
       const res = await pdfParseMod(buffer);
       return res?.text || '';
-    }
-    if (pdfParseMod && pdfParseMod.PDFParse) {
-      const parser = new pdfParseMod.PDFParse({ data: buffer });
-      if (typeof parser.load === 'function') await parser.load();
-      if (typeof parser.getText === 'function') {
-        const res = await parser.getText();
-        return typeof res === 'string' ? res : (res?.text || '');
-      }
     }
   } catch (err) {
     console.warn('[Server PDF Parser] Exception during buffer parsing:', err);
@@ -2000,31 +2003,45 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
     const { pdfBase64, planText, block = 1, week = 2, targetClass = 'ALL' } = req.body;
     let extractedPdfText = (typeof planText === 'string' ? planText : '').trim();
 
-    // 1. If text is empty or very short, extract directly from PDF buffer on server
-    if (extractedPdfText.length < 20 && pdfBase64 && typeof pdfBase64 === 'string') {
-      try {
-        const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, '').trim();
-        const buffer = Buffer.from(cleanBase64, 'base64');
-        const extracted = await extractTextFromPdfBuffer(buffer);
-        if (extracted && extracted.trim().length > 0) {
-          extractedPdfText = extracted.trim();
-          console.log(`[Server PDF Parser] Successfully extracted ${extractedPdfText.length} characters from PDF!`);
+    let cleanBase64 = '';
+    let docMimeType = 'application/pdf';
+
+    if (pdfBase64 && typeof pdfBase64 === 'string') {
+      const match = pdfBase64.match(/^data:([^;]+);base64,(.+)$/s);
+      if (match) {
+        docMimeType = match[1];
+        cleanBase64 = match[2].trim();
+      } else {
+        cleanBase64 = pdfBase64.replace(/^data:[^;]+;base64,/, '').trim();
+      }
+
+      // If text is empty or very short, extract directly from PDF buffer on server
+      if (extractedPdfText.length < 20 && cleanBase64.length > 0 && docMimeType.includes('pdf')) {
+        try {
+          const buffer = Buffer.from(cleanBase64, 'base64');
+          const extracted = await extractTextFromPdfBuffer(buffer);
+          if (extracted && extracted.trim().length > 0) {
+            extractedPdfText = extracted.trim();
+            console.log(`[Server PDF Parser] Successfully extracted ${extractedPdfText.length} characters from PDF!`);
+          }
+        } catch (pdfErr) {
+          console.warn('[Server PDF Parser] Error extracting from PDF buffer:', pdfErr);
         }
-      } catch (pdfErr) {
-        console.warn('[Server PDF Parser] Error extracting from PDF buffer:', pdfErr);
       }
     }
 
-    // Auto-detect Week if text mentions Week 3 / الأسبوع الثالث
+    // Auto-detect Week if text mentions Week 1 to 5 / الأسبوع الأول إلى الخامس
     let detectedWeek = Number(week) || 2;
-    const weekMatch = extractedPdfText.match(/week\s*([1-4])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|[1-4])|الاسبوع\s*([1-4])/i);
+    const weekMatch = extractedPdfText.match(/week\s*([1-5])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|[1-5])|الاسبوع\s*([1-5])|اسبوع\s*([1-5])/i);
     if (weekMatch) {
       if (weekMatch[1]) detectedWeek = Number(weekMatch[1]);
       else if (weekMatch[3]) detectedWeek = Number(weekMatch[3]);
+      else if (weekMatch[4]) detectedWeek = Number(weekMatch[4]);
       else if (/الأول|1/.test(weekMatch[2])) detectedWeek = 1;
       else if (/الثاني|2/.test(weekMatch[2])) detectedWeek = 2;
       else if (/الثالث|3/.test(weekMatch[2])) detectedWeek = 3;
       else if (/الرابع|4/.test(weekMatch[2])) detectedWeek = 4;
+      else if (/الخامس|5/.test(weekMatch[2])) detectedWeek = 5;
     }
 
     const targetClasses = targetClass === 'ALL' ? ['G2A', 'G2B', 'G2C'] : [targetClass];
@@ -2033,7 +2050,7 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
     if (!ai) {
       console.log('No GEMINI_API_KEY set, using smart heuristic parser.');
       const parsed = heuristicParser(extractedPdfText, targetClass, Number(block), detectedWeek);
-      return res.json(parsed);
+      return res.json({ ...parsed, fallbackMode: true });
     }
 
     const timetableContext = buildTimetableContext(targetClasses);
@@ -2114,12 +2131,11 @@ ${JSON.stringify(timetableContext, null, 2)}
        "categoryType": "quiz" | "note"
      }
 
-
 CRITICAL RULES TO PREVENT DUPLICATION & PHANTOM SESSIONS:
 - "الحصص التي لا يذكر لها أي بيانات أو لا يكون لها محتوى في الخطة لا تنزل مطلقاً في الـ Classwork".
 - NEVER generate placeholder or filler sessions. Only create a classwork or homework item if the plan explicitly lists real educational content (lesson title, book pages, exercises).
 - If a subject has 3 sessions per week (like Social Studies, which is 3 sessions/week = 9 sessions over 3 weeks), output EXACTLY those 3 lessons per week. DO NOT repeat them across every period or produce 21 sessions!
-- Multi-Week Documents: If the document contains multiple weeks (e.g. Week 1, Week 2, Week 3), attach the correct "week": 1 | 2 | 3 | 4 to every single object in "classwork", "homework", and "tomorrowNotes".
+- Multi-Week Documents: If the document contains multiple weeks (e.g. Week 1, Week 2, Week 3), attach the correct "week": 1 | 2 | 3 | 4 | 5 to every single object in "classwork", "homework", and "tomorrowNotes".
 
 CRITICAL ARABIC PAGE NUMBERS RULE:
 - Arabic PDF extractors often reverse digit order (e.g. extracting "24" as "42", "14-24" as "41-42", "15-18" as "81-51", "29-32" as "49-50" or "94-05").
@@ -2134,17 +2150,13 @@ Return ONLY valid JSON matching this schema:
 `;
 
     const parts: any[] = [];
-    // Only pass heavy raw PDF base64 if client-side text extraction didn't produce sufficient text
-    if (extractedPdfText.length < 50 && pdfBase64 && typeof pdfBase64 === 'string') {
-      const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, '').trim();
-      if (cleanBase64.length > 0) {
-        parts.push({
-          inlineData: {
-            mimeType: 'application/pdf',
-            data: cleanBase64,
-          },
-        });
-      }
+    if (cleanBase64 && cleanBase64.length > 0) {
+      parts.push({
+        inlineData: {
+          mimeType: docMimeType,
+          data: cleanBase64,
+        },
+      });
     }
 
     const textContent = extractedPdfText ? `Extracted Weekly Plan Text:\n${extractedPdfText}\n\n${systemPrompt}` : systemPrompt;
@@ -2176,6 +2188,7 @@ Return ONLY valid JSON matching this schema:
       const finalized = postProcessParsedPlan(parsed, Number(block), detectedWeek, targetClasses);
       return res.json({
         success: true,
+        fallbackMode: false,
         block: Number(block),
         week: finalized.week || detectedWeek,
         classwork: finalized.classwork,
@@ -2218,9 +2231,9 @@ app.post('/api/parse-weekly-plan', async (req, res) => {
       return res.status(400).json({ error: 'planText is required' });
     }
 
-    // Auto-detect Week if text mentions Week 3 / الأسبوع الثالث
+    // Auto-detect Week if text mentions Week 1 to 5 / الأسبوع الأول إلى الخامس
     let detectedWeek = Number(week) || 2;
-    const weekMatch = planText.match(/week\s*([1-4])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|[1-4])|الاسبوع\s*([1-4])|اسبوع\s*([1-4])/i);
+    const weekMatch = planText.match(/week\s*([1-5])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|[1-5])|الاسبوع\s*([1-5])|اسبوع\s*([1-5])/i);
     if (weekMatch) {
       if (weekMatch[1]) detectedWeek = Number(weekMatch[1]);
       else if (weekMatch[3]) detectedWeek = Number(weekMatch[3]);
@@ -2229,6 +2242,7 @@ app.post('/api/parse-weekly-plan', async (req, res) => {
       else if (/الثاني|2/.test(weekMatch[2])) detectedWeek = 2;
       else if (/الثالث|3/.test(weekMatch[2])) detectedWeek = 3;
       else if (/الرابع|4/.test(weekMatch[2])) detectedWeek = 4;
+      else if (/الخامس|5/.test(weekMatch[2])) detectedWeek = 5;
     }
 
     const targetClasses = (!classId || classId === 'ALL') ? ['G2A', 'G2B', 'G2C'] : [classId];
@@ -2330,6 +2344,7 @@ ${planText}
       const finalized = postProcessParsedPlan(parsed, Number(block), detectedWeek, targetClasses);
       return res.json({
         success: true,
+        fallbackMode: false,
         block: Number(block),
         week: finalized.week || detectedWeek,
         classwork: finalized.classwork,

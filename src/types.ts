@@ -112,6 +112,7 @@ export interface ParsedWeeklyPlanResponse {
   classwork: Omit<ClassworkEntry, 'id'>[];
   homework: Omit<HomeworkEntry, 'id'>[];
   tomorrowNotes?: TomorrowSpecialNote[];
+  isAiParsed?: boolean;
 }
 
 export type UserMode = 'guest' | 'student';
@@ -125,7 +126,7 @@ export interface MaterialItem {
   linkUrl?: string; // External web link or video link
   type?: 'pdf' | 'image' | 'doc' | 'link'; // 'pdf' | 'image' | 'doc' | 'link'
   block: number; // 1, 2, 3, 4
-  section: string; // 'Main sheet' | 'Week 1' | 'Week 2' | 'Week 3' | 'Week 4'
+  section: string; // 'Main sheet' | 'Week 1' | 'Week 2' | 'Week 3' | 'Week 4' | 'Week 5'
   classId?: ClassId | 'ALL';
   uploadedAt: string;
 }
