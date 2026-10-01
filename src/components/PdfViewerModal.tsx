@@ -1,6 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import { X, Download, ExternalLink, Printer, FileText, Image as ImageIcon, Maximize2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Download, ExternalLink, Printer, FileText, Image as ImageIcon, Maximize2, Loader2, AlertTriangle } from 'lucide-react';
 import { MaterialItem, formatBytes, downloadPdfItem, printPdfItem } from '../utils/materialsStorage';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Initialize PDF.js worker in browser environment
+if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions?.workerSrc) {
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || '4.10.38'}/pdf.worker.min.mjs`;
+  } catch {}
+}
+
+// Sub-component to render a single PDF page with crisp details on canvas
+const PdfPageCanvas: React.FC<{ page: any; index: number }> = ({ page, index }) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const renderTaskRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!page || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    // Use a scale of 1.5 for crisp and sharp text rendering on all screens
+    const viewport = page.getViewport({ scale: 1.5 });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    // Cancel existing render task if any
+    if (renderTaskRef.current) {
+      renderTaskRef.current.cancel();
+    }
+
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport,
+    };
+
+    const renderTask = page.render(renderContext);
+    renderTaskRef.current = renderTask;
+
+    renderTask.promise.then(
+      () => {
+        renderTaskRef.current = null;
+      },
+      (err: any) => {
+        if (err.name !== 'RenderingCancelledException') {
+          console.error('Page rendering error:', err);
+        }
+      }
+    );
+
+    return () => {
+      if (renderTaskRef.current) {
+        renderTaskRef.current.cancel();
+      }
+    };
+  }, [page]);
+
+  return (
+    <div className="bg-white p-2.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200/80 max-w-full flex flex-col items-center gap-2 relative mb-6">
+      <canvas ref={canvasRef} className="max-w-full h-auto rounded-xl shadow-2xs border border-slate-100" />
+      <div className="text-[11px] font-black text-slate-500 bg-slate-100 px-3.5 py-1 rounded-full border border-slate-200">
+        صفحة {index}
+      </div>
+    </div>
+  );
+};
 
 interface PdfViewerModalProps {
   isOpen?: boolean;
@@ -23,6 +89,11 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   const [activeTitle, setActiveTitle] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewMode, setViewMode] = useState<'proxy' | 'direct'>('proxy');
+
+  // Client-side PDF rendering states
+  const [pdfPages, setPdfPages] = useState<any[]>([]);
+  const [loadingPdf, setLoadingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState('');
 
   // Listen to global open_pdf_viewer_modal custom events
   useEffect(() => {
@@ -145,6 +216,57 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     return () => document.removeEventListener('fullscreenchange', onFsChange);
   }, []);
 
+  // Fetch and parse PDF pages using pdfjs-dist safely inside client session
+  useEffect(() => {
+    if (!isOpen || !activeUrl || isImage) {
+      setPdfPages([]);
+      return;
+    }
+
+    let isCurrent = true;
+    setLoadingPdf(true);
+    setPdfError('');
+    setPdfPages([]);
+
+    const fetchAndLoadPdf = async () => {
+      try {
+        const response = await fetch(activeUrl);
+        if (!response.ok) {
+          throw new Error(`تعذر تحميل الملف من الخادم (رمز الخطأ: ${response.status})`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        if (!isCurrent) return;
+
+        const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
+        const pdf = await loadingTask.promise;
+        if (!isCurrent) return;
+
+        const pages = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          pages.push(page);
+        }
+
+        if (isCurrent) {
+          setPdfPages(pages);
+          setLoadingPdf(false);
+        }
+      } catch (err: any) {
+        console.error('Failed to load PDF via Canvas:', err);
+        if (isCurrent) {
+          setPdfError(err.message || 'فشل تحميل الملف للتصفح المباشر. يرجى الضغط على زر تحميل لقراءة الملف.');
+          setLoadingPdf(false);
+        }
+      }
+    };
+
+    fetchAndLoadPdf();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [activeUrl, isOpen, isImage]);
+
   if (!isOpen || !activeUrl) return null;
 
   return (
@@ -262,28 +384,43 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
               {/* Notice bar at top of viewer */}
               <div className="px-4 py-2 bg-slate-800 text-white flex items-center justify-between text-xs gap-2 shrink-0">
                 <div className="flex items-center gap-2 truncate">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-                  <span className="truncate text-slate-200 font-bold">معاينة الملف داخل التطبيق</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
+                  <span className="truncate text-slate-200 font-bold">معاينة آمنة وفائقة الدقة داخل التطبيق</span>
                 </div>
-                <a
-                  href={activeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-lg shrink-0 flex items-center gap-1 transition-colors"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>عرض بملء الشاشة ↗</span>
-                </a>
               </div>
 
-              {/* Direct Native PDF Frame */}
-              <div className="flex-1 w-full min-h-0 relative bg-slate-100">
-                <iframe
-                  id="pdf-modal-iframe"
-                  src={iframeSrc}
-                  title={fileTitle}
-                  className="w-full h-full border-0 bg-white"
-                />
+              {/* Scrollable container for Canvas pages */}
+              <div className="flex-1 w-full min-h-0 relative bg-slate-100 overflow-y-auto p-4 flex flex-col items-center">
+                {loadingPdf && (
+                  <div className="my-auto flex flex-col items-center gap-3 p-8 text-center max-w-sm">
+                    <Loader2 className="w-9 h-9 text-indigo-600 animate-spin shrink-0" />
+                    <div className="text-sm font-black text-slate-800">جاري تحميل شيت الدراسات الاجتماعية...</div>
+                    <div className="text-xs text-slate-500 font-bold leading-relaxed">
+                      نقوم الآن بتهيئة صفحات الملف وعرضها بدقة عالية تناسب جميع الشاشات.
+                    </div>
+                  </div>
+                )}
+
+                {pdfError && (
+                  <div className="my-auto flex flex-col items-center gap-3 p-8 max-w-md text-center">
+                    <AlertTriangle className="w-10 h-10 text-rose-500 shrink-0" />
+                    <div className="text-sm font-black text-slate-800 leading-relaxed">{pdfError}</div>
+                    <button
+                      onClick={handleDownload}
+                      className="mt-2 py-2 px-4 rounded-xl bg-indigo-600 text-white text-xs font-black shadow-xs hover:bg-indigo-700 active:scale-95 transition-all cursor-pointer"
+                    >
+                      تحميل الملف مباشرة لقراءته 📥
+                    </button>
+                  </div>
+                )}
+
+                {!loadingPdf && !pdfError && pdfPages.length === 0 && (
+                  <div className="my-auto text-xs text-slate-500 font-bold">لا توجد صفحات لعرضها.</div>
+                )}
+
+                {!loadingPdf && !pdfError && pdfPages.map((page, idx) => (
+                  <PdfPageCanvas key={`pdf-page-${idx}`} page={page} index={idx + 1} />
+                ))}
               </div>
             </div>
           )}
