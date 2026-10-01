@@ -570,70 +570,14 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   }, [isOpen]);
 
-  // Load active published plan data automatically on open or whenever block/week/class selectors change
+  // When modal closes, reset parsed result if needed
   useEffect(() => {
-    if (isOpen) {
-      const loadActiveDataQuietly = async () => {
-        const b = Number(planBlock);
-        const w = Number(planWeek);
-
-        const filterAndSet = (classwork: any[], homework: any[], tomorrowNotes: any[]) => {
-          let fc = (classwork || []).filter(
-            (c: any) => Number(c.block || 1) === b && Number(c.week || 1) === w
-          );
-          let fh = (homework || []).filter(
-            (h: any) => Number(h.block || 1) === b && Number(h.week || 1) === w
-          );
-          let ft = (tomorrowNotes || []).filter(
-            (n: any) => Number(n.block || 1) === b && Number(n.week || 1) === w
-          );
-
-          setParsedResult({
-            classwork: fc,
-            homework: fh,
-            tomorrowNotes: ft,
-          });
-        };
-
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 2500);
-          const res = await fetch('/api/planner-data', { signal: controller.signal });
-          clearTimeout(timeoutId);
-
-          if (res.ok) {
-            const data = await res.json();
-            filterAndSet(data.classwork || [], data.homework || [], data.tomorrowNotes || []);
-            return;
-          }
-        } catch {
-          // Graceful fallback to client-cached and default baseline plan data if server is unreachable or slow
-        }
-
-        // Fallback: Assemble from local custom and default baseline data
-        try {
-          const localCw = getLocalCustomClasswork();
-          const localHw = getLocalCustomHomework();
-          const defaultCw = w === 2 ? WEEK2_CLASSWORK : w === 1 ? INITIAL_CLASSWORK : [];
-          const defaultHw = w === 2 ? ALL_LINK_AND_WEEK2_HOMEWORK : w === 1 ? INITIAL_HOMEWORK : [];
-          const defaultTn = w === 2 ? WEEK2_SPECIAL_NOTES : w === 3 ? WEEK3_SPECIAL_NOTES : w === 1 ? SPECIAL_TEACHER_NOTES : [];
-
-          const cwMap = new Map<string, any>();
-          defaultCw.forEach((c) => cwMap.set(c.id, c));
-          localCw.forEach((c) => cwMap.set(c.id, c));
-
-          const hwMap = new Map<string, any>();
-          defaultHw.forEach((h) => hwMap.set(h.id, h));
-          localHw.forEach((h) => hwMap.set(h.id, h));
-
-          filterAndSet(Array.from(cwMap.values()), Array.from(hwMap.values()), defaultTn);
-        } catch {
-          // Keep whatever parsedResult is or clean fallback
-        }
-      };
-      loadActiveDataQuietly();
+    if (!isOpen) {
+      setParsedResult(null);
+      setPlanFile(null);
+      setPlanTextInput('');
     }
-  }, [isOpen, planBlock, planWeek]);
+  }, [isOpen]);
 
   useEffect(() => {
     const unsubscribe = subscribeToMaterials(() => {
@@ -1332,7 +1276,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                               : 'text-slate-500 hover:text-slate-800'
                           }`}
                         >
-                          📄 رفع ملف PDF
+                          📄 رفع ملف PDF أو صورة
                         </button>
                         <button
                           type="button"
@@ -1353,7 +1297,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         <input
                           ref={planFileInputRef}
                           type="file"
-                          accept=".pdf,application/pdf"
+                          accept=".pdf,application/pdf,image/*"
                           onChange={handlePlanFileChange}
                           className="block w-full text-xs text-slate-500 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 file:cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs"
                         />

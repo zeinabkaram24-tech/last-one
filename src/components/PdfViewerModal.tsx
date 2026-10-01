@@ -124,15 +124,40 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     }
   };
 
+  const toggleFullscreen = () => {
+    const container = document.getElementById('pdf-viewer-modal-container');
+    if (!document.fullscreenElement) {
+      if (container?.requestFullscreen) {
+        container.requestFullscreen().catch(() => {});
+      }
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const onFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
+
   return (
     <div
       id="pdf-viewer-modal-backdrop"
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-150"
+      className={`fixed inset-0 z-50 flex items-center justify-center ${
+        isFullscreen ? 'p-0' : 'p-2 sm:p-4'
+      } bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-150`}
     >
       <div
         id="pdf-viewer-modal-container"
-        className={`bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col transition-all overflow-hidden ${
-          isFullscreen ? 'w-full h-full rounded-none' : 'w-full max-w-5xl h-[92vh]'
+        className={`bg-white shadow-2xl border border-slate-200 flex flex-col transition-all overflow-hidden ${
+          isFullscreen ? 'w-full h-full rounded-none border-0' : 'w-full max-w-5xl h-[92vh] rounded-3xl'
         }`}
       >
         {/* Header */}
@@ -202,7 +227,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
             <button
               id="pdf-modal-fullscreen-btn"
               type="button"
-              onClick={() => setIsFullscreen(!isFullscreen)}
+              onClick={toggleFullscreen}
               className="p-1.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-200/80 transition-colors cursor-pointer"
               title={isFullscreen ? 'تصغير' : 'ملء الشاشة'}
             >

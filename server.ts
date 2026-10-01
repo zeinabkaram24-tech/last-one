@@ -1588,9 +1588,9 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
     Thursday: 'Sunday',
   };
 
-  // 1. Auto-detect Week if mentioned anywhere in text (e.g. Week 3 / الأسبوع الثالث / الاسبوع 3)
+  // 1. Auto-detect Week if mentioned anywhere in text (e.g. Week 5 / الأسبوع الخامس / الاسبوع 5)
   let activeWeek = Number(week) || 1;
-  const weekMatch = planText.match(/week\s*([1-4])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|[1-4])|الاسبوع\s*([1-4])|اسبوع\s*([1-4])/i);
+  const weekMatch = planText.match(/week\s*([1-5])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|[1-5])|الاسبوع\s*([1-5])|اسبوع\s*([1-5])/i);
   if (weekMatch) {
     if (weekMatch[1]) activeWeek = Number(weekMatch[1]);
     else if (weekMatch[3]) activeWeek = Number(weekMatch[3]);
@@ -1599,13 +1599,14 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
     else if (/الثاني|2/.test(weekMatch[2])) activeWeek = 2;
     else if (/الثالث|3/.test(weekMatch[2])) activeWeek = 3;
     else if (/الرابع|4/.test(weekMatch[2])) activeWeek = 4;
+    else if (/الخامس|5/.test(weekMatch[2])) activeWeek = 5;
   }
 
-  // 2. Auto-detect single subject if document is dedicated to a specific subject (e.g. Social Studies / الدراسات الاجتماعية)
-  let defaultSubject = 'English';
+  // 2. Auto-detect single subject if document is dedicated to a specific subject (e.g. Math, Social Studies, etc.)
+  let defaultSubject = 'Mathematics';
   const socialMatches = (planText.match(/دراسات|سوشيال|سوشيل|اجتماع|social studies/gi) || []).length;
   const arabicMatches = (planText.match(/عربي|لغة عربية/gi) || []).length;
-  const mathMatches = (planText.match(/ماث|رياضيات|حساب|mathematics|math/gi) || []).length;
+  const mathMatches = (planText.match(/ماث|رياضيات|حساب|mathematics|math|solving problems|pattern|numbers|sandy|mariam/gi) || []).length;
   const scienceMatches = (planText.match(/ساينس|علوم|science/gi) || []).length;
   const frenchMatches = (planText.match(/فرنش|فرنسي|فرنساوي|french|français/gi) || []).length;
 

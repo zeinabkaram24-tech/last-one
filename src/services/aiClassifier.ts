@@ -429,7 +429,45 @@ export function fallbackClientParser(
   const homework: any[] = [];
   const tomorrowNotes: any[] = [];
   let currentDay = 'Sunday';
-  let currentSubject = 'English';
+
+  // Auto-detect dominant subject if text is dedicated to a specific subject (e.g. Math, Arabic, French)
+  let defaultSubject = 'Mathematics';
+  const mathMatches = (text.match(/ماث|حساب|رياضيات|math|mathematics|solving problems|pattern|numbers|sandy|mariam/gi) || []).length;
+  const arabicMatches = (text.match(/عربي|لغة عربية|إملاء|قراءة|أنا أستطيع/gi) || []).length;
+  const frenchMatches = (text.match(/فرنساوي|فرنسي|french|français|cahier|devoir/gi) || []).length;
+  const scienceMatches = (text.match(/علوم|ساينس|science|plants|living/gi) || []).length;
+  const socialMatches = (text.match(/دراسات|سوشيال|social/gi) || []).length;
+  const englishMatches = (text.match(/english|connect|phonics|grammar/gi) || []).length;
+
+  if (mathMatches > 0 && mathMatches >= Math.max(arabicMatches, frenchMatches, scienceMatches, socialMatches, englishMatches)) {
+    defaultSubject = 'Mathematics';
+  } else if (arabicMatches > 0 && arabicMatches >= Math.max(mathMatches, frenchMatches, scienceMatches, socialMatches, englishMatches)) {
+    defaultSubject = 'Arabic';
+  } else if (frenchMatches > 0 && frenchMatches >= Math.max(mathMatches, arabicMatches, scienceMatches, socialMatches, englishMatches)) {
+    defaultSubject = 'French';
+  } else if (scienceMatches > 0 && scienceMatches >= Math.max(mathMatches, arabicMatches, frenchMatches, socialMatches, englishMatches)) {
+    defaultSubject = 'Science';
+  } else if (socialMatches > 0 && socialMatches >= Math.max(mathMatches, arabicMatches, frenchMatches, scienceMatches, englishMatches)) {
+    defaultSubject = 'Social Studies';
+  } else if (englishMatches > 0) {
+    defaultSubject = 'English';
+  }
+
+  let currentSubject = defaultSubject;
+
+  // Auto-detect week if mentioned
+  let detectedWeek = Number(week) || 1;
+  const weekMatch = text.match(/week\s*([1-5])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|[1-5])|الاسبوع\s*([1-5])|اسبوع\s*([1-5])/i);
+  if (weekMatch) {
+    if (weekMatch[1]) detectedWeek = Number(weekMatch[1]);
+    else if (weekMatch[3]) detectedWeek = Number(weekMatch[3]);
+    else if (weekMatch[4]) detectedWeek = Number(weekMatch[4]);
+    else if (/الأول|1/.test(weekMatch[2])) detectedWeek = 1;
+    else if (/الثاني|2/.test(weekMatch[2])) detectedWeek = 2;
+    else if (/الثالث|3/.test(weekMatch[2])) detectedWeek = 3;
+    else if (/الرابع|4/.test(weekMatch[2])) detectedWeek = 4;
+    else if (/الخامس|5/.test(weekMatch[2])) detectedWeek = 5;
+  }
 
   const targetClasses: ClassId[] = classId === 'ALL' ? ['G2A', 'G2B', 'G2C'] : [classId];
 

@@ -495,9 +495,9 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
   if (isSupabaseConfigured) {
     try {
-      // Fetch Week 3 and Week 4 classwork from Supabase
+      // Fetch Week 3, Week 4, Week 5+ classwork from Supabase
       const res = await withTimeout<any>(
-        supabase.from('classwork').select('*').in('week', [3, 4]).order('period', { ascending: true }),
+        supabase.from('classwork').select('*').gte('week', 3).order('period', { ascending: true }),
         3500,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
       );
@@ -847,9 +847,9 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
   if (isSupabaseConfigured) {
     try {
-      // Fetch Week 3 and Week 4 homework from Supabase
+      // Fetch Week 3, Week 4, Week 5+ homework from Supabase
       const res = await withTimeout<any>(
-        supabase.from('homework').select('*').in('week', [3, 4]).order('created_at', { ascending: false }),
+        supabase.from('homework').select('*').gte('week', 3).order('created_at', { ascending: false }),
         3500,
         { data: null, error: { message: 'Supabase homework query timeout' } }
       );
