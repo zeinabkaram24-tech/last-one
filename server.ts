@@ -1235,10 +1235,12 @@ const modelCoolDown = new Map<string, number>();
 
 async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any): Promise<string> {
   const baseModels = [
+    'gemini-3.5-flash',
     'gemini-3.1-flash-lite',
-    'gemini-3.8-flash',
-    'gemini-3-flash-preview',
     'gemini-flash-latest',
+    'gemini-flash-lite-latest',
+    'gemini-3.7-flash',
+    'gemini-3.8-flash',
   ];
   const now = Date.now();
 
@@ -1262,7 +1264,7 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
       try {
         console.log(`[AI Planner] Generating with model ${model} (attempt ${attempt})...`);
         
-        // Allow up to 45 seconds for comprehensive multimodal / tabular weekly plan JSON analysis
+        // Fast 12-second timeout per attempt to ensure snappy user response
         const generatePromise = ai.models.generateContent({
           model,
           contents,
@@ -1271,7 +1273,7 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any, config: any)
 
         const response = await Promise.race([
           generatePromise,
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Generation Timeout')), 45000))
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Generation Timeout')), 12000))
         ]);
 
         if (response && response.text) {
