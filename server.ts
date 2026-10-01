@@ -1360,9 +1360,7 @@ function postProcessParsedPlan(
   for (const item of rawCw) {
     const normSub = normalizeSubject(item.subject);
     const itemWeek = Number(item.week) || week;
-    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId))
-      ? [item.classId]
-      : targetClasses;
+    const classesForThisItem = targetClasses.length > 1 ? targetClasses : ((item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId)) ? [item.classId] : targetClasses);
 
     const rawTitle = (item.title || item.details || '').trim();
     if (!rawTitle) continue;
@@ -1435,9 +1433,7 @@ function postProcessParsedPlan(
   for (const item of rawHw) {
     const normSub = normalizeSubject(item.subject);
     const itemWeek = Number(item.week) || week;
-    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId))
-      ? [item.classId]
-      : targetClasses;
+    const classesForThisItem = targetClasses.length > 1 ? targetClasses : ((item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId)) ? [item.classId] : targetClasses);
 
     const rawTask = (item.task || item.details || '').trim();
     if (!rawTask) continue;
@@ -1516,9 +1512,7 @@ function postProcessParsedPlan(
   for (const item of rawTomorrowNotes) {
     const normSub = normalizeSubject(item.subject);
     const itemWeek = Number(item.week) || week;
-    const classesForThisItem = (item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId))
-      ? [item.classId]
-      : targetClasses;
+    const classesForThisItem = targetClasses.length > 1 ? targetClasses : ((item.classId && item.classId !== 'ALL' && targetClasses.includes(item.classId)) ? [item.classId] : targetClasses);
 
     for (const classId of classesForThisItem) {
       const targetDay = item.targetDay || item.day || 'Sunday';
