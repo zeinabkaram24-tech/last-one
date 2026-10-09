@@ -104,11 +104,12 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   // Helper to find valid classwork entry with actual educational content
   const getCwEntryForSlot = (slot: GroupedPeriodSlot): ClassworkEntry | undefined => {
-    if (slot.cwEntry) return slot.cwEntry;
+    if (slot.cwEntry && slot.cwEntry.subject === 'Mathematics') return slot.cwEntry;
     return (
       classworkList.find(
         (c) =>
           matchesClass(c) &&
+          c.subject === 'Mathematics' &&
           c.day === selectedDay &&
           slot.periods.includes(c.period) &&
           (c.block || 1) === currentBlock &&
@@ -121,6 +122,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       classworkList.find(
         (c) =>
           matchesClass(c) &&
+          c.subject === 'Mathematics' &&
           c.day === selectedDay &&
           c.subject === slot.subject &&
           (c.block || 1) === currentBlock &&
@@ -133,10 +135,11 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     );
   };
 
-  // Collect all valid educational classwork items for this class, day, block, and week
+  // Collect all valid educational classwork items for this class, day, block, and week (strictly Mathematics only)
   const dayClasswork = classworkList.filter(
     (c) =>
       matchesClass(c) &&
+      c.subject === 'Mathematics' &&
       c.day === selectedDay &&
       (c.block || 1) === currentBlock &&
       (c.week || 1) === currentWeek &&

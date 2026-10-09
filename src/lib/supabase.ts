@@ -489,15 +489,15 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const deletedSet = new Set(deletedIds);
 
   // Load Week 1 and Week 2 statically to be extremely fast and lightweight as per user request
-  const staticItems = INITIAL_CLASSWORK.filter((c) => (c.week || 1) < 3 && !deletedSet.has(c.id));
+  const staticItems = INITIAL_CLASSWORK.filter((c) => ((c.block || 1) === 1 ? (c.week || 1) < 3 : true) && !deletedSet.has(c.id));
   const resultList: ClassworkEntry[] = [...staticItems];
 
   // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
   if (isSupabaseConfigured) {
     try {
-      // Fetch Week 3, Week 4, Week 5+ classwork from Supabase
+      // Fetch Week 3, Week 4, Week 5+ classwork or Block 2+ from Supabase
       const res = await withTimeout<any>(
-        supabase.from('classwork').select('*').gte('week', 3).order('period', { ascending: true }),
+        supabase.from('classwork').select('*').or('week.gte.3,block.gte.2').order('period', { ascending: true }),
         3500,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
       );
@@ -514,18 +514,18 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
           });
           // Merge in any newly introduced baseline classwork that is not yet in the cloud database
           const dbIds = new Set(dbItems.map((d) => d.id));
-          INITIAL_CLASSWORK.filter((c) => (c.week || 1) >= 3).forEach((c) => {
+          INITIAL_CLASSWORK.filter((c) => (c.week || 1) >= 3 || (c.block || 1) >= 2).forEach((c) => {
             if (c && c.id && !dbIds.has(c.id) && !deletedSet.has(c.id)) {
               map.set(c.id, c);
             }
           });
           const localCustom = getLocalCustomClasswork();
           localCustom.forEach((c) => {
-            if (c && c.id && (c.week || 1) >= 3 && !deletedSet.has(c.id)) map.set(c.id, c);
+            if (c && c.id && ((c.week || 1) >= 3 || (c.block || 1) >= 2) && !deletedSet.has(c.id)) map.set(c.id, c);
           });
         } else {
           // Fresh unseeded database
-          INITIAL_CLASSWORK.filter((c) => (c.week || 1) >= 3).forEach((c) => {
+          INITIAL_CLASSWORK.filter((c) => (c.week || 1) >= 3 || (c.block || 1) >= 2).forEach((c) => {
             if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
           });
         }
@@ -841,15 +841,15 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const deletedSet = new Set(deletedIds);
 
   // Load Week 1 and Week 2 statically to be extremely fast and lightweight as per user request
-  const staticItems = INITIAL_HOMEWORK.filter((h) => (h.week || 1) < 3 && !deletedSet.has(h.id));
+  const staticItems = INITIAL_HOMEWORK.filter((h) => ((h.block || 1) === 1 ? (h.week || 1) < 3 : true) && !deletedSet.has(h.id));
   const resultList: HomeworkEntry[] = [...staticItems];
 
   // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
   if (isSupabaseConfigured) {
     try {
-      // Fetch Week 3, Week 4, Week 5+ homework from Supabase
+      // Fetch Week 3, Week 4, Week 5+ homework or Block 2+ from Supabase
       const res = await withTimeout<any>(
-        supabase.from('homework').select('*').gte('week', 3).order('created_at', { ascending: false }),
+        supabase.from('homework').select('*').or('week.gte.3,block.gte.2').order('created_at', { ascending: false }),
         3500,
         { data: null, error: { message: 'Supabase homework query timeout' } }
       );
@@ -886,7 +886,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           });
           // Merge in any newly introduced baseline homework that is not yet in the cloud database
           const dbIds = new Set(dbItems.map((d) => d.id));
-          INITIAL_HOMEWORK.filter((h) => (h.week || 1) >= 3).forEach((h) => {
+          INITIAL_HOMEWORK.filter((h) => (h.week || 1) >= 3 || (h.block || 1) >= 2).forEach((h) => {
             if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
             if (h && h.id && !dbIds.has(h.id) && !deletedSet.has(h.id)) {
               map.set(h.id, h);
@@ -895,11 +895,11 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           const localCustom = getLocalCustomHomework();
           localCustom.forEach((h) => {
             if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-            if (h && h.id && (h.week || 1) >= 3 && !deletedSet.has(h.id)) map.set(h.id, h);
+            if (h && h.id && ((h.week || 1) >= 3 || (h.block || 1) >= 2) && !deletedSet.has(h.id)) map.set(h.id, h);
           });
         } else {
           // Fresh unseeded database for Week 3 and Week 4
-          INITIAL_HOMEWORK.filter((h) => (h.week || 1) >= 3).forEach((h) => {
+          INITIAL_HOMEWORK.filter((h) => (h.week || 1) >= 3 || (h.block || 1) >= 2).forEach((h) => {
             if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
             if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
           });

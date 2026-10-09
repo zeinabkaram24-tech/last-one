@@ -16,7 +16,8 @@ import {
   getDeletedTomorrowNoteIdsSync,
   saveDeletedTomorrowNoteId,
   WEEK3_SPECIAL_NOTES,
-  WEEK4_SPECIAL_NOTES
+  WEEK4_SPECIAL_NOTES,
+  BLOCK2_WEEK1_SPECIAL_NOTES,
 } from '../utils/tomorrowNotesStorage';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
 
@@ -157,7 +158,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       n.id?.startsWith('note-') ||
       n.id?.startsWith('manual-') ||
       (n as any).isCustomOrExplicit ||
-      currentWeek >= 4
+      currentWeek >= 4 ||
+      currentBlock >= 2 ||
+      (n.block || 1) >= 2
     ) {
       return false;
     }
@@ -536,7 +539,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
     const base =
-      currentBlock === 1 && (currentWeek === 4 || effectiveWeek === 4)
+      currentBlock === 2 && (currentWeek === 1 || effectiveWeek === 1)
+        ? BLOCK2_WEEK1_SPECIAL_NOTES.filter(
+            (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
+          )
+        : currentBlock === 1 && (currentWeek === 4 || effectiveWeek === 4)
         ? WEEK4_SPECIAL_NOTES.filter(
             (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
           )
@@ -557,7 +564,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           )
         : [];
 
-    return base.filter((n) => !isDisallowedTomorrowItem(n));
+    return base.filter((n) => n.subject === 'Mathematics' && !isDisallowedTomorrowItem(n));
   });
 
   useEffect(() => {
@@ -577,7 +584,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         if (isMounted) {
           const sanitizedDeletedIds = deletedIds.filter((id) => !OBSOLETE_DELETED_TOMORROW_IDS.has(id));
           setDeletedNoteIds((prev) => Array.from(new Set([...prev, ...sanitizedDeletedIds])));
-          setTomorrowNotes(notes.filter((n) => !isDisallowedTomorrowItem(n)));
+          setTomorrowNotes(notes.filter((n) => n.subject === 'Mathematics' && !isDisallowedTomorrowItem(n)));
         }
       } catch (err) {
         console.warn('Error loading tomorrow notes:', err);

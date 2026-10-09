@@ -94,10 +94,11 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
     return cid === currentClass || cid === 'ALL';
   };
 
-  // Check if this Block and Week has ANY homework entered for current class
+  // Check if this Block and Week has ANY homework entered for current class (strictly Mathematics only)
   const hasHomeworkForWeek = homeworkList.some(
     (h) =>
       matchesClass(h) &&
+      h.subject === 'Mathematics' &&
       (h.block || 1) === currentBlock &&
       (h.week || 1) === currentWeek &&
       !h.id?.startsWith('tomorrow-') &&
@@ -105,10 +106,11 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       !h.id?.startsWith('custom-')
   );
 
-  // Homework assigned for the selected day with strict deduplication by ID
+  // Homework assigned for the selected day with strict deduplication by ID (strictly Mathematics only)
   const rawDayHomework = homeworkList.filter(
     (h) => {
       if (!matchesClass(h)) return false;
+      if (h.subject !== 'Mathematics') return false;
       if (h.assignedDay !== selectedDay) return false;
       if ((h.block || 1) !== currentBlock) return false;
       if ((h.week || 1) !== currentWeek) return false;

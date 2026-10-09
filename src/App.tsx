@@ -16,6 +16,7 @@ import { MaterialsModal } from './components/MaterialsModal';
 import { PdfViewerModal } from './components/PdfViewerModal';
 import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 import { InteractiveEditorModal } from './components/InteractiveEditorModal';
+import { getCurrentAcademicBlockAndWeek, getCurrentSchoolDay } from './utils/dateHelpers';
 import { notifyTomorrowNotesListeners, saveTomorrowNotes, saveDeletedTomorrowNoteId, removeDeletedTomorrowNoteId } from './utils/tomorrowNotesStorage';
 import {
   getActiveUserProfile,
@@ -132,7 +133,14 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     }
   } catch {}
 
-  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK).filter(c => !deletedSet.has(c.id));
+  const map = new Map<string, ClassworkEntry>();
+  INITIAL_CLASSWORK.filter((c) => c?.subject === 'Mathematics').forEach((c) => {
+    if (c?.id && !deletedSet.has(c.id)) map.set(c.id, c);
+  });
+  (cached || []).filter((c) => c?.subject === 'Mathematics').forEach((c) => {
+    if (c?.id && !deletedSet.has(c.id)) map.set(c.id, c);
+  });
+  const source = Array.from(map.values());
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
@@ -160,11 +168,14 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
     }
   } catch {}
 
-  const source = (cached && cached.length > 0 ? cached : INITIAL_HOMEWORK).filter(h => {
-    // Admin deleted items are strictly and unconditionally excluded
-    if (deletedSet.has(h.id)) return false;
-    return true;
+  const map = new Map<string, HomeworkEntry>();
+  INITIAL_HOMEWORK.filter((h) => h?.subject === 'Mathematics').forEach((h) => {
+    if (h?.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
+  (cached || []).filter((h) => h?.subject === 'Mathematics').forEach((h) => {
+    if (h?.id && !deletedSet.has(h.id)) map.set(h.id, h);
+  });
+  const source = Array.from(map.values());
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedHomeworkIds);
@@ -199,36 +210,19 @@ export default function App() {
     return saved === 'G2A' || saved === 'G2B' || saved === 'G2C' ? saved : 'G2B';
   });
 
-  // Current Block (1, 2, 3, 4)
+  // Current Block (1, 2, 3, 4) automatically detected from current calendar date
   const [currentBlock, setCurrentBlock] = useState<number>(() => {
-    const saved = appStorage.getItem('nile_planner_block');
-    return saved ? Number(saved) : 1;
+    return getCurrentAcademicBlockAndWeek().block;
   });
 
-  // Current Week (1, 2, 3, 4)
+  // Current Week (1, 2, 3, 4, 5) automatically detected from current calendar date
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
-    const saved = appStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 3;
+    return getCurrentAcademicBlockAndWeek().week;
   });
 
-  // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
+  // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday) automatically detected from current calendar date
   const [selectedDay, setSelectedDay] = useState<SchoolDay>(() => {
-    const saved = appStorage.getItem(STORAGE_KEYS.DAY);
-    const validDays: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
-    if (saved && validDays.includes(saved as SchoolDay)) {
-      return saved as SchoolDay;
-    }
-    const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const dayMap: Record<number, SchoolDay> = {
-      0: 'Sunday',
-      1: 'Monday',
-      2: 'Tuesday',
-      3: 'Wednesday',
-      4: 'Thursday',
-      5: 'Sunday',
-      6: 'Sunday',
-    };
-    return dayMap[dayOfWeek] || 'Sunday';
+    return getCurrentSchoolDay();
   });
 
   // Active View Tab: 'classwork' | 'homework' | 'tomorrow' | 'timetable'
@@ -243,6 +237,27 @@ export default function App() {
   useEffect(() => {
     appStorage.setItem('nile_planner_active_tab_v3', activeTab);
   }, [activeTab]);
+
+  // Purge legacy non-math cached items and ensure clean fresh state on launch
+  useEffect(() => {
+    try {
+      const keysToPurge = [
+        'classwork_planner_custom_entries_v3',
+        'homework_planner_custom_entries_v3',
+        'tomorrow_special_notes_custom_v3',
+        'nile_planner_custom_classwork_v2',
+        'nile_planner_custom_homework_v2',
+        'nile_deleted_planner_item_ids_v3',
+        'nile_deleted_tomorrow_note_ids_v3',
+        'nile_planner_block',
+        'nile_planner_current_week_v3',
+        'nile_planner_selected_day_v3',
+      ];
+      keysToPurge.forEach((k) => {
+        try { localStorage.removeItem(k); } catch {}
+      });
+    } catch {}
+  }, []);
 
   // Supabase Connection Status
   const [supabaseStatus, setSupabaseStatus] = useState<'connecting' | 'connected' | 'unconfigured' | 'error'>(() => {
@@ -455,10 +470,10 @@ export default function App() {
           }
         }
 
-        // Apply classwork with student or guest completion checks
+        // Apply classwork with student or guest completion checks (strictly Mathematics only)
         if (cwData && cwData.length > 0) {
           const uniqueCwMap = new Map<string, ClassworkEntry>();
-          cwData.forEach((c) => uniqueCwMap.set(c.id, c));
+          cwData.filter((c) => c?.subject === 'Mathematics').forEach((c) => uniqueCwMap.set(c.id, c));
           const dedupedCw = Array.from(uniqueCwMap.values());
 
           if (profile?.mode === 'student' && profile.studentName) {
@@ -471,37 +486,19 @@ export default function App() {
           }
         }
 
-        // Apply homework with student or guest completion checks
+        // Apply homework with student or guest completion checks (strictly Mathematics only)
         if (hwData && hwData.length > 0) {
           const uniqueHwMap = new Map<string, HomeworkEntry>();
-          hwData.forEach((h) => uniqueHwMap.set(h.id, h));
+          hwData.filter((h) => h?.subject === 'Mathematics').forEach((h) => uniqueHwMap.set(h.id, h));
           const dedupedHw = Array.from(uniqueHwMap.values());
-
-          const normalizedHw = dedupedHw.map((h) => {
-            if (
-              (h.id === 'hw-w2-ar-tue-g2a-wb' ||
-                h.id === 'hw-w2-ar-tue-g2b-wb' ||
-                h.id === 'hw-w2-ar-tue-g2c-wb' ||
-                (h.subject === 'Arabic' && h.assignedDay === 'Tuesday' && h.week === 2)) &&
-              ((h.task && h.task.includes('46')) || (h.pages && h.pages.includes('46')) || (h.details && h.details.includes('46')))
-            ) {
-              return {
-                ...h,
-                task: h.task ? h.task.replace(/46/g, '47') : h.task,
-                pages: h.pages ? h.pages.replace(/46/g, '47') : h.pages,
-                details: h.details ? h.details.replace(/46/g, '47') : h.details,
-              };
-            }
-            return h;
-          });
 
           if (profile?.mode === 'student' && profile.studentName) {
             const hwSet = new Set(progress ? progress.completedHomeworkIds : []);
-            setHomeworkList(normalizedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+            setHomeworkList(dedupedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
           } else {
             const guestProgress = getGuestProgress();
             const hwSet = new Set(guestProgress.completedHomeworkIds);
-            setHomeworkList(normalizedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+            setHomeworkList(dedupedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
           }
         }
 
@@ -513,21 +510,6 @@ export default function App() {
           (settings.current_class === 'G2A' || settings.current_class === 'G2B' || settings.current_class === 'G2C')
         ) {
           setCurrentClass(settings.current_class as ClassId);
-        }
-        const localWeek = appStorage.getItem(STORAGE_KEYS.WEEK);
-        if (!localWeek && settings.current_week) {
-          setCurrentWeek(Number(settings.current_week) || 3);
-        }
-        const localDay = appStorage.getItem(STORAGE_KEYS.DAY);
-        if (!localDay && settings.selected_day) {
-          const validDays: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
-          if (validDays.includes(settings.selected_day as SchoolDay)) {
-            setSelectedDay(settings.selected_day as SchoolDay);
-          }
-        }
-        const localBlock = appStorage.getItem('nile_planner_block');
-        if (!localBlock && settings.current_block) {
-          setCurrentBlock(Number(settings.current_block) || 1);
         }
 
         if (isSupabaseConfigured) {
@@ -561,7 +543,7 @@ export default function App() {
 
           if (cwData && cwData.length > 0 && isMounted) {
             const uniqueCwMap = new Map<string, ClassworkEntry>();
-            cwData.forEach((c) => uniqueCwMap.set(c.id, c));
+            cwData.filter((c) => c?.subject === 'Mathematics').forEach((c) => uniqueCwMap.set(c.id, c));
             const dedupedCw = Array.from(uniqueCwMap.values());
             const profile = getActiveUserProfile();
             const progress = profile?.mode === 'student' && profile.studentName
@@ -573,7 +555,7 @@ export default function App() {
 
           if (hwData && hwData.length > 0 && isMounted) {
             const uniqueHwMap = new Map<string, HomeworkEntry>();
-            hwData.forEach((h) => uniqueHwMap.set(h.id, h));
+            hwData.filter((h) => h?.subject === 'Mathematics').forEach((h) => uniqueHwMap.set(h.id, h));
             const dedupedHw = Array.from(uniqueHwMap.values());
             const profile = getActiveUserProfile();
             const progress = profile?.mode === 'student' && profile.studentName
@@ -1197,6 +1179,17 @@ export default function App() {
         onRefreshData={handleManualForceRefresh}
         isRefreshing={isRefreshingData}
         isLiveConnected={isLiveConnected}
+        onResetToCurrentDate={() => {
+          const { block, week } = getCurrentAcademicBlockAndWeek();
+          const day = getCurrentSchoolDay();
+          setCurrentBlock(block);
+          setCurrentWeek(week);
+          setSelectedDay(day);
+          appStorage.setItem('nile_planner_block', String(block));
+          appStorage.setItem(STORAGE_KEYS.WEEK, String(week));
+          appStorage.setItem(STORAGE_KEYS.DAY, day);
+          showToast(`📅 تم ضبط الخطة على: Block ${block} - Week ${week} (${day})`);
+        }}
       />
 
       {/* Main Container */}
