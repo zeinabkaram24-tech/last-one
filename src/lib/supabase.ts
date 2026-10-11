@@ -817,9 +817,16 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merg
 // CRUD Operations for Homework
 // =========================================================================
 
+const PROTECTED_HOMEWORK_IDS = new Set([
+  'hw-b2-w1-G2B-Sun-social-sheet',
+  'hw-b2-w1-G2A-Sat-social-sheet',
+  'hw-b2-w1-G2C-Sat-social-sheet',
+  'hw-b1-w5-G2B-sun-social-hw',
+]);
+
 export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const deletedIds = await getDeletedPlannerItemIds();
-  const deletedSet = new Set(deletedIds);
+  const deletedSet = new Set(deletedIds.filter((id) => !PROTECTED_HOMEWORK_IDS.has(id)));
 
   let baseItems: HomeworkEntry[] = ((initialData && Array.isArray((initialData as any).homework)) ? (initialData as any).homework : INITIAL_HOMEWORK)
     .filter((h: any) => h && h.id && !deletedSet.has(h.id));

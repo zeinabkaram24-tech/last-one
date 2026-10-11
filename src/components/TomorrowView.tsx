@@ -42,6 +42,10 @@ const OBSOLETE_DELETED_TOMORROW_IDS = new Set([
   'hw-b1-w3-G2A-science-page38',
   'linked-hw-due-hw-b1-w3-G2B-science-page38',
   'hw-b1-w3-G2B-science-page38',
+  'social-hw-submission-G2B-Monday',
+  'tn-b2-w1-social-sheet-G2B-Monday',
+  'linked-hw-due-hw-b2-w1-G2B-Sun-social-sheet',
+  'hw-b2-w1-G2B-Sun-social-sheet',
 ]);
 
 interface TomorrowViewProps {
@@ -881,7 +885,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (cid !== currentClass && (cid as any) !== 'ALL') return;
       if (h.week && h.week !== effectiveWeekForHw) return;
       if ((h.block || 1) !== currentBlock) return;
-      if (currentBlock === 2 && h.subject !== 'English' && h.subject !== 'Arabic') return;
+      if (
+        currentBlock === 2 &&
+        h.subject !== 'English' &&
+        h.subject !== 'Arabic' &&
+        h.subject !== 'Social Studies'
+      ) return;
       if (currentBlock === 2 && h.subject === 'English') return; // Dedicated Tomorrow note handles Spelling Bee, avoiding duplicate linked-hw
 
       const fullText = `${h.task} ${h.details || ''} ${h.subject}`;
@@ -925,24 +934,22 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       // B) Due for submission tomorrow - STRICT USER MANDATE: ONLY for Social Studies and Science
       else if (h.dueDay === tomorrowDay && (h.subject === 'Social Studies' || h.subject === 'Science')) {
         const isSocial = h.subject === 'Social Studies';
-        const isG2ASocialNewSheet = isSocial && currentClass === 'G2A' && tomorrowDay === 'Sunday';
+        const socialTitle = h.task || 'Social Studies Grade 2 B1 Week 5 U1 Homework 5';
+        const socialArabic = h.details || 'Social Studies Grade 2 B1 Week 5 U1 Homework 5 (تسليم يوم الاثنين)';
+        const socialBagItem = h.pages || 'Social Studies Grade 2 B1 Week 5 U1 Homework 5';
         alerts.push({
           id: hwDueAlertId,
           classId: currentClass,
           targetDay: tomorrowDay,
           subject: h.subject,
-          note: isSocial
-            ? 'تسليم واجب الدراسات الاجتماعية الأسبوعي'
-            : 'تسليم بوكلت الـ science',
-          arabicNote: isSocial
-            ? 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية (Home Work 2) في المدرسة'
-            : 'تسليم بوكلت الـ science',
-          bagItem: isSocial ? 'شيت واجب الدراسات الاجتماعية المرفق' : 'بوكليت الـ science',
+          note: isSocial ? socialTitle : 'تسليم بوكلت الـ science',
+          arabicNote: isSocial ? socialArabic : 'تسليم بوكلت الـ science',
+          bagItem: isSocial ? socialBagItem : 'بوكليت الـ science',
           isQuiz: false,
           categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
-          pdfUrl: (selectedDay === 'Thursday' && h.subject === 'Social Studies') ? undefined : h.pdfUrl,
+          pdfUrl: (selectedDay === 'Thursday' && h.subject === 'Social Studies') ? undefined : (h.pdfUrl || '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf'),
         });
       }
     });
@@ -1072,6 +1079,31 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         });
       }
     };
+
+    // Explicit guaranteed injection for Class B Social Studies on Sunday (preparing for Monday):
+    // "بالنسبة لكلاس B، التسليم هيكون يوم الاثنين، يعني المفروض يظهر في الهوم ورك وفي التومورو يوم الأحد."
+    if (
+      currentClass === 'G2B' &&
+      selectedDay === 'Sunday' &&
+      ((currentBlock === 2 && currentWeek === 1) || (currentBlock === 1 && currentWeek === 5))
+    ) {
+      addOrMergeNote({
+        id: 'tn-b2-w1-social-sheet-G2B-Monday',
+        classId: 'G2B',
+        targetDay: 'Monday',
+        subject: 'Social Studies',
+        period: 1,
+        title: 'Social Studies Grade 2 B1 Week 5 U1 Homework 5',
+        note: 'Social Studies Grade 2 B1 Week 5 U1 Homework 5',
+        arabicNote: 'Social Studies Grade 2 B1 Week 5 U1 Homework 5 (تسليم يوم الاثنين)',
+        bagItem: 'Social Studies Grade 2 B1 Week 5 U1 Homework 5',
+        isQuiz: false,
+        categoryType: 'note',
+        block: currentBlock,
+        week: currentWeek,
+        pdfUrl: '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf',
+      }, true);
+    }
 
     // Automatically inject French Quiz warning (ONLY for Block 1 - Week 3, exactly 1 day before the session per class)
     if (currentBlock === 1 && currentWeek === 3) {

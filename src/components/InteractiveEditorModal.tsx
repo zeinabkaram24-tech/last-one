@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Upload, Link2, FileText, Sparkles, BookOpen, ExternalLink, Calendar, HelpCircle, Mic, MicOff, Loader2 } from 'lucide-react';
+import { X, Upload, Link2, FileText, Sparkles, BookOpen, ExternalLink, Calendar, HelpCircle, Mic, MicOff, Loader2, Check } from 'lucide-react';
 import { ClassId, SchoolDay, SubjectName, ClassworkEntry, HomeworkEntry, TomorrowSpecialNote } from '../types';
 import { NEXT_SCHOOL_DAY } from '../data/timetables';
 
@@ -144,10 +144,29 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
         setSubject(initialData.subject || 'Arabic');
         setBlock(initialData.block || currentBlock);
         setWeek(initialData.week || currentWeek);
-        setLinkUrl(initialData.linkUrl || '');
-        setLinkTitle(initialData.linkTitle || '');
-        setFileBase64(initialData.pdfUrl || '');
-        setFileName(initialData.pdfUrl ? 'الملف المرفق الحالي 📄' : '');
+        // Smart handling: if linkUrl is actually a local file or PDF, treat as fileBase64 instead of URL
+        const rawLink = initialData.linkUrl || '';
+        const rawPdf = initialData.pdfUrl || '';
+        const isFileLink = rawLink.includes('/materials/') || rawLink.endsWith('.pdf') || rawLink.startsWith('data:');
+        
+        if (isFileLink) {
+          setLinkUrl('');
+          setLinkTitle('');
+          const activeFile = rawPdf || rawLink;
+          setFileBase64(activeFile);
+          const extractedName = activeFile.split('/').pop()?.split('?')[0] || 'شيت الواجب المرفق 📄';
+          setFileName(decodeURIComponent(extractedName));
+        } else {
+          setLinkUrl(rawLink);
+          setLinkTitle(initialData.linkTitle || '');
+          setFileBase64(rawPdf);
+          if (rawPdf) {
+            const extractedName = rawPdf.split('/').pop()?.split('?')[0] || 'الملف المرفق الحالي 📄';
+            setFileName(decodeURIComponent(extractedName));
+          } else {
+            setFileName('');
+          }
+        }
 
         if (itemType === 'classwork') {
           setTitle(initialData.title || '');
@@ -197,10 +216,28 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
               : selectedDay)
         );
         
-        setLinkUrl(initialData?.linkUrl || '');
-        setLinkTitle(initialData?.linkTitle || '');
-        setFileBase64(initialData?.pdfUrl || '');
-        setFileName('');
+        const rawLink = initialData?.linkUrl || '';
+        const rawPdf = initialData?.pdfUrl || '';
+        const isFileLink = rawLink.includes('/materials/') || rawLink.endsWith('.pdf') || rawLink.startsWith('data:');
+
+        if (isFileLink) {
+          setLinkUrl('');
+          setLinkTitle('');
+          const activeFile = rawPdf || rawLink;
+          setFileBase64(activeFile);
+          const extractedName = activeFile.split('/').pop()?.split('?')[0] || 'شيت الواجب المرفق 📄';
+          setFileName(decodeURIComponent(extractedName));
+        } else {
+          setLinkUrl(rawLink);
+          setLinkTitle(initialData?.linkTitle || '');
+          setFileBase64(rawPdf);
+          if (rawPdf) {
+            const extractedName = rawPdf.split('/').pop()?.split('?')[0] || 'الملف المرفق 📄';
+            setFileName(decodeURIComponent(extractedName));
+          } else {
+            setFileName('');
+          }
+        }
       }
     } else {
       cleanupRecording();
@@ -1083,39 +1120,63 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
 
           {/* Attachments Section: File (PDF, Word, Doc, PNG) or Link */}
           <div className="border-t border-slate-100 pt-3.5 space-y-3">
-            <h4 className="text-xs font-black text-indigo-900 flex items-center gap-1.5">
-              <Link2 className="w-4 h-4 text-indigo-600" />
-              <span>المرفقات ووسائط التعلم (ملفات PDF, Word, روابط خارجية)</span>
-            </h4>
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-black text-indigo-900 flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-indigo-600" />
+                <span>إرفاق شيت أو ملف دراسي (PDF / صورة / مستند)</span>
+              </h4>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                لا يتطلب أي رابط URL ✨
+              </span>
+            </div>
 
-            {/* Link inputs */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1">رابط إلكتروني مرفق (URL):</label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/..."
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  className="w-full text-[11px] font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1">اسم الرابط المرفق:</label>
-                <input
-                  type="text"
-                  placeholder="مثال: فيديو شرح الدرس 📺"
-                  value={linkTitle}
-                  onChange={(e) => setLinkTitle(e.target.value)}
-                  className="w-full text-[11px] font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
-                />
+            {/* Quick School Sheet Selector (One-click attach) */}
+            <div className="bg-slate-50/80 p-2.5 rounded-2xl border border-slate-200 space-y-2">
+              <label className="block text-[10px] font-black text-slate-600">
+                اختيار شيت المدرسة المعتمد بنقرة واحدة (أو ارفع ملفك بالأسفل):
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFileBase64('/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf');
+                    setFileName('Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf');
+                    setLinkUrl('');
+                  }}
+                  className={`px-2.5 py-1.5 rounded-xl text-[11px] font-black border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    fileName?.includes('Homework 5')
+                      ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs'
+                      : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/30'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>شيت السوشيال الرسمي (Homework 5 - النسخة الأصلية)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFileBase64('/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf');
+                    setFileName('SocialStudies-Grade2-B1-HomeWork-1.pdf');
+                    setLinkUrl('');
+                  }}
+                  className={`px-2.5 py-1.5 rounded-xl text-[11px] font-black border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    fileName?.includes('HomeWork-1')
+                      ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs'
+                      : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/30'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>شيت دراسات اجتماعية (HomeWork 1)</span>
+                </button>
               </div>
             </div>
 
             {/* File Upload Zone */}
             <div>
-              <label className="block text-[10px] font-black text-slate-500 mb-1">تحميل ملف مرفق (PDF, Word, صور، إلخ):</label>
-              <div className="border-2 border-dashed border-slate-200 hover:border-indigo-400 rounded-2xl p-4 bg-slate-50 hover:bg-indigo-50/20 text-center transition-all relative cursor-pointer group">
+              <label className="block text-[10px] font-black text-slate-500 mb-1">
+                رفع شيت / ملف جديد من جهازك (PDF أو صور أو Word):
+              </label>
+              <div className="border-2 border-dashed border-slate-200 hover:border-indigo-400 rounded-2xl p-3.5 bg-slate-50 hover:bg-indigo-50/20 text-center transition-all relative cursor-pointer group">
                 <input
                   type="file"
                   id="modal-attachment-upload"
@@ -1124,35 +1185,76 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.gif"
                 />
                 <div className="flex flex-col items-center justify-center space-y-1">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Upload className="w-4 h-4 text-indigo-600" />
+                  <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Upload className="w-3.5 h-3.5 text-indigo-600" />
                   </div>
                   <div className="text-xs font-black text-slate-700">
                     {uploadProgress ? 'جاري رفع وتجهيز الملف...' : 'اسحب الملف هنا أو انقر للتصفح 📂'}
                   </div>
                   <div className="text-[10px] text-slate-400 font-bold">
-                    يدعم ملفات Word, PDF, شيتات العمل، والصور
+                    يدعم ملفات PDF، شيتات المدرسة، ومستندات Word
                   </div>
                 </div>
               </div>
-              {fileName && (
-                <div className="mt-2 p-2 bg-indigo-50 text-indigo-950 rounded-xl border border-indigo-200 text-xs font-black flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
-                    <span className="truncate">{fileName}</span>
+            </div>
+
+            {/* Attached file confirmation card */}
+            {fileName && (
+              <div className="p-2.5 bg-emerald-50/90 text-emerald-950 rounded-2xl border border-emerald-300 text-xs font-black flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4" />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFileBase64('');
-                      setFileName('');
-                    }}
-                    className="text-rose-600 hover:text-rose-800 font-black cursor-pointer text-[10px]"
-                  >
-                    حذف ❌
-                  </button>
+                  <div className="min-w-0">
+                    <div className="truncate font-black">{fileName}</div>
+                    <div className="text-[10px] text-emerald-700 font-bold">
+                      تم ربط الشيت بنجاح (سيفتح مباشرة داخل التطبيق دون الحاجة لرابط URL)
+                    </div>
+                  </div>
                 </div>
-              )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFileBase64('');
+                    setFileName('');
+                  }}
+                  className="text-rose-600 hover:text-rose-800 font-black cursor-pointer text-[10px] px-2 py-1 bg-white rounded-lg border border-rose-200 shrink-0"
+                >
+                  إلغاء المرفق 🗑️
+                </button>
+              </div>
+            )}
+
+            {/* External Link Section (Fully Optional) */}
+            <div className="pt-2 border-t border-slate-100">
+              <label className="block text-[10px] font-black text-slate-500 mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <Link2 className="w-3 h-3 text-slate-400" />
+                  <span>رابط إنترنت خارجي إضافي (اختياري تماماً - اتركه فارغاً إذا كان لديك شيت):</span>
+                </span>
+                <span className="text-[9px] text-slate-400 font-normal">لمقاطع يوتيوب أو المواقع فقط</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <input
+                    type="text"
+                    placeholder="https://example.com/..."
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    className="w-full text-[11px] font-medium p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
+                    dir="ltr"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    placeholder="اسم الرابط (مثال: فيديو توضيحي)"
+                    value={linkTitle}
+                    onChange={(e) => setLinkTitle(e.target.value)}
+                    className="w-full text-[11px] font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

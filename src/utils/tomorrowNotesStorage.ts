@@ -701,12 +701,17 @@ export async function getTomorrowNotesForDay(
       });
     }
 
-    // Map homework to TomorrowSpecialNote (only for block !== 2; in block 2, only dedicated notes are used)
-    if (block !== 2 && hwList && Array.isArray(hwList)) {
+    // Map homework to TomorrowSpecialNote
+    if (hwList && Array.isArray(hwList)) {
       hwList.forEach((hw: any) => {
+        const isSocial = hw.subject === 'Social Studies';
         const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|spelling\s*bee|سبيلنج|تسميع|تقييم/i.test(((hw.task || '') + ' ' + (hw.details || '')).toLowerCase());
+        
+        // In Block 2, allow Social Studies homework
+        if (block === 2 && !isSocial) return;
+
         // Ordinary homework or Arabic homework must NEVER be mapped as a tomorrow quiz note!
-        if (!isQuiz || hw.subject === 'Arabic' || (hw.week && hw.week > 4)) return;
+        if (!isSocial && (!isQuiz || hw.subject === 'Arabic' || (hw.week && hw.week > 4))) return;
         const unpacked = unpackHomeworkDetails(hw.details);
         dynamicNotes.push({
           id: hw.id,
@@ -716,11 +721,11 @@ export async function getTomorrowNotesForDay(
           note: hw.task,
           arabicNote: unpacked.details || hw.task,
           bagItem: hw.pages || undefined,
-          isQuiz: true,
-          categoryType: 'quiz',
+          isQuiz: isQuiz && !isSocial,
+          categoryType: isSocial ? 'note' : 'quiz',
           block: hw.block,
           week: hw.week,
-          pdfUrl: unpacked.pdfUrl || undefined,
+          pdfUrl: unpacked.pdfUrl || hw.pdf_url || hw.pdfUrl || (isSocial ? '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf' : undefined),
           linkUrl: hw.link_url || undefined,
         });
       });

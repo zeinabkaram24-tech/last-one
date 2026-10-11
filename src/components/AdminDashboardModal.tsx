@@ -1920,11 +1920,12 @@ Sunday:
                                     <div>
                                       <label className="block text-[11px] font-bold text-slate-700 mb-1">رابط الدرس الإلكتروني (اختياري)</label>
                                       <input
-                                        type="url"
+                                        type="text"
                                         value={formLinkUrl}
                                         onChange={(e) => setFormLinkUrl(e.target.value)}
                                         placeholder="https://..."
                                         className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
+                                        dir="ltr"
                                       />
                                     </div>
                                     <div>
@@ -2046,11 +2047,12 @@ Sunday:
                                   <div>
                                     <label className="block text-[11px] font-bold text-slate-700 mb-1">رابط الواجب الإلكتروني (اختياري)</label>
                                     <input
-                                      type="url"
+                                      type="text"
                                       value={formLinkUrl}
                                       onChange={(e) => setFormLinkUrl(e.target.value)}
                                       placeholder="https://forms.gle/... أو رابط كاهوت"
                                       className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
+                                      dir="ltr"
                                     />
                                   </div>
 
@@ -2087,6 +2089,39 @@ Sunday:
                                       }}
                                       className="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-black file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer"
                                     />
+
+                                    {/* Quick School Sheet Selector */}
+                                    <div className="flex flex-wrap gap-1.5 pt-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setFormPdfUrl('/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf');
+                                          setHwSelectedFile(null);
+                                        }}
+                                        className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                                          formPdfUrl?.includes('Homework 5')
+                                            ? 'bg-emerald-600 text-white border-emerald-700'
+                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'
+                                        }`}
+                                      >
+                                        📄 شيت السوشيال الرسمي (Homework 5)
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setFormPdfUrl('/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf');
+                                          setHwSelectedFile(null);
+                                        }}
+                                        className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                                          formPdfUrl?.includes('HomeWork-1')
+                                            ? 'bg-emerald-600 text-white border-emerald-700'
+                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'
+                                        }`}
+                                      >
+                                        📄 شيت دراسات (HomeWork 1)
+                                      </button>
+                                    </div>
+
                                     {hwSelectedFile && (
                                       <p className="text-[10px] font-bold text-emerald-700">
                                         ✨ ملف مجهز للرفع عند الحفظ: {hwSelectedFile.name} ({(hwSelectedFile.size / 1024).toFixed(1)} KB)
@@ -2137,11 +2172,12 @@ Sunday:
                                     <div>
                                       <label className="block text-[11px] font-bold text-slate-700 mb-1">رابط إضافي (اختياري)</label>
                                       <input
-                                        type="url"
+                                        type="text"
                                         value={formLinkUrl}
                                         onChange={(e) => setFormLinkUrl(e.target.value)}
                                         placeholder="https://..."
                                         className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
+                                        dir="ltr"
                                       />
                                     </div>
                                     <div>
@@ -2537,7 +2573,7 @@ Sunday:
                         <div className="relative">
                           <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
-                            type="url"
+                            type="text"
                             id="admin-material-link-url"
                             placeholder="https://www.youtube.com/watch?v=... أو https://example.com"
                             value={materialLinkUrl}
