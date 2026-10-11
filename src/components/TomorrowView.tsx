@@ -149,6 +149,19 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true; // Disallow un-uploaded subjects for Block 2
     }
 
+    // Strict User Mandate for Block 2 Week 1 English:
+    // Only 1 task per class in Tomorrow: reminder before Spelling Bee (Tuesday for G2A & G2C, Wednesday for G2B)!
+    if ((currentBlock === 2 || (n as any).block === 2) && (currentWeek === 1 || (n as any).week === 1) && n.subject === 'English') {
+      const isG2ATarget = (currentClass === 'G2A' || (n as any).classId === 'G2A') && tomorrowDay === 'Tuesday';
+      const isG2CTarget = (currentClass === 'G2C' || (n as any).classId === 'G2C') && tomorrowDay === 'Tuesday';
+      const isG2BTarget = (currentClass === 'G2B' || (n as any).classId === 'G2B') && tomorrowDay === 'Wednesday';
+      const isAllowedDay = isG2ATarget || isG2CTarget || isG2BTarget;
+      const isSpellingBee = /spelling|bee|سبيلنج|تهجئة/i.test(`${n.title || ''} ${n.note || ''} ${n.arabicNote || ''}`);
+      if (!isAllowedDay || !isSpellingBee) {
+        return true; // Disallow all other English tasks for Block 2 Week 1
+      }
+    }
+
     // UNCONDITIONAL ADMIN / USER OVERRIDE:
     // Any note created, added, or edited by admin or user is unconditionally allowed without ANY restrictions!
     if (
@@ -796,6 +809,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (h.week && h.week !== effectiveWeekForHw) return;
       if ((h.block || 1) !== currentBlock) return;
       if (currentBlock === 2 && h.subject !== 'English' && h.subject !== 'Arabic') return;
+      if (currentBlock === 2 && h.subject === 'English') return; // Dedicated Tomorrow note handles Spelling Bee, avoiding duplicate linked-hw
 
       const fullText = `${h.task} ${h.details || ''} ${h.subject}`;
       const isForTomorrow = h.dueDay === tomorrowDay || h.assignedDay === tomorrowDay;
@@ -869,6 +883,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (cw.week && cw.week !== currentWeek) return;
       if ((cw.block || 1) !== currentBlock) return;
       if (currentBlock === 2 && cw.subject !== 'English' && cw.subject !== 'Arabic') return;
+      if (currentBlock === 2 && cw.subject === 'English') return; // Dedicated Tomorrow note handles Spelling Bee, avoiding duplicate linked-cw
       const cwAlertId = `linked-cw-${cw.id}`;
       if (deletedNoteIds.includes(cwAlertId)) return;
 

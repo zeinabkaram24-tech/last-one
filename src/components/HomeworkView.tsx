@@ -50,15 +50,33 @@ const NEXT_SCHOOL_DAY: Record<SchoolDay, SchoolDay> = {
   Saturday: 'Sunday',
 };
 
+const SPELLING_BEE_WORDS = [
+  "Apple", "Baby", "Ball", "Banana", "Bedroom", "Bird", "Book", "Aunt", "Cake", "Uncle",
+  "Chair", "Clean", "Carrot", "Door", "Family", "Fish", "Food", "Friend", "Happy", "House",
+  "Jump", "Milk", "Mother", "School", "Shoe", "Sister", "Small", "Sun", "Water", "Yellow",
+  "Animal", "Ruler", "Sharpener", "Autumn", "Desk", "Pencil", "Grandmother", "Cousin", "Niece", "Eraser"
+];
+
 const parseDictationWords = (details: string | undefined): string[] => {
   if (!details) return [];
-  const match = details.match(/(?:Words to study:|Words:|الكلمات:)\s*([\s\S]+?)(?:\n\n|Note:|ملحوظة:|$)/i);
+  const isSpelling = details.toLowerCase().includes('spelling') || details.includes('تهجئة') || details.includes('سبيلنج');
+  const match = details.match(/(?:Words to study:|Words:|الكلمات:|قائمة الكلمات:)\s*([\s\S]+?)(?:\n\n|Note:|ملحوظة:|Outcome:|$)/i);
   const content = match ? match[1] : details;
   
   const rawWords = content
     .split(/[\n,•·\t*|]+/)
     .map(w => w.trim())
-    .filter(w => w.length > 1 && !w.toLowerCase().includes('dictation') && !w.toLowerCase().includes('learning') && !w.toLowerCase().includes('prepared') && w.length < 30);
+    .filter(w => w.length > 1 && 
+      !w.toLowerCase().includes('dictation') && 
+      !w.toLowerCase().includes('learning') && 
+      !w.toLowerCase().includes('prepared') && 
+      !w.toLowerCase().includes('prepare') && 
+      !w.toLowerCase().includes('spelling') && 
+      !w.toLowerCase().includes('words') && 
+      !w.toLowerCase().includes('round') && 
+      !w.toLowerCase().includes('competition') && 
+      w.length < 30
+    );
     
   if (rawWords.length > 0) {
     return rawWords.flatMap(w => {
@@ -67,6 +85,10 @@ const parseDictationWords = (details: string | undefined): string[] => {
       }
       return [w];
     });
+  }
+  
+  if (isSpelling) {
+    return SPELLING_BEE_WORDS;
   }
   
   return [
@@ -309,9 +331,18 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         </span>
                       )}
 
-                      {hw.subject === 'English' && (hw.task.toLowerCase().includes('dictation') || hw.task.includes('إملاء') || (hw.details && hw.details.toLowerCase().includes('dictation'))) && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-black bg-indigo-50 text-indigo-900 border border-indigo-200 shadow-2xs">
-                          <span>Dictation list 📝</span>
+                      {hw.subject === 'English' && (
+                        hw.task.toLowerCase().includes('dictation') ||
+                        hw.task.includes('إملاء') ||
+                        hw.task.toLowerCase().includes('spelling') ||
+                        (hw.details && (hw.details.toLowerCase().includes('dictation') || hw.details.toLowerCase().includes('spelling')))
+                      ) && (
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-black shadow-2xs border ${
+                          hw.task.toLowerCase().includes('spelling') || (hw.details && hw.details.toLowerCase().includes('spelling'))
+                            ? 'bg-amber-50 text-amber-950 border-amber-300'
+                            : 'bg-indigo-50 text-indigo-900 border-indigo-200'
+                        }`}>
+                          <span>{hw.task.toLowerCase().includes('spelling') || (hw.details && hw.details.toLowerCase().includes('spelling')) ? 'Spelling Bee List 🐝' : 'Dictation list 📝'}</span>
                         </span>
                       )}
                     </div>
@@ -327,14 +358,28 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         : hw.task}
                     </p>
 
-                    {/* Elegant Word Cards Grid for Dictation Lists */}
-                    {hw.subject === 'English' && (hw.task.toLowerCase().includes('dictation') || hw.task.includes('إملاء') || (hw.details && hw.details.toLowerCase().includes('dictation'))) && (() => {
+                    {/* Elegant Word Cards Grid for Dictation & Spelling Bee Lists with Audio */}
+                    {hw.subject === 'English' && (
+                      hw.task.toLowerCase().includes('dictation') ||
+                      hw.task.includes('إملاء') ||
+                      hw.task.toLowerCase().includes('spelling') ||
+                      (hw.details && (hw.details.toLowerCase().includes('dictation') || hw.details.toLowerCase().includes('spelling')))
+                    ) && (() => {
+                      const isSpelling = hw.task.toLowerCase().includes('spelling') || (hw.details && hw.details.toLowerCase().includes('spelling'));
                       const words = parseDictationWords(hw.details);
                       return (
-                        <div className="mt-3 p-3.5 bg-slate-50/50 rounded-2xl border border-slate-150/80 space-y-2.5">
-                          <div className="flex items-center justify-between text-[11px] font-black text-slate-500 border-b border-slate-100 pb-2">
-                            <span className="flex items-center gap-1">🗣️ English Dictation Words:</span>
-                            <span className="text-indigo-600 font-black">{words.length} Words • {words.length} كلمة</span>
+                        <div className={`mt-3 p-3.5 rounded-2xl border space-y-2.5 ${
+                          isSpelling
+                            ? 'bg-amber-50/70 border-amber-200/90'
+                            : 'bg-slate-50/50 border-slate-150/80'
+                        }`}>
+                          <div className="flex items-center justify-between text-[11px] font-black text-slate-700 border-b border-amber-200/60 pb-2">
+                            <span className="flex items-center gap-1.5">
+                              {isSpelling ? '🐝 كلمات مسابقة التهجئة (Spelling Bee Words):' : '🗣️ English Dictation Words:'}
+                            </span>
+                            <span className={`${isSpelling ? 'text-amber-800' : 'text-indigo-600'} font-black`}>
+                              {words.length} Words • {words.length} كلمة (اضغط لسماع النطق 🔊)
+                            </span>
                           </div>
                           <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                             {words.map((word) => (
@@ -344,37 +389,38 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if ('speechSynthesis' in window) {
-                                    // Cancel any ongoing pronunciation
                                     window.speechSynthesis.cancel();
                                     const utterance = new SpeechSynthesisUtterance(word);
                                     utterance.lang = 'en-US';
-                                    utterance.rate = 0.85; // Natural speed for kids to learn pronunciation
+                                    utterance.rate = 0.85; // Natural learning speed for kids
                                     window.speechSynthesis.speak(utterance);
                                   }
                                 }}
-                                title="Click to listen / اضغط للاستماع للنطق"
+                                title="اضغط للاستماع للنطق / Click to listen"
                                 className={`px-2 py-1.5 flex items-center justify-center gap-1.5 rounded-xl border text-sm font-bold tracking-wider font-mono transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] shadow-3xs cursor-pointer ${
                                   hw.completed
                                     ? 'bg-slate-100/50 border-slate-200 text-slate-400 line-through'
-                                    : 'bg-indigo-50/50 border-indigo-100/80 text-indigo-900 hover:border-indigo-400 hover:bg-indigo-100/60 hover:text-indigo-950 hover:shadow-xs'
+                                    : isSpelling
+                                      ? 'bg-white border-amber-200 text-slate-900 hover:border-amber-400 hover:bg-amber-100/70 hover:text-amber-950 hover:shadow-xs'
+                                      : 'bg-indigo-50/50 border-indigo-100/80 text-indigo-900 hover:border-indigo-400 hover:bg-indigo-100/60 hover:text-indigo-950 hover:shadow-xs'
                                 }`}
                               >
                                 <span>{word}</span>
                                 {!hw.completed && (
-                                  <Volume2 className="w-3.5 h-3.5 text-indigo-400 hover:text-indigo-600 transition-colors shrink-0" />
+                                  <Volume2 className={`w-3.5 h-3.5 ${isSpelling ? 'text-amber-600 hover:text-amber-800' : 'text-indigo-400 hover:text-indigo-600'} transition-colors shrink-0`} />
                                 )}
                               </button>
                             ))}
                           </div>
                           <div className="text-[10px] text-slate-500 font-bold flex justify-between pt-1 border-t border-slate-100/50 mt-1">
-                            <span>⚠️ Note: Always start with capital letters.</span>
-                            <span>Outcome: R7 picture dictionary</span>
+                            <span>{isSpelling ? '⭐ التدريب اليومي على حفظ ونطق حروف الكلمات لمسابقة الـ Spelling Bee' : '⚠️ Note: Always start with capital letters.'}</span>
+                            <span>{isSpelling ? 'Round 1 • 40 Words' : 'Outcome: R7 picture dictionary'}</span>
                           </div>
                         </div>
                       );
                     })()}
 
-                    {/* PDF Worksheet if available: strictly only allowed for Social Studies and English Dictation per school rule */}
+                    {/* PDF Worksheet if available: strictly only allowed for Social Studies and English Dictation & Spelling Bee per school rule */}
                     {(() => {
                       if (!hw.pdfUrl) return null;
                       const isAllowed =
@@ -382,7 +428,10 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         (hw.subject === 'English' && (
                           hw.task?.toLowerCase().includes('dictation') ||
                           hw.details?.includes('إملاء') ||
-                          hw.task?.includes('إملاء')
+                          hw.task?.includes('إملاء') ||
+                          hw.task?.toLowerCase().includes('spelling') ||
+                          hw.details?.toLowerCase().includes('spelling') ||
+                          hw.id?.includes('spelling')
                         ));
                       if (!isAllowed) return null;
                       return (
