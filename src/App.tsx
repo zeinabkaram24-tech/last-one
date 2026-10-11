@@ -132,7 +132,16 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     }
   } catch {}
 
-  const source = (cached && cached.length > 0 ? cached : INITIAL_CLASSWORK).filter(c => !deletedSet.has(c.id));
+  const map = new Map<string, ClassworkEntry>();
+  const baseItems: ClassworkEntry[] = ((initialData && Array.isArray((initialData as any).classwork)) ? (initialData as any).classwork : INITIAL_CLASSWORK);
+  baseItems.forEach((c) => {
+    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+  });
+  (cached || []).forEach((c) => {
+    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+  });
+  const source = Array.from(map.values());
+
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedClassworkIds);
@@ -160,11 +169,16 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
     }
   } catch {}
 
-  const source = (cached && cached.length > 0 ? cached : INITIAL_HOMEWORK).filter(h => {
-    // Admin deleted items are strictly and unconditionally excluded
-    if (deletedSet.has(h.id)) return false;
-    return true;
+  const map = new Map<string, HomeworkEntry>();
+  const baseItems: HomeworkEntry[] = ((initialData && Array.isArray((initialData as any).homework)) ? (initialData as any).homework : INITIAL_HOMEWORK);
+  baseItems.forEach((h) => {
+    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
+  (cached || []).forEach((h) => {
+    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+  });
+  const source = Array.from(map.values());
+
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
     const set = new Set(progress.completedHomeworkIds);
@@ -184,12 +198,10 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
 export default function App() {
   // Active User Profile (Guest vs Student)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
-    return getActiveUserProfile();
+    return getActiveUserProfile() || { mode: 'guest', classId: 'G2B' };
   });
 
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(() => {
-    return getActiveUserProfile() === null;
-  });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
 
   // Class selection (G2A, G2B, G2C)
   const [currentClass, setCurrentClass] = useState<ClassId>(() => {
@@ -199,16 +211,16 @@ export default function App() {
     return saved === 'G2A' || saved === 'G2B' || saved === 'G2C' ? saved : 'G2B';
   });
 
-  // Current Block (1, 2, 3, 4)
+  // Current Block (1, 2, 3, 4) - Default to Block 2
   const [currentBlock, setCurrentBlock] = useState<number>(() => {
     const saved = appStorage.getItem('nile_planner_block');
-    return saved ? Number(saved) : 1;
+    return saved ? Number(saved) : 2;
   });
 
-  // Current Week (1, 2, 3, 4)
+  // Current Week (1, 2, 3, 4) - Default to Week 1
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = appStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 3;
+    return saved ? Number(saved) : 1;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
@@ -413,13 +425,12 @@ export default function App() {
       try {
         if (isSupabaseConfigured) {
           setSupabaseStatus('connecting');
-          // Seed Supabase from local planner_data.json immediately if empty or sync needed
           const seedRes = await seedInitialDataIfEmpty().catch((e) => {
             console.warn('Initial seed check warning:', e);
             return null;
           });
           if (seedRes && seedRes.seeded) {
-            showToast(`🌱 تم استيراد ورفع ${seedRes.classworkCount} درساً و ${seedRes.homeworkCount} واجباً من planner_data.json إلى Supabase بنجاح!`);
+            console.log(`[Supabase] Seeded ${seedRes.classworkCount} classwork and ${seedRes.homeworkCount} homework rows.`);
           }
         } else {
           setSupabaseStatus('unconfigured');
@@ -1165,6 +1176,13 @@ export default function App() {
           appStorage.setItem('nile_planner_block', String(b));
           if (isSupabaseConfigured) {
             savePlannerSetting('current_block', String(b)).catch(() => {});
+          }
+          if (b === 2) {
+            setCurrentWeek(1);
+            appStorage.setItem(STORAGE_KEYS.WEEK, '1');
+            if (isSupabaseConfigured) {
+              savePlannerSetting('current_week', '1').catch(() => {});
+            }
           }
           showToast(`Switched to Block ${b}`);
         }}

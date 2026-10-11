@@ -113,6 +113,11 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       if ((h.block || 1) !== currentBlock) return false;
       if ((h.week || 1) !== currentWeek) return false;
 
+      // Strict Block 2 rule: User uploaded ONLY English for Block 2!
+      if (currentBlock === 2 && h.subject !== 'English') {
+        return false;
+      }
+
       // Filter out tomorrow special lookahead notes/alerts from core homework lists
       if (h.id?.startsWith('tomorrow-') || h.id?.startsWith('tn-') || h.id?.startsWith('custom-')) {
         return false;

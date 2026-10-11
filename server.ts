@@ -1351,7 +1351,7 @@ function postProcessParsedPlan(
   const rawTomorrowNotes: any[] = Array.isArray(raw.tomorrowNotes) ? [...raw.tomorrowNotes] : [];
 
   const urlRegex = /(https?:\/\/[^\s)"]+)/i;
-  const testRegex = /\b(quiz|test|exam|dictation)\b|اختبار|امتحان|كويز|إملاء|تسميع|تقييم/i;
+  const testRegex = /\b(quiz|test|exam|dictation|spelling\s*bee)\b|اختبار|امتحان|كويز|إملاء|سبيلنج|تسميع|تقييم/i;
   const bagRegex = /كشكول|كتاب|ألوان|مسطرة|أدوات|زي|sketch|whiteboard|markers?|notebook|cahier|palette|ورق/i;
 
   const rawCw = Array.isArray(raw.classwork) ? raw.classwork : [];
@@ -1623,7 +1623,7 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
   }
 
   const urlRegex = /(https?:\/\/[^\s)"]+)/i;
-  const testRegex = /\b(quiz|test|exam|dictation)\b|اختبار|امتحان|كويز|إملاء|تسميع|تقييم/i;
+  const testRegex = /\b(quiz|test|exam|dictation|spelling\s*bee)\b|اختبار|امتحان|كويز|إملاء|سبيلنج|تسميع|تقييم/i;
   const bagRegex = /كشكول|كتاب|ألوان|مسطرة|أدوات|زي|sketch|whiteboard|markers?|notebook|cahier|palette|ورق/i;
 
   const rawCw: any[] = [];

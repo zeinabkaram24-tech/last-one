@@ -1,7 +1,9 @@
 import { ClassId, SchoolDay } from '../types';
-import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
+import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
+
+export { BLOCK2_WEEK1_SPECIAL_NOTES };
 
 export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   // G2A: Session 2 is Wednesday (Prepare Wednesday evening)
@@ -533,7 +535,11 @@ export async function getTomorrowNotesForDay(
 
   // Base official notes for Block/Week or EffectiveWeek from static files
   const baseNotes: TomorrowSpecialNote[] =
-    block === 1 && (week === 4 || effectiveWeek === 4)
+    block === 2 && (week === 1 || effectiveWeek === 1)
+      ? BLOCK2_WEEK1_SPECIAL_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
+        )
+      : block === 1 && (week === 4 || effectiveWeek === 4)
       ? WEEK4_SPECIAL_NOTES.filter(
           (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
         )
@@ -596,6 +602,9 @@ export async function getTomorrowNotesForDay(
 
     const merged = Array.from(map.values());
     const filtered = merged.filter((n) => {
+      // STRICT BLOCK 2 MANDATE: Only English items allowed for Block 2
+      if (block === 2 && n.subject !== 'English') return false;
+
       if (isDisallowedMathNote(n)) return false;
       
       // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (Only for Week 3)
@@ -618,7 +627,7 @@ export async function getTomorrowNotesForDay(
     const seenNotes = new Set<string>();
     const deduplicated = filtered.filter(n => {
       const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
-      if (n.subject === 'English' && (text.includes('dictation') || text.includes('إملاء') || text.includes('ديكتيشن'))) {
+      if (n.subject === 'English' && (text.includes('dictation') || text.includes('إملاء') || text.includes('ديكتيشن') || text.includes('spelling') || text.includes('سبيلنج'))) {
         const key = `${n.classId || 'ALL'}-${n.targetDay}`;
         if (seenNotes.has(key)) return false;
         seenNotes.add(key);
@@ -656,7 +665,7 @@ export async function getTomorrowNotesForDay(
     // Map classwork to TomorrowSpecialNote (only if it is a quiz/alert or explicitly a user-created tomorrow note)
     if (cwList && Array.isArray(cwList)) {
       cwList.forEach((cw: any) => {
-        const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((cw.title + ' ' + (cw.details || '')).toLowerCase());
+        const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|spelling\s*bee|سبيلنج|تسميع|تقييم/i.test((cw.title + ' ' + (cw.details || '')).toLowerCase());
         const isTomorrowNote = cw.id?.startsWith('tomorrow-') || cw.id?.startsWith('tn-') || cw.id?.startsWith('custom-');
         if (isQuiz || isTomorrowNote) {
           dynamicNotes.push({
@@ -681,7 +690,7 @@ export async function getTomorrowNotesForDay(
     // Map homework to TomorrowSpecialNote (ONLY if it is explicitly a quiz/test/dictation alert)
     if (hwList && Array.isArray(hwList)) {
       hwList.forEach((hw: any) => {
-        const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(((hw.task || '') + ' ' + (hw.details || '')).toLowerCase());
+        const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|spelling\s*bee|سبيلنج|تسميع|تقييم/i.test(((hw.task || '') + ' ' + (hw.details || '')).toLowerCase());
         // Ordinary homework or Arabic homework must NEVER be mapped as a tomorrow quiz note!
         if (!isQuiz || hw.subject === 'Arabic' || (hw.week && hw.week > 4)) return;
         const unpacked = unpackHomeworkDetails(hw.details);

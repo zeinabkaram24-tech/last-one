@@ -137,7 +137,7 @@ function postProcessParsedPlan(
   const rawTomorrowNotes: any[] = Array.isArray(raw.tomorrowNotes) ? [...raw.tomorrowNotes] : [];
 
   const urlRegex = /(https?:\/\/[^\s)"]+)/i;
-  const testRegex = /\b(quiz|test|exam|dictation)\b|اختبار|امتحان|كويز|إملاء|تسميع|تقييم/i;
+  const testRegex = /\b(quiz|test|exam|dictation|spelling\s*bee)\b|اختبار|امتحان|كويز|إملاء|سبيلنج|تسميع|تقييم/i;
   const bagRegex = /كشكول|كتاب|ألوان|مسطرة|أدوات|زي|sketch|whiteboard|markers?|notebook|cahier|palette|ورق/i;
 
   const rawCw = Array.isArray(raw.classwork) ? raw.classwork : [];
@@ -487,7 +487,7 @@ export function fallbackClientParser(
   ];
 
   const urlRegex = /(https?:\/\/[^\s)"]+)/i;
-  const testRegex = /\b(quiz|test|exam|dictation)\b|اختبار|امتحان|كويز|إملاء|تسميع|تقييم/i;
+  const testRegex = /\b(quiz|test|exam|dictation|spelling\s*bee)\b|اختبار|امتحان|كويز|إملاء|سبيلنج|تسميع|تقييم/i;
 
   for (const line of lines) {
     for (const d of days) {

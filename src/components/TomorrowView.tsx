@@ -16,7 +16,8 @@ import {
   getDeletedTomorrowNoteIdsSync,
   saveDeletedTomorrowNoteId,
   WEEK3_SPECIAL_NOTES,
-  WEEK4_SPECIAL_NOTES
+  WEEK4_SPECIAL_NOTES,
+  BLOCK2_WEEK1_SPECIAL_NOTES
 } from '../utils/tomorrowNotesStorage';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
 
@@ -121,7 +122,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return false;
     }
 
-    return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(text);
+    return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|spelling\s*bee|سبيلنج|تسميع|تقييم/i.test(text);
   };
 
   // User mandate: strictly remove any fabricated math supplies notes (whiteboard, 100 chart, markers, etc.)
@@ -142,6 +143,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items / quizzes, strictly excluding plain homework)
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
+
+    // STRICT USER MANDATE FOR BLOCK 2:
+    // User explicitly mandated: No data other than English was uploaded for Block 2!
+    // Never show any Arabic, Science, Math, French, or Social Studies in Block 2!
+    if ((currentBlock === 2 || (n as any).block === 2) && n.subject !== 'English') {
+      return true; // Strictly disallowed! ONLY English is allowed for Block 2!
+    }
 
     // UNCONDITIONAL ADMIN / USER OVERRIDE:
     // Any note created, added, or edited by admin or user is unconditionally allowed without ANY restrictions!
@@ -353,8 +361,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     ).toLowerCase();
     const isEnglishDict = (n.subject === 'English' || fullTextForDict.includes('english')) &&
       (fullTextForDict.includes('dictation') || fullTextForDict.includes('إملاء') || fullTextForDict.includes('ديكتيشن'));
-    if (isEnglishDict && selectedDay !== 'Wednesday') {
-      return true; // Strictly disallowed on all days except Wednesday!
+    if (currentBlock === 1 && currentWeek === 3 && isEnglishDict && selectedDay !== 'Wednesday') {
+      return true; // Strictly disallowed on all days except Wednesday for Week 3!
     }
 
     // 8. Strict user mandate: "امسح الـ task الموجودة في كلاس A وكلاس C في تنبيهات الغد بتاعة اختبار الـ Math"
@@ -536,7 +544,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
     const base =
-      currentBlock === 1 && (currentWeek === 4 || effectiveWeek === 4)
+      currentBlock === 2 && (currentWeek === 1 || effectiveWeek === 1)
+        ? BLOCK2_WEEK1_SPECIAL_NOTES.filter(
+            (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
+          )
+        : currentBlock === 1 && (currentWeek === 4 || effectiveWeek === 4)
         ? WEEK4_SPECIAL_NOTES.filter(
             (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
           )
@@ -711,9 +723,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     }
 
     if (quiz) {
-      // User directive: Arabic dictation is strictly 'إملاء' (NO 'Dictation'), English dictation is 'Dictation' / 'ديكتيشن'
+      // User directive: Arabic dictation is strictly 'إملاء' (NO 'Dictation'), English dictation is 'Dictation' / 'ديكتيشن' / 'Spelling Bee'
       let label = '🚨 اختبار';
-      if (isDictation) {
+      if (isEnglish && (fullText.includes('spelling') || fullText.includes('bee') || fullText.includes('سبيلنج'))) {
+        label = '🐝 مسابقة Spelling Bee (ديكتيشن)';
+      } else if (isDictation) {
         label = isArabic ? '✍️ إملاء كشكول الطالب' : isEnglish ? '🚨 ديكتيشن' : '✍️ إملاء كشكول الطالب';
       } else if (note.subject === 'French') {
         label = '🇫🇷 كويز فرنسي';
@@ -727,7 +741,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         label,
         badgeClass: 'bg-rose-600 text-white font-black shadow-xs',
         cardClass: 'bg-rose-50 border-2 border-rose-500 text-rose-950 font-bold shadow-xs',
-        subjectName: isEnglish ? 'English' : arabName,
+        subjectName: isEnglish && (fullText.includes('spelling') || fullText.includes('bee')) ? 'English (Spelling Bee)' : isEnglish ? 'English' : arabName,
         isAlert: true,
       };
     }
@@ -782,6 +796,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       const cid = h.class_id || h.classId;
       if (cid !== currentClass && (cid as any) !== 'ALL') return;
       if (h.week && h.week !== effectiveWeekForHw) return;
+      if ((h.block || 1) !== currentBlock) return;
+      if (currentBlock === 2 && h.subject !== 'English') return;
 
       const fullText = `${h.task} ${h.details || ''} ${h.subject}`;
       const isForTomorrow = h.dueDay === tomorrowDay || h.assignedDay === tomorrowDay;
@@ -853,6 +869,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (cid !== currentClass && cid !== 'ALL') return;
       if (cw.day !== tomorrowDay) return;
       if (cw.week && cw.week !== currentWeek) return;
+      if ((cw.block || 1) !== currentBlock) return;
+      if (currentBlock === 2 && cw.subject !== 'English') return;
       const cwAlertId = `linked-cw-${cw.id}`;
       if (deletedNoteIds.includes(cwAlertId)) return;
 

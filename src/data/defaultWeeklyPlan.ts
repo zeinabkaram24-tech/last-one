@@ -4,8 +4,21 @@ import {
   ALL_LINK_AND_WEEK2_HOMEWORK,
   WEEK2_SPECIAL_NOTES,
 } from './week2Plan';
+import initialData from './initialData.json';
 
 export type { TomorrowSpecialNote };
+
+export const BLOCK2_WEEK1_CLASSWORK: ClassworkEntry[] = (initialData.classwork as any[]).filter(
+  (c) => c.block === 2 && c.week === 1
+);
+
+export const BLOCK2_WEEK1_HOMEWORK: HomeworkEntry[] = (initialData.homework as any[]).filter(
+  (h) => h.block === 2 && h.week === 1
+);
+
+export const BLOCK2_WEEK1_SPECIAL_NOTES: TomorrowSpecialNote[] = (initialData.tomorrowNotes as any[]).filter(
+  (n) => n.block === 2 && n.week === 1
+);
 
 export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
   // --- PREPARING FOR SUNDAY & MONDAY (Packed on Saturday & Sunday night) ---
@@ -3426,7 +3439,8 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
   ...WEEK4_ENGLISH_CLASSWORK,
   ...WEEK4_SOCIAL_CLASSWORK,
   ...WEEK4_SCIENCE_CLASSWORK,
-  ...WEEK4_ICT_CLASSWORK
+  ...WEEK4_ICT_CLASSWORK,
+  ...BLOCK2_WEEK1_CLASSWORK
 ];
 
 
@@ -5049,7 +5063,8 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...WEEK4_ENGLISH_HOMEWORK,
   ...WEEK4_SOCIAL_HOMEWORK,
   ...WEEK4_SCIENCE_HOMEWORK,
-  ...WEEK4_ICT_HOMEWORK
+  ...WEEK4_ICT_HOMEWORK,
+  ...BLOCK2_WEEK1_HOMEWORK,
 ];
 
 
