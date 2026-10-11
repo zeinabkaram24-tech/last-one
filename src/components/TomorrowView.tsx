@@ -149,16 +149,34 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true; // Disallow un-uploaded subjects for Block 2
     }
 
-    // Strict User Mandate for Block 2 Week 1 English:
-    // Only 1 task per class in Tomorrow: reminder before Spelling Bee (Tuesday for G2A & G2C, Wednesday for G2B)!
-    if ((currentBlock === 2 || (n as any).block === 2) && (currentWeek === 1 || (n as any).week === 1) && n.subject === 'English') {
-      const isG2ATarget = (currentClass === 'G2A' || (n as any).classId === 'G2A') && tomorrowDay === 'Tuesday';
-      const isG2CTarget = (currentClass === 'G2C' || (n as any).classId === 'G2C') && tomorrowDay === 'Tuesday';
-      const isG2BTarget = (currentClass === 'G2B' || (n as any).classId === 'G2B') && tomorrowDay === 'Wednesday';
-      const isAllowedDay = isG2ATarget || isG2CTarget || isG2BTarget;
-      const isSpellingBee = /spelling|bee|سبيلنج|تهجئة/i.test(`${n.title || ''} ${n.note || ''} ${n.arabicNote || ''}`);
-      if (!isAllowedDay || !isSpellingBee) {
-        return true; // Disallow all other English tasks for Block 2 Week 1
+    // STRICT USER MANDATE FOR BLOCK 2 WEEK 1 (English and Arabic):
+    // In Tomorrow, the user explicitly mandates ONLY two items in the entire week:
+    // 1) Spelling Bee: on Tuesday for Class B (tomorrowDay Wednesday), and on Monday for Class A and Class C (tomorrowDay Tuesday).
+    // 2) Arabic Dictation (إملاء): on Tuesday for all classes (tomorrowDay Wednesday).
+    // Absolutely NO other Tomorrow items (no reading, no grammar, no homework submission, no prep notes) are allowed!
+    if ((currentBlock === 2 || (n as any).block === 2) && (currentWeek === 1 || (n as any).week === 1)) {
+      const isEnglish = n.subject === 'English';
+      const isArabic = n.subject === 'Arabic';
+      if (isEnglish || isArabic) {
+        const text = `${n.title || ''} ${n.note || ''} ${n.arabicNote || ''}`.toLowerCase();
+        const isSpelling = /spelling|bee|سبيلنج|تهجئة/i.test(text);
+        const isDictation = isArabic && (text.includes('إملاء') || text.includes('املاء') || text.includes('dictation'));
+
+        if (isEnglish) {
+          if (!isSpelling) return true; // Only Spelling Bee is allowed for English
+          // Class B Spelling Bee: ONLY on Tuesday (targetDay Wednesday)
+          if (currentClass === 'G2B' && tomorrowDay === 'Wednesday') return false;
+          // Class A and Class C Spelling Bee: ONLY on Monday (targetDay Tuesday)
+          if ((currentClass === 'G2A' || currentClass === 'G2C') && tomorrowDay === 'Tuesday') return false;
+          return true; // Disallow on any other day or class!
+        }
+
+        if (isArabic) {
+          if (!isDictation) return true; // Only Dictation is allowed for Arabic
+          // Arabic Dictation: for ALL classes ONLY on Tuesday (targetDay Wednesday)
+          if (tomorrowDay === 'Wednesday') return false;
+          return true; // Disallow on any other day!
+        }
       }
     }
 
@@ -795,6 +813,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Automatically link and synchronize tests/quizzes/dictations and homework submissions from homework and classwork
   const linkedAlerts = useMemo<TomorrowSpecialNote[]>(() => {
+    if (currentBlock === 2) return []; // Block 2 uses only dedicated Tomorrow notes! Never generate synthetic duplicate alerts!
     const alerts: TomorrowSpecialNote[] = [];
     const checkText = (txt: string) => {
       return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((txt || '').toLowerCase());

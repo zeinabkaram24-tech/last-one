@@ -281,10 +281,10 @@ const b2w1TomorrowNotes = [
     // Add new Block 2 Week 1 tomorrow notes
     data.tomorrowNotes.push(...b2w1TomorrowNotes);
 
-    // Ensure Block 2 contains only uploaded subjects (English and Arabic)
-    data.classwork = (data.classwork || []).filter(c => !(c.block === 2 && c.subject !== 'English' && c.subject !== 'Arabic'));
-    data.homework = (data.homework || []).filter(h => !(h.block === 2 && h.subject !== 'English' && h.subject !== 'Arabic'));
-    data.tomorrowNotes = (data.tomorrowNotes || []).filter(t => !(t.block === 2 && t.subject !== 'English' && t.subject !== 'Arabic'));
+    // Ensure Block 2 contains only uploaded subjects (English, Arabic, Science)
+    data.classwork = (data.classwork || []).filter(c => !(c.block === 2 && c.subject !== 'English' && c.subject !== 'Arabic' && c.subject !== 'Science'));
+    data.homework = (data.homework || []).filter(h => !(h.block === 2 && h.subject !== 'English' && h.subject !== 'Arabic' && h.subject !== 'Science'));
+    data.tomorrowNotes = (data.tomorrowNotes || []).filter(t => !(t.block === 2 && t.subject !== 'English' && t.subject !== 'Arabic' && t.subject !== 'Science'));
     
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     console.log(`Updated ${filePath}: ${data.classwork.length} cw, ${data.homework.length} hw, ${data.tomorrowNotes.length} tn`);
