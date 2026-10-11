@@ -2743,7 +2743,7 @@ Sunday:
               ) : (
                 <div className="space-y-2.5">
                   {materials.map((item) => {
-                    const isLink = item.type === 'link' || Boolean(item.linkUrl);
+                    const isLink = item.type === 'link';
 
                     return (
                       <div

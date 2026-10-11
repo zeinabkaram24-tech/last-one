@@ -1,31 +1,31 @@
 [
   {
-    "id": "mat_social_studies_homework_new",
-    "fileName": "SocialStudies-Grade2-HomeWork.html",
-    "fileSize": 25106,
-    "storageUrl": "/materials/SocialStudies-Grade2-HomeWork.html",
-    "linkUrl": "/materials/SocialStudies-Grade2-HomeWork.html",
-    "subject": "Social Studies",
-    "grade": "Grade 2",
-    "term": "Term 1",
-    "block": 1,
-    "section": "Main sheet",
-    "type": "html",
-    "description": "شيت واجب وتدريبات الدراسات الاجتماعية (سلوكيات الفصل وتنظيم الوقت) - تفاعلي وقابل للطباعة"
-  },
-  {
-    "id": "mat_social_studies_homework_pdf",
-    "fileName": "SocialStudies-Grade2-HomeWork.pdf",
-    "fileSize": 2501,
-    "storageUrl": "/materials/SocialStudies-Grade2-HomeWork.pdf",
-    "linkUrl": "/materials/SocialStudies-Grade2-HomeWork.pdf",
+    "id": "mat_social_studies_b1_main",
+    "fileName": "SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf",
+    "fileSize": 678480,
+    "storageUrl": "/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf",
     "subject": "Social Studies",
     "grade": "Grade 2",
     "term": "Term 1",
     "block": 1,
     "section": "Main sheet",
     "type": "pdf",
-    "description": "شيت واجب الدراسات الاجتماعية PDF"
+    "uploadedAt": "2026-10-11T08:00:00.000Z",
+    "description": "Social Studies Grade 2 - شيت الواجب الأصلي بالتنسيق المدرسي بدون أي تعديل أو إضافات"
+  },
+  {
+    "id": "mat_social_studies_b1_w5",
+    "fileName": "SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf",
+    "fileSize": 678480,
+    "storageUrl": "/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf",
+    "subject": "Social Studies",
+    "grade": "Grade 2",
+    "term": "Term 1",
+    "block": 1,
+    "section": "Week 5",
+    "type": "pdf",
+    "uploadedAt": "2026-10-11T08:00:00.000Z",
+    "description": "Social Studies Grade 2 - شيت الواجب الأصلي بالتنسيق المدرسي بدون أي تعديل أو إضافات"
   },
   {
     "id": "mat_english_b2_w1_spelling_bee",

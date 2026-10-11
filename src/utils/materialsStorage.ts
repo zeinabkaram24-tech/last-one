@@ -329,48 +329,7 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
   const all = getFallbackMaterials();
   const lower = (urlOrName || '').toLowerCase();
 
-  // If Social Studies Sheet / Homework (Standalone sheet without linking to any week)
-  if (
-    lower.includes('socialstudies') ||
-    lower.includes('social_studies') ||
-    lower.includes('social studies') ||
-    lower.includes('سوشيال') ||
-    lower.includes('دراسات') ||
-    (defaultTitle && defaultTitle.toLowerCase().includes('سوشيال')) ||
-    (defaultTitle && defaultTitle.toLowerCase().includes('دراسات')) ||
-    (defaultTitle && defaultTitle.toLowerCase().includes('social'))
-  ) {
-    return {
-      id: 'mat_social_studies_homework_new',
-      fileName: 'SocialStudies-Grade2-HomeWork.html',
-      fileSize: 25106,
-      block: 1,
-      section: 'Main sheet',
-      classId: 'ALL',
-      type: 'html',
-      storageUrl: '/materials/SocialStudies-Grade2-HomeWork.html',
-      linkUrl: '/materials/SocialStudies-Grade2-HomeWork.html',
-      uploadedAt: new Date().toISOString(),
-    };
-  }
-
-  // If specific HomeWork 1 / Sheet 1
-  if (lower.includes('homwork-1') || lower.includes('homework-1') || lower.includes('hw1')) {
-    const existing = all.find((m) => m.id === 'mat_social_studies_b1_hw1' || m.fileName?.includes('HomeWork-1'));
-    return {
-      id: existing?.id || 'mat_social_studies_b1_hw1',
-      fileName: 'SocialStudies-Grade2-B1-HomeWork-1.pdf',
-      fileSize: 678480,
-      block: 1,
-      section: 'Week 3',
-      classId: 'ALL',
-      type: 'pdf',
-      storageUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
-      linkUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf',
-      uploadedAt: existing?.uploadedAt || new Date().toISOString(),
-    };
-  }
-
+  // If specific URL or name matches known stored materials
   if (urlOrName) {
     const found = all.find(
       (m) =>
@@ -379,7 +338,33 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
         (m.fileName && urlOrName.includes(m.fileName))
     );
     if (found) return found;
+  }
 
+  // Social Studies Worksheet / Homework (The exact school PDF file, unlinked and unmodified)
+  if (
+    lower.includes('social') ||
+    lower.includes('سوشيال') ||
+    lower.includes('دراسات') ||
+    (defaultTitle && (
+      defaultTitle.toLowerCase().includes('سوشيال') ||
+      defaultTitle.toLowerCase().includes('دراسات') ||
+      defaultTitle.toLowerCase().includes('social')
+    ))
+  ) {
+    return {
+      id: 'mat_social_studies_b1_w5_u1_hw5',
+      fileName: 'SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf',
+      fileSize: 678480,
+      block: 1,
+      section: 'Main sheet',
+      classId: 'ALL',
+      type: 'pdf',
+      storageUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf',
+      uploadedAt: '2026-10-11T08:00:00.000Z',
+    };
+  }
+
+  if (urlOrName) {
     const extractedName = defaultTitle || urlOrName.split('/').pop()?.split('?')[0] || 'ملف مرفق';
     return {
       id: `mat-${Math.random().toString(36).slice(2, 8)}`,
@@ -390,29 +375,26 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
       classId: 'ALL',
       type: 'pdf',
       storageUrl: urlOrName,
-      linkUrl: urlOrName,
       uploadedAt: new Date().toISOString(),
     };
   }
 
   return {
-    id: 'mat_social_studies_b1_hw2',
-    fileName: 'SocialStudies-Grade2-B1-HomeWork-2.html',
-    fileSize: 245000,
+    id: 'mat_social_studies_b1_w5_u1_hw5',
+    fileName: 'SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf',
+    fileSize: 678480,
     block: 1,
-    section: 'Week 4',
+    section: 'Main sheet',
     classId: 'ALL',
     type: 'pdf',
-    storageUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-2.html',
-    linkUrl: '/materials/SocialStudies-Grade2-B1-HomeWork-2.html',
-    uploadedAt: new Date().toISOString(),
+    storageUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf',
+    uploadedAt: '2026-10-11T08:00:00.000Z',
   };
 }
 
 // Open PDF or Link directly in our guaranteed In-App Viewer Modal
 export function openPdfItem(item: MaterialItem): void {
   try {
-    // Always dispatch custom event to open our robust In-App PDF Viewer Modal directly in place for both mobile and desktop
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('open_pdf_viewer_modal', { detail: item }));
     }
@@ -453,7 +435,6 @@ export function printPdfItem(item: MaterialItem): void {
         iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
       } catch {
-        // If iframe printing is blocked, open in new tab for direct printing
         const newTab = window.open(targetUrl, '_blank');
         if (newTab) {
           newTab.focus();
@@ -481,8 +462,9 @@ export function downloadPdfItem(item: MaterialItem): void {
 
     const a = document.createElement('a');
     a.href = targetUrl;
-    a.download = item.fileName.endsWith('.pdf') ? item.fileName : `${item.fileName}.pdf`;
-    a.target = '_blank';
+    const cleanFileName = item.fileName?.trim() || 'document.pdf';
+    a.download = cleanFileName.endsWith('.pdf') ? cleanFileName : `${cleanFileName}.pdf`;
+    // Do NOT set target='_blank' because it causes browsers to open an empty about:blank tab!
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

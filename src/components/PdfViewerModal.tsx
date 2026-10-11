@@ -89,12 +89,24 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   const [activeTitle, setActiveTitle] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewMode, setViewMode] = useState<'proxy' | 'direct'>('proxy');
+  const [pdfRenderer, setPdfRenderer] = useState<'iframe' | 'canvas'>('iframe');
 
   // Client-side PDF rendering states
   const [pdfPages, setPdfPages] = useState<any[]>([]);
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState('');
   const [isHtmlContent, setIsHtmlContent] = useState(false);
+
+  // Close with Escape key
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   // Listen to global open_pdf_viewer_modal custom events
   useEffect(() => {
@@ -148,6 +160,8 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
 
   const handleClose = () => {
     setInternalOpen(false);
+    setActiveUrl('');
+    setActiveItem(null);
     if (propOnClose) propOnClose();
   };
 
@@ -304,6 +318,9 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   return (
     <div
       id="pdf-viewer-modal-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
       className={`fixed inset-0 z-50 flex items-center justify-center ${
         isFullscreen ? 'p-0' : 'p-2 sm:p-4'
       } bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-150`}
@@ -446,47 +463,68 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
             </div>
           ) : (
             <div className="w-full h-full flex flex-col relative rounded-xl overflow-hidden shadow-lg border border-slate-700/50 bg-white">
-              {/* Notice bar at top of viewer */}
+              {/* Notice bar at top of viewer with renderer toggle */}
               <div className="px-4 py-2 bg-slate-800 text-white flex items-center justify-between text-xs gap-2 shrink-0">
                 <div className="flex items-center gap-2 truncate">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
                   <span className="truncate text-slate-200 font-bold">معاينة آمنة وفائقة الدقة داخل التطبيق</span>
                 </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setPdfRenderer(pdfRenderer === 'iframe' ? 'canvas' : 'iframe')}
+                    className="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold text-[11px] transition-colors cursor-pointer border border-slate-600"
+                  >
+                    {pdfRenderer === 'iframe' ? 'تبديل لعرض الصفحات 📄' : 'عرض مباشر مدمج ⚡'}
+                  </button>
+                </div>
               </div>
 
-              {/* Scrollable container for Canvas pages */}
-              <div className="flex-1 w-full min-h-0 relative bg-slate-100 overflow-y-auto p-4 flex flex-col items-center">
-                {loadingPdf && (
-                  <div className="my-auto flex flex-col items-center gap-3 p-8 text-center max-w-sm">
-                    <Loader2 className="w-9 h-9 text-indigo-600 animate-spin shrink-0" />
-                    <div className="text-sm font-black text-slate-800">جاري تحميل شيت الدراسات الاجتماعية...</div>
-                    <div className="text-xs text-slate-500 font-bold leading-relaxed">
-                      نقوم الآن بتهيئة صفحات الملف وعرضها بدقة عالية تناسب جميع الشاشات.
+              {/* PDF Container: Native PDF frame as default for guaranteed 100% reliability and speed */}
+              {pdfRenderer === 'iframe' ? (
+                <div className="flex-1 w-full min-h-0 relative bg-slate-100 flex flex-col overflow-hidden">
+                  <iframe
+                    id="native-pdf-frame"
+                    src={`${iframeSrc}#toolbar=1&navpanes=0`}
+                    title={fileTitle}
+                    className="w-full h-full border-0 bg-white flex-1"
+                  />
+                </div>
+              ) : (
+                /* Scrollable container for Canvas pages */
+                <div className="flex-1 w-full min-h-0 relative bg-slate-100 overflow-y-auto p-4 flex flex-col items-center">
+                  {loadingPdf && (
+                    <div className="my-auto flex flex-col items-center gap-3 p-8 text-center max-w-sm">
+                      <Loader2 className="w-9 h-9 text-indigo-600 animate-spin shrink-0" />
+                      <div className="text-sm font-black text-slate-800">جاري تحميل شيت الدراسات الاجتماعية...</div>
+                      <div className="text-xs text-slate-500 font-bold leading-relaxed">
+                        نقوم الآن بتهيئة صفحات الملف وعرضها بدقة عالية تناسب جميع الشاشات.
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {pdfError && (
-                  <div className="my-auto flex flex-col items-center gap-3 p-8 max-w-md text-center">
-                    <AlertTriangle className="w-10 h-10 text-rose-500 shrink-0" />
-                    <div className="text-sm font-black text-slate-800 leading-relaxed">{pdfError}</div>
-                    <button
-                      onClick={handleDownload}
-                      className="mt-2 py-2 px-4 rounded-xl bg-indigo-600 text-white text-xs font-black shadow-xs hover:bg-indigo-700 active:scale-95 transition-all cursor-pointer"
-                    >
-                      تحميل الملف مباشرة لقراءته 📥
-                    </button>
-                  </div>
-                )}
+                  {pdfError && (
+                    <div className="my-auto flex flex-col items-center gap-3 p-8 max-w-md text-center">
+                      <AlertTriangle className="w-10 h-10 text-rose-500 shrink-0" />
+                      <div className="text-sm font-black text-slate-800 leading-relaxed">{pdfError}</div>
+                      <button
+                        onClick={handleDownload}
+                        className="mt-2 py-2 px-4 rounded-xl bg-indigo-600 text-white text-xs font-black shadow-xs hover:bg-indigo-700 active:scale-95 transition-all cursor-pointer"
+                      >
+                        تحميل الملف مباشرة لقراءته 📥
+                      </button>
+                    </div>
+                  )}
 
-                {!loadingPdf && !pdfError && pdfPages.length === 0 && (
-                  <div className="my-auto text-xs text-slate-500 font-bold">لا توجد صفحات لعرضها.</div>
-                )}
+                  {!loadingPdf && !pdfError && pdfPages.length === 0 && (
+                    <div className="my-auto text-xs text-slate-500 font-bold">لا توجد صفحات لعرضها.</div>
+                  )}
 
-                {!loadingPdf && !pdfError && pdfPages.map((page, idx) => (
-                  <PdfPageCanvas key={`pdf-page-${idx}`} page={page} index={idx + 1} />
-                ))}
-              </div>
+                  {!loadingPdf && !pdfError && pdfPages.map((page, idx) => (
+                    <PdfPageCanvas key={`pdf-page-${idx}`} page={page} index={idx + 1} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
