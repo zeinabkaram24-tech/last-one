@@ -143,7 +143,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       !c.id?.startsWith('tomorrow-') &&
       !c.id?.startsWith('tn-') &&
       !c.id?.startsWith('custom-') &&
-      (currentBlock !== 2 || c.subject === 'English' || c.subject === 'Arabic' || c.subject === 'French' || c.subject === 'Science' || c.subject === 'Social Studies') &&
+      (currentBlock !== 2 || c.subject === 'English' || c.subject === 'Arabic' || c.subject === 'French' || c.subject === 'Science' || c.subject === 'Social Studies' || c.subject === 'ICT') &&
       Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
   );
 
