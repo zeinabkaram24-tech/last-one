@@ -144,11 +144,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
 
-    // STRICT USER MANDATE FOR BLOCK 2:
-    // User explicitly mandated: No data other than English was uploaded for Block 2!
-    // Never show any Arabic, Science, Math, French, or Social Studies in Block 2!
-    if ((currentBlock === 2 || (n as any).block === 2) && n.subject !== 'English') {
-      return true; // Strictly disallowed! ONLY English is allowed for Block 2!
+    // BLOCK 2: Allow uploaded subjects (English and Arabic)
+    if ((currentBlock === 2 || (n as any).block === 2) && n.subject !== 'English' && n.subject !== 'Arabic') {
+      return true; // Disallow un-uploaded subjects for Block 2
     }
 
     // UNCONDITIONAL ADMIN / USER OVERRIDE:
@@ -797,7 +795,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (cid !== currentClass && (cid as any) !== 'ALL') return;
       if (h.week && h.week !== effectiveWeekForHw) return;
       if ((h.block || 1) !== currentBlock) return;
-      if (currentBlock === 2 && h.subject !== 'English') return;
+      if (currentBlock === 2 && h.subject !== 'English' && h.subject !== 'Arabic') return;
 
       const fullText = `${h.task} ${h.details || ''} ${h.subject}`;
       const isForTomorrow = h.dueDay === tomorrowDay || h.assignedDay === tomorrowDay;
@@ -870,7 +868,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (cw.day !== tomorrowDay) return;
       if (cw.week && cw.week !== currentWeek) return;
       if ((cw.block || 1) !== currentBlock) return;
-      if (currentBlock === 2 && cw.subject !== 'English') return;
+      if (currentBlock === 2 && cw.subject !== 'English' && cw.subject !== 'Arabic') return;
       const cwAlertId = `linked-cw-${cw.id}`;
       if (deletedNoteIds.includes(cwAlertId)) return;
 

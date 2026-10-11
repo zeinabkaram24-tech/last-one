@@ -602,8 +602,8 @@ export async function getTomorrowNotesForDay(
 
     const merged = Array.from(map.values());
     const filtered = merged.filter((n) => {
-      // STRICT BLOCK 2 MANDATE: Only English items allowed for Block 2
-      if (block === 2 && n.subject !== 'English') return false;
+      // BLOCK 2: Allow uploaded subjects (English and Arabic)
+      if (block === 2 && n.subject !== 'English' && n.subject !== 'Arabic') return false;
 
       if (isDisallowedMathNote(n)) return false;
       
