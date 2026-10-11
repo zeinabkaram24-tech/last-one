@@ -1,31 +1,31 @@
 [
   {
-    "id": "mat_social_studies_b1_hw1",
-    "fileName": "SocialStudies-Grade2-B1-HomeWork-1.pdf",
-    "storageUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
-    "linkUrl": "/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf",
+    "id": "mat_social_studies_homework_new",
+    "fileName": "SocialStudies-Grade2-HomeWork.html",
+    "fileSize": 25106,
+    "storageUrl": "/materials/SocialStudies-Grade2-HomeWork.html",
+    "linkUrl": "/materials/SocialStudies-Grade2-HomeWork.html",
     "subject": "Social Studies",
     "grade": "Grade 2",
     "term": "Term 1",
     "block": 1,
-    "week": 1,
-    "type": "pdf",
-    "description": "شيت واجب الدراسات الاجتماعية - Block 1"
+    "section": "Main sheet",
+    "type": "html",
+    "description": "شيت واجب وتدريبات الدراسات الاجتماعية (سلوكيات الفصل وتنظيم الوقت) - تفاعلي وقابل للطباعة"
   },
   {
-    "id": "mat_social_studies_b1_w5_u1_hw5",
-    "fileName": "Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf",
-    "fileSize": 714575,
-    "storageUrl": "/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf",
-    "linkUrl": "/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf",
+    "id": "mat_social_studies_homework_pdf",
+    "fileName": "SocialStudies-Grade2-HomeWork.pdf",
+    "fileSize": 2501,
+    "storageUrl": "/materials/SocialStudies-Grade2-HomeWork.pdf",
+    "linkUrl": "/materials/SocialStudies-Grade2-HomeWork.pdf",
     "subject": "Social Studies",
     "grade": "Grade 2",
     "term": "Term 1",
-    "block": 2,
-    "week": 1,
+    "block": 1,
+    "section": "Main sheet",
     "type": "pdf",
-    "uploadedAt": "2026-10-11T06:00:00.000Z",
-    "description": "Social Studies Grade 2 B1 Week 5 U1 Homework 5"
+    "description": "شيت واجب الدراسات الاجتماعية PDF"
   },
   {
     "id": "mat_english_b2_w1_spelling_bee",
@@ -95,16 +95,6 @@
     "uploadedAt": "2026-09-19T11:07:32.634Z"
   },
   {
-    "id": "mat_ss_b1_w2",
-    "fileName": "SocialStudies-Grade2-B1-W2-U1-HomeWork1 - Extra- (Minia).pdf",
-    "fileSize": 582490,
-    "block": 1,
-    "section": "Week 2",
-    "classId": "ALL",
-    "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789659354649_SocialStudies-Grade2-B1-W2-U1-HomeWork1_-_Extra-__Minia___1_.pdf",
-    "uploadedAt": "2026-09-17T15:35:54.649Z"
-  },
-  {
     "id": "mat_1789483812271_hbgou",
     "fileName": "English-Grade2-B1-All-U1-Sheet20 - Main.pdf",
     "fileSize": 16788085,
@@ -133,16 +123,6 @@
     "classId": "ALL",
     "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf",
     "uploadedAt": "2026-09-15T14:41:04.878Z"
-  },
-  {
-    "id": "mat_1789483187764_2aou7",
-    "fileName": "SocialStudies-Grade2-B1-All-U1-Sheet1 - Main (1).pdf",
-    "fileSize": 12728194,
-    "block": 1,
-    "section": "Main sheet",
-    "classId": "ALL",
-    "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483174967_SocialStudies-Grade2-B1-All-U1-Sheet1_-_Main__1_.pdf",
-    "uploadedAt": "2026-09-15T14:39:47.764Z"
   },
   {
     "id": "mat_1789483092563_azdcp",

@@ -725,7 +725,7 @@ export async function getTomorrowNotesForDay(
           categoryType: isSocial ? 'note' : 'quiz',
           block: hw.block,
           week: hw.week,
-          pdfUrl: unpacked.pdfUrl || hw.pdf_url || hw.pdfUrl || (isSocial ? (Number(hw.block || 1) === 2 ? '/materials/SocialStudies-Grade2-B2-Week1-HomeWork.pdf' : '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf') : undefined),
+          pdfUrl: unpacked.pdfUrl || hw.pdf_url || hw.pdfUrl || (isSocial ? '/materials/SocialStudies-Grade2-HomeWork.html' : undefined),
           linkUrl: hw.link_url || undefined,
         });
       });
