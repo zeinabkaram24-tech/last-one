@@ -329,18 +329,18 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
   const all = getFallbackMaterials();
   const lower = (urlOrName || '').toLowerCase();
 
-  // If specific HomeWork 2 / Sheet 2
-  if (lower.includes('homework-2') || lower.includes('homework 2') || lower.includes('hw-2') || lower.includes('hw2')) {
+  // If specific Social Studies B2W1 HomeWork
+  if (lower.includes('b2-week1') || lower.includes('socialstudies-grade2-b2') || lower.includes('social_studies_b2')) {
     return {
-      id: 'mat_social_studies_b1_hw2',
-      fileName: 'SocialStudies-Grade2-B1-HomeWork-2.html',
-      fileSize: 245000,
-      block: 1,
-      section: 'Week 4',
+      id: 'mat_social_studies_b2_w1_hw',
+      fileName: 'SocialStudies-Grade2-B2-Week1-HomeWork.pdf',
+      fileSize: 678480,
+      block: 2,
+      section: 'Week 1',
       classId: 'ALL',
       type: 'pdf',
-      storageUrl: urlOrName || '/materials/SocialStudies-Grade2-B1-HomeWork-2.html',
-      linkUrl: urlOrName || '/materials/SocialStudies-Grade2-B1-HomeWork-2.html',
+      storageUrl: urlOrName || '/materials/SocialStudies-Grade2-B2-Week1-HomeWork.pdf',
+      linkUrl: urlOrName || '/materials/SocialStudies-Grade2-B2-Week1-HomeWork.pdf',
       uploadedAt: new Date().toISOString(),
     };
   }

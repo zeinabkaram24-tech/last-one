@@ -144,9 +144,19 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
 
-    // BLOCK 2: Allow uploaded subjects (English, Arabic, Science - French has no tomorrow notes per instructions)
-    if ((currentBlock === 2 || (n as any).block === 2) && n.subject !== 'English' && n.subject !== 'Arabic' && n.subject !== 'Science') {
+    // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies - French has no tomorrow notes per instructions)
+    if ((currentBlock === 2 || (n as any).block === 2) && n.subject !== 'English' && n.subject !== 'Arabic' && n.subject !== 'Science' && n.subject !== 'Social Studies') {
       return true; // Disallow un-uploaded subjects (and French) for Block 2
+    }
+
+    // Strict User Mandate for Social Studies in Block 2 Week 1:
+    // Only remind before the first Social Studies class of each section (Sunday for G2A & G2C, Monday for G2B)
+    if ((currentBlock === 2 || (n as any).block === 2) && (currentWeek === 1 || (n as any).week === 1) && n.subject === 'Social Studies') {
+      const isG2ATarget = (currentClass === 'G2A' || (n as any).classId === 'G2A') && tomorrowDay === 'Sunday';
+      const isG2CTarget = (currentClass === 'G2C' || (n as any).classId === 'G2C') && tomorrowDay === 'Sunday';
+      const isG2BTarget = (currentClass === 'G2B' || (n as any).classId === 'G2B') && tomorrowDay === 'Monday';
+      const isAllowed = isG2ATarget || isG2CTarget || isG2BTarget;
+      if (!isAllowed) return true; // Disallowed on all other days
     }
 
     // STRICT USER MANDATE FOR BLOCK 2 WEEK 1 (English and Arabic):
@@ -499,8 +509,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
     // 1. Social studies homework submission
     if (normSubject.includes('social') || normSubject.includes('دراسات')) {
-      if (text.includes('واجب') || text.includes('تسليم') || text.includes('شيت')) {
-        return `social-hw-submission-${n.targetDay}`;
+      if (text.includes('واجب') || text.includes('تسليم') || text.includes('شيت') || text.includes('homework')) {
+        return `social-hw-submission-${n.classId || currentClass || 'ALL'}-${n.targetDay}`;
       }
     }
 
