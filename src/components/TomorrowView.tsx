@@ -1080,29 +1080,44 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     };
 
-    // Explicit guaranteed injection for Class B Social Studies on Sunday (preparing for Monday):
-    // "بالنسبة لكلاس B، التسليم هيكون يوم الاثنين، يعني المفروض يظهر في الهوم ورك وفي التومورو يوم الأحد."
-    if (
-      currentClass === 'G2B' &&
-      selectedDay === 'Sunday' &&
-      ((currentBlock === 2 && currentWeek === 1) || (currentBlock === 1 && currentWeek === 5))
-    ) {
-      addOrMergeNote({
-        id: 'tn-b2-w1-social-sheet-G2B-Monday',
-        classId: 'G2B',
-        targetDay: 'Monday',
-        subject: 'Social Studies',
-        period: 1,
-        title: 'Social Studies Grade 2 B1 Week 5 U1 Homework 5',
-        note: 'Social Studies Grade 2 B1 Week 5 U1 Homework 5',
-        arabicNote: 'Social Studies Grade 2 B1 Week 5 U1 Homework 5 (تسليم يوم الاثنين)',
-        bagItem: 'Social Studies Grade 2 B1 Week 5 U1 Homework 5',
-        isQuiz: false,
-        categoryType: 'note',
-        block: currentBlock,
-        week: currentWeek,
-        pdfUrl: '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf',
-      }, true);
+    // Explicit guaranteed injection for Social Studies in Block 2 Week 1 & Block 1 Week 5:
+    // Class A and Class C on Saturday (preparing for Sunday), and Class B on Sunday (preparing for Monday):
+    if ((currentBlock === 2 && currentWeek === 1) || (currentBlock === 1 && currentWeek === 5)) {
+      if ((currentClass === 'G2A' || currentClass === 'G2C') && selectedDay === 'Saturday') {
+        addOrMergeNote({
+          id: `tn-b2-w1-social-sheet-${currentClass}-Sunday`,
+          classId: currentClass,
+          targetDay: 'Sunday',
+          subject: 'Social Studies',
+          period: currentClass === 'G2A' ? 2 : 7,
+          title: 'شيت واجب الدراسات الاجتماعية',
+          note: 'تسليم شيت واجب الدراسات الاجتماعية المرفق (PDF)',
+          arabicNote: 'تسليم شيت واجب الدراسات الاجتماعية المرفق بالتنسيق الأصلي',
+          bagItem: 'شيت واجب الدراسات الاجتماعية',
+          isQuiz: false,
+          categoryType: 'note',
+          block: currentBlock,
+          week: currentWeek,
+          pdfUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf?v=b2w1',
+        }, true);
+      } else if (currentClass === 'G2B' && selectedDay === 'Sunday') {
+        addOrMergeNote({
+          id: 'tn-b2-w1-social-sheet-G2B-Monday',
+          classId: 'G2B',
+          targetDay: 'Monday',
+          subject: 'Social Studies',
+          period: 1,
+          title: 'شيت واجب الدراسات الاجتماعية',
+          note: 'تسليم شيت واجب الدراسات الاجتماعية المرفق (PDF)',
+          arabicNote: 'تسليم شيت واجب الدراسات الاجتماعية المرفق بالتنسيق الأصلي',
+          bagItem: 'شيت واجب الدراسات الاجتماعية',
+          isQuiz: false,
+          categoryType: 'note',
+          block: currentBlock,
+          week: currentWeek,
+          pdfUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf?v=b2w1',
+        }, true);
+      }
     }
 
     // Automatically inject French Quiz warning (ONLY for Block 1 - Week 3, exactly 1 day before the session per class)

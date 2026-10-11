@@ -354,12 +354,12 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
     return {
       id: 'mat_social_studies_b1_w5_u1_hw5',
       fileName: 'SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf',
-      fileSize: 678480,
-      block: 1,
-      section: 'Main sheet',
+      fileSize: 599624,
+      block: 2,
+      section: 'Week 1',
       classId: 'ALL',
       type: 'pdf',
-      storageUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf',
+      storageUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf?v=b2w1',
       uploadedAt: '2026-10-11T08:00:00.000Z',
     };
   }
@@ -382,12 +382,12 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
   return {
     id: 'mat_social_studies_b1_w5_u1_hw5',
     fileName: 'SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf',
-    fileSize: 678480,
-    block: 1,
-    section: 'Main sheet',
+    fileSize: 599624,
+    block: 2,
+    section: 'Week 1',
     classId: 'ALL',
     type: 'pdf',
-    storageUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf',
+    storageUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf?v=b2w1',
     uploadedAt: '2026-10-11T08:00:00.000Z',
   };
 }

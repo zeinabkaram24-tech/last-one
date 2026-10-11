@@ -1,31 +1,35 @@
 [
   {
-    "id": "mat_social_studies_b1_main",
+    "id": "mat_social_studies_b2_w1_hw",
     "fileName": "SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf",
-    "fileSize": 678480,
-    "storageUrl": "/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf",
+    "fileSize": 599624,
+    "storageUrl": "/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf?v=b2w1",
     "subject": "Social Studies",
     "grade": "Grade 2",
     "term": "Term 1",
-    "block": 1,
-    "section": "Main sheet",
+    "block": 2,
+    "week": 1,
+    "section": "Week 1",
+    "classId": "ALL",
     "type": "pdf",
     "uploadedAt": "2026-10-11T08:00:00.000Z",
-    "description": "Social Studies Grade 2 - شيت الواجب الأصلي بالتنسيق المدرسي بدون أي تعديل أو إضافات"
+    "description": "Social Studies Grade 2 - شيت الواجب الأصلي بالتنسيق المدرسي بدون أي تعديل"
   },
   {
     "id": "mat_social_studies_b1_w5",
     "fileName": "SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf",
-    "fileSize": 678480,
-    "storageUrl": "/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf",
+    "fileSize": 599624,
+    "storageUrl": "/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf?v=b2w1",
     "subject": "Social Studies",
     "grade": "Grade 2",
     "term": "Term 1",
     "block": 1,
+    "week": 5,
     "section": "Week 5",
+    "classId": "ALL",
     "type": "pdf",
     "uploadedAt": "2026-10-11T08:00:00.000Z",
-    "description": "Social Studies Grade 2 - شيت الواجب الأصلي بالتنسيق المدرسي بدون أي تعديل أو إضافات"
+    "description": "Social Studies Grade 2 - شيت الواجب الأصلي بالتنسيق المدرسي بدون أي تعديل"
   },
   {
     "id": "mat_english_b2_w1_spelling_bee",
