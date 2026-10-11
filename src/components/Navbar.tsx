@@ -13,7 +13,6 @@ import {
   FolderOpen,
   Database,
   RotateCw,
-  Sparkles,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
 import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
@@ -40,7 +39,6 @@ interface NavbarProps {
   onRefreshData?: () => void;
   isRefreshing?: boolean;
   isLiveConnected?: boolean;
-  onResetToCurrentDate?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -64,7 +62,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onRefreshData,
   isRefreshing = false,
   isLiveConnected = true,
-  onResetToCurrentDate,
 }) => {
   const tabs = [
     {
@@ -299,19 +296,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <FolderOpen className="w-3.5 h-3.5 text-amber-700 shrink-0" />
               <span>Materials</span>
             </button>
-
-            {/* Quick jump to Today based on calendar */}
-            {onResetToCurrentDate && (
-              <button
-                type="button"
-                onClick={onResetToCurrentDate}
-                className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-emerald-950 font-black text-xs rounded-xl px-2 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                title="العودة للأسبوع واليوم الحالي حسب تاريخ اليوم"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                <span className="hidden sm:inline">اليوم الحالي</span>
-              </button>
-            )}
           </div>
         </div>
 

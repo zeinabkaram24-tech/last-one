@@ -643,30 +643,24 @@ app.get('/api/planner-data', (req, res) => {
       data.classwork = (data.classwork || []).filter((c: any) => !delSet.has(c.id));
       data.homework = (data.homework || []).filter((h: any) => !delSet.has(h.id));
     }
-    // Guarantee both classId and class_id are populated on every item returned and only Mathematics items from weekly plan are served
+    // Guarantee both classId and class_id are populated on every item returned
     if (Array.isArray(data.classwork)) {
-      data.classwork = data.classwork
-        .filter((c: any) => c.subject === 'Mathematics')
-        .map((c: any) => {
-          const cid = c.class_id || c.classId || 'G2B';
-          return { ...c, classId: cid, class_id: cid };
-        });
+      data.classwork = data.classwork.map((c: any) => {
+        const cid = c.class_id || c.classId || 'G2B';
+        return { ...c, classId: cid, class_id: cid };
+      });
     }
     if (Array.isArray(data.homework)) {
-      data.homework = data.homework
-        .filter((h: any) => h.subject === 'Mathematics')
-        .map((h: any) => {
-          const cid = h.class_id || h.classId || 'G2B';
-          return { ...h, classId: cid, class_id: cid };
-        });
+      data.homework = data.homework.map((h: any) => {
+        const cid = h.class_id || h.classId || 'G2B';
+        return { ...h, classId: cid, class_id: cid };
+      });
     }
     if (Array.isArray(data.tomorrowNotes)) {
-      data.tomorrowNotes = data.tomorrowNotes
-        .filter((n: any) => n.subject === 'Mathematics')
-        .map((n: any) => {
-          const cid = n.class_id || n.classId || 'G2B';
-          return { ...n, classId: cid, class_id: cid };
-        });
+      data.tomorrowNotes = data.tomorrowNotes.map((n: any) => {
+        const cid = n.class_id || n.classId || 'G2B';
+        return { ...n, classId: cid, class_id: cid };
+      });
     }
 
     // Filter out deleted items older than 24 hours
