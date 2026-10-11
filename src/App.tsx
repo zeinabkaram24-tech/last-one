@@ -8,14 +8,16 @@ import { HomeworkView } from './components/HomeworkView';
 import { TomorrowView } from './components/TomorrowView';
 import { TimetableGrid } from './components/TimetableGrid';
 import { PrintSheet } from './components/PrintSheet';
-import { WeeklyPlanModal } from './components/WeeklyPlanModal';
-import { StudentAuthModal } from './components/StudentAuthModal';
-import { AdminAuthModal } from './components/AdminAuthModal';
-import { AdminDashboardModal } from './components/AdminDashboardModal';
-import { MaterialsModal } from './components/MaterialsModal';
-import { PdfViewerModal } from './components/PdfViewerModal';
-import { SupabaseConfigModal } from './components/SupabaseConfigModal';
-import { InteractiveEditorModal } from './components/InteractiveEditorModal';
+
+// Lazy-loaded modals to drastically optimize initial page load speed
+const WeeklyPlanModal = React.lazy(() => import('./components/WeeklyPlanModal').then((m) => ({ default: m.WeeklyPlanModal })));
+const StudentAuthModal = React.lazy(() => import('./components/StudentAuthModal').then((m) => ({ default: m.StudentAuthModal })));
+const AdminAuthModal = React.lazy(() => import('./components/AdminAuthModal').then((m) => ({ default: m.AdminAuthModal })));
+const AdminDashboardModal = React.lazy(() => import('./components/AdminDashboardModal').then((m) => ({ default: m.AdminDashboardModal })));
+const MaterialsModal = React.lazy(() => import('./components/MaterialsModal').then((m) => ({ default: m.MaterialsModal })));
+const PdfViewerModal = React.lazy(() => import('./components/PdfViewerModal').then((m) => ({ default: m.PdfViewerModal })));
+const SupabaseConfigModal = React.lazy(() => import('./components/SupabaseConfigModal').then((m) => ({ default: m.SupabaseConfigModal })));
+const InteractiveEditorModal = React.lazy(() => import('./components/InteractiveEditorModal').then((m) => ({ default: m.InteractiveEditorModal })));
 import { notifyTomorrowNotesListeners, saveTomorrowNotes, saveDeletedTomorrowNoteId, removeDeletedTomorrowNoteId } from './utils/tomorrowNotesStorage';
 import {
   getActiveUserProfile,
@@ -1403,119 +1405,128 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Weekly Plan Smart Classifier Modal */}
-      <WeeklyPlanModal
-        isOpen={isPlanModalOpen}
-        onClose={() => setIsPlanModalOpen(false)}
-        currentClass={currentClass}
-        currentBlock={currentBlock}
-        currentWeek={currentWeek}
-        onApplyPlan={handleApplyWeeklyPlan}
-      />
+      {/* Lazy Loaded Modals with Suspense for Instant Initial Page Render */}
+      <React.Suspense fallback={null}>
+        {isPlanModalOpen && (
+          <WeeklyPlanModal
+            isOpen={isPlanModalOpen}
+            onClose={() => setIsPlanModalOpen(false)}
+            currentClass={currentClass}
+            currentBlock={currentBlock}
+            currentWeek={currentWeek}
+            onApplyPlan={handleApplyWeeklyPlan}
+          />
+        )}
 
-      {/* Student Profile / Guest Login Modal */}
-      <StudentAuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        currentProfile={userProfile}
-        currentClass={currentClass}
-        onSelectProfile={handleSelectProfile}
-      />
+        {isAuthModalOpen && (
+          <StudentAuthModal
+            isOpen={isAuthModalOpen}
+            onClose={() => setIsAuthModalOpen(false)}
+            currentProfile={userProfile}
+            currentClass={currentClass}
+            onSelectProfile={handleSelectProfile}
+          />
+        )}
 
-      {/* Admin Password Authentication Modal */}
-      <AdminAuthModal
-        isOpen={isAdminAuthOpen}
-        onClose={() => setIsAdminAuthOpen(false)}
-        onSuccess={() => {
-          setIsAdminAuthOpen(false);
-          setIsAdminDashboardOpen(true);
-        }}
-      />
+        {isAdminAuthOpen && (
+          <AdminAuthModal
+            isOpen={isAdminAuthOpen}
+            onClose={() => setIsAdminAuthOpen(false)}
+            onSuccess={() => {
+              setIsAdminAuthOpen(false);
+              setIsAdminDashboardOpen(true);
+            }}
+          />
+        )}
 
-      {/* Admin Dashboard / Settings Panel (Placeholder for custom settings) */}
-      <AdminDashboardModal
-        isOpen={isAdminDashboardOpen}
-        onClose={() => setIsAdminDashboardOpen(false)}
-        isAdminEditMode={isAdminEditMode}
-        onToggleAdminEditMode={setIsAdminEditMode}
-        currentBlock={currentBlock}
-        currentWeek={currentWeek}
-        currentClass={currentClass}
-        onPlanUpdated={async (updatedBlock?: number, updatedWeek?: number) => {
-          try {
-            if (updatedBlock) {
-              setCurrentBlock(updatedBlock);
-              appStorage.setItem('nile_planner_block', String(updatedBlock));
-            }
-            if (updatedWeek) {
-              setCurrentWeek(updatedWeek);
-              appStorage.setItem(STORAGE_KEYS.WEEK, String(updatedWeek));
-            }
-            const [cwData, hwData] = await Promise.all([
-              fetchAllClasswork(),
-              fetchAllHomework(),
-            ]);
-            if (cwData && cwData.length > 0) {
-              setClassworkList(cwData);
-            }
-            if (hwData && hwData.length > 0) {
-              setHomeworkList(hwData);
-            }
-            notifyTomorrowNotesListeners();
-            setToastMsg('تم تحديث الخطة الأسبوعية والحصص والواجبات بنجاح!');
-            setTimeout(() => setToastMsg(null), 4000);
-          } catch (err) {
-            console.error('Failed to reload after plan update:', err);
-          }
-        }}
-      />
+        {isAdminDashboardOpen && (
+          <AdminDashboardModal
+            isOpen={isAdminDashboardOpen}
+            onClose={() => setIsAdminDashboardOpen(false)}
+            isAdminEditMode={isAdminEditMode}
+            onToggleAdminEditMode={setIsAdminEditMode}
+            currentBlock={currentBlock}
+            currentWeek={currentWeek}
+            currentClass={currentClass}
+            onPlanUpdated={async (updatedBlock?: number, updatedWeek?: number) => {
+              try {
+                if (updatedBlock) {
+                  setCurrentBlock(updatedBlock);
+                  appStorage.setItem('nile_planner_block', String(updatedBlock));
+                }
+                if (updatedWeek) {
+                  setCurrentWeek(updatedWeek);
+                  appStorage.setItem(STORAGE_KEYS.WEEK, String(updatedWeek));
+                }
+                const [cwData, hwData] = await Promise.all([
+                  fetchAllClasswork(),
+                  fetchAllHomework(),
+                ]);
+                if (cwData && cwData.length > 0) {
+                  setClassworkList(cwData);
+                }
+                if (hwData && hwData.length > 0) {
+                  setHomeworkList(hwData);
+                }
+                notifyTomorrowNotesListeners();
+                setToastMsg('تم تحديث الخطة الأسبوعية والحصص والواجبات بنجاح!');
+                setTimeout(() => setToastMsg(null), 4000);
+              } catch (err) {
+                console.error('Failed to reload after plan update:', err);
+              }
+            }}
+          />
+        )}
 
-      {/* Unified Direct Interactive Editor Modal */}
-      <InteractiveEditorModal
-        isOpen={isEditorModalOpen}
-        onClose={() => setIsEditorModalOpen(false)}
-        mode={editorModalMode}
-        itemType={editorItemType}
-        initialData={selectedEditorItem}
-        currentClass={currentClass}
-        currentBlock={currentBlock}
-        currentWeek={currentWeek}
-        selectedDay={selectedDay}
-        onSave={handleSaveInteractiveItem}
-      />
+        {isEditorModalOpen && (
+          <InteractiveEditorModal
+            isOpen={isEditorModalOpen}
+            onClose={() => setIsEditorModalOpen(false)}
+            mode={editorModalMode}
+            itemType={editorItemType}
+            initialData={selectedEditorItem}
+            currentClass={currentClass}
+            currentBlock={currentBlock}
+            currentWeek={currentWeek}
+            selectedDay={selectedDay}
+            onSave={handleSaveInteractiveItem}
+          />
+        )}
 
-      {/* Materials Modal */}
-      <MaterialsModal
-        isOpen={isMaterialsModalOpen}
-        onClose={() => setIsMaterialsModalOpen(false)}
-        currentClass={currentClass}
-        currentBlock={currentBlock}
-        currentWeek={currentWeek}
-      />
+        {isMaterialsModalOpen && (
+          <MaterialsModal
+            isOpen={isMaterialsModalOpen}
+            onClose={() => setIsMaterialsModalOpen(false)}
+            currentClass={currentClass}
+            currentBlock={currentBlock}
+            currentWeek={currentWeek}
+          />
+        )}
 
-      {/* Guaranteed In-App PDF Viewer Modal */}
-      <PdfViewerModal />
+        <PdfViewerModal />
 
-      {/* Supabase Cloud Connection & Persistent Credentials Modal */}
-      <SupabaseConfigModal
-        isOpen={isSupabaseConfigOpen}
-        onClose={() => setIsSupabaseConfigOpen(false)}
-        onSaved={async () => {
-          setSupabaseStatus('connecting');
-          try {
-            const [cwData, hwData] = await Promise.all([
-              fetchAllClasswork(),
-              fetchAllHomework(),
-            ]);
-            if (cwData && cwData.length > 0) setClassworkList(cwData);
-            if (hwData && hwData.length > 0) setHomeworkList(hwData);
-            setSupabaseStatus('connected');
-            showToast('تم حفظ إعدادات Supabase وتحديث البيانات بنجاح!');
-          } catch {
-            setSupabaseStatus('error');
-          }
-        }}
-      />
+        {isSupabaseConfigOpen && (
+          <SupabaseConfigModal
+            isOpen={isSupabaseConfigOpen}
+            onClose={() => setIsSupabaseConfigOpen(false)}
+            onSaved={async () => {
+              setSupabaseStatus('connecting');
+              try {
+                const [cwData, hwData] = await Promise.all([
+                  fetchAllClasswork(),
+                  fetchAllHomework(),
+                ]);
+                if (cwData && cwData.length > 0) setClassworkList(cwData);
+                if (hwData && hwData.length > 0) setHomeworkList(hwData);
+                setSupabaseStatus('connected');
+                showToast('تم حفظ إعدادات Supabase وتحديث البيانات بنجاح!');
+              } catch {
+                setSupabaseStatus('error');
+              }
+            }}
+          />
+        )}
+      </React.Suspense>
       {isAdminEditMode && (
         <div className="fixed bottom-6 right-6 z-50 print:hidden">
           <button

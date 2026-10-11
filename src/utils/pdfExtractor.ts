@@ -1,12 +1,3 @@
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Configure pdfjs worker if in browser
-if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions?.workerSrc) {
-  try {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || '4.10.38'}/pdf.worker.min.mjs`;
-  } catch {}
-}
-
 export function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -18,10 +9,17 @@ export function fileToBase64(file: File): Promise<string> {
 
 export async function extractTextFromPdf(file: File): Promise<string> {
   try {
-    const timeoutPromise = new Promise<string>((resolve) => setTimeout(() => resolve(''), 2500));
+    const timeoutPromise = new Promise<string>((resolve) => setTimeout(() => resolve(''), 3000));
     
     const extractionPromise = (async () => {
       try {
+        const pdfjsLib = await import('pdfjs-dist');
+        if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions?.workerSrc) {
+          try {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || '4.10.38'}/pdf.worker.min.mjs`;
+          } catch {}
+        }
+
         const arrayBuffer = await file.arrayBuffer();
         const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
         const pdf = await loadingTask.promise;
@@ -47,4 +45,3 @@ export async function extractTextFromPdf(file: File): Promise<string> {
     return '';
   }
 }
-

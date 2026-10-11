@@ -329,17 +329,34 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
   const all = getFallbackMaterials();
   const lower = (urlOrName || '').toLowerCase();
 
-  // If Social Studies HomeWork (B1W5, B2W1, or Social Studies sheet requested by school)
+  // If Block 2 Week 1 Social Studies HomeWork
+  if (
+    lower.includes('socialstudies-grade2-b2') ||
+    lower.includes('social_studies_b2') ||
+    lower.includes('b2-week1') ||
+    lower.includes('b2 week 1')
+  ) {
+    return {
+      id: 'mat_social_studies_b2_w1_pdf',
+      fileName: 'SocialStudies-Grade2-B2-Week1-HomeWork.pdf',
+      fileSize: 292131,
+      block: 2,
+      section: 'Week 1',
+      classId: 'ALL',
+      type: 'pdf',
+      storageUrl: '/materials/SocialStudies-Grade2-B2-Week1-HomeWork.pdf',
+      linkUrl: '/materials/SocialStudies-Grade2-B2-Week1-HomeWork.pdf',
+      uploadedAt: '2026-10-11T06:00:00.000Z',
+    };
+  }
+
+  // If Block 1 Week 5 Social Studies HomeWork
   if (
     lower.includes('week 5 u1 homework 5') ||
     lower.includes('homework-week5') ||
     lower.includes('homework 5') ||
     lower.includes('b1-week5') ||
     lower.includes('b1 week 5') ||
-    lower.includes('b2-week1') ||
-    lower.includes('b2 week 1') ||
-    lower.includes('socialstudies-grade2-b2') ||
-    lower.includes('social_studies_b2') ||
     lower.includes('social studies grade 2 b1 week 5') ||
     (defaultTitle && defaultTitle.toLowerCase().includes('social studies grade 2 b1 week 5')) ||
     (defaultTitle && defaultTitle.toLowerCase().includes('week 5 u1 homework 5'))
