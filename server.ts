@@ -8,7 +8,7 @@ const requireFn = typeof require !== 'undefined' ? require : createRequire(impor
 const pdf = requireFn('pdf-parse');
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
-import { CLASS_TIMETABLES } from './src/data/timetables';
+import { CLASS_TIMETABLES } from './src/data/timetables.ts';
 
 dotenv.config();
 

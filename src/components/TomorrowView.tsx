@@ -144,8 +144,16 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
 
-    // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies - French has no tomorrow notes per instructions)
-    if ((currentBlock === 2 || (n as any).block === 2) && n.subject !== 'English' && n.subject !== 'Arabic' && n.subject !== 'Science' && n.subject !== 'Social Studies') {
+    // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies, Mathematics - French has no tomorrow notes per instructions)
+    if (
+      (currentBlock === 2 || (n as any).block === 2) &&
+      n.subject !== 'English' &&
+      n.subject !== 'Arabic' &&
+      n.subject !== 'Science' &&
+      n.subject !== 'Social Studies' &&
+      n.subject !== 'Mathematics' &&
+      n.subject !== 'Math'
+    ) {
       return true; // Disallow un-uploaded subjects (and French) for Block 2
     }
 
@@ -159,14 +167,24 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (!isAllowed) return true; // Disallowed on all other days
     }
 
-    // STRICT USER MANDATE FOR BLOCK 2 WEEK 1 (English and Arabic):
-    // In Tomorrow, the user explicitly mandates ONLY two items in the entire week:
+    // STRICT USER MANDATE FOR BLOCK 2 WEEK 1 (English, Arabic, and Mathematics):
+    // In Tomorrow:
     // 1) Spelling Bee: on Tuesday for Class B (tomorrowDay Wednesday), and on Monday for Class A and Class C (tomorrowDay Tuesday).
     // 2) Arabic Dictation (إملاء): on Tuesday for all classes (tomorrowDay Wednesday).
-    // Absolutely NO other Tomorrow items (no reading, no grammar, no homework submission, no prep notes) are allowed!
+    // 3) Math Test (Test your self): on Wednesday for all classes (tomorrowDay Thursday) because the test takes place on Thursday!
     if ((currentBlock === 2 || (n as any).block === 2) && (currentWeek === 1 || (n as any).week === 1)) {
       const isEnglish = n.subject === 'English';
       const isArabic = n.subject === 'Arabic';
+      const isMath = n.subject === 'Mathematics' || n.subject === 'Math';
+
+      if (isMath) {
+        const text = `${n.title || ''} ${n.note || ''} ${n.arabicNote || ''}`.toLowerCase();
+        const isTest = n.isQuiz || text.includes('test') || text.includes('quiz') || text.includes('اختبار') || text.includes('كويز');
+        // Math test reminder appears on Wednesday when preparing for Thursday!
+        if (isTest && (tomorrowDay === 'Thursday' || (n as any).targetDay === 'Thursday')) return false;
+        return true; // Disallow any other random math notes
+      }
+
       if (isEnglish || isArabic) {
         const text = `${n.title || ''} ${n.note || ''} ${n.arabicNote || ''}`.toLowerCase();
         const isSpelling = /spelling|bee|سبيلنج|تهجئة/i.test(text);
@@ -993,8 +1011,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         hasArabicDictation = true;
       }
 
-      // Strict rule: For Math Test, user mandate: ONLY write "Test" and never display sheet
-      if (semKey.startsWith('math-test-')) {
+      // Strict rule: For Math Test in Week 3, user mandate: ONLY write "Test" and never display sheet
+      if (semKey.startsWith('math-test-') && currentBlock === 1 && currentWeek === 3) {
         n.title = 'Test';
         n.note = 'Test';
         n.arabicNote = 'Test';

@@ -7,7 +7,7 @@ import {
   SCHOOL_NAME,
   SCHOOL_BRANCH,
 } from '../data/timetables';
-import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
+import { SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 
 interface PrintSheetProps {
@@ -53,7 +53,11 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
   );
 
   const tomorrowSpecial =
-    currentBlock === 1 && currentWeek === 2
+    currentBlock === 2 && currentWeek === 1
+      ? BLOCK2_WEEK1_SPECIAL_NOTES.filter(
+          (n) => n.classId === currentClass && n.targetDay === tomorrowDay
+        )
+      : currentBlock === 1 && currentWeek === 2
       ? WEEK2_SPECIAL_NOTES.filter(
           (n) => n.classId === currentClass && n.targetDay === tomorrowDay
         )
