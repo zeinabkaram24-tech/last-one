@@ -329,19 +329,32 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
   const all = getFallbackMaterials();
   const lower = (urlOrName || '').toLowerCase();
 
-  // If specific Social Studies B2W1 HomeWork
-  if (lower.includes('b2-week1') || lower.includes('socialstudies-grade2-b2') || lower.includes('social_studies_b2')) {
+  // If Social Studies HomeWork (B1W5, B2W1, or Social Studies sheet requested by school)
+  if (
+    lower.includes('week 5 u1 homework 5') ||
+    lower.includes('homework-week5') ||
+    lower.includes('homework 5') ||
+    lower.includes('b1-week5') ||
+    lower.includes('b1 week 5') ||
+    lower.includes('b2-week1') ||
+    lower.includes('b2 week 1') ||
+    lower.includes('socialstudies-grade2-b2') ||
+    lower.includes('social_studies_b2') ||
+    lower.includes('social studies grade 2 b1 week 5') ||
+    (defaultTitle && defaultTitle.toLowerCase().includes('social studies grade 2 b1 week 5')) ||
+    (defaultTitle && defaultTitle.toLowerCase().includes('week 5 u1 homework 5'))
+  ) {
     return {
-      id: 'mat_social_studies_b2_w1_hw',
-      fileName: 'SocialStudies-Grade2-B2-Week1-HomeWork.pdf',
-      fileSize: 678480,
-      block: 2,
-      section: 'Week 1',
+      id: 'mat_social_studies_b1_w5_u1_hw5',
+      fileName: 'Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf',
+      fileSize: 714575,
+      block: 1,
+      section: 'Week 5',
       classId: 'ALL',
       type: 'pdf',
-      storageUrl: urlOrName || '/materials/SocialStudies-Grade2-B2-Week1-HomeWork.pdf',
-      linkUrl: urlOrName || '/materials/SocialStudies-Grade2-B2-Week1-HomeWork.pdf',
-      uploadedAt: new Date().toISOString(),
+      storageUrl: '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf',
+      linkUrl: '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf',
+      uploadedAt: '2026-10-11T06:00:00.000Z',
     };
   }
 

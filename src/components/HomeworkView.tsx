@@ -131,7 +131,19 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   const rawDayHomework = homeworkList.filter(
     (h) => {
       if (!matchesClass(h)) return false;
-      if (h.assignedDay !== selectedDay) return false;
+
+      // Class B Social Studies: assigned on Sunday, due on Monday per explicit user mandate:
+      // "في كلاس بي، هتنزله يوم الأحد في الهوم ورك وفي التومورو. بالنسبة لكلاس B، التسليم هيكون يوم الاثنين"
+      const isAssignedForDay =
+        h.assignedDay === selectedDay ||
+        (h.subject === 'Social Studies' &&
+          (h.classId === 'G2B' || (h as any).class_id === 'G2B') &&
+          (selectedDay === 'Sunday' || (selectedDay === 'Monday' && h.dueDay === 'Monday'))) ||
+        (h.subject === 'Social Studies' &&
+          (h.classId === 'G2A' || (h as any).class_id === 'G2A' || h.classId === 'G2C' || (h as any).class_id === 'G2C') &&
+          (selectedDay === 'Saturday' || (selectedDay === 'Sunday' && h.dueDay === 'Sunday')));
+
+      if (!isAssignedForDay) return false;
       if ((h.block || 1) !== currentBlock) return false;
       if ((h.week || 1) !== currentWeek) return false;
 

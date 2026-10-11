@@ -94,6 +94,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   const [pdfPages, setPdfPages] = useState<any[]>([]);
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState('');
+  const [isHtmlContent, setIsHtmlContent] = useState(false);
 
   // Listen to global open_pdf_viewer_modal custom events
   useEffect(() => {
@@ -101,6 +102,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
       const detail = e.detail;
       if (!detail) return;
 
+      setIsHtmlContent(false);
       if (typeof detail === 'string') {
         setActiveUrl(detail);
         const name = detail.split('/').pop()?.split('?')[0] || 'مستند مرفق';
@@ -128,12 +130,14 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     }
     if (propPdfUrl) {
       setActiveUrl(propPdfUrl);
+      setIsHtmlContent(false);
     }
     if (propFileName) {
       setActiveTitle(propFileName);
     }
     if (propItem) {
       setActiveItem(propItem);
+      setIsHtmlContent(false);
       if (propItem.fileName) setActiveTitle(propItem.fileName);
       const url = propItem.fileData || propItem.storageUrl || propItem.linkUrl || (propItem.id ? `/api/materials/${propItem.id}/file` : '');
       if (url) setActiveUrl(url);
@@ -152,6 +156,14 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     activeItem?.type === 'image' ||
     activeUrl.startsWith('data:image/') ||
     /\.(jpg|jpeg|png|webp|gif)$/i.test(fileTitle || activeUrl)
+  );
+
+  const isHtml = Boolean(
+    activeItem?.type === 'html' ||
+    activeUrl.endsWith('.html') ||
+    activeUrl.includes('.html?') ||
+    /\.(html|htm)$/i.test(fileTitle || '') ||
+    isHtmlContent
   );
 
   // Compute optimal viewer URL
@@ -185,6 +197,14 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   };
 
   const handlePrint = () => {
+    if (isHtml) {
+      const frame = document.getElementById('interactive-sheet-frame') as HTMLIFrameElement;
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+        return;
+      }
+    }
     if (activeItem) {
       printPdfItem(activeItem);
     } else {
@@ -218,8 +238,9 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
 
   // Fetch and parse PDF pages using pdfjs-dist safely inside client session
   useEffect(() => {
-    if (!isOpen || !activeUrl || isImage) {
+    if (!isOpen || !activeUrl || isImage || isHtml) {
       setPdfPages([]);
+      setLoadingPdf(false);
       return;
     }
 
@@ -236,6 +257,17 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         }
         const arrayBuffer = await response.arrayBuffer();
         if (!isCurrent) return;
+
+        // Auto-detect HTML files masquerading as PDFs
+        const headerSlice = new Uint8Array(arrayBuffer.slice(0, 80));
+        const headerText = String.fromCharCode(...headerSlice).toLowerCase();
+        if (headerText.includes('<!doc') || headerText.includes('<html') || headerText.includes('<head')) {
+          if (isCurrent) {
+            setIsHtmlContent(true);
+            setLoadingPdf(false);
+          }
+          return;
+        }
 
         const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
         const pdf = await loadingTask.promise;
@@ -265,7 +297,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     return () => {
       isCurrent = false;
     };
-  }, [activeUrl, isOpen, isImage]);
+  }, [activeUrl, isOpen, isImage, isHtml]);
 
   if (!isOpen || !activeUrl) return null;
 
@@ -286,7 +318,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-slate-50/90 shrink-0 gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shrink-0 ${
-              isImage ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-rose-100 text-rose-600 border-rose-200'
+              isImage ? 'bg-amber-100 text-amber-700 border-amber-200' : isHtml ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-600 border-rose-200'
             }`}>
               {isImage ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
             </div>
@@ -296,9 +328,9 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
               </h3>
               <div className="flex items-center gap-2 text-[11px] text-slate-500 font-semibold">
                 <span className={`px-1.5 py-0.5 rounded font-bold border ${
-                  isImage ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200/60'
+                  isImage ? 'bg-amber-50 text-amber-800 border-amber-200' : isHtml ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200/60'
                 }`}>
-                  {isImage ? 'صورة JPG/PNG 🖼️' : 'PDF / مستند 📄'}
+                  {isImage ? 'صورة JPG/PNG 🖼️' : isHtml ? 'شيت تفاعلي (HTML) 📱💻' : 'PDF / مستند 📄'}
                 </span>
                 {activeItem?.fileSize ? <span>• {formatBytes(activeItem.fileSize)}</span> : null}
                 <span>• معاينة المستند</span>
@@ -369,7 +401,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
           </div>
         </div>
 
-        {/* Viewer Body (Images vs PDF/Doc) */}
+        {/* Viewer Body (Images vs HTML vs PDF/Doc) */}
         <div className="flex-1 bg-slate-900/90 relative min-h-0 overflow-hidden flex flex-col p-2 sm:p-4">
           {isImage ? (
             <div className="flex flex-col items-center justify-center max-w-full max-h-full space-y-3 my-auto overflow-auto">
@@ -378,6 +410,39 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
                 alt={fileTitle}
                 className="max-w-full max-h-[78vh] object-contain rounded-2xl shadow-2xl border-2 border-white/20 bg-white"
               />
+            </div>
+          ) : isHtml ? (
+            <div className="w-full h-full flex flex-col relative rounded-xl overflow-hidden shadow-lg border border-slate-700/50 bg-white">
+              {/* Notice bar at top of HTML viewer */}
+              <div className="px-4 py-2 bg-slate-800 text-white flex items-center justify-between text-xs gap-2 shrink-0">
+                <div className="flex items-center gap-2 truncate">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
+                  <span className="truncate text-slate-200 font-black">
+                    شيت تفاعلي جاهز للتصفح والحل والطباعة على الموبايل واللابتوب 📱💻
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href={activeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[11px] transition-colors"
+                  >
+                    شاشة كاملة ↗
+                  </a>
+                </div>
+              </div>
+
+              {/* Scrollable container with responsive iframe */}
+              <div className="flex-1 w-full min-h-0 relative bg-slate-100 overflow-hidden flex flex-col">
+                <iframe
+                  id="interactive-sheet-frame"
+                  src={activeUrl}
+                  title={fileTitle}
+                  className="w-full h-full border-0 bg-white flex-1"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                />
+              </div>
             </div>
           ) : (
             <div className="w-full h-full flex flex-col relative rounded-xl overflow-hidden shadow-lg border border-slate-700/50 bg-white">

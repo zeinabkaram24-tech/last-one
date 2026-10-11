@@ -20,6 +20,10 @@ export const BLOCK2_WEEK1_SPECIAL_NOTES: TomorrowSpecialNote[] = (initialData.to
   (n) => n.block === 2 && n.week === 1
 );
 
+export const WEEK5_SPECIAL_NOTES: TomorrowSpecialNote[] = (initialData.tomorrowNotes as any[]).filter(
+  (n) => (n.block || 1) === 1 && n.week === 5
+);
+
 export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
   // --- PREPARING FOR SUNDAY & MONDAY (Packed on Saturday & Sunday night) ---
   {

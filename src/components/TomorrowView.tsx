@@ -6,7 +6,7 @@ import {
   NEXT_SCHOOL_DAY,
   SUBJECT_METADATA,
 } from '../data/timetables';
-import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
+import { SPECIAL_TEACHER_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
 import {
@@ -157,14 +157,21 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true; // Disallow un-uploaded subjects (and French) for Block 2
     }
 
-    // Strict User Mandate for Social Studies in Block 2 Week 1:
-    // Only remind before the first Social Studies class of each section (Sunday for G2A & G2C, Monday for G2B)
-    if ((currentBlock === 2 || (n as any).block === 2) && (currentWeek === 1 || (n as any).week === 1) && n.subject === 'Social Studies') {
-      const isG2ATarget = (currentClass === 'G2A' || (n as any).classId === 'G2A') && tomorrowDay === 'Sunday';
-      const isG2CTarget = (currentClass === 'G2C' || (n as any).classId === 'G2C') && tomorrowDay === 'Sunday';
-      const isG2BTarget = (currentClass === 'G2B' || (n as any).classId === 'G2B') && tomorrowDay === 'Monday';
+    // Strict User Mandate for Social Studies in Block 2 Week 1 & Block 1 Week 5:
+    // Only remind before the first Social Studies class of each section:
+    // Class A and Class C: on Saturday (preparing for Sunday) and on Sunday
+    // Class B: on Sunday (preparing for Monday) and on Monday
+    if (
+      (((currentBlock === 2 || (n as any).block === 2) && (currentWeek === 1 || (n as any).week === 1)) ||
+       ((currentBlock === 1 || (n as any).block === 1) && (currentWeek === 5 || (n as any).week === 5))) &&
+      n.subject === 'Social Studies'
+    ) {
+      const isG2ATarget = (currentClass === 'G2A' || (n as any).classId === 'G2A') && (tomorrowDay === 'Sunday' || selectedDay === 'Saturday' || selectedDay === 'Sunday');
+      const isG2CTarget = (currentClass === 'G2C' || (n as any).classId === 'G2C') && (tomorrowDay === 'Sunday' || selectedDay === 'Saturday' || selectedDay === 'Sunday');
+      const isG2BTarget = (currentClass === 'G2B' || (n as any).classId === 'G2B') && (tomorrowDay === 'Monday' || selectedDay === 'Sunday' || selectedDay === 'Monday' || (n as any).targetDay === 'Monday');
       const isAllowed = isG2ATarget || isG2CTarget || isG2BTarget;
       if (!isAllowed) return true; // Disallowed on all other days
+      return false; // Specifically allowed!
     }
 
     // STRICT USER MANDATE FOR BLOCK 2 WEEK 1 (English, Arabic, and Mathematics):
@@ -616,6 +623,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     const base =
       currentBlock === 2 && (currentWeek === 1 || effectiveWeek === 1)
         ? BLOCK2_WEEK1_SPECIAL_NOTES.filter(
+            (n) =>
+              (n.classId === currentClass || (n.classId as any) === 'ALL') &&
+              (n.targetDay === tomorrowDay || (currentClass === 'G2B' && selectedDay === 'Monday' && n.targetDay === 'Monday'))
+          )
+        : currentBlock === 1 && (currentWeek === 5 || effectiveWeek === 5)
+        ? WEEK5_SPECIAL_NOTES.filter(
             (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
           )
         : currentBlock === 1 && (currentWeek === 4 || effectiveWeek === 4)

@@ -226,7 +226,7 @@ export default function App() {
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
   const [selectedDay, setSelectedDay] = useState<SchoolDay>(() => {
     const saved = appStorage.getItem(STORAGE_KEYS.DAY);
-    const validDays: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+    const validDays: SchoolDay[] = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
     if (saved && validDays.includes(saved as SchoolDay)) {
       return saved as SchoolDay;
     }
@@ -238,7 +238,7 @@ export default function App() {
       3: 'Wednesday',
       4: 'Thursday',
       5: 'Sunday',
-      6: 'Sunday',
+      6: 'Saturday',
     };
     return dayMap[dayOfWeek] || 'Sunday';
   });

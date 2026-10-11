@@ -25,19 +25,22 @@ export const AttachmentPdfCard: React.FC<AttachmentPdfCardProps> = ({
   className = '',
 }) => {
   const item: MaterialItem = resolveMaterialItem(pdfUrl, fileName);
+  const isHtml = item.type === 'html' || item.fileName?.endsWith('.html');
 
   return (
     <div
       id={id || `attachment-card-${item.id}`}
       className={`bg-slate-50 hover:bg-slate-100/80 border border-slate-300 rounded-xl p-3 shadow-2xs transition-all flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap ${className}`}
     >
-      {/* File Details: Exact File Name with PDF Icon */}
+      {/* File Details: Exact File Name with Icon */}
       <div
         onClick={() => openPdfItem(item)}
         className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer group"
         title={`فتح ${item.fileName}`}
       >
-        <div className="w-9 h-9 rounded-lg bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+        <div className={`w-9 h-9 rounded-lg border flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
+          isHtml ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-rose-100 border-rose-200 text-rose-600'
+        }`}>
           <FileText className="w-5 h-5" />
         </div>
         <div className="min-w-0 flex-1">
@@ -45,7 +48,11 @@ export const AttachmentPdfCard: React.FC<AttachmentPdfCardProps> = ({
             {item.fileName}
           </div>
           <div className="flex items-center gap-2 text-[11px] text-slate-500 font-semibold mt-0.5 flex-wrap">
-            <span className="font-bold text-rose-600">PDF</span>
+            <span className={`font-bold px-1.5 py-0.5 rounded text-[10px] border ${
+              isHtml ? 'text-emerald-800 bg-emerald-50 border-emerald-200' : 'text-rose-700 bg-rose-50 border-rose-200'
+            }`}>
+              {isHtml ? 'شيت تفاعلي 📱💻' : 'PDF'}
+            </span>
             <span>•</span>
             <span>{formatBytes(item.fileSize)}</span>
             {subject && (

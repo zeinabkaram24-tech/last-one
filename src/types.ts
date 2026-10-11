@@ -124,7 +124,7 @@ export interface MaterialItem {
   fileData?: string; // Base64 data URL (optional if storageUrl is present)
   storageUrl?: string; // Public Supabase cloud storage URL or direct link URL
   linkUrl?: string; // External web link or video link
-  type?: 'pdf' | 'image' | 'doc' | 'link'; // 'pdf' | 'image' | 'doc' | 'link'
+  type?: 'pdf' | 'image' | 'doc' | 'link' | 'html'; // 'pdf' | 'image' | 'doc' | 'link' | 'html'
   block: number; // 1, 2, 3, 4
   section: string; // 'Main sheet' | 'Week 1' | 'Week 2' | 'Week 3' | 'Week 4' | 'Week 5'
   classId?: ClassId | 'ALL';
