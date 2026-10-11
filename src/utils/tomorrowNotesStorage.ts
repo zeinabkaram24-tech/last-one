@@ -662,8 +662,8 @@ export async function getTomorrowNotesForDay(
 
     const dynamicNotes: TomorrowSpecialNote[] = [];
 
-    // Map classwork to TomorrowSpecialNote (only if it is a quiz/alert or explicitly a user-created tomorrow note)
-    if (cwList && Array.isArray(cwList)) {
+    // Map classwork to TomorrowSpecialNote (only for block !== 2; in block 2, only dedicated notes are used)
+    if (block !== 2 && cwList && Array.isArray(cwList)) {
       cwList.forEach((cw: any) => {
         const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|spelling\s*bee|سبيلنج|تسميع|تقييم/i.test((cw.title + ' ' + (cw.details || '')).toLowerCase());
         const isTomorrowNote = cw.id?.startsWith('tomorrow-') || cw.id?.startsWith('tn-') || cw.id?.startsWith('custom-');
@@ -687,8 +687,8 @@ export async function getTomorrowNotesForDay(
       });
     }
 
-    // Map homework to TomorrowSpecialNote (ONLY if it is explicitly a quiz/test/dictation alert)
-    if (hwList && Array.isArray(hwList)) {
+    // Map homework to TomorrowSpecialNote (only for block !== 2; in block 2, only dedicated notes are used)
+    if (block !== 2 && hwList && Array.isArray(hwList)) {
       hwList.forEach((hw: any) => {
         const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|spelling\s*bee|سبيلنج|تسميع|تقييم/i.test(((hw.task || '') + ' ' + (hw.details || '')).toLowerCase());
         // Ordinary homework or Arabic homework must NEVER be mapped as a tomorrow quiz note!

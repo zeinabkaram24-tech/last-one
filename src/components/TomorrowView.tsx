@@ -144,9 +144,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
 
-    // BLOCK 2: Allow uploaded subjects (English and Arabic)
-    if ((currentBlock === 2 || (n as any).block === 2) && n.subject !== 'English' && n.subject !== 'Arabic') {
-      return true; // Disallow un-uploaded subjects for Block 2
+    // BLOCK 2: Allow uploaded subjects (English, Arabic, Science - French has no tomorrow notes per instructions)
+    if ((currentBlock === 2 || (n as any).block === 2) && n.subject !== 'English' && n.subject !== 'Arabic' && n.subject !== 'Science') {
+      return true; // Disallow un-uploaded subjects (and French) for Block 2
     }
 
     // STRICT USER MANDATE FOR BLOCK 2 WEEK 1 (English and Arabic):
@@ -177,6 +177,16 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           if (tomorrowDay === 'Wednesday') return false;
           return true; // Disallow on any other day!
         }
+      }
+    }
+
+    // Strict User Mandate for Science in Block 2:
+    // Only bring requested supplies from notes (Foam clay, A4 colored sheet, Glue, Ruler).
+    // STRICTLY DISALLOW any booklet submission ("تسليم بوكلت" / "بوكليت"):
+    if ((currentBlock === 2 || (n as any).block === 2) && n.subject === 'Science') {
+      const text = `${n.title || ''} ${n.note || ''} ${n.arabicNote || ''}`.toLowerCase();
+      if (text.includes('بوكلت') || text.includes('بوكليت') || text.includes('booklet') || text.includes('تسليم') || text.includes('submission')) {
+        return true; // Strictly disallowed!
       }
     }
 
@@ -537,8 +547,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
-    // 6. English dictation
+    // 6. English dictation & Spelling Bee
     if (normSubject.includes('english') || normSubject.includes('إنجليزي') || normSubject.includes('انجليزي')) {
+      if (text.includes('spelling') || text.includes('سبيلنج') || text.includes('تهجئة') || n.id?.includes('spelling')) {
+        return `english-spellingbee-${n.classId || currentClass || 'ALL'}-${n.targetDay}`;
+      }
       if (text.includes('dictation') || text.includes('إملاء') || text.includes('ديكتيشن')) {
         return `english-dictation-${n.targetDay}`;
       }
@@ -1165,7 +1178,16 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       addOrMergeNote(n, true);
     });
 
-    return Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));
+    const result = Array.from(map.values()).filter((n) => !isDisallowedTomorrowItem(n));
+    // Final strict deduplication by semantic key to guarantee NO duplicates ever appear
+    const uniqueMap = new Map<string, TomorrowSpecialNote>();
+    result.forEach((item) => {
+      const key = getSemanticKey(item);
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, item);
+      }
+    });
+    return Array.from(uniqueMap.values());
   }, [tomorrowNotes, linkedAlerts, deletedNoteIds, tomorrowDay, currentClass, currentBlock, currentWeek]);
 
   // Prioritize quizzes and tests to appear first in the notes list
