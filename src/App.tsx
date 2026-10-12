@@ -666,7 +666,7 @@ export default function App() {
     // 4. Window Visibility & Focus (Mobile screen unlock / tab switch)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        performLiveSync();
+        performLiveSync('تحديث الشاشة');
       }
     };
     const handleWindowFocus = () => {
@@ -675,12 +675,20 @@ export default function App() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleWindowFocus);
 
+    // 5. Periodic Silent Background Polling (Every 20s for absolute WhatsApp-style sync reliability across devices)
+    const pollInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        performLiveSync();
+      }
+    }, 20000);
+
     return () => {
       isMounted = false;
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       if (eventSource) eventSource.close();
       if (sbChannel) supabase.removeChannel(sbChannel);
       if (bc) bc.close();
+      clearInterval(pollInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleWindowFocus);
     };

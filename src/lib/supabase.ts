@@ -493,12 +493,12 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const resultMap = new Map<string, ClassworkEntry>();
   baseItems.forEach((c) => resultMap.set(c.id, c));
 
-  // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
+  // If Supabase is configured, fetch directly from cloud database with a fast 500ms timeout
   if (isSupabaseConfigured) {
     try {
       const res = await withTimeout<any>(
         supabase.from('classwork').select('*').order('period', { ascending: true }),
-        3500,
+        500,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
       );
       const { data, error } = res;
@@ -642,35 +642,20 @@ export async function getDeletedPlannerItemIds(): Promise<string[]> {
     }
   } catch {}
 
-  try {
-    const res = await fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' });
-    if (res.ok) {
-      const srvData = await res.json();
-      if (Array.isArray(srvData.deletedPlannerItemIds)) {
-        localList = Array.from(new Set([...localList, ...srvData.deletedPlannerItemIds]));
+  // Background non-blocking sync of deleted IDs
+  Promise.resolve().then(async () => {
+    try {
+      const res = await withTimeout(fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' }), 600, null as any);
+      if (res && res.ok) {
+        const srvData = await res.json();
+        if (Array.isArray(srvData.deletedPlannerItemIds)) {
+          const combined = Array.from(new Set([...localList, ...srvData.deletedPlannerItemIds]));
+          appStorage.setItem(DELETED_ITEMS_STORAGE_KEY, JSON.stringify(combined));
+        }
       }
-    }
-  } catch {}
+    } catch {}
+  });
 
-  if (!isSupabaseConfigured) return localList;
-
-  try {
-    const { data, error } = await supabase
-      .from('planner_settings')
-      .select('value')
-      .eq('key', 'deleted_planner_item_ids')
-      .maybeSingle();
-    if (!error && data && data.value) {
-      const dbList = JSON.parse(data.value);
-      if (Array.isArray(dbList)) {
-        const combined = Array.from(new Set([...localList, ...dbList]));
-        appStorage.setItem(DELETED_ITEMS_STORAGE_KEY, JSON.stringify(combined));
-        return combined;
-      }
-    }
-  } catch (e) {
-    console.warn('Error fetching deleted planner item ids:', e);
-  }
   return localList;
 }
 
@@ -833,12 +818,12 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const resultMap = new Map<string, HomeworkEntry>();
   baseItems.forEach((h) => resultMap.set(h.id, h));
 
-  // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
+  // If Supabase is configured, fetch directly from cloud database with a fast 500ms timeout
   if (isSupabaseConfigured) {
     try {
       const res = await withTimeout<any>(
         supabase.from('homework').select('*').order('created_at', { ascending: false }),
-        3500,
+        500,
         { data: null, error: { message: 'Supabase homework query timeout' } }
       );
       const { data, error } = res;
@@ -1106,7 +1091,7 @@ export async function fetchPlannerSettings(): Promise<Record<string, string>> {
   try {
     const res = await withTimeout<any>(
       supabase.from('planner_settings').select('*'),
-      2500,
+      400,
       { data: null, error: { message: 'Settings query timeout' } }
     );
     const { data, error } = res;
