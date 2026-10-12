@@ -137,9 +137,6 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       const isAssignedForDay =
         h.assignedDay === selectedDay ||
         (h.subject === 'Social Studies' &&
-          (h.classId === 'G2B' || (h as any).class_id === 'G2B' || h.classId === 'ALL' || (h as any).class_id === 'ALL') &&
-          (selectedDay === 'Sunday' || (selectedDay === 'Monday' && h.dueDay === 'Monday'))) ||
-        (h.subject === 'Social Studies' &&
           (h.classId === 'G2A' || (h as any).class_id === 'G2A' || h.classId === 'G2C' || (h as any).class_id === 'G2C' || h.classId === 'ALL' || (h as any).class_id === 'ALL') &&
           (selectedDay === 'Saturday' || (selectedDay === 'Sunday' && h.dueDay === 'Sunday')));
 
