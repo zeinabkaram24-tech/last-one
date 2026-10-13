@@ -411,8 +411,30 @@ export const appStorage = {
   },
 };
 
-const LOCAL_CUSTOM_HW_KEY = 'homework_planner_custom_entries_v3';
-const LOCAL_CUSTOM_CW_KEY = 'classwork_planner_custom_entries_v3';
+const LOCAL_CUSTOM_HW_KEY = 'nile_g2_nis_homework_custom_v4';
+const LOCAL_CUSTOM_CW_KEY = 'nile_g2_nis_classwork_custom_v4';
+
+function isGrade2Item(item: any): boolean {
+  if (!item) return false;
+  const text = ((item.title || '') + ' ' + (item.task || '') + ' ' + (item.details || '') + ' ' + (item.subject || '')).toLowerCase();
+  if (
+    text.includes('kg') ||
+    text.includes('kindergarten') ||
+    text.includes('preschool') ||
+    text.includes('kg1') ||
+    text.includes('kg2') ||
+    text.includes('روضة') ||
+    text.includes('تمهيدي') ||
+    text.includes('أطفال')
+  ) {
+    return false;
+  }
+  const cid = item.class_id || item.classId;
+  if (cid && !['G2A', 'G2B', 'G2C', 'ALL'].includes(cid)) {
+    return false;
+  }
+  return true;
+}
 
 export function getLocalCustomClasswork(): ClassworkEntry[] {
   try {
@@ -552,7 +574,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   localCustom.forEach((c) => {
     if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
   });
-  return Array.from(map.values());
+  return Array.from(map.values()).filter(isGrade2Item);
 }
 
 export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkEntry> {
@@ -630,7 +652,7 @@ export async function updateClassworkCompletion(id: string, completed: boolean):
   }
 }
 
-const DELETED_ITEMS_STORAGE_KEY = 'nile_deleted_planner_item_ids_v3';
+const DELETED_ITEMS_STORAGE_KEY = 'nile_g2_nis_deleted_planner_item_ids_v4';
 
 export async function getDeletedPlannerItemIds(): Promise<string[]> {
   let localList: string[] = [];
@@ -906,7 +928,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
   
-  return Array.from(map.values());
+  return Array.from(map.values()).filter(isGrade2Item);
 }
 
 export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntry> {

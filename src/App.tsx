@@ -284,6 +284,26 @@ export default function App() {
   const [undoAction, setUndoAction] = useState<(() => Promise<void>) | null>(null);
   const [isRefreshingData, setIsRefreshingData] = useState<boolean>(false);
   const [isLiveConnected, setIsLiveConnected] = useState<boolean>(true);
+  const [isOnline, setIsOnline] = useState<boolean>(() => {
+    return typeof navigator !== 'undefined' ? navigator.onLine : true;
+  });
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      showToast('🟢 تم استعادة الاتصال بالإنترنت بنجاح.');
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      showToast('🔴 تنبيه: الاتصال بالإنترنت مقطوع أو ضعيف جداً.');
+    };
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
@@ -1170,6 +1190,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-800 flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+      {!isOnline && (
+        <div className="bg-rose-600 text-white px-4 py-2.5 text-center text-xs font-black shadow-lg flex items-center justify-center gap-2 animate-pulse" dir="rtl">
+          <span>⚠️ تنبيه: لا يوجد اتصال بالإنترنت أو الاتصال ضعيف جداً. يُرجى التحقق من اتصالك بالشبكة لعرض البيانات الحية.</span>
+        </div>
+      )}
       {/* Interactive Navigation Bar */}
       <Navbar
         currentClass={currentClass}
