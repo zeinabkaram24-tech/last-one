@@ -425,7 +425,10 @@ function isGrade2Item(item: any): boolean {
     text.includes('kg2') ||
     text.includes('روضة') ||
     text.includes('تمهيدي') ||
-    text.includes('أطفال')
+    text.includes('أطفال') ||
+    text.includes('كي جي') ||
+    text.includes('صفحة 4') ||
+    text.includes('الفيديو رقم 3')
   ) {
     return false;
   }
@@ -442,7 +445,11 @@ export function getLocalCustomClasswork(): ClassworkEntry[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed.map((c: any) => {
+        const filtered = parsed.filter(isGrade2Item);
+        if (filtered.length !== parsed.length) {
+          appStorage.setItem(LOCAL_CUSTOM_CW_KEY, JSON.stringify(filtered));
+        }
+        return filtered.map((c: any) => {
           if (!c) return c;
           const cleaned = { ...c };
           if (cleaned.linkUrl === 'video' || (cleaned.linkTitle && cleaned.linkTitle.includes('فيديو'))) {
@@ -465,14 +472,15 @@ export function getLocalCustomClasswork(): ClassworkEntry[] {
 
 export function saveLocalCustomClasswork(entries: ClassworkEntry[], mode: 'merge' | 'replace' = 'merge') {
   try {
+    const validEntries = entries.filter(isGrade2Item);
     if (mode === 'replace') {
-      appStorage.setItem(LOCAL_CUSTOM_CW_KEY, JSON.stringify(entries));
+      appStorage.setItem(LOCAL_CUSTOM_CW_KEY, JSON.stringify(validEntries));
       return;
     }
     const current = getLocalCustomClasswork();
     const map = new Map<string, ClassworkEntry>();
     current.forEach((c) => { if (c && c.id) map.set(c.id, c); });
-    entries.forEach((c) => { if (c && c.id) map.set(c.id, c); });
+    validEntries.forEach((c) => { if (c && c.id) map.set(c.id, c); });
     appStorage.setItem(LOCAL_CUSTOM_CW_KEY, JSON.stringify(Array.from(map.values())));
   } catch {}
 }
@@ -482,7 +490,13 @@ export function getLocalCustomHomework(): HomeworkEntry[] {
     const raw = appStorage.getItem(LOCAL_CUSTOM_HW_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        const filtered = parsed.filter(isGrade2Item);
+        if (filtered.length !== parsed.length) {
+          appStorage.setItem(LOCAL_CUSTOM_HW_KEY, JSON.stringify(filtered));
+        }
+        return filtered;
+      }
     }
   } catch {}
   return [];
@@ -490,14 +504,15 @@ export function getLocalCustomHomework(): HomeworkEntry[] {
 
 export function saveLocalCustomHomework(entries: HomeworkEntry[], mode: 'merge' | 'replace' = 'merge') {
   try {
+    const validEntries = entries.filter(isGrade2Item);
     if (mode === 'replace') {
-      appStorage.setItem(LOCAL_CUSTOM_HW_KEY, JSON.stringify(entries));
+      appStorage.setItem(LOCAL_CUSTOM_HW_KEY, JSON.stringify(validEntries));
       return;
     }
     const current = getLocalCustomHomework();
     const map = new Map<string, HomeworkEntry>();
     current.forEach((h) => { if (h && h.id) map.set(h.id, h); });
-    entries.forEach((h) => { if (h && h.id) map.set(h.id, h); });
+    validEntries.forEach((h) => { if (h && h.id) map.set(h.id, h); });
     appStorage.setItem(LOCAL_CUSTOM_HW_KEY, JSON.stringify(Array.from(map.values())));
   } catch {}
 }
