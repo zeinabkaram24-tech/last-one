@@ -417,19 +417,10 @@ const LOCAL_CUSTOM_CW_KEY = 'nile_g2_nis_classwork_custom_v4';
 export function isGrade2Item(item: any): boolean {
   if (!item) return false;
   const cid = item.class_id || item.classId;
-  // Grade 2 classes are ONLY G2A, G2B, G2C
-  if (cid !== 'G2A' && cid !== 'G2B' && cid !== 'G2C') {
-    // If cid is 'ALL', strictly verify it doesn't belong to KG
-    if (cid === 'ALL') {
-      const id = (item.id || '').toLowerCase();
-      const text = ((item.title || '') + ' ' + (item.task || '') + ' ' + (item.details || '') + ' ' + (item.pages || '') + ' ' + (item.subject || '')).toLowerCase();
-      if (!id.includes('g2') && !id.includes('grade2') && !text.includes('grade 2') && !text.includes('الصف الثاني')) {
-        return false;
-      }
-    } else {
-      return false;
-    }
+  if (cid === 'G2A' || cid === 'G2B' || cid === 'G2C' || cid === 'ALL') {
+    return true;
   }
+  return true;
 
   const id = (item.id || '').toLowerCase();
   if (id.includes('kg') || id.includes('kindergarten') || id.includes('preschool')) {

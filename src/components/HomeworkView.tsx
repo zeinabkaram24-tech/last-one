@@ -150,15 +150,17 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       if ((h.block || 1) !== currentBlock) return false;
       if ((h.week || 1) !== currentWeek) return false;
 
-      // Block 2: Only show uploaded subjects (English, Arabic, Science, Social Studies, Mathematics)
+      // Block 2: Only show uploaded subjects (English, Arabic, French, Science, Social Studies, Mathematics, ICT)
       if (
         currentBlock === 2 &&
         h.subject !== 'English' &&
         h.subject !== 'Arabic' &&
+        h.subject !== 'French' &&
         h.subject !== 'Science' &&
         h.subject !== 'Social Studies' &&
         h.subject !== 'Mathematics' &&
-        h.subject !== 'Math'
+        h.subject !== 'Math' &&
+        h.subject !== 'ICT'
       ) {
         return false;
       }
