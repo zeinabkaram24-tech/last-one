@@ -15,6 +15,7 @@ import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
+import { isGrade2Item } from '../lib/supabase';
 
 interface ClassworkViewProps {
   currentClass: ClassId;
@@ -43,8 +44,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   onAddClasswork,
 }) => {
   const matchesClass = (c: any) => {
+    if (!isGrade2Item(c)) return false;
     const cid = c.class_id || c.classId;
-    return cid === currentClass || cid === 'ALL';
+    return cid === currentClass || (cid === 'ALL' && isGrade2Item(c));
   };
 
   // Check if current class has ANY weekly plan entered for this Block and Week

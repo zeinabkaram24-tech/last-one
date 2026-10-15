@@ -414,9 +414,29 @@ export const appStorage = {
 const LOCAL_CUSTOM_HW_KEY = 'nile_g2_nis_homework_custom_v4';
 const LOCAL_CUSTOM_CW_KEY = 'nile_g2_nis_classwork_custom_v4';
 
-function isGrade2Item(item: any): boolean {
+export function isGrade2Item(item: any): boolean {
   if (!item) return false;
-  const text = ((item.title || '') + ' ' + (item.task || '') + ' ' + (item.details || '') + ' ' + (item.subject || '')).toLowerCase();
+  const cid = item.class_id || item.classId;
+  // Grade 2 classes are ONLY G2A, G2B, G2C
+  if (cid !== 'G2A' && cid !== 'G2B' && cid !== 'G2C') {
+    // If cid is 'ALL', strictly verify it doesn't belong to KG
+    if (cid === 'ALL') {
+      const id = (item.id || '').toLowerCase();
+      const text = ((item.title || '') + ' ' + (item.task || '') + ' ' + (item.details || '') + ' ' + (item.pages || '') + ' ' + (item.subject || '')).toLowerCase();
+      if (!id.includes('g2') && !id.includes('grade2') && !text.includes('grade 2') && !text.includes('الصف الثاني')) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  const id = (item.id || '').toLowerCase();
+  if (id.includes('kg') || id.includes('kindergarten') || id.includes('preschool')) {
+    return false;
+  }
+
+  const text = ((item.title || '') + ' ' + (item.task || '') + ' ' + (item.details || '') + ' ' + (item.pages || '') + ' ' + (item.subject || '')).toLowerCase();
   if (
     text.includes('kg') ||
     text.includes('kindergarten') ||
@@ -426,14 +446,34 @@ function isGrade2Item(item: any): boolean {
     text.includes('روضة') ||
     text.includes('تمهيدي') ||
     text.includes('أطفال') ||
+    text.includes('استقبال الأطفال') ||
     text.includes('كي جي') ||
-    text.includes('صفحة 4') ||
+    text.includes('show and tell') ||
+    text.includes('اللعبة المفضلة') ||
+    text.includes('jolly phonics') ||
+    text.includes('حرف التاء') ||
+    text.includes('حرف الباء') ||
+    text.includes('حرف الألف') ||
+    text.includes('حرف الثاء') ||
+    text.includes('maisy') ||
+    text.includes('حاسة البصر') ||
+    text.includes('حاسة اللمس') ||
+    text.includes('حاسة الشم') ||
+    text.includes('العدد اثنان') ||
+    text.includes('الرقم 1') ||
+    text.includes('counting 0, 1') ||
+    text.includes('walking walking') ||
+    text.includes('five currant buns') ||
+    text.includes('carpet time') ||
+    text.includes('الروتين اليومي') ||
+    text.includes('القواعد الصفية') ||
+    text.includes('حجرات المدرسة') ||
+    text.includes('آداب الاستئذان') ||
+    text.includes('التحدث مع الطفل بالفصحى') ||
+    text.includes('كراسة الواجب المنزلي') ||
+    text.includes('صفحة 4 والاستماع لفيديو') ||
     text.includes('الفيديو رقم 3')
   ) {
-    return false;
-  }
-  const cid = item.class_id || item.classId;
-  if (cid && !['G2A', 'G2B', 'G2C', 'ALL'].includes(cid)) {
     return false;
   }
   return true;
@@ -530,26 +570,30 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const resultMap = new Map<string, ClassworkEntry>();
   baseItems.forEach((c) => resultMap.set(c.id, c));
 
-  // If Supabase is configured, fetch directly from cloud database with a fast 500ms timeout
+  // If Supabase is configured, fetch directly from cloud database for Grade 2 classes (G2A, G2B, G2C)
   if (isSupabaseConfigured) {
     try {
       const res = await withTimeout<any>(
-        supabase.from('classwork').select('*').order('period', { ascending: true }),
-        500,
+        supabase
+          .from('classwork')
+          .select('*')
+          .in('class_id', ['G2A', 'G2B', 'G2C'])
+          .order('period', { ascending: true }),
+        800,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
       );
       const { data, error } = res;
 
       if (!error && data && Array.isArray(data) && data.length > 0) {
-        const dbItems = (data as ClassworkRow[]).map(rowToClasswork);
+        const dbItems = (data as ClassworkRow[]).map(rowToClasswork).filter(isGrade2Item);
         dbItems.forEach((c) => {
           if (c && c.id && !deletedSet.has(c.id)) resultMap.set(c.id, c);
         });
-        const localCustom = getLocalCustomClasswork();
+        const localCustom = getLocalCustomClasswork().filter(isGrade2Item);
         localCustom.forEach((c) => {
           if (c && c.id && !deletedSet.has(c.id)) resultMap.set(c.id, c);
         });
-        return Array.from(resultMap.values());
+        return Array.from(resultMap.values()).filter(isGrade2Item);
       }
     } catch (err) {
       console.warn('Network exception fetching classwork from Supabase (falling back):', err);
@@ -855,28 +899,32 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const resultMap = new Map<string, HomeworkEntry>();
   baseItems.forEach((h) => resultMap.set(h.id, h));
 
-  // If Supabase is configured, fetch directly from cloud database with a fast 500ms timeout
+  // If Supabase is configured, fetch directly from cloud database for Grade 2 classes (G2A, G2B, G2C)
   if (isSupabaseConfigured) {
     try {
       const res = await withTimeout<any>(
-        supabase.from('homework').select('*').order('created_at', { ascending: false }),
-        500,
+        supabase
+          .from('homework')
+          .select('*')
+          .in('class_id', ['G2A', 'G2B', 'G2C'])
+          .order('created_at', { ascending: false }),
+        800,
         { data: null, error: { message: 'Supabase homework query timeout' } }
       );
       const { data, error } = res;
 
       if (!error && data && Array.isArray(data) && data.length > 0) {
-        const dbItems = (data as HomeworkRow[]).map(rowToHomework);
+        const dbItems = (data as HomeworkRow[]).map(rowToHomework).filter(isGrade2Item);
         dbItems.forEach((h) => {
           if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
           if (h && h.id && !deletedSet.has(h.id)) resultMap.set(h.id, h);
         });
-        const localCustom = getLocalCustomHomework();
+        const localCustom = getLocalCustomHomework().filter(isGrade2Item);
         localCustom.forEach((h) => {
           if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
           if (h && h.id && !deletedSet.has(h.id)) resultMap.set(h.id, h);
         });
-        return Array.from(resultMap.values());
+        return Array.from(resultMap.values()).filter(isGrade2Item);
       }
     } catch (err) {
       console.warn('Network exception fetching homework from Supabase (falling back):', err);

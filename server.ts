@@ -48,6 +48,61 @@ function recordDeletedMaterialId(id: string): void {
 const PLANNER_DATA_FILE = path.join(DATA_DIR, 'planner_data.json');
 const SUPABASE_CONFIG_FILE = path.join(DATA_DIR, 'supabase_config.json');
 
+function isGrade2ItemServer(item: any): boolean {
+  if (!item) return false;
+  const cid = item.class_id || item.classId;
+  if (cid !== 'G2A' && cid !== 'G2B' && cid !== 'G2C') {
+    if (cid === 'ALL') {
+      const id = (item.id || '').toLowerCase();
+      const text = ((item.title || '') + ' ' + (item.task || '') + ' ' + (item.details || '') + ' ' + (item.pages || '') + ' ' + (item.subject || '')).toLowerCase();
+      if (!id.includes('g2') && !id.includes('grade2') && !text.includes('grade 2') && !text.includes('الصف الثاني')) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+  const id = (item.id || '').toLowerCase();
+  if (id.includes('kg') || id.includes('kindergarten') || id.includes('preschool')) return false;
+  const text = ((item.title || '') + ' ' + (item.task || '') + ' ' + (item.details || '') + ' ' + (item.pages || '') + ' ' + (item.subject || '')).toLowerCase();
+  if (
+    text.includes('kg') ||
+    text.includes('kindergarten') ||
+    text.includes('preschool') ||
+    text.includes('روضة') ||
+    text.includes('تمهيدي') ||
+    text.includes('أطفال') ||
+    text.includes('استقبال الأطفال') ||
+    text.includes('كي جي') ||
+    text.includes('show and tell') ||
+    text.includes('اللعبة المفضلة') ||
+    text.includes('jolly phonics') ||
+    text.includes('حرف التاء') ||
+    text.includes('حرف الباء') ||
+    text.includes('حرف الألف') ||
+    text.includes('حرف الثاء') ||
+    text.includes('maisy') ||
+    text.includes('حاسة البصر') ||
+    text.includes('حاسة اللمس') ||
+    text.includes('حاسة الشم') ||
+    text.includes('العدد اثنان') ||
+    text.includes('الرقم 1') ||
+    text.includes('counting 0, 1') ||
+    text.includes('walking walking') ||
+    text.includes('five currant buns') ||
+    text.includes('carpet time') ||
+    text.includes('الروتين اليومي') ||
+    text.includes('القواعد الصفية') ||
+    text.includes('حجرات المدرسة') ||
+    text.includes('آداب الاستئذان') ||
+    text.includes('التحدث مع الطفل بالفصحى') ||
+    text.includes('كراسة الواجب المنزلي')
+  ) {
+    return false;
+  }
+  return true;
+}
+
 try {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(MATERIALS_DIR)) fs.mkdirSync(MATERIALS_DIR, { recursive: true });
@@ -643,21 +698,21 @@ app.get('/api/planner-data', (req, res) => {
       data.classwork = (data.classwork || []).filter((c: any) => !delSet.has(c.id));
       data.homework = (data.homework || []).filter((h: any) => !delSet.has(h.id));
     }
-    // Guarantee both classId and class_id are populated on every item returned
+    // Guarantee both classId and class_id are populated on every item returned, and strictly filter for Grade 2
     if (Array.isArray(data.classwork)) {
-      data.classwork = data.classwork.map((c: any) => {
+      data.classwork = data.classwork.filter(isGrade2ItemServer).map((c: any) => {
         const cid = c.class_id || c.classId || 'G2B';
         return { ...c, classId: cid, class_id: cid };
       });
     }
     if (Array.isArray(data.homework)) {
-      data.homework = data.homework.map((h: any) => {
+      data.homework = data.homework.filter(isGrade2ItemServer).map((h: any) => {
         const cid = h.class_id || h.classId || 'G2B';
         return { ...h, classId: cid, class_id: cid };
       });
     }
     if (Array.isArray(data.tomorrowNotes)) {
-      data.tomorrowNotes = data.tomorrowNotes.map((n: any) => {
+      data.tomorrowNotes = data.tomorrowNotes.filter(isGrade2ItemServer).map((n: any) => {
         const cid = n.class_id || n.classId || 'G2B';
         return { ...n, classId: cid, class_id: cid };
       });
@@ -683,23 +738,23 @@ app.post('/api/planner-data', (req, res) => {
     const { classwork, homework, tomorrowNotes, mode = 'merge', block, week, classId } = req.body;
     let current = getStoredPlannerData();
 
-    // Normalize incoming items to have both classId and class_id
+    // Normalize incoming items to have both classId and class_id, strictly filtered for Grade 2
     const normalizedCw = Array.isArray(classwork)
-      ? classwork.map((c: any) => {
+      ? classwork.filter(isGrade2ItemServer).map((c: any) => {
           const cid = c.class_id || c.classId || 'G2B';
           return { ...c, classId: cid, class_id: cid };
         })
       : [];
 
     const normalizedHw = Array.isArray(homework)
-      ? homework.map((h: any) => {
+      ? homework.filter(isGrade2ItemServer).map((h: any) => {
           const cid = h.class_id || h.classId || 'G2B';
           return { ...h, classId: cid, class_id: cid };
         })
       : [];
 
     const normalizedTn = Array.isArray(tomorrowNotes)
-      ? tomorrowNotes.map((n: any) => {
+      ? tomorrowNotes.filter(isGrade2ItemServer).map((n: any) => {
           const cid = n.class_id || n.classId || 'G2B';
           return { ...n, classId: cid, class_id: cid };
         })

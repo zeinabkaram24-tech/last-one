@@ -273,19 +273,6 @@
       "class_id": "G2A"
     },
     {
-      "id": "cw-g2a-tue-5",
-      "classId": "G2A",
-      "day": "Tuesday",
-      "period": 2,
-      "subject": "Religion",
-      "title": "التربية الدينية: قيم التسامح وآداب الاستئذان",
-      "details": "مراجعة الآداب الإسلامية / المسيحية وأهمية الصدق والمحبة.",
-      "completed": false,
-      "block": 1,
-      "week": 1,
-      "class_id": "G2A"
-    },
-    {
       "id": "cw-g2a-tue-6",
       "classId": "G2A",
       "day": "Tuesday",
@@ -912,20 +899,6 @@
       "pages": "فيديو - كراسة نشاط ص 5-6",
       "completed": false,
       "linkUrl": "https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني",
-      "block": 1,
-      "week": 1,
-      "class_id": "G2B"
-    },
-    {
-      "id": "cw-g2b-wed-4",
-      "classId": "G2B",
-      "day": "Wednesday",
-      "period": 4,
-      "subject": "Arabic",
-      "title": "تدريبات لغوية على التاء المربوطة",
-      "details": "إكمال الكلمات بحرف التاء المربوطة والمفتوحة والهاء ص 6.",
-      "pages": "كراسة نشاط الوحدة الأولى ص 6",
-      "completed": false,
       "block": 1,
       "week": 1,
       "class_id": "G2B"
@@ -8737,93 +8710,6 @@
       "class_id": "G2B"
     },
     {
-      "id": "hw-b1-w4-G2A-arabic-Sunday-bqo91",
-      "classId": "G2A",
-      "assignedDay": "Sunday",
-      "dueDay": "Monday",
-      "subject": "Arabic",
-      "task": "كراسة الواجب المنزلي",
-      "pages": "ص 49",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 4,
-      "isLinkTask": false,
-      "class_id": "G2A"
-    },
-    {
-      "id": "hw-b1-w4-G2A-arabic-Tuesday-s02kv",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "كراسة الواجب المنزلي",
-      "pages": "ص 50",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 4,
-      "class_id": "G2A"
-    },
-    {
-      "id": "hw-b1-w4-G2B-arabic-Sunday-t1vov",
-      "classId": "G2B",
-      "assignedDay": "Sunday",
-      "dueDay": "Monday",
-      "subject": "Arabic",
-      "task": "كراسة الواجب المنزلي",
-      "pages": "ص 49",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 4,
-      "isLinkTask": false,
-      "class_id": "G2B"
-    },
-    {
-      "id": "hw-b1-w4-G2B-arabic-Tuesday-3xtm4",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "كراسة الواجب المنزلي",
-      "pages": "ص 50",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 4,
-      "class_id": "G2B"
-    },
-    {
-      "id": "hw-b1-w4-G2C-arabic-Sunday-zjlxh",
-      "classId": "G2C",
-      "assignedDay": "Sunday",
-      "dueDay": "Monday",
-      "subject": "Arabic",
-      "task": "كراسة الواجب المنزلي",
-      "pages": "ص 49",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 4,
-      "isLinkTask": false,
-      "class_id": "G2C"
-    },
-    {
-      "id": "hw-b1-w4-G2C-arabic-Tuesday-rfiw4",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "كراسة الواجب المنزلي",
-      "pages": "ص 50",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 4,
-      "class_id": "G2C"
-    },
-    {
       "id": "hw-b1-w4-G2A-Mon-math-p92",
       "classId": "G2A",
       "class_id": "G2A",
@@ -13838,7 +13724,8 @@
       "categoryType": "note",
       "block": 2,
       "week": 1,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf"
+      "pdfUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
+      "class_id": "G2B"
     }
   ],
   "deletedTomorrowNoteIds": [

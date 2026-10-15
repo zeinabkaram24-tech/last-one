@@ -16,6 +16,7 @@ import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
+import { isGrade2Item } from '../lib/supabase';
 
 interface HomeworkViewProps {
   currentClass: ClassId;
@@ -112,8 +113,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   onDeleteHomework,
 }) => {
   const matchesClass = (h: any) => {
+    if (!isGrade2Item(h)) return false;
     const cid = h.class_id || h.classId;
-    return cid === currentClass || cid === 'ALL';
+    return cid === currentClass || (cid === 'ALL' && isGrade2Item(h));
   };
 
   // Check if this Block and Week has ANY homework entered for current class

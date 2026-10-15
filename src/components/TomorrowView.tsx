@@ -18,7 +18,8 @@ import {
   WEEK3_SPECIAL_NOTES,
   WEEK4_SPECIAL_NOTES,
   BLOCK2_WEEK1_SPECIAL_NOTES,
-  BLOCK2_WEEK2_SPECIAL_NOTES
+  BLOCK2_WEEK2_SPECIAL_NOTES,
+  isGrade2TomorrowNote
 } from '../utils/tomorrowNotesStorage';
 import initialData from '../data/initialData.json';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
@@ -149,6 +150,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items / quizzes, strictly excluding plain homework)
   const isDisallowedTomorrowItem = (n: TomorrowSpecialNote) => {
     if (!n) return true;
+    if (!isGrade2TomorrowNote(n)) return true;
 
     // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies, Mathematics - French has no tomorrow notes per instructions)
     if (

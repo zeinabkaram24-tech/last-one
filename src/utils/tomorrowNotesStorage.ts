@@ -438,7 +438,63 @@ export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   }
 ];
 
-const LOCAL_CUSTOM_TOMORROW_KEY = 'tomorrow_special_notes_custom_v3';
+const LOCAL_CUSTOM_TOMORROW_KEY = 'nile_g2_tomorrow_special_notes_custom_v4';
+
+export function isGrade2TomorrowNote(n: any): boolean {
+  if (!n) return false;
+  const cid = n.classId || n.class_id;
+  if (cid && !['G2A', 'G2B', 'G2C', 'ALL'].includes(cid)) {
+    return false;
+  }
+  const id = (n.id || '').toLowerCase();
+  if (id.includes('kg') || id.includes('kindergarten') || id.includes('preschool')) {
+    return false;
+  }
+  const text = ((n.title || '') + ' ' + (n.note || '') + ' ' + (n.arabicNote || '') + ' ' + (n.bagItem || '') + ' ' + (n.subject || '')).toLowerCase();
+  if (
+    text.includes('kg') ||
+    text.includes('kindergarten') ||
+    text.includes('preschool') ||
+    text.includes('kg1') ||
+    text.includes('kg2') ||
+    text.includes('روضة') ||
+    text.includes('تمهيدي') ||
+    text.includes('أطفال') ||
+    text.includes('استقبال الأطفال') ||
+    text.includes('كي جي') ||
+    text.includes('show and tell') ||
+    text.includes('اللعبة المفضلة') ||
+    text.includes('jolly phonics') ||
+    text.includes('حرف التاء') ||
+    text.includes('حرف الباء') ||
+    text.includes('حرف الألف') ||
+    text.includes('حرف الثاء') ||
+    text.includes('maisy') ||
+    text.includes('حاسة البصر') ||
+    text.includes('حاسة اللمس') ||
+    text.includes('حاسة الشم') ||
+    text.includes('العدد اثنان') ||
+    text.includes('الرقم 1') ||
+    text.includes('counting 0, 1') ||
+    text.includes('walking walking') ||
+    text.includes('five currant buns') ||
+    text.includes('carpet time') ||
+    text.includes('الروتين اليومي') ||
+    text.includes('القواعد الصفية') ||
+    text.includes('حجرات المدرسة') ||
+    text.includes('آداب الاستئذان') ||
+    text.includes('التحدث مع الطفل بالفصحى') ||
+    text.includes('كراسة الواجب المنزلي')
+  ) {
+    return false;
+  }
+  if (cid === 'ALL') {
+    if (!id.includes('g2') && !id.includes('grade2') && !text.includes('grade 2') && !text.includes('الصف الثاني')) {
+      return false;
+    }
+  }
+  return true;
+}
 
 export function getLocalCustomTomorrowNotes(): TomorrowSpecialNote[] {
   try {
@@ -446,8 +502,8 @@ export function getLocalCustomTomorrowNotes(): TomorrowSpecialNote[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        // Sanitize out any rogue lookahead-w4 or outdated week 3 lookahead notes
-        return parsed.filter(n => !(n.id && (n.id.includes('lookahead-w4') || (n.id.includes('w3') && n.week === 4))));
+        // Sanitize out any rogue lookahead-w4, outdated notes, or non-Grade-2 notes
+        return parsed.filter(n => isGrade2TomorrowNote(n) && !(n.id && (n.id.includes('lookahead-w4') || (n.id.includes('w3') && n.week === 4))));
       }
     }
   } catch {}
@@ -737,22 +793,36 @@ export async function getTomorrowNotesForDay(
       });
     }
 
-    // 2.5 Fetch from Supabase planner_settings (tomorrow_special_notes)
+    // 2.5 Fetch from Supabase planner_settings (g2_tomorrow_special_notes or tomorrow_special_notes)
     try {
-      const { data: psRow } = await supabase
+      let psRowValue: string | null = null;
+      const { data: g2Row } = await supabase
         .from('planner_settings')
         .select('value')
-        .eq('key', 'tomorrow_special_notes')
-        .single();
-      if (psRow && psRow.value) {
-        const parsed = JSON.parse(psRow.value);
+        .eq('key', 'g2_tomorrow_special_notes')
+        .maybeSingle();
+
+      if (g2Row && g2Row.value) {
+        psRowValue = g2Row.value;
+      } else {
+        const { data: fallbackRow } = await supabase
+          .from('planner_settings')
+          .select('value')
+          .eq('key', 'tomorrow_special_notes')
+          .maybeSingle();
+        if (fallbackRow && fallbackRow.value) psRowValue = fallbackRow.value;
+      }
+
+      if (psRowValue) {
+        const parsed = JSON.parse(psRowValue);
         if (Array.isArray(parsed)) {
           parsed.forEach((n: any) => {
             if (
-              (n.classId === classId || n.classId === 'ALL') &&
+              (n.classId === classId || (n.classId === 'ALL' && isGrade2TomorrowNote(n))) &&
               n.targetDay === targetDay &&
               (n.block || 1) === block &&
-              (n.week || 1) === week
+              (n.week || 1) === week &&
+              isGrade2TomorrowNote(n)
             ) {
               dynamicNotes.push({ ...n, isCustom: true });
             }
@@ -769,10 +839,11 @@ export async function getTomorrowNotesForDay(
         if (pData && Array.isArray(pData.tomorrowNotes)) {
           pData.tomorrowNotes.forEach((n: any) => {
             if (
-              (n.classId === classId || n.classId === 'ALL') &&
+              (n.classId === classId || (n.classId === 'ALL' && isGrade2TomorrowNote(n))) &&
               n.targetDay === targetDay &&
               (n.block || 1) === block &&
-              (n.week || 1) === week
+              (n.week || 1) === week &&
+              isGrade2TomorrowNote(n)
             ) {
               dynamicNotes.push({ ...n, isCustom: true });
             }
@@ -784,8 +855,10 @@ export async function getTomorrowNotesForDay(
     // Merge base notes, local custom notes, and dynamic notes
     const map = new Map<string, TomorrowSpecialNote>();
     baseNotes.forEach((n) => {
-      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-      map.set(key, n);
+      if (isGrade2TomorrowNote(n)) {
+        const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+        map.set(key, n);
+      }
     });
 
     localCustom.forEach((n) => {
@@ -793,7 +866,8 @@ export async function getTomorrowNotesForDay(
         (n.classId === classId || (n.classId as any) === 'ALL') &&
         n.targetDay === targetDay &&
         (n.block || 1) === block &&
-        (n.week || 1) === week
+        (n.week || 1) === week &&
+        isGrade2TomorrowNote(n)
       ) {
         const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
         map.set(key, { ...n, isCustom: true });
@@ -801,12 +875,14 @@ export async function getTomorrowNotesForDay(
     });
 
     dynamicNotes.forEach((n) => {
-      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-      map.set(key, n);
+      if (isGrade2TomorrowNote(n)) {
+        const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+        map.set(key, n);
+      }
     });
 
     const deletedIds = await getDeletedTomorrowNoteIds();
-    const merged = Array.from(map.values());
+    const merged = Array.from(map.values()).filter(isGrade2TomorrowNote);
     const filtered = merged.filter((n) => {
       if (isDisallowedMathNote(n)) return false;
 

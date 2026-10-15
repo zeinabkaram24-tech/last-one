@@ -56,6 +56,7 @@ import {
   getLocalCustomClasswork,
   getLocalCustomHomework,
   removeDeletedPlannerItemId,
+  isGrade2Item,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
@@ -117,17 +118,36 @@ const appStorage = {
   }
 };
 
+// Isolated storage keys specifically for Grade 2 to prevent any cross-grade collision with KG
 const STORAGE_KEYS = {
-  CLASS: 'nile_planner_current_class_v3',
-  DAY: 'nile_planner_selected_day_v3',
-  WEEK: 'nile_planner_current_week_v3',
+  CLASS: 'nile_g2_planner_current_class_v4',
+  DAY: 'nile_g2_planner_selected_day_v4',
+  WEEK: 'nile_g2_planner_current_week_v4',
 };
 
+// Clean up any legacy shared keys that might contain contaminated KG data
+try {
+  const legacyCw = appStorage.getItem('nile_planner_custom_classwork_v3') || appStorage.getItem('nile_local_custom_classwork_v3');
+  if (legacyCw && (legacyCw.includes('KG') || legacyCw.includes('kg') || legacyCw.includes('kindergarten') || legacyCw.includes('أطفال'))) {
+    appStorage.removeItem('nile_planner_custom_classwork_v3');
+    appStorage.removeItem('nile_local_custom_classwork_v3');
+  }
+  const legacyHw = appStorage.getItem('nile_planner_custom_homework_v3') || appStorage.getItem('nile_local_custom_homework_v3');
+  if (legacyHw && (legacyHw.includes('KG') || legacyHw.includes('kg') || legacyHw.includes('kindergarten') || legacyHw.includes('أطفال'))) {
+    appStorage.removeItem('nile_planner_custom_homework_v3');
+    appStorage.removeItem('nile_local_custom_homework_v3');
+  }
+  const legacyTn = appStorage.getItem('tomorrow_special_notes_custom_v3');
+  if (legacyTn && (legacyTn.includes('KG') || legacyTn.includes('kg') || legacyTn.includes('kindergarten') || legacyTn.includes('أطفال') || legacyTn.includes('اللعبة المفضلة'))) {
+    appStorage.removeItem('tomorrow_special_notes_custom_v3');
+  }
+} catch {}
+
 function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
-  const cached = getLocalCustomClasswork();
+  const cached = getLocalCustomClasswork().filter(isGrade2Item);
   let deletedSet = new Set<string>();
   try {
-    const raw = appStorage.getItem('nile_deleted_planner_item_ids_v3');
+    const raw = appStorage.getItem('nile_g2_deleted_planner_item_ids_v4') || appStorage.getItem('nile_deleted_planner_item_ids_v3');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) deletedSet = new Set(parsed);
@@ -137,12 +157,12 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
   const map = new Map<string, ClassworkEntry>();
   const baseItems: ClassworkEntry[] = ((initialData && Array.isArray((initialData as any).classwork)) ? (initialData as any).classwork : INITIAL_CLASSWORK);
   baseItems.forEach((c) => {
-    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+    if (c && c.id && !deletedSet.has(c.id) && isGrade2Item(c)) map.set(c.id, c);
   });
   (cached || []).forEach((c) => {
-    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+    if (c && c.id && !deletedSet.has(c.id) && isGrade2Item(c)) map.set(c.id, c);
   });
-  const source = Array.from(map.values());
+  const source = Array.from(map.values()).filter(isGrade2Item);
 
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
@@ -161,10 +181,10 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
 }
 
 function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
-  const cached = getLocalCustomHomework();
+  const cached = getLocalCustomHomework().filter(isGrade2Item);
   let deletedSet = new Set<string>();
   try {
-    const raw = appStorage.getItem('nile_deleted_planner_item_ids_v3');
+    const raw = appStorage.getItem('nile_g2_deleted_planner_item_ids_v4') || appStorage.getItem('nile_deleted_planner_item_ids_v3');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) deletedSet = new Set(parsed);
@@ -174,12 +194,12 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
   const map = new Map<string, HomeworkEntry>();
   const baseItems: HomeworkEntry[] = ((initialData && Array.isArray((initialData as any).homework)) ? (initialData as any).homework : INITIAL_HOMEWORK);
   baseItems.forEach((h) => {
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+    if (h && h.id && !deletedSet.has(h.id) && isGrade2Item(h)) map.set(h.id, h);
   });
   (cached || []).forEach((h) => {
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+    if (h && h.id && !deletedSet.has(h.id) && isGrade2Item(h)) map.set(h.id, h);
   });
-  const source = Array.from(map.values());
+  const source = Array.from(map.values()).filter(isGrade2Item);
 
   if (profile?.mode === 'student' && profile.studentName) {
     const progress = getStudentProgress(profile.studentName);
@@ -421,6 +441,7 @@ export default function App() {
   useEffect(() => {
     appStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
     if (isSupabaseConfigured) {
+      savePlannerSetting('g2_current_class', currentClass);
       savePlannerSetting('current_class', currentClass);
     }
   }, [currentClass]);
@@ -428,14 +449,14 @@ export default function App() {
   useEffect(() => {
     appStorage.setItem(STORAGE_KEYS.WEEK, String(currentWeek));
     if (isSupabaseConfigured) {
-      savePlannerSetting('current_week', String(currentWeek));
+      savePlannerSetting('g2_current_week', String(currentWeek));
     }
   }, [currentWeek]);
 
   useEffect(() => {
     appStorage.setItem(STORAGE_KEYS.DAY, selectedDay);
     if (isSupabaseConfigured) {
-      savePlannerSetting('selected_day', selectedDay);
+      savePlannerSetting('g2_selected_day', selectedDay);
     }
   }, [selectedDay]);
 
@@ -492,7 +513,7 @@ export default function App() {
         if (cwData && cwData.length > 0) {
           const uniqueCwMap = new Map<string, ClassworkEntry>();
           cwData.forEach((c) => uniqueCwMap.set(c.id, c));
-          const dedupedCw = Array.from(uniqueCwMap.values());
+          const dedupedCw = Array.from(uniqueCwMap.values()).filter(isGrade2Item);
 
           if (profile?.mode === 'student' && profile.studentName) {
             const cwSet = new Set(progress ? progress.completedClassworkIds : []);
@@ -508,7 +529,7 @@ export default function App() {
         if (hwData && hwData.length > 0) {
           const uniqueHwMap = new Map<string, HomeworkEntry>();
           hwData.forEach((h) => uniqueHwMap.set(h.id, h));
-          const dedupedHw = Array.from(uniqueHwMap.values());
+          const dedupedHw = Array.from(uniqueHwMap.values()).filter(isGrade2Item);
 
           const normalizedHw = dedupedHw.map((h) => {
             if (
@@ -540,27 +561,31 @@ export default function App() {
 
         // Apply settings if found in DB only if user has no local choice saved
         const localClass = appStorage.getItem(STORAGE_KEYS.CLASS);
+        const resolvedDbClass = settings.g2_current_class || settings.current_class;
         if (
           !localClass &&
-          settings.current_class &&
-          (settings.current_class === 'G2A' || settings.current_class === 'G2B' || settings.current_class === 'G2C')
+          resolvedDbClass &&
+          (resolvedDbClass === 'G2A' || resolvedDbClass === 'G2B' || resolvedDbClass === 'G2C')
         ) {
-          setCurrentClass(settings.current_class as ClassId);
+          setCurrentClass(resolvedDbClass as ClassId);
         }
         const localWeek = appStorage.getItem(STORAGE_KEYS.WEEK);
-        if (!localWeek && settings.current_week) {
-          setCurrentWeek(Number(settings.current_week) || 3);
+        const resolvedDbWeek = settings.g2_current_week || settings.current_week;
+        if (!localWeek && resolvedDbWeek) {
+          setCurrentWeek(Number(resolvedDbWeek) || 1);
         }
         const localDay = appStorage.getItem(STORAGE_KEYS.DAY);
-        if (!localDay && settings.selected_day) {
+        const resolvedDbDay = settings.g2_selected_day || settings.selected_day;
+        if (!localDay && resolvedDbDay) {
           const validDays: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
-          if (validDays.includes(settings.selected_day as SchoolDay)) {
-            setSelectedDay(settings.selected_day as SchoolDay);
+          if (validDays.includes(resolvedDbDay as SchoolDay)) {
+            setSelectedDay(resolvedDbDay as SchoolDay);
           }
         }
         const localBlock = appStorage.getItem('nile_planner_block');
-        if (!localBlock && settings.current_block) {
-          setCurrentBlock(Number(settings.current_block) || 1);
+        const resolvedDbBlock = settings.g2_current_block || settings.current_block;
+        if (!localBlock && resolvedDbBlock) {
+          setCurrentBlock(Number(resolvedDbBlock) || 2);
         }
 
         if (isSupabaseConfigured) {
@@ -595,7 +620,7 @@ export default function App() {
           if (cwData && cwData.length > 0 && isMounted) {
             const uniqueCwMap = new Map<string, ClassworkEntry>();
             cwData.forEach((c) => uniqueCwMap.set(c.id, c));
-            const dedupedCw = Array.from(uniqueCwMap.values());
+            const dedupedCw = Array.from(uniqueCwMap.values()).filter(isGrade2Item);
             const profile = getActiveUserProfile();
             const progress = profile?.mode === 'student' && profile.studentName
               ? getStudentProgress(profile.studentName)
@@ -607,7 +632,7 @@ export default function App() {
           if (hwData && hwData.length > 0 && isMounted) {
             const uniqueHwMap = new Map<string, HomeworkEntry>();
             hwData.forEach((h) => uniqueHwMap.set(h.id, h));
-            const dedupedHw = Array.from(uniqueHwMap.values());
+            const dedupedHw = Array.from(uniqueHwMap.values()).filter(isGrade2Item);
             const profile = getActiveUserProfile();
             const progress = profile?.mode === 'student' && profile.studentName
               ? getStudentProgress(profile.studentName)
@@ -670,11 +695,11 @@ export default function App() {
       } catch {}
     }
 
-    // 3. Inter-Tab BroadcastChannel (Sync across tabs on same device)
+    // 3. Inter-Tab BroadcastChannel (Sync across tabs on same device) - Namespaced for Grade 2
     let bc: BroadcastChannel | null = null;
     try {
       if (typeof BroadcastChannel !== 'undefined') {
-        bc = new BroadcastChannel('nile_planner_live_sync');
+        bc = new BroadcastChannel('nile_g2_planner_live_sync');
         bc.onmessage = (ev) => {
           if (ev.data === 'sync') {
             performLiveSync();
