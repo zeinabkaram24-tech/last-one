@@ -437,7 +437,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                             </a>
                           </div>
                         )}
-                        {cwEntry.pdfUrl && cwEntry.subject !== 'Mathematics' && (
+                        {cwEntry.pdfUrl && cwEntry.subject !== 'Mathematics' && cwEntry.subject !== 'Social Studies' && (
                           <div className="pt-2">
                             <AttachmentPdfCard
                               pdfUrl={cwEntry.pdfUrl}

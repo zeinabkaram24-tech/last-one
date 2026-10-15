@@ -17,8 +17,10 @@ import {
   saveDeletedTomorrowNoteId,
   WEEK3_SPECIAL_NOTES,
   WEEK4_SPECIAL_NOTES,
-  BLOCK2_WEEK1_SPECIAL_NOTES
+  BLOCK2_WEEK1_SPECIAL_NOTES,
+  BLOCK2_WEEK2_SPECIAL_NOTES
 } from '../utils/tomorrowNotesStorage';
+import initialData from '../data/initialData.json';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
 
 const OBSOLETE_DELETED_TOMORROW_IDS = new Set([
@@ -159,6 +161,22 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       n.subject !== 'Math'
     ) {
       return true; // Disallow un-uploaded subjects (and French) for Block 2
+    }
+
+    // Strict User Mandate for Social Studies in Block 2 Week 2:
+    // "وخد بالك ان التومورو والهوم وورك بتاع كلاس A وكلاس C يوم السبت بس. والتومورو والهوم وورك بتاع كلاس B يوم الأحد بس. تمام؟ وما يبقاش بأي شيت مرفق، يعني ما ترفقليش أي شيت خالص."
+    if (
+      (currentBlock === 2 || (n as any).block === 2) &&
+      (currentWeek === 2 || (n as any).week === 2) &&
+      n.subject === 'Social Studies'
+    ) {
+      if ((currentClass === 'G2A' || (n as any).classId === 'G2A' || currentClass === 'G2C' || (n as any).classId === 'G2C') && selectedDay === 'Saturday') {
+        return false; // Allowed only on Saturday
+      }
+      if ((currentClass === 'G2B' || (n as any).classId === 'G2B') && selectedDay === 'Sunday') {
+        return false; // Allowed only on Sunday
+      }
+      return true; // Disallowed on all other days!
     }
 
     // Strict User Mandate for Social Studies in Block 2 Week 1 & Block 1 Week 5:
@@ -625,7 +643,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
     const base =
-      currentBlock === 2 && (currentWeek === 1 || effectiveWeek === 1)
+      currentBlock === 2 && (currentWeek === 2 || effectiveWeek === 2)
+        ? BLOCK2_WEEK2_SPECIAL_NOTES.filter(
+            (n) =>
+              (n.classId === currentClass || (n.classId as any) === 'ALL') &&
+              n.targetDay === tomorrowDay
+          )
+        : currentBlock === 2 && (currentWeek === 1 || effectiveWeek === 1)
         ? BLOCK2_WEEK1_SPECIAL_NOTES.filter(
             (n) =>
               (n.classId === currentClass || (n.classId as any) === 'ALL') &&
@@ -934,6 +958,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       // B) Due for submission tomorrow - STRICT USER MANDATE: ONLY for Social Studies and Science
       else if (h.dueDay === tomorrowDay && (h.subject === 'Social Studies' || h.subject === 'Science')) {
         const isSocial = h.subject === 'Social Studies';
+        const isB2W2Social = isSocial && currentBlock === 2 && currentWeek === 2;
+        if (isB2W2Social) {
+          if ((currentClass === 'G2A' || currentClass === 'G2C') && selectedDay !== 'Saturday') return;
+          if (currentClass === 'G2B' && selectedDay !== 'Sunday') return;
+        }
         const socialTitle = h.task || 'Social Studies Grade 2 B1 Week 5 U1 Homework 5';
         const socialArabic = h.details || 'Social Studies Grade 2 B1 Week 5 U1 Homework 5 (تسليم يوم الاثنين)';
         const socialBagItem = h.pages || 'Social Studies Grade 2 B1 Week 5 U1 Homework 5';
@@ -949,7 +978,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
-          pdfUrl: (selectedDay === 'Thursday' && h.subject === 'Social Studies') ? undefined : (h.pdfUrl || '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf'),
+          pdfUrl: (selectedDay === 'Thursday' && h.subject === 'Social Studies') ? undefined : (h.pdfUrl || (isB2W2Social ? '/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf' : '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf')),
         });
       }
     });
@@ -1090,15 +1119,15 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           targetDay: 'Sunday',
           subject: 'Social Studies',
           period: currentClass === 'G2A' ? 2 : 7,
-          title: 'شيت واجب الدراسات الاجتماعية',
-          note: 'تسليم شيت واجب الدراسات الاجتماعية المرفق (PDF)',
-          arabicNote: 'تسليم شيت واجب الدراسات الاجتماعية المرفق بالتنسيق الأصلي',
+          title: '🌍 شيت واجب الدراسات الاجتماعية - الاتجاهات الأصلية',
+          note: 'درس: الاتجاهات الأصلية ووردة البوصلة',
+          arabicNote: 'تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق (الاتجاهات الأصلية ووردة البوصلة) وإحضاره للتسليم في الحصة غداً الأحد.',
           bagItem: 'شيت واجب الدراسات الاجتماعية',
           isQuiz: false,
           categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
-          pdfUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf?v=b2w1',
+          pdfUrl: '/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf',
         }, true);
       } else if (currentClass === 'G2B' && selectedDay === 'Sunday') {
         addOrMergeNote({
@@ -1107,15 +1136,55 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           targetDay: 'Monday',
           subject: 'Social Studies',
           period: 1,
-          title: 'شيت واجب الدراسات الاجتماعية',
-          note: 'تسليم شيت واجب الدراسات الاجتماعية المرفق (PDF)',
-          arabicNote: 'تسليم شيت واجب الدراسات الاجتماعية المرفق بالتنسيق الأصلي',
+          title: '🌍 شيت واجب الدراسات الاجتماعية - الاتجاهات الأصلية',
+          note: 'درس: الاتجاهات الأصلية ووردة البوصلة',
+          arabicNote: 'تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق (الاتجاهات الأصلية ووردة البوصلة) وإحضاره للتسليم في الحصة الأولى غداً الإثنين.',
           bagItem: 'شيت واجب الدراسات الاجتماعية',
           isQuiz: false,
           categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
-          pdfUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf?v=b2w1',
+          pdfUrl: '/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf',
+        }, true);
+      }
+    }
+
+    // Explicit guaranteed injection for Social Studies in Block 2 Week 2:
+    // User mandate: "اعمل إرفاق للشيت ده في كل التاسكات بتاعة السوشيال بتاعة الهوم ورك والتمورو فقط، ما تعملش في الكلاس ورك."
+    if (currentBlock === 2 && currentWeek === 2) {
+      if ((currentClass === 'G2A' || currentClass === 'G2C') && selectedDay === 'Saturday') {
+        addOrMergeNote({
+          id: `tn-b2-w2-social-sheet-${currentClass}-Sunday`,
+          classId: currentClass,
+          targetDay: 'Sunday',
+          subject: 'Social Studies',
+          period: currentClass === 'G2A' ? 2 : 7,
+          title: '🌍 شيت واجب الدراسات الاجتماعية - الاتجاهات الأصلية',
+          note: 'درس: الاتجاهات الأصلية ووردة البوصلة',
+          arabicNote: 'تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf (الاتجاهات الأصلية ووردة البوصلة) وإحضاره للتسليم في الحصة غداً الأحد.',
+          bagItem: 'شيت واجب الدراسات الاجتماعية',
+          isQuiz: false,
+          categoryType: 'note',
+          block: 2,
+          week: 2,
+          pdfUrl: '/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf',
+        }, true);
+      } else if (currentClass === 'G2B' && selectedDay === 'Sunday') {
+        addOrMergeNote({
+          id: 'tn-b2-w2-social-sheet-G2B-Monday',
+          classId: 'G2B',
+          targetDay: 'Monday',
+          subject: 'Social Studies',
+          period: 1,
+          title: '🌍 شيت واجب الدراسات الاجتماعية - الاتجاهات الأصلية',
+          note: 'درس: الاتجاهات الأصلية ووردة البوصلة',
+          arabicNote: 'تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf (الاتجاهات الأصلية ووردة البوصلة) وإحضاره للتسليم في الحصة الأولى غداً الإثنين.',
+          bagItem: 'شيت واجب الدراسات الاجتماعية',
+          isQuiz: false,
+          categoryType: 'note',
+          block: 2,
+          week: 2,
+          pdfUrl: '/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf',
         }, true);
       }
     }

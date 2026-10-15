@@ -324,71 +324,55 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
-// Resolve a MaterialItem from a given URL or file name (supports Social Studies homework sheets and other attached documents)
+// Resolve a MaterialItem from a given URL or file name cleanly without unwanted cross-linking
 export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): MaterialItem {
   const all = getFallbackMaterials();
-  const lower = (urlOrName || '').toLowerCase();
 
-  // If specific URL or name matches known stored materials
+  // 1. If specific URL or name matches known stored materials
   if (urlOrName) {
     const found = all.find(
       (m) =>
         m.storageUrl === urlOrName ||
         m.linkUrl === urlOrName ||
-        (m.fileName && urlOrName.includes(m.fileName))
+        (m.fileName && urlOrName.includes(m.fileName)) ||
+        (m.storageUrl && m.storageUrl.includes(urlOrName))
     );
     if (found) return found;
   }
 
-  // Social Studies Worksheet / Homework (The exact school PDF file, unlinked and unmodified)
-  if (
-    lower.includes('social') ||
-    lower.includes('سوشيال') ||
-    lower.includes('دراسات') ||
-    (defaultTitle && (
-      defaultTitle.toLowerCase().includes('سوشيال') ||
-      defaultTitle.toLowerCase().includes('دراسات') ||
-      defaultTitle.toLowerCase().includes('social')
-    ))
-  ) {
+  // 2. If urlOrName is provided, extract its exact clean file name without rewriting or coupling
+  if (urlOrName) {
+    const rawName = urlOrName.split('/').pop()?.split('?')[0] || defaultTitle || 'ملف مرفق';
+    let cleanName = rawName;
+    try {
+      cleanName = decodeURIComponent(rawName);
+    } catch {}
+
+    const isHtml = cleanName.endsWith('.html') || urlOrName.endsWith('.html');
     return {
-      id: 'mat_social_studies_b1_w5_u1_hw5',
-      fileName: 'SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf',
+      id: `mat-${cleanName.replace(/[^a-zA-Z0-9_-]/g, '_')}`,
+      fileName: cleanName,
       fileSize: 599624,
       block: 2,
-      section: 'Week 1',
+      section: 'Materials',
       classId: 'ALL',
-      type: 'pdf',
-      storageUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf?v=b2w1',
-      uploadedAt: '2026-10-11T08:00:00.000Z',
-    };
-  }
-
-  if (urlOrName) {
-    const extractedName = defaultTitle || urlOrName.split('/').pop()?.split('?')[0] || 'ملف مرفق';
-    return {
-      id: `mat-${Math.random().toString(36).slice(2, 8)}`,
-      fileName: extractedName,
-      fileSize: 450000,
-      block: 1,
-      section: 'Week 4',
-      classId: 'ALL',
-      type: 'pdf',
+      type: isHtml ? 'html' : 'pdf',
       storageUrl: urlOrName,
       uploadedAt: new Date().toISOString(),
     };
   }
 
+  // 3. Fallback directly to the exact user provided sheet
   return {
-    id: 'mat_social_studies_b1_w5_u1_hw5',
-    fileName: 'SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf',
+    id: 'mat_social_studies_user_sheet',
+    fileName: 'SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf',
     fileSize: 599624,
     block: 2,
-    section: 'Week 1',
+    section: 'Social Studies',
     classId: 'ALL',
     type: 'pdf',
-    storageUrl: '/materials/SocialStudies-Grade2-B1-W5-U1-HomeWork5 - Extra- (Minia).pdf?v=b2w1',
-    uploadedAt: '2026-10-11T08:00:00.000Z',
+    storageUrl: '/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf',
+    uploadedAt: '2026-10-15T06:00:00.000Z',
   };
 }
 
