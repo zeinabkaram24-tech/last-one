@@ -239,10 +239,10 @@ export default function App() {
     return saved ? Number(saved) : 2;
   });
 
-  // Current Week (1, 2, 3, 4) - Default to Week 1
+  // Current Week (1, 2, 3, 4, 5) - Default to Week 2
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = appStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 1;
+    return saved ? Number(saved) : 2;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
@@ -720,12 +720,8 @@ export default function App() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleWindowFocus);
 
-    // 5. Periodic Silent Background Polling (Every 20s for absolute WhatsApp-style sync reliability across devices)
-    const pollInterval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        performLiveSync();
-      }
-    }, 20000);
+    // Periodic polling disabled to prevent UI blinking / disappearing items
+    const pollInterval = null as any;
 
     return () => {
       isMounted = false;
@@ -1445,13 +1441,7 @@ export default function App() {
               </button>
             )}
 
-            <button
-              onClick={() => setIsPlanModalOpen(true)}
-              className="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1.5 transition-colors"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              Smart Plan Classifier
-            </button>
+
             <button
               onClick={handleResetToDefaults}
               className="text-slate-500 hover:text-slate-800 inline-flex items-center gap-1"

@@ -118,8 +118,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           (c.week || 1) === currentWeek &&
           !c.id?.startsWith('tomorrow-') &&
           !c.id?.startsWith('tn-') &&
-          !c.id?.startsWith('custom-') &&
-          Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
+          !c.id?.startsWith('custom-')
       ) ||
       classworkList.find(
         (c) =>
@@ -130,8 +129,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           (c.week || 1) === currentWeek &&
           !c.id?.startsWith('tomorrow-') &&
           !c.id?.startsWith('tn-') &&
-          !c.id?.startsWith('custom-') &&
-          Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
+          !c.id?.startsWith('custom-')
       )
     );
   };
@@ -145,9 +143,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       (c.week || 1) === currentWeek &&
       !c.id?.startsWith('tomorrow-') &&
       !c.id?.startsWith('tn-') &&
-      !c.id?.startsWith('custom-') &&
-      (currentBlock !== 2 || c.subject === 'English' || c.subject === 'Arabic' || c.subject === 'French' || c.subject === 'Science' || c.subject === 'Social Studies' || c.subject === 'ICT' || c.subject === 'Mathematics' || c.subject === 'Math') &&
-      Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
+      !c.id?.startsWith('custom-')
   );
 
   // Deduplicate entries by ID AND content-level (subject + title) to protect against any data-level duplicates
@@ -166,22 +162,31 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   });
   const availableClasswork = Array.from(uniqueClassworkMap.values());
 
-  // STRICT USER RULE: Only display periods that actually have educational content in the weekly plan!
-  // "اتفقنا قبل كده ان الحصص اللي ما يتذكرلهاش أي بيانات أو ما يبقاش ليها ويكلابان ما تنزلش، الحاجات اللي ليها محتوى بس هي اللي تنزل في الكلاس وورك."
-  // 1-to-1 matching to prevent duplicate card claims across timetable periods
+  // STRICT RULE: Only display periods that actually have educational content in the weekly plan!
+  // Exclude PE, Music, Arts as agreed, and require actual plan data with page numbers/titles.
+  const excludedSubjects = ['PE', 'Music', 'Arts', 'Physical Education'];
+  
   const matchedCwIds = new Set<string>();
   const activeTimetablePeriods: GroupedPeriodSlot[] = [];
 
   for (const slot of timetablePeriods) {
-    // 1. Match by exact period AND subject
+    if (excludedSubjects.includes(slot.subject)) continue;
+
+    // Find valid classwork entry for this slot that has real content (title or pages)
     let matched = availableClasswork.find(
-      (c) => !matchedCwIds.has(c.id) && c.subject === slot.subject && slot.periods.includes(c.period)
+      (c) =>
+        !matchedCwIds.has(c.id) &&
+        c.subject === slot.subject &&
+        (slot.periods.includes(c.period) || c.day === selectedDay) &&
+        Boolean((c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim())) || (c.pages && c.pages.trim().length > 0))
     );
 
-    // 2. If no exact period match for this subject, match by subject only
     if (!matched) {
       matched = availableClasswork.find(
-        (c) => !matchedCwIds.has(c.id) && c.subject === slot.subject
+        (c) =>
+          !matchedCwIds.has(c.id) &&
+          c.subject === slot.subject &&
+          Boolean((c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim())) || (c.pages && c.pages.trim().length > 0))
       );
     }
 
