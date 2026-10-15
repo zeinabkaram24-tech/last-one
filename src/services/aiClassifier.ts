@@ -557,7 +557,7 @@ export function fallbackClientParser(
       }
     }
 
-    const pageMatch = line.match(/(p.\s*\d+(?:-\d+)?|page\s*\d+(?:-\d+)?|ص\s*\d+(?:-\d+)?|صفحة\s*\d+(?:-\d+)?)/i); const pages = pageMatch ? pageMatch[0] : undefined; const isHw = /hw|homework|الواجب|الواجب المنزلي|devoir|h\.w/i.test(line);
+    const isHw = /hw|homework|الواجب|الواجب المنزلي|devoir|h\.w/i.test(line);
     const isCw = /cw|classwork|أعمال الفصل|الصف|الحصة|درس|c\.w/i.test(line);
     const clean = line.replace(/^(hw|cw|h\.w|c\.w|homework|classwork|الواجب|الواجب المنزلي|أعمال الفصل|الحصة)[:\-–\s]*/i, '').trim();
     const urlMatch = line.match(urlRegex);
@@ -585,7 +585,6 @@ export function fallbackClientParser(
           dueDay: currentDay === 'Thursday' ? 'Sunday' : 'Monday',
           subject: currentSubject as any,
           task: clean || line,
-          pages: pages,
           completed: false,
           priority: isTest ? 'urgent' : 'normal',
           linkUrl: urlMatch ? urlMatch[1] : undefined,
@@ -621,7 +620,6 @@ export function fallbackClientParser(
           period: resolvedPeriod,
           subject: currentSubject as any,
           title: clean,
-          pages: pages,
           completed: false,
           linkUrl: urlMatch ? urlMatch[1] : undefined,
           linkTitle: urlMatch ? (currentSubject === 'French' ? 'Lien Kahoot / Activité 🔗' : 'رابط الدرس 🔗') : undefined,

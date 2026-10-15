@@ -7962,42 +7962,6 @@
       "completed": false,
       "block": 2,
       "week": 2
-    },
-    {
-      "id": "cw-b2-w2-G2A-sci",
-      "classId": "G2A",
-      "day": "Monday",
-      "period": 5,
-      "subject": "Science",
-      "title": "Science Lesson",
-      "details": "Science lesson content",
-      "block": 2,
-      "week": 2,
-      "class_id": "G2A"
-    },
-    {
-      "id": "cw-b2-w2-G2B-sci",
-      "classId": "G2B",
-      "day": "Wednesday",
-      "period": 5,
-      "subject": "Science",
-      "title": "Science Lesson",
-      "details": "Science lesson content",
-      "block": 2,
-      "week": 2,
-      "class_id": "G2B"
-    },
-    {
-      "id": "cw-b2-w2-G2C-sci",
-      "classId": "G2C",
-      "day": "Monday",
-      "period": 5,
-      "subject": "Science",
-      "title": "Science Lesson",
-      "details": "Science lesson content",
-      "block": 2,
-      "week": 2,
-      "class_id": "G2C"
     }
   ],
   "homework": [
@@ -11794,42 +11758,6 @@
       "block": 2,
       "week": 2,
       "isLinkTask": false
-    },
-    {
-      "id": "hw-b2-w2-G2A-sci",
-      "classId": "G2A",
-      "assignedDay": "Monday",
-      "dueDay": "Monday",
-      "subject": "Science",
-      "task": "Page 20",
-      "details": "Page 20",
-      "block": 2,
-      "week": 2,
-      "class_id": "G2A"
-    },
-    {
-      "id": "hw-b2-w2-G2C-sci",
-      "classId": "G2C",
-      "assignedDay": "Monday",
-      "dueDay": "Monday",
-      "subject": "Science",
-      "task": "Page 20",
-      "details": "Page 20",
-      "block": 2,
-      "week": 2,
-      "class_id": "G2C"
-    },
-    {
-      "id": "hw-b2-w2-G2B-sci",
-      "classId": "G2B",
-      "assignedDay": "Wednesday",
-      "dueDay": "Wednesday",
-      "subject": "Science",
-      "task": "Extra worksheet",
-      "details": "Extra worksheet",
-      "block": 2,
-      "week": 2,
-      "class_id": "G2B"
     }
   ],
   "tomorrowNotes": [

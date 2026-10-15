@@ -118,7 +118,8 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           (c.week || 1) === currentWeek &&
           !c.id?.startsWith('tomorrow-') &&
           !c.id?.startsWith('tn-') &&
-          !c.id?.startsWith('custom-')
+          !c.id?.startsWith('custom-') &&
+          Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
       ) ||
       classworkList.find(
         (c) =>
@@ -129,7 +130,8 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           (c.week || 1) === currentWeek &&
           !c.id?.startsWith('tomorrow-') &&
           !c.id?.startsWith('tn-') &&
-          !c.id?.startsWith('custom-')
+          !c.id?.startsWith('custom-') &&
+          Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
       )
     );
   };
@@ -143,7 +145,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       (c.week || 1) === currentWeek &&
       !c.id?.startsWith('tomorrow-') &&
       !c.id?.startsWith('tn-') &&
-      !c.id?.startsWith('custom-')
+      !c.id?.startsWith('custom-') &&
+      (currentBlock !== 2 || c.subject === 'English' || c.subject === 'Arabic' || c.subject === 'French' || c.subject === 'Science' || c.subject === 'Social Studies' || c.subject === 'ICT' || c.subject === 'Mathematics' || c.subject === 'Math') &&
+      Boolean(c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim()))
   );
 
   // Deduplicate entries by ID AND content-level (subject + title) to protect against any data-level duplicates

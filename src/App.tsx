@@ -1445,7 +1445,13 @@ export default function App() {
               </button>
             )}
 
-
+            <button
+              onClick={() => setIsPlanModalOpen(true)}
+              className="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1.5 transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Smart Plan Classifier
+            </button>
             <button
               onClick={handleResetToDefaults}
               className="text-slate-500 hover:text-slate-800 inline-flex items-center gap-1"
