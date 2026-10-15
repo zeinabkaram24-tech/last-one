@@ -14,6 +14,7 @@ import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
+import { AttachmentPdfCard } from './AttachmentPdfCard';
 
 interface ClassworkViewProps {
   currentClass: ClassId;
@@ -438,15 +439,11 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                         )}
                         {cwEntry.pdfUrl && cwEntry.subject !== 'Mathematics' && (
                           <div className="pt-2">
-                            <a
-                              href={cwEntry.pdfUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-rose-50 text-rose-950 border border-rose-300 hover:bg-rose-100 transition-all shadow-2xs"
-                            >
-                              <BookOpen className="w-3.5 h-3.5 text-rose-700" />
-                              <span>📄 تحميل شيت الحصة (PDF)</span>
-                            </a>
+                            <AttachmentPdfCard
+                              pdfUrl={cwEntry.pdfUrl}
+                              subject={cwEntry.subject}
+                              label="مرفق شيت الحصة"
+                            />
                           </div>
                         )}
                       </div>
