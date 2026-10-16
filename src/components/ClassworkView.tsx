@@ -105,6 +105,18 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     }
   }
 
+  const isMatchingSubject = (cwSubject?: string, slotSubject?: string) => {
+    if (!cwSubject || !slotSubject) return false;
+    if (cwSubject === slotSubject) return true;
+    if (
+      (slotSubject === 'Mathematics' || slotSubject === 'Math') &&
+      (cwSubject === 'Math' || cwSubject === 'Mathematics')
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   // Helper to find valid classwork entry with actual educational content
   const getCwEntryForSlot = (slot: GroupedPeriodSlot): ClassworkEntry | undefined => {
     if (slot.cwEntry) return slot.cwEntry;
@@ -124,7 +136,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
         (c) =>
           matchesClass(c) &&
           c.day === selectedDay &&
-          c.subject === slot.subject &&
+          isMatchingSubject(c.subject, slot.subject) &&
           (c.block || 1) === currentBlock &&
           (c.week || 1) === currentWeek &&
           !c.id?.startsWith('tomorrow-') &&
@@ -176,7 +188,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     let matched = availableClasswork.find(
       (c) =>
         !matchedCwIds.has(c.id) &&
-        c.subject === slot.subject &&
+        isMatchingSubject(c.subject, slot.subject) &&
         (slot.periods.includes(c.period) || c.day === selectedDay) &&
         Boolean((c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim())) || (c.pages && c.pages.trim().length > 0))
     );
@@ -185,7 +197,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       matched = availableClasswork.find(
         (c) =>
           !matchedCwIds.has(c.id) &&
-          c.subject === slot.subject &&
+          isMatchingSubject(c.subject, slot.subject) &&
           Boolean((c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim())) || (c.pages && c.pages.trim().length > 0))
       );
     }
