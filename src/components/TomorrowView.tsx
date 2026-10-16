@@ -152,7 +152,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (!n) return true;
     if (!isGrade2TomorrowNote(n)) return true;
 
-    // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies, Mathematics - French has no tomorrow notes per instructions)
+    // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies, Mathematics, ICT - French has no tomorrow notes per instructions)
     if (
       (currentBlock === 2 || (n as any).block === 2) &&
       n.subject !== 'English' &&
@@ -160,7 +160,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       n.subject !== 'Science' &&
       n.subject !== 'Social Studies' &&
       n.subject !== 'Mathematics' &&
-      n.subject !== 'Math'
+      n.subject !== 'Math' &&
+      n.subject !== 'ICT'
     ) {
       return true; // Disallow un-uploaded subjects (and French) for Block 2
     }
