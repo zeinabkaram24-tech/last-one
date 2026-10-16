@@ -4,51 +4,50 @@ const plannerData = JSON.parse(fs.readFileSync(plannerPath, 'utf8'));
 
 const w = 2; // Week 2
 const b = 2; // Block 2
-const classes = ['G2A', 'G2B', 'G2C'];
+const classes = ['G2A', 'G2B', 'G2C']; 
 
 const newClasswork = [];
 const newHomework = [];
 const newTomorrowNotes = [];
 
-const mathData = [
-    { day: 'Sunday', date: '18/10/2026', unit: 'unit 5 multiplication and division', title: 'Test your self', classwork: 'Maths-Grade2-B2-All-Sheet2 - Main', homework: null },
-    { day: 'Monday', date: '19/10/2026', unit: 'unit 6 fraction', title: 'Lesson 1 Fractions', classwork: 'Maths-Grade2-B2-All-Sheet2 - Main', homework: null },
-    { day: 'Tuesday', date: '20/10/2026', unit: 'unit 6 fractions', title: 'Lesson 2 Fractions of a number', classwork: 'Maths-Grade2-B2-All-Sheet2 - Main', homework: 'Page 97' },
-    { day: 'Wednesday', date: '21/10/2026', unit: 'unit 6 fractions', title: 'Test your self', classwork: 'Maths-Grade2-B2-All-Sheet2 - Main', homework: 'Page 98' },
-    { day: 'Thursday', date: '22/10/2026', unit: 'unit 7 measuring length and time', title: 'Lesson 1 Measuring length', classwork: 'Maths-Grade2-B2-All-Sheet2 - Main', homework: 'Page 100' }
-];
-
 classes.forEach(cls => {
-    mathData.forEach((item, index) => {
-        // Classwork
+    // 1. Classwork & Homework setup
+    const plan = [
+        { day: 'Sunday', unit: 'unit 5 multiplication and division', title: 'Test your self', cw: 'Maths-Grade2-B2-All-Sheet2 - Main', hw: null },
+        { day: 'Monday', unit: 'unit 6 fraction', title: 'Lesson 1 Fractions', cw: 'Maths-Grade2-B2-All-Sheet2 - Main', hw: null },
+        { day: 'Tuesday', unit: 'unit 6 fractions', title: 'Lesson 2 Fractions of a number', cw: 'Maths-Grade2-B2-All-Sheet2 - Main', hw: 'Page 97' },
+        { day: 'Wednesday', unit: 'unit 6 fractions', title: 'Test your self', cw: 'Maths-Grade2-B2-All-Sheet2 - Main', hw: 'Page 98' },
+        { day: 'Thursday', unit: 'unit 7 measuring length and time', title: 'Lesson 1 Measuring length', cw: 'Maths-Grade2-B2-All-Sheet2 - Main', hw: 'Page 100' },
+    ];
+
+    plan.forEach((item, index) => {
+        const idSuffix = `${cls}-${item.day}`;
+        
+        // Add Classwork
         newClasswork.push({
-            id: `cw-b${b}-w${w}-${cls}-${item.day}-math`,
+            id: `cw-b${b}-w${w}-${idSuffix}-math`,
             classId: cls,
             day: item.day,
             subject: 'Math',
-            title: item.title,
-            details: `Unit: ${item.unit}`,
-            pages: item.classwork,
+            title: `${item.unit}: ${item.title}`,
+            details: `Unit: ${item.unit} - Topic: ${item.title}`,
+            pages: item.cw,
             completed: false,
             block: b,
             week: w,
             class_id: cls,
         });
 
-        // Homework
-        if (item.homework) {
-            const prevDayIndex = index - 1;
-            const assignedDay = prevDayIndex >= 0 ? mathData[prevDayIndex].day : item.day;
-            
+        // Add Homework
+        if (item.hw) {
             newHomework.push({
-                id: `hw-b${b}-w${w}-${cls}-${item.day}-math`,
+                id: `hw-b${b}-w${w}-${idSuffix}-math`,
                 classId: cls,
-                assignedDay: assignedDay,
-                dueDay: item.day,
+                assignedDay: item.day,
                 subject: 'Math',
-                task: `Solve: ${item.homework}`,
-                details: `Unit: ${item.unit}`,
-                pages: item.homework,
+                task: `حل ${item.hw}`,
+                details: `Unit: ${item.unit} - Topic: ${item.title} - ${item.hw}`,
+                pages: item.hw,
                 completed: false,
                 priority: 'normal',
                 block: b,
@@ -57,17 +56,22 @@ classes.forEach(cls => {
             });
         }
 
-        // Tomorrow Notes (Test Alerts)
+        // Add Tomorrow Notes for Tests
         if (item.title.toLowerCase().includes('test')) {
-            // Alert for the test day
+            const targetDay = item.day;
+            // Identify day before
+            const days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+            const dayIndex = days.indexOf(targetDay);
+            const prevDay = dayIndex > 0 ? days[dayIndex - 1] : 'Saturday';
+
             newTomorrowNotes.push({
-                id: `tn-b${b}-w${w}-${cls}-${item.day}-math-test-alert`,
+                id: `tn-b${b}-w${w}-${idSuffix}-math-test-alert`,
                 classId: cls,
-                targetDay: item.day,
+                targetDay: prevDay,
                 subject: 'Math',
-                note: `Math Test: ${item.title}`,
-                arabicNote: `تنبيه: اختبار رياضيات اليوم (${item.title})`,
-                bagItem: 'أدوات الرياضيات',
+                note: `🚨 Math Test Tomorrow: ${item.title}`,
+                arabicNote: `🚨 تنبيه هام: غداً يوجد اختبار (Math Test) في مادة الرياضيات بعنوان: ${item.title}. يرجى المراجعة والاستعداد.`,
+                bagItem: 'كراسة الرياضيات',
                 isQuiz: true,
                 categoryType: 'quiz',
                 block: b,
