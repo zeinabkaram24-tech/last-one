@@ -447,7 +447,8 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
                     {/* PDF Worksheet if available: strictly only allowed for Social Studies and English Dictation & Spelling Bee per school rule */}
                     {(() => {
-                      if (!hw.pdfUrl) return null;
+                      const pdfSrc = hw.pdfUrl || (hw as any).pdf;
+                      if (!pdfSrc) return null;
                       const isAllowed =
                         ((hw.subject === 'Social Studies' || hw.subject === 'Science') && selectedDay !== 'Thursday') ||
                         (hw.subject === 'English' && (
@@ -462,7 +463,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       return (
                         <div className="pt-2">
                           <AttachmentPdfCard
-                            pdfUrl={hw.pdfUrl}
+                            pdfUrl={pdfSrc}
                             subject={hw.subject}
                             label="مرفق شيت الواجب"
                           />

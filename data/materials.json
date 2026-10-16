@@ -173,5 +173,21 @@
     "classId": "ALL",
     "storageUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483779043_Arabic-Grade2-B1-All-U1-Sheet2_-_Main.pdf",
     "uploadedAt": "2026-09-15T14:49:43.585Z"
+  },
+  {
+    "id": "mat_science_b2_w2_g2b_extra",
+    "fileName": "Science-Grade2-B2-Week2-G2B-ExtraWorksheet.pdf",
+    "fileSize": 107938,
+    "storageUrl": "/materials/Science-Grade2-B2-Week2-G2B-ExtraWorksheet.pdf",
+    "linkUrl": "/materials/Science-Grade2-B2-Week2-G2B-ExtraWorksheet.pdf",
+    "subject": "Science",
+    "grade": "Grade 2",
+    "term": "Term 1",
+    "block": 2,
+    "week": 2,
+    "type": "pdf",
+    "uploadedAt": "2026-10-16T10:00:00.000Z",
+    "source": "planner",
+    "section": "Science"
   }
 ]

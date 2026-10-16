@@ -12417,14 +12417,17 @@
       "assignedDay": "Wednesday",
       "dueDay": "Thursday",
       "subject": "Science",
-      "task": "Extra worksheet (Uploaded on Edumaster)",
-      "pages": "Extra sheet",
-      "details": "Extra worksheet uploaded on Edumaster for Class B.",
+      "task": "حل شيت تدريبات الساينس الإضافي (Extra worksheet)",
+      "pages": "Extra worksheet",
+      "details": "Unit (3): Rocks in our soil - Extra worksheet (Uploaded on Edumaster) for Class B.",
       "completed": false,
       "priority": "normal",
       "block": 2,
       "week": 2,
-      "attachment": "Science-Grade2-Rocks-Worksheet.pdf"
+      "attachment": "Science-Grade2-Rocks-Worksheet.pdf",
+      "pdfUrl": "/materials/Science-Grade2-B2-Week2-G2B-ExtraWorksheet.pdf",
+      "pdf": "/materials/Science-Grade2-B2-Week2-G2B-ExtraWorksheet.pdf",
+      "fileName": "Science-Grade2-B2-Week2-G2B-ExtraWorksheet.pdf"
     },
     {
       "id": "hw-b2-w2-G2A-tuesday-math",
