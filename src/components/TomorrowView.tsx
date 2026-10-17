@@ -240,6 +240,19 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
+    // STRICT USER MANDATE FOR BLOCK 2 WEEK 2 (Spelling Bee):
+    // Spelling Bee alert must appear ONLY on Tuesday (targetDay Wednesday) for all three classes (G2A, G2B, G2C)!
+    if ((currentBlock === 2 || (n as any).block === 2) && (currentWeek === 2 || (n as any).week === 2)) {
+      const text = `${n.title || ""} ${n.note || ""} ${n.arabicNote || ""}`.toLowerCase();
+      const isSpelling = /spelling|bee|سبيلنج|تهجئة/i.test(text);
+      if (isSpelling) {
+        if (selectedDay === 'Tuesday' || tomorrowDay === 'Wednesday') {
+          return false; // Allowed only on Tuesday (preparing for Wednesday's competition)
+        }
+        return true; // Strictly disallowed on Saturday, Sunday, Monday, Wednesday, Thursday
+      }
+    }
+
     // Strict User Mandate for Science in Block 2:
     // Only bring requested supplies from notes (Foam clay, A4 colored sheet, Glue, Ruler).
     // STRICTLY DISALLOW any booklet submission ("تسليم بوكلت" / "بوكليت"):

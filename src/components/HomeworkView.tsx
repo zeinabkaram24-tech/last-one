@@ -439,7 +439,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                           </div>
                           <div className="text-[10px] text-slate-500 font-bold flex justify-between pt-1 border-t border-slate-100/50 mt-1">
                             <span>{isSpelling ? '⭐ التدريب اليومي على حفظ ونطق حروف الكلمات لمسابقة الـ Spelling Bee' : '⚠️ Note: Always start with capital letters.'}</span>
-                            <span>{isSpelling ? 'Round 1 • 40 Words' : 'Outcome: R7 picture dictionary'}</span>
+                            <span>{isSpelling ? 'Round ' + (currentWeek || 2) + ' • ' + words.length + ' Words' : 'Outcome: R7 picture dictionary'}</span>
                           </div>
                         </div>
                       );

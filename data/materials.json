@@ -189,5 +189,21 @@
     "uploadedAt": "2026-10-16T10:00:00.000Z",
     "source": "planner",
     "section": "Science"
+  },
+  {
+    "id": "mat_english_b2_w2_spellingbee",
+    "fileName": "English-Grade2-B2-Week2-SpellingBee.html",
+    "fileSize": 11840,
+    "storageUrl": "/materials/English-Grade2-B2-Week2-SpellingBee.html",
+    "linkUrl": "/materials/English-Grade2-B2-Week2-SpellingBee.html",
+    "subject": "English",
+    "grade": "Grade 2",
+    "term": "Term 1",
+    "block": 2,
+    "week": 2,
+    "type": "html",
+    "uploadedAt": "2026-10-17T08:00:00.000Z",
+    "source": "planner",
+    "section": "English"
   }
 ]

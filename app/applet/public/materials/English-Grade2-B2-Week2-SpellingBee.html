@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spelling Bee G.2 Competition — Round 2 (Block 2 - Week 2)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-outfit { font-family: 'Outfit', sans-serif; }
+    @keyframes floatBee {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(4deg); }
+    }
+    .animate-bee { animation: floatBee 3s ease-in-out infinite; }
+  </style>
+</head>
+<body class="bg-amber-50/50 text-slate-900 min-h-screen p-3 sm:p-6 lg:p-8">
+  <div class="max-w-4xl mx-auto space-y-6">
+    <!-- Top Header Banner -->
+    <div class="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 rounded-3xl p-6 sm:p-8 text-slate-950 shadow-xl border-4 border-amber-300 relative overflow-hidden">
+      <div class="absolute -right-6 -bottom-6 w-36 h-36 bg-white/20 rounded-full blur-xl pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-center sm:text-left">
+          <div class="inline-flex items-center gap-2 bg-amber-950/15 backdrop-blur-sm px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-950 mb-2 border border-amber-950/20">
+            <span>🐝</span> Nile Egyptian International School — Grade 2
+          </div>
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black font-outfit text-amber-950 tracking-tight flex items-center justify-center sm:justify-start gap-2">
+            <span>SPELLING BEE</span>
+            <span class="text-white text-2xl sm:text-3xl bg-amber-950 px-3 py-1 rounded-2xl shadow-sm">ROUND 2</span>
+          </h1>
+          <p class="text-sm sm:text-base font-bold text-amber-900 mt-1">
+            Block 2 — Week 2 Competition List (20 Required Words)
+          </p>
+          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3 text-xs font-bold text-amber-950">
+            <span class="bg-white/60 px-3 py-1 rounded-xl">📅 Wednesday 21st of October 2026</span>
+            <span class="bg-white/60 px-3 py-1 rounded-xl">👩‍🏫 Ms. Tuqa Mamdouh</span>
+            <span class="bg-amber-900 text-amber-100 px-3 py-1 rounded-xl">⭐ Classes: 2A, 2B, 2C</span>
+          </div>
+        </div>
+        <div class="text-6xl sm:text-7xl animate-bee shrink-0 drop-shadow-md select-none">
+          🐝
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions Card -->
+    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-amber-200/80 shadow-xs flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap" dir="rtl">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black text-lg shrink-0">
+          💡
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-slate-800">تعليمات التدريب اليومي لمسابقة التهجئة (Round 2)</h3>
+          <p class="text-xs font-semibold text-slate-500 mt-0.5">
+            اضغط على أي كلمة للاستماع لنطقها الصحيح باللغة الإنجليزية، وتدرّب على كتابتها وحفظ حروفها بدقة قبل موعد المسابقة يوم الأربعاء 21 أكتوبر!
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <input 
+          id="searchInput" 
+          type="text" 
+          placeholder="بحث عن كلمة..." 
+          oninput="filterWords()"
+          class="px-3.5 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-50 text-right"
+        />
+      </div>
+    </div>
+
+    <!-- Words Grid (20 Words) -->
+    <div id="wordsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <!-- Rendered by JS -->
+    </div>
+
+    <!-- Quick Audio Quiz Interactive Section -->
+    <div class="bg-gradient-to-br from-slate-900 to-amber-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl space-y-4 border border-amber-500/20">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <div class="text-amber-400 text-xs font-bold uppercase tracking-wider">🎯 Mini Practice Game</div>
+          <h2 class="text-xl sm:text-2xl font-black font-outfit mt-0.5">Interactive Spelling Test</h2>
+        </div>
+        <button 
+          onclick="startNewQuiz()" 
+          class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md active:scale-95"
+        >
+          🎲 كلمة عشوائية جديدة
+        </button>
+      </div>
+
+      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/10 space-y-3" dir="rtl">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-amber-200">استمع واكتب الكلمة الإنجليزية بالـ Spelling الصحيح:</span>
+          <button 
+            type="button"
+            onclick="playCurrentQuizAudio()" 
+            class="px-3 py-1.5 bg-amber-400 text-slate-950 rounded-xl text-xs font-black flex items-center gap-1.5 hover:bg-amber-300 transition-colors cursor-pointer"
+          >
+            <span>🔊 استمع للنطق</span>
+          </button>
+        </div>
+
+        <div class="text-center py-2">
+          <span class="text-xs text-slate-300 font-bold">المعنى بالعربي:</span>
+          <div id="quizMeaning" class="text-lg font-black text-amber-300 mt-0.5">-</div>
+        </div>
+
+        <div class="flex items-center gap-2 max-w-md mx-auto" dir="ltr">
+          <input 
+            id="quizInput" 
+            type="text" 
+            placeholder="Type the word here..." 
+            onkeydown="if(event.key === 'Enter') checkQuizAnswer()"
+            class="w-full px-4 py-2.5 rounded-xl bg-white text-slate-950 font-bold text-center tracking-widest uppercase text-base focus:outline-none focus:ring-2 focus:ring-amber-400"
+          />
+          <button 
+            type="button"
+            onclick="checkQuizAnswer()" 
+            class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition-transform active:scale-95 shrink-0"
+          >
+            Check
+          </button>
+        </div>
+
+        <div id="quizResult" class="text-center text-xs font-black min-h-5 pt-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const WORDS = [
+      { id: 1, word: 'FAMILY', arabic: 'عائلة / أسرة', category: 'People' },
+      { id: 2, word: 'BROTHER', arabic: 'أخ', category: 'People' },
+      { id: 3, word: 'NEPHEW', arabic: 'ابن الأخ أو الأخت', category: 'People' },
+      { id: 4, word: 'NIECE', arabic: 'ابنة الأخ أو الأخت', category: 'People' },
+      { id: 5, word: 'GRANDPARENTS', arabic: 'الجد والجدة', category: 'People' },
+      { id: 6, word: 'KITCHEN', arabic: 'مطبخ', category: 'Home' },
+      { id: 7, word: 'SPOON', arabic: 'ملعقة', category: 'Home' },
+      { id: 8, word: 'FORK', arabic: 'شوكة', category: 'Home' },
+      { id: 9, word: 'PLATE', arabic: 'طبق / صحن', category: 'Home' },
+      { id: 10, word: 'OVEN', arabic: 'فرن', category: 'Home' },
+      { id: 11, word: 'PINEAPPLE', arabic: 'أناناس', category: 'Food' },
+      { id: 12, word: 'WATERMELON', arabic: 'بطيخ', category: 'Food' },
+      { id: 13, word: 'GRAPES', arabic: 'عنب', category: 'Food' },
+      { id: 14, word: 'SANDWICH', arabic: 'شطيرة / ساندوتش', category: 'Food' },
+      { id: 15, word: 'CHOCOLATE', arabic: 'شوكولاتة', category: 'Food' },
+      { id: 16, word: 'T-SHIRT', arabic: 'تي شيرت / قميص', category: 'Clothes' },
+      { id: 17, word: 'BLOUSE', arabic: 'بلوزة', category: 'Clothes' },
+      { id: 18, word: 'SKIRT', arabic: 'تنورة / جيبة', category: 'Clothes' },
+      { id: 19, word: 'PANTS', arabic: 'بنطلون', category: 'Clothes' },
+      { id: 20, word: 'SNEAKERS', arabic: 'حذاء رياضي', category: 'Clothes' }
+    ];
+
+    function speakWord(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.82;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function renderWords(list) {
+      const container = document.getElementById('wordsContainer');
+      container.innerHTML = list.map(item => `
+        <div 
+          onclick="speakWord('${item.word}')" 
+          class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs hover:shadow-md hover:border-amber-400 hover:bg-amber-50/40 transition-all cursor-pointer flex items-center justify-between gap-2 group select-none"
+        >
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-900 font-black text-xs flex items-center justify-center shrink-0">
+              ${item.id}
+            </span>
+            <div class="min-w-0">
+              <div class="font-black text-sm text-slate-900 tracking-wider font-outfit uppercase truncate group-hover:text-amber-950">
+                ${item.word}
+              </div>
+              <div class="text-[11px] font-bold text-slate-400 truncate">
+                ${item.arabic}
+              </div>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            class="w-7 h-7 rounded-xl bg-amber-50 group-hover:bg-amber-100 text-amber-700 flex items-center justify-center text-xs shrink-0 transition-colors"
+          >
+            🔊
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function filterWords() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      if (!q) {
+        renderWords(WORDS);
+        return;
+      }
+      const filtered = WORDS.filter(item => 
+        item.word.toLowerCase().includes(q) || item.arabic.includes(q)
+      );
+      renderWords(filtered);
+    }
+
+    // Interactive Quiz Logic
+    let currentQuizWord = null;
+    function startNewQuiz() {
+      const random = WORDS[Math.floor(Math.random() * WORDS.length)];
+      currentQuizWord = random;
+      document.getElementById('quizMeaning').innerText = random.arabic;
+      document.getElementById('quizInput').value = '';
+      document.getElementById('quizResult').innerText = '';
+      speakWord(random.word);
+    }
+
+    function playCurrentQuizAudio() {
+      if (currentQuizWord) {
+        speakWord(currentQuizWord.word);
+      }
+    }
+
+    function checkQuizAnswer() {
+      if (!currentQuizWord) return;
+      const input = document.getElementById('quizInput').value.trim().toUpperCase();
+      const resultEl = document.getElementById('quizResult');
+      if (input === currentQuizWord.word) {
+        resultEl.innerHTML = `<span class="text-emerald-400">🎉 إجابة صحيحة وممتازة! أحسنت: ${currentQuizWord.word}</span>`;
+        speakWord("Excellent! " + currentQuizWord.word);
+        setTimeout(startNewQuiz, 2000);
+      } else {
+        resultEl.innerHTML = `<span class="text-rose-400">❌ حاول مرة أخرى! الإجابة هي: <span class="underline">${currentQuizWord.word}</span></span>`;
+        speakWord(currentQuizWord.word);
+      }
+    }
+
+    // Init
+    renderWords(WORDS);
+    startNewQuiz();
+  </script>
+</body>
+</html>
