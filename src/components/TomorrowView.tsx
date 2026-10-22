@@ -283,7 +283,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return false;
     }
 
-    if (currentWeek === 3) {
+    if (currentBlock === 1 && currentWeek === 3) {
       // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (No reminders/notes on Monday for G2B and G2C!)
       if (tomorrowDay === 'Monday' && (currentClass === 'G2B' || currentClass === 'G2C')) {
         return true; // Strictly disallow all system/default reminders/notes on Monday for Class B and Class C!
@@ -391,7 +391,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     }
 
     // 4. Week 3 Subject Dictation rules
-    if (currentWeek === 3) {
+    if (currentBlock === 1 && currentWeek === 3) {
       // Strict English rule: ONLY allow dictation ("dictation" or "إملاء" or "ديكتيشن") on Monday (Sunday looked ahead), completely block all other English notes/alerts/submissions on any day
       if (n.subject === 'English') {
         const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
@@ -534,7 +534,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     }
 
     // Week 3 general Sunday restriction
-    if (currentWeek === 3 && tomorrowDay === 'Sunday') {
+    if (currentBlock === 1 && currentWeek === 3 && tomorrowDay === 'Sunday') {
       const isQuiz = isQuizOrTest(n);
       const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
       const isFrench = n.subject === 'French';

@@ -691,7 +691,7 @@ export async function getTomorrowNotesForDay(
       
       // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (Only for Week 3)
       const isCustomNote = n.isCustom || n.id?.startsWith('tomorrow-') || n.id?.startsWith('tn-') || n.id?.startsWith('note-') || n.id?.startsWith('custom-');
-      if (week === 3 && !isCustomNote && targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
+      if (block === 1 && week === 3 && !isCustomNote && targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
 
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       if (deletedIds.includes(key) || (n.id && deletedIds.includes(n.id))) {
@@ -894,7 +894,7 @@ export async function getTomorrowNotesForDay(
 
       // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (Only for Week 3)
       const isCustomNote = n.isCustom || n.id?.startsWith('tomorrow-') || n.id?.startsWith('tn-') || n.id?.startsWith('note-') || n.id?.startsWith('custom-');
-      if (week === 3 && !isCustomNote && targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
+      if (block === 1 && week === 3 && !isCustomNote && targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
 
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       const semKey = getSemanticKey(n);
