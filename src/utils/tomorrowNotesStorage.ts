@@ -1,9 +1,9 @@
 import { ClassId, SchoolDay } from '../types';
-import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
+import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
 
-export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES };
+export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES };
 
 export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   // G2A: Session 2 is Wednesday (Prepare Wednesday evening)
@@ -591,7 +591,13 @@ export async function getTomorrowNotesForDay(
 
   // Base official notes for Block/Week or EffectiveWeek from static files
   const baseNotes: TomorrowSpecialNote[] =
-    block === 2 && (week === 2 || effectiveWeek === 2)
+    block === 2 && (week === 3 || effectiveWeek === 3)
+      ? BLOCK2_WEEK3_SPECIAL_NOTES.filter(
+          (n) =>
+            (n.classId === classId || (n.classId as any) === 'ALL') &&
+            n.targetDay === targetDay
+        )
+      : block === 2 && (week === 2 || effectiveWeek === 2)
       ? BLOCK2_WEEK2_SPECIAL_NOTES.filter(
           (n) =>
             (n.classId === classId || (n.classId as any) === 'ALL') &&
