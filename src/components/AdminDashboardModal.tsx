@@ -611,10 +611,19 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   // Submit Upload (PDF, Image, Word or External Link)
+    const readFileAsDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleConfirmUpload = async () => {
-    if (materialUploadMode === 'pdf') {
+    if (materialUploadMode === "pdf") {
       if (!selectedFile) {
-        setErrorMessage('يرجى اختيار ملف (PDF أو صورة JPG/PNG أو Word) أولاً.');
+        setErrorMessage("يرجى اختيار ملف (PDF أو صورة JPG/PNG أو Word) أولاً.");
         return;
       }
 
@@ -622,102 +631,38 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         setIsUploading(true);
         setErrorMessage(null);
 
-        // 1. Try uploading to Supabase Storage bucket first
+        // 1. Try uploading to Supabase Storage bucket first (with fast timeout)
         let cloudUrl: string | null = null;
         try {
           cloudUrl = await uploadPdfToSupabaseStorage(selectedFile, selectedFile.name);
         } catch (uploadErr) {
-          console.warn('Direct bucket upload failed, using local/DB fallback:', uploadErr);
+          console.warn("Direct bucket upload failed, using local/DB fallback:", uploadErr);
         }
 
-        // 2. Read file binary as Base64 Data URL for local offline cache and fallback
-        const reader = new FileReader();
-        reader.onload = async () => {
-          try {
-            const fileData = reader.result as string;
+        // 2. Read file binary as Base64 Data URL for server & local fallback
+        let fileData = "";
+        try {
+          fileData = await readFileAsDataUrl(selectedFile);
+        } catch (readErr) {
+          setErrorMessage("تعذر قراءة الملف. يرجى التحقق من الملف والمحاولة مرة أخرى.");
+          return;
+        }
 
-            let fileType: 'pdf' | 'image' | 'doc' = 'pdf';
-            const lowerName = selectedFile.name.toLowerCase();
-            if (/\.(jpg|jpeg|png|webp|gif)$/i.test(lowerName) || selectedFile.type.startsWith('image/')) {
-              fileType = 'image';
-            } else if (/\.(doc|docx)$/i.test(lowerName) || selectedFile.type.includes('word')) {
-              fileType = 'doc';
-            }
-
-            const newItem: MaterialItem = {
-              id: 'mat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-              fileName: selectedFile.name,
-              fileSize: selectedFile.size,
-              fileData: fileData,
-              storageUrl: cloudUrl || undefined,
-              type: fileType,
-              block: targetBlock,
-              section: targetSection,
-              classId: targetClass,
-              uploadedAt: new Date().toISOString(),
-            };
-
-            await saveMaterial(newItem);
-            await refreshMaterials();
-
-            setSuccessMessage(
-              cloudUrl
-                ? `تم رفع الملف سحابياً بنجاح وتوفيره لجميع الأجهزة واللابتوب!`
-                : `تم حفظ الملف بنجاح في Block ${targetBlock} — ${targetSection}!`
-            );
-            setSelectedFile(null);
-            if (fileInputRef.current) fileInputRef.current.value = '';
-            setIsUploading(false);
-
-            // Auto clear success message after 4s
-            setTimeout(() => {
-              setSuccessMessage(null);
-            }, 4000);
-          } catch (saveErr) {
-            console.error(saveErr);
-            setErrorMessage('حدث خطأ أثناء حفظ الملف. يرجى المحاولة مرة أخرى.');
-            setIsUploading(false);
-          }
-        };
-
-        reader.onerror = () => {
-          setErrorMessage('تعذر قراءة الملف. يرجى التحقق من الملف.');
-          setIsUploading(false);
-        };
-
-        reader.readAsDataURL(selectedFile);
-      } catch (err) {
-        console.error(err);
-        setErrorMessage('حدث خطأ غير متوقع أثناء الرفع.');
-        setIsUploading(false);
-      }
-    } else {
-      // Link Upload Mode
-      if (!materialLinkUrl.trim()) {
-        setErrorMessage('يرجى إدخال رابط الويب (URL).');
-        return;
-      }
-      if (!materialLinkTitle.trim()) {
-        setErrorMessage('يرجى إدخال اسم أو عنوان الرابط / المادة.');
-        return;
-      }
-
-      try {
-        setIsUploading(true);
-        setErrorMessage(null);
-
-        let cleanUrl = materialLinkUrl.trim();
-        if (!/^https?:\/\//i.test(cleanUrl)) {
-          cleanUrl = 'https://' + cleanUrl;
+        let fileType: "pdf" | "image" | "doc" = "pdf";
+        const lowerName = selectedFile.name.toLowerCase();
+        if (/\.(jpg|jpeg|png|webp|gif)$/i.test(lowerName) || selectedFile.type.startsWith("image/")) {
+          fileType = "image";
+        } else if (/\.(doc|docx)$/i.test(lowerName) || selectedFile.type.includes("word")) {
+          fileType = "doc";
         }
 
         const newItem: MaterialItem = {
-          id: 'mat_link_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-          fileName: materialLinkTitle.trim(),
-          fileSize: 0,
-          storageUrl: cleanUrl,
-          linkUrl: cleanUrl,
-          type: 'link',
+          id: "mat_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+          fileName: selectedFile.name,
+          fileSize: selectedFile.size,
+          fileData: fileData,
+          storageUrl: cloudUrl || undefined,
+          type: fileType,
           block: targetBlock,
           section: targetSection,
           classId: targetClass,
@@ -728,2152 +673,616 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         await refreshMaterials();
 
         setSuccessMessage(
-          `✨ تمت إضافة وتوزيع الرابط بنجاح في Block ${targetBlock} (${targetSection})!`
+          cloudUrl
+            ? `تم رفع الملف سحابياً بنجاح وتوفيره لجميع الأجهزة واللابتوب!`
+            : `تم حفظ الملف بنجاح في Block ${targetBlock} — ${targetSection}!`
         );
-        setMaterialLinkTitle('');
-        setMaterialLinkUrl('');
-        setIsUploading(false);
+
+        setSelectedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
 
         setTimeout(() => {
           setSuccessMessage(null);
         }, 4000);
-      } catch (err: any) {
-        console.error(err);
-        setErrorMessage('حدث خطأ أثناء حفظ الرابط. يرجى المحاولة مرة أخرى.');
+      } catch (err) {
+        console.error("Upload failed:", err);
+        setErrorMessage("حدث خطأ أثناء حفظ الملف. يرجى المحاولة مرة أخرى.");
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      // Link Upload Mode
+      if (!materialLinkUrl.trim()) {
+        setErrorMessage("يرجى إدخال رابط الويب (URL).");
+        return;
+      }
+      if (!materialLinkTitle.trim()) {
+        setErrorMessage("يرجى إدخال اسم أو عنوان الرابط / المادة.");
+        return;
+      }
+
+      try {
+        setIsUploading(true);
+        setErrorMessage(null);
+
+        let cleanUrl = materialLinkUrl.trim();
+        if (!/^https?:\/\//i.test(cleanUrl)) {
+          cleanUrl = "https://" + cleanUrl;
+        }
+
+        const newItem: MaterialItem = {
+          id: "mat_link_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+          fileName: materialLinkTitle.trim(),
+          fileSize: 0,
+          storageUrl: cleanUrl,
+          linkUrl: cleanUrl,
+          type: "link",
+          block: targetBlock,
+          section: targetSection,
+          classId: targetClass,
+          uploadedAt: new Date().toISOString(),
+        };
+
+        await saveMaterial(newItem);
+        await refreshMaterials();
+
+        setSuccessMessage(
+          `✨ تمت إضافة الرابط بنجاح في Block ${targetBlock} — ${targetSection}!`
+        );
+
+        setMaterialLinkTitle("");
+        setMaterialLinkUrl("");
+
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 4000);
+      } catch (err) {
+        console.error("Link save failed:", err);
+        setErrorMessage("حدث خطأ أثناء حفظ الرابط. يرجى المحاولة مرة أخرى.");
+      } finally {
         setIsUploading(false);
       }
     }
   };
 
-  // Handle Delete (Direct & Instant - avoids window.confirm popup blocking in iframe)
-  const handleDelete = async (item: MaterialItem) => {
-    try {
-      setMaterials((prev) => prev.filter((m) => m.id !== item.id));
-      await deleteMaterial(item.id, item.storageUrl);
-      await refreshMaterials();
-      setSuccessMessage(`تم مسح "${item.fileName}" بنجاح.`);
-      setTimeout(() => setSuccessMessage(null), 3500);
-    } catch (err) {
-      console.error('Delete error:', err);
-      setErrorMessage('فشل مسح الملف.');
-      await refreshMaterials();
+  const handleDeleteMaterial = async (item: MaterialItem) => {
+    if (window.confirm(`هل أنت تأكد من حذف "${item.fileName}"؟`)) {
+      try {
+        await deleteMaterial(item.id);
+        await refreshMaterials();
+        setSuccessMessage("تم حذف المادة بنجاح.");
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } catch (err) {
+        console.error("Error deleting material:", err);
+        setErrorMessage("حدث خطأ أثناء حذف المادة.");
+      }
     }
   };
 
-  // Helper to open PDF directly in new tab
-  const handlePreview = (item: MaterialItem) => {
-    openPdfItem(item);
+  const handlePreviewMaterial = (item: MaterialItem) => {
+    if (item.type === "link") {
+      window.open(item.linkUrl || item.storageUrl, "_blank", "noopener,noreferrer");
+    } else {
+      openPdfItem(item);
+    }
   };
 
-  // Print helper
-  const handlePrint = (item: MaterialItem) => {
+  const handlePrintMaterial = (item: MaterialItem) => {
     printPdfItem(item);
   };
 
-  // Download helper
-  const handleDownload = (item: MaterialItem) => {
+  const handleDownloadMaterial = (item: MaterialItem) => {
     downloadPdfItem(item);
   };
 
-  // Plan File Change Handler
-  const handlePlanFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleParsePlan = async () => {
+    setIsParsingPlan(true);
     setErrorMessage(null);
     setSuccessMessage(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      setErrorMessage('عفواً، ملف الخطة الأسبوعية يجب أن يكون بصيغة PDF.');
-      setPlanFile(null);
-      if (planFileInputRef.current) planFileInputRef.current.value = '';
-      return;
-    }
-
-    setPlanFile(file);
-    setParsedResult(null);
-  };
-
-  // Fetch currently active published data for editing / manual addition from scratch
-  const handleLoadActiveData = async () => {
     try {
-      setIsParsingPlan(true);
-      setParsingStep('جاري جلب البيانات النشطة حالياً من السيرفر لـ Block ' + planBlock + ' (Week ' + planWeek + ')...');
-      
-      const b = Number(planBlock);
-      const w = Number(planWeek);
-
-      let fetchedData: any = null;
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
-        const res = await fetch('/api/planner-data', { signal: controller.signal });
-        clearTimeout(timeoutId);
-        if (res.ok) {
-          fetchedData = await res.json();
-        }
-      } catch {
-        // Fallback below
+      let rawText = planTextInput;
+      if (planInputMode === "pdf" && planFile) {
+        setParsingStep("جاري قراءة واستخراج النصوص من ملف PDF...");
+        rawText = await extractTextFromPdf(planFile);
       }
 
-      if (fetchedData) {
-        const filteredClasswork = (fetchedData.classwork || []).filter(
-          (c: any) => Number(c.block || 1) === b && Number(c.week || 1) === w
-        );
-        const filteredHomework = (fetchedData.homework || []).filter(
-          (h: any) => Number(h.block || 1) === b && Number(h.week || 1) === w
-        );
-        const filteredTomorrow = (fetchedData.tomorrowNotes || []).filter(
-          (n: any) => Number(n.block || 1) === b && Number(n.week || 1) === w
-        );
-
-        setParsedResult({
-          classwork: filteredClasswork,
-          homework: filteredHomework,
-          tomorrowNotes: filteredTomorrow,
-        });
-        
-        setSuccessMessage('✨ تم تحميل البيانات النشطة بنجاح! يمكنك الآن تعديل أي عنصر، أو إضافة حصص/واجبات/تنبيهات يدوية بالكامل.');
-        setTimeout(() => setSuccessMessage(null), 5000);
-      } else {
-        // Assemble from local storage and default baseline plan
-        const localCw = getLocalCustomClasswork();
-        const localHw = getLocalCustomHomework();
-        const defaultCw = w === 2 ? WEEK2_CLASSWORK : w === 1 ? INITIAL_CLASSWORK : [];
-        const defaultHw = w === 2 ? ALL_LINK_AND_WEEK2_HOMEWORK : w === 1 ? INITIAL_HOMEWORK : [];
-        const defaultTn = w === 2 ? WEEK2_SPECIAL_NOTES : w === 3 ? WEEK3_SPECIAL_NOTES : w === 1 ? SPECIAL_TEACHER_NOTES : [];
-
-        const cwMap = new Map<string, any>();
-        defaultCw.forEach((c) => cwMap.set(c.id, c));
-        localCw.forEach((c) => cwMap.set(c.id, c));
-
-        const hwMap = new Map<string, any>();
-        defaultHw.forEach((h) => hwMap.set(h.id, h));
-        localHw.forEach((h) => hwMap.set(h.id, h));
-
-        const fc = Array.from(cwMap.values()).filter(
-          (c: any) => Number(c.block || 1) === b && Number(c.week || 1) === w
-        );
-        const fh = Array.from(hwMap.values()).filter(
-          (h: any) => Number(h.block || 1) === b && Number(h.week || 1) === w
-        );
-        const ft = (defaultTn || []).filter(
-          (n: any) => Number(n.block || 1) === b && Number(n.week || 1) === w
-        );
-
-        setParsedResult({
-          classwork: fc,
-          homework: fh,
-          tomorrowNotes: ft,
-        });
-        setSuccessMessage('✨ تم تحميل الخطة النشطة من الذاكرة المحلية والافتراضية بنجاح!');
-        setTimeout(() => setSuccessMessage(null), 5000);
-      }
-    } catch {
-      // Fallback: initialize clean empty lists for adding from scratch
-      setParsedResult({
-        classwork: [],
-        homework: [],
-        tomorrowNotes: [],
-      });
-      setSuccessMessage('✨ تم تهيئة لوحة الإضافة اليدوية. يمكنك الآن البدء بإضافة الحصص والواجبات والتنبيهات بالكامل من الصفر!');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } finally {
-      setIsParsingPlan(false);
-    }
-  };
-
-  // AI Parse Weekly Plan Handler
-  const handleParseWeeklyPlan = async () => {
-    if (planInputMode === 'pdf' && !planFile) {
-      setErrorMessage('يرجى اختيار ملف PDF الخاص بالخطة الأسبوعية أولاً.');
-      return;
-    }
-    if (planInputMode === 'text' && !planTextInput.trim()) {
-      setErrorMessage('يرجى لصق نص أو جدول الخطة الأسبوعية أولاً.');
-      return;
-    }
-
-    try {
-      setIsParsingPlan(true);
-      setErrorMessage(null);
-      setSuccessMessage(null);
-
-      let availableText = planTextInput;
-
-      if (planInputMode === 'pdf' && planFile) {
-        setParsingStep('جاري قراءة ملف الـ PDF وتجهيز المستند للمعالجة...');
-        const extractedText = await extractTextFromPdf(planFile);
-        availableText = extractedText;
+      if (!rawText || !rawText.trim()) {
+        setErrorMessage("عفواً، يرجى اختيار ملف PDF يحتوي على نصوص أو إدخال نص الخطة.");
+        setIsParsingPlan(false);
+        return;
       }
 
-      setParsingStep('الذكاء الاصطناعي (Gemini AI) يحلل جداول الخطة، يوزع Classwork و Homework، وينقل الاختبارات والملاحظات إلى Tomorrow...');
-      const data = await parseWeeklyPlanWithAI(
-        availableText,
-        planClass,
-        planBlock,
-        planWeek,
-        planInputMode === 'pdf' ? (planFile || undefined) : undefined
-      );
+      setParsingStep("جاري تحليل وتفكيك الخطة الذكية بواسطة الذكاء الاصطناعي...");
+      let parsed = await parseWeeklyPlanWithAI(rawText, planBlock, planWeek, planClass);
 
-      const cw = data.classwork || [];
-      const hw = data.homework || [];
-      const notes = data.tomorrowNotes || [];
-
-      if (cw.length === 0 && hw.length === 0 && notes.length === 0) {
-        setErrorMessage('لم نتمكن من استخراج جداول نصية من الملف (قد يكون الملف عبارة عن صور ممسوحة ضوئياً). يمكنك التبديل لخيار "📋 نسخ ولصق الجدول" ولصق النص أو الجدول مباشرة لتفكيكه فوراً!');
-        setParsedResult({
-          classwork: [],
-          homework: [],
-          tomorrowNotes: [],
-        });
-      } else {
-        setParsedResult({
-          classwork: cw,
-          homework: hw,
-          tomorrowNotes: notes,
-        });
-
-        const isAi = data.isAiParsed !== false;
-        setSuccessMessage(
-          isAi
-            ? `🤖✨ تم تفكيك وتحليل الخطة بنجاح فائق عبر الذكاء الاصطناعي (Gemini AI)! تم استخراج ${cw.length} حصة صفية (Classwork)، ${hw.length} واجب منزلي (Homework)، و ${notes.length} تنبيه واختبار وملاحظة (Tomorrow).`
-            : `⚡ تم تفكيك وتحليل الخطة بنجاح عبر المعالج السريع! تم استخراج ${cw.length} حصة صفية، ${hw.length} واجب، و ${notes.length} تنبيه واختبار.`
-        );
+      if (!parsed || (!parsed.classwork?.length && !parsed.homework?.length && !parsed.tomorrowNotes?.length)) {
+        setParsingStep("جاري التفكيك التلقائي الاحتياطي...");
+        parsed = fallbackClientParser(rawText, planBlock, planWeek, planClass);
       }
+
+      setParsedResult(parsed);
+      setSuccessMessage("تم تفكيك الخطة بنجاح! يمكنك الآن مراجعتها وتعديلها أو اعتمادها مباشرةً.");
     } catch (err: any) {
-      console.error('Error parsing weekly plan:', err);
-
-      // Robust Client Fallback: If network or server request failed, extract locally from available text
-      let fallbackText = (planInputMode === 'pdf' ? (await extractTextFromPdf(planFile!).catch(() => '')) : planTextInput) || '';
-      if (fallbackText.trim().length > 0) {
-        try {
-          console.log('Activating client-side fallback parser...');
-          const localParsed = fallbackClientParser(fallbackText, planClass, planBlock, planWeek);
-          if (localParsed.classwork.length > 0 || localParsed.homework.length > 0 || localParsed.tomorrowNotes.length > 0) {
-            setParsedResult(localParsed);
-            setSuccessMessage(
-              `✨ تم تفكيك وتحليل الخطة بنجاح (المعالج السريع): تم استخراج ${localParsed.classwork.length} حصة صفية، ${localParsed.homework.length} واجب، و ${localParsed.tomorrowNotes.length} تنبيه واختبار.`
-            );
-            return;
-          }
-        } catch (localErr) {
-          console.warn('Local parser fallback also failed:', localErr);
-        }
-      }
-
-      setErrorMessage(`تعذر تحليل الخطة الأسبوعية: ${err.message || 'حدث خطأ أثناء المعالجة'}`);
+      console.error("Error parsing plan:", err);
+      setErrorMessage("حدث خطأ أثناء تفكيك الخطة. يرجى المحاولة مرة أخرى.");
     } finally {
       setIsParsingPlan(false);
-      setParsingStep('');
+      setParsingStep("");
     }
   };
 
-  // Publish Parsed Plan to Supabase & Storage
   const handlePublishPlan = async () => {
     if (!parsedResult) return;
-
+    setIsPublishingPlan(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
     try {
-      setIsPublishingPlan(true);
-      setErrorMessage(null);
-
-      // 1. Bulk insert classwork
-      if (parsedResult.classwork.length > 0) {
+      if (parsedResult.classwork?.length) {
         await bulkInsertClasswork(parsedResult.classwork, importMode);
       }
-
-      // 2. Bulk insert homework
-      if (parsedResult.homework.length > 0) {
+      if (parsedResult.homework?.length) {
         await bulkInsertHomework(parsedResult.homework, importMode);
       }
-
-      // 3. Save tomorrow notes
-      if (parsedResult.tomorrowNotes.length > 0) {
+      if (parsedResult.tomorrowNotes?.length) {
         await saveTomorrowNotes(planBlock, planWeek, parsedResult.tomorrowNotes, importMode);
+        notifyTomorrowNotesListeners();
       }
 
-      // 4. Centralized Server Persistence for cross-device sync (Mobile, Laptop, Desktop)
-      try {
-        await fetch('/api/planner-data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            classwork: parsedResult.classwork,
-            homework: parsedResult.homework,
-            tomorrowNotes: parsedResult.tomorrowNotes,
-            mode: importMode,
-            block: planBlock,
-            week: planWeek,
-            classId: planClass,
-          }),
-        });
-      } catch (serverSyncErr) {
-        console.warn('Failed to sync plan data to server:', serverSyncErr);
-      }
-
-      // 5. Trigger cloud sync from local planner data to ensure Supabase tables are 100% updated
-      try {
-        await fetch('/api/supabase/seed-from-local', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-      } catch (seedErr) {
-        console.warn('Seed sync notice:', seedErr);
-      }
-
-      // 6. Broadcast event so other components and open windows refresh
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('supabase_data_seeded'));
-        window.dispatchEvent(new Event('planner_updated'));
-      }
-
-      setSuccessMessage(
-        importMode === 'replace'
-          ? `🎉 تم بنجاح استبدال الخطة القديمة ونشر الخطة الأسبوعية الجديدة (Block ${planBlock} — Week ${planWeek}) وتحديث التطبيق لجميع الطلاب والأجهزة!`
-          : `🎉 تم بنجاح دمج الخطة الأسبوعية (Block ${planBlock} — Week ${planWeek}) في قاعدة البيانات وتحديث التطبيق فوراً لجميع الطلاب والأجهزة!`
-      );
-      setParsedResult(null);
-      setPlanFile(null);
-      if (planFileInputRef.current) planFileInputRef.current.value = '';
-
+      setSuccessMessage("🎉 تم اعتماد ونشر الخطة الأسبوعية بنجاح لجميع الفصول والأجهزة!");
       if (onPlanUpdated) {
         await onPlanUpdated(planBlock, planWeek);
       }
     } catch (err: any) {
-      console.error('Error publishing plan:', err);
-      setErrorMessage(`تعذر حفظ الخطة في قاعدة البيانات: ${err.message || err}`);
+      console.error("Error publishing plan:", err);
+      setErrorMessage("حدث خطأ أثناء نشر الخطة. يرجى المحاولة مرة أخرى.");
     } finally {
       setIsPublishingPlan(false);
     }
   };
 
-  const blocks = [1, 2, 3, 4];
-  const planWeeks = [1, 2, 3, 4, 5];
-  const sections = ['Main sheet', 'Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'];
-
   return (
-    <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div
-          className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-3xl w-full p-5 sm:p-7 relative max-h-[92vh] flex flex-col animate-in fade-in zoom-in-95 duration-150"
-          dir="rtl"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-2xs">
-                <Shield className="w-5 h-5 text-indigo-400" />
-              </div>
-              <div>
-                <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
-                  لوحة الأدمن — إدارة الخطة الأسبوعية والمواد
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5 font-semibold">
-                  رفع ومعالجة الـ Weekly Plan ذكياً + تحميل وتوزيع ملفات وملازم الـ Materials
-                </p>
-              </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+        {/* Header */}
+        <div className="p-4 sm:p-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-indigo-300" />
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsSupabaseModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors cursor-pointer shadow-2xs"
-                title="إعدادات وحفظ مفاتيح وقاعدة بيانات Supabase"
-              >
-                <Database className="w-3.5 h-3.5 text-emerald-600" />
-                <span>ربط Supabase</span>
-              </button>
-              <button
-                id="admin-dashboard-close-btn"
-                onClick={onClose}
-                type="button"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-              >
-                <span>خروج</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+            <div>
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
+                لوحة التحكم بالأدمين والمواد الخطة الأسبوعية
+              </h2>
+              <p className="text-xs text-indigo-200/80 font-medium">
+                إدارة الخطة، رفع المواد، المعاينة والتحكم الشامل
+              </p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Body Content */}
-          <div className="py-4 overflow-y-auto flex-1 space-y-5">
-            {/* Direct Admin Edit Mode Toggle Banner */}
-            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-              <div className="text-right">
-                <h3 className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5 justify-start">
-                  <span>🛠️ وضع التحكم والتعديل المباشر (Direct Edit Mode)</span>
-                  {isAdminEditMode && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse">
-                      نشط حالياً 🟢
-                    </span>
-                  )}
-                </h3>
-                <p className="text-[11px] text-amber-900/80 font-bold mt-1">
-                  عند تفعيل هذا الخيار، سيتم عرض أزرار (إضافة ➕، تعديل ✏️، حذف 🗑️) مباشرة على صفحة الحصص والواجبات والتنبيهات أمامكِ لتعديلها فوراً كأدمن!
-                </p>
-              </div>
+        {/* Modal Body */}
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1 text-right" dir="rtl">
+          {/* Notifications */}
+          {errorMessage && (
+            <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          {/* Mode Switch Bar */}
+          <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-black text-slate-800">وضع التعديل السريع في الصفحة:</span>
               <button
                 type="button"
-                onClick={() => {
-                  onToggleAdminEditMode(!isAdminEditMode);
-                  if (!isAdminEditMode) {
-                    onClose();
-                  }
-                }}
-                className={`px-4.5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs whitespace-nowrap text-center ${
+                onClick={() => onToggleAdminEditMode(!isAdminEditMode)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border ${
                   isAdminEditMode
-                    ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                    : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                    ? "bg-amber-500 text-white border-amber-600 shadow-xs"
+                    : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
                 }`}
               >
-                {isAdminEditMode ? '❌ إيقاف وضع التعديل المباشر' : '⚙️ تفعيل وضع التعديل المباشر والخروج للمعالجة'}
+                {isAdminEditMode ? "وضع التعديل مفعل ✏️" : "تفعيل التعديل السريع 🔒"}
               </button>
             </div>
 
-            {/* Success & Error alerts */}
-            {successMessage && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold rounded-2xl flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{successMessage}</span>
-              </div>
-            )}
-            {errorMessage && (
-              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-900 text-xs font-bold rounded-2xl flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => setIsSupabaseModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Database className="w-3.5 h-3.5 text-indigo-600" />
+              <span>إعدادات السحابة (Supabase)</span>
+            </button>
+          </div>
 
-            {/* NEW: Primary Weekly Plan Upload & AI Parser Card */}
-            <div className="bg-linear-to-br from-indigo-50/90 via-purple-50/40 to-white border border-indigo-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
-                    <Sparkles className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm sm:text-base font-black text-indigo-950">
-                        زر رفع ومعالجة الـ Weekly Plan ذكياً
-                      </h3>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-700 border border-indigo-200">
-                        تفكيك ذكي AI
-                      </span>
-                    </div>
-                    <p className="text-xs text-indigo-900/70 font-medium">
-                      ارفع ملف PDF للخطة الأسبوعية لتفكيك الحصص وجدولة الواجبات (حصة 3 للفرنساوي و ICT) واستخراج ملاحظات الغد
-                    </p>
-                  </div>
-                </div>
-
+          {/* Section 1: Upload Materials */}
+          <div className="p-4 sm:p-5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Upload className="w-4 h-4 text-indigo-600" />
+                <h3 className="text-sm font-black text-slate-900">إضافة مادة تعليمية جديدة (PDF أو رابط)</h3>
+              </div>
+              <div className="flex items-center gap-2">
                 <button
-                  id="toggle-plan-upload-form-btn"
                   type="button"
-                  onClick={() => setShowPlanUploadForm(!showPlanUploadForm)}
-                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-1.5 ${
-                    showPlanUploadForm
-                      ? 'bg-slate-200 text-slate-800 hover:bg-slate-300'
-                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  onClick={() => setMaterialUploadMode("pdf")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                    materialUploadMode === "pdf"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{showPlanUploadForm ? 'إخفاء نموذج الخطة' : 'رفع Weekly Plan جديد (PDF)'}</span>
+                  ملف PDF / مستند
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMaterialUploadMode("link")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                    materialUploadMode === "link"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  رابط إلكتروني 🔗
                 </button>
               </div>
+            </div>
 
-              {/* Weekly Plan Upload Form (when opened) */}
-              {showPlanUploadForm && (
-                <div className="pt-3 border-t border-indigo-200/80 space-y-4 animate-in fade-in duration-200">
-                  {/* Step 1: Select Block */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      1. اختر البلوك المستهدف (Target Block):
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {blocks.map((b) => (
-                        <button
-                          key={b}
-                          type="button"
-                          id={`admin-plan-block-${b}-btn`}
-                          onClick={() => setPlanBlock(b)}
-                          className={`py-2 px-3 rounded-xl text-xs font-black border transition-all cursor-pointer ${
-                            planBlock === b
-                              ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
-                              : 'bg-white text-slate-700 border-slate-200 hover:bg-indigo-50/50'
-                          }`}
-                        >
-                          Block {b}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+            {materialUploadMode === "pdf" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">اختر البلوك (Block)</label>
+                  <select
+                    value={targetBlock}
+                    onChange={(e) => setTargetBlock(Number(e.target.value))}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value={1}>Block 1</option>
+                    <option value={2}>Block 2</option>
+                    <option value={3}>Block 3</option>
+                    <option value={4}>Block 4</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">القسم / المادة</label>
+                  <select
+                    value={targetSection}
+                    onChange={(e) => setTargetSection(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="Main sheet">Main Sheet</option>
+                    <option value="English">English</option>
+                    <option value="Maths">Maths</option>
+                    <option value="Science">Science</option>
+                    <option value="French">French</option>
+                    <option value="German">German</option>
+                    <option value="ICT">ICT</option>
+                    <option value="Arabic">Arabic</option>
+                    <option value="Religion">Religion</option>
+                    <option value="Social">Social</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">الفصل الموجه</label>
+                  <select
+                    value={targetClass}
+                    onChange={(e) => setTargetClass(e.target.value as any)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="ALL">جميع الفصول (G2A, G2B, G2C)</option>
+                    <option value="G2A">G2A فقط</option>
+                    <option value="G2B">G2B فقط</option>
+                    <option value="G2C">G2C فقط</option>
+                  </select>
+                </div>
 
-                  {/* Step 2: Select Week */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      2. اختر الأسبوع (Target Week):
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {planWeeks.map((w) => (
-                        <button
-                          key={w}
-                          type="button"
-                          id={`admin-plan-week-${w}-btn`}
-                          onClick={() => setPlanWeek(w)}
-                          className={`py-2 px-3 rounded-xl text-xs font-black border transition-all cursor-pointer ${
-                            planWeek === w
-                              ? 'bg-purple-600 text-white border-purple-700 shadow-xs'
-                              : 'bg-white text-slate-700 border-slate-200 hover:bg-purple-50/50'
-                          }`}
-                        >
-                          Week {w}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                <div className="sm:col-span-3">
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">الملف المراد رفعه</label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,image/*,.doc,.docx"
+                    onChange={handleFileChange}
+                    className="w-full text-xs text-slate-600 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">عنوان الرابط / اسم المادة</label>
+                  <input
+                    type="text"
+                    placeholder="مثال: شيت مراجعة الماس الخارجية"
+                    value={materialLinkTitle}
+                    onChange={(e) => setMaterialLinkTitle(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">رابط الويب (URL)</label>
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={materialLinkUrl}
+                    onChange={(e) => setMaterialLinkUrl(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+            )}
 
-                  {/* Step 3: Target Class */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      3. تحديد الفصل (المستهدفين بتوزيع الجدول):
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[
-                        { id: 'ALL', label: 'كل الفصول (G2A, G2B, G2C)' },
-                        { id: 'G2A', label: 'فصل G2A' },
-                        { id: 'G2B', label: 'فصل G2B' },
-                        { id: 'G2C', label: 'فصل G2C' },
-                      ].map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          id={`admin-plan-class-${c.id}-btn`}
-                          onClick={() => setPlanClass(c.id as ClassId | 'ALL')}
-                          className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                            planClass === c.id
-                              ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          {c.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={handleConfirmUpload}
+              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-xs disabled:opacity-50"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>جاري الحفظ والرفع...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  <span>حفظ المادة المرفوعة وتوزيعها 🚀</span>
+                </>
+              )}
+            </button>
+          </div>
 
-                  {/* Step 4: Choose Plan Input Mode (PDF or Paste Table) */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-xs font-black text-slate-800">
-                        4. إدخال الخطة الأسبوعية (ملف PDF أو لصق جدول الخطة):
-                      </label>
-                      <div className="flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-bold">
-                        <button
-                          type="button"
-                          onClick={() => setPlanInputMode('pdf')}
-                          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                            planInputMode === 'pdf'
-                              ? 'bg-white text-indigo-700 shadow-2xs'
-                              : 'text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          📄 رفع ملف PDF أو صورة
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPlanInputMode('text')}
-                          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                            planInputMode === 'text'
-                              ? 'bg-white text-indigo-700 shadow-2xs'
-                              : 'text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          📋 نسخ ولصق الجدول
-                        </button>
-                      </div>
-                    </div>
+          {/* Section 2: Deleted Items History (24 Hours) */}
+          <div className="p-4 sm:p-5 bg-rose-50/60 border border-rose-200/80 rounded-2xl space-y-3">
+            <div className="flex items-center justify-between border-b border-rose-100 pb-2">
+              <div className="flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-rose-700" />
+                <h3 className="text-sm font-black text-rose-950">سلة محذوفات التراجع (24 ساعة) 🗑️</h3>
+              </div>
+              <button
+                type="button"
+                onClick={fetchDeletedHistory}
+                className="p-1.5 rounded-lg text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+                title="تحديث القائمة"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            </div>
 
-                    {planInputMode === 'pdf' ? (
-                      <div>
-                        <input
-                          ref={planFileInputRef}
-                          type="file"
-                          accept=".pdf,application/pdf,image/*"
-                          onChange={handlePlanFileChange}
-                          className="block w-full text-xs text-slate-500 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 file:cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs"
-                        />
+            {deletedHistory.length === 0 ? (
+              <div className="py-6 px-4 bg-white/50 rounded-xl border border-dashed border-rose-200 text-center space-y-1">
+                <Trash2 className="w-6 h-6 text-rose-300 mx-auto opacity-60" />
+                <p className="text-xs text-rose-900 font-bold">سلة المحذوفات فارغة حالياً.</p>
+                <p className="text-[10px] text-rose-700/70 font-medium">
+                  أي درس أو واجب أو تنبيه تقوم بحذفه سيظهر هنا لمدة 24 ساعة لتتمكن من استعادته في أي وقت.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1 select-none">
+                {deletedHistory.map((item) => {
+                  const { id, type, deletedAt, itemData } = item;
+                  if (!itemData) return null;
+                  const elapsedText = formatElapsedTime(deletedAt);
+                  let typeLabel = "";
+                  let detailsText = "";
+                  let badgeStyle = "";
 
-                        {planFile && (
-                          <div className="mt-2 p-2.5 bg-white rounded-xl border border-indigo-200 flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2 text-slate-800 font-bold truncate">
-                              <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
-                              <span className="truncate">{planFile.name}</span>
-                              <span className="text-slate-400 font-medium">
-                                ({formatBytes(planFile.size)})
-                              </span>
-                            </div>
-                            <span className="text-indigo-700 font-black bg-indigo-50 px-2 py-0.5 rounded-lg shrink-0">
-                              جاهز للتحليل والتفكيك
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <textarea
-                          rows={6}
-                          value={planTextInput}
-                          onChange={(e) => {
-                            setPlanTextInput(e.target.value);
-                            setParsedResult(null);
-                          }}
-                          placeholder={`الصق هنا جدول أو نصوص الخطة الأسبوعية (Weekly Plan) مباشرة من ملف Word أو Excel أو PDF...
+                  if (type === "classwork") {
+                    typeLabel = "حصة صفية 📘";
+                    detailsText = `${itemData.subject || ""} • Block ${itemData.block || ""} • Week ${itemData.week || ""} • ${itemData.classId || itemData.class_id || ""} • ${itemData.day || ""}`;
+                    badgeStyle = "bg-blue-50 text-blue-800 border-blue-200";
+                  } else if (type === "homework") {
+                    typeLabel = "واجب منزلي 📝";
+                    detailsText = `${itemData.subject || ""} • Block ${itemData.block || ""} • Week ${itemData.week || ""} • ${itemData.classId || itemData.class_id || ""} • ${itemData.assignedDay || ""}`;
+                    badgeStyle = "bg-amber-50 text-amber-800 border-amber-200";
+                  } else if (type === "tomorrowNotes") {
+                    typeLabel = "تنبيه الغد 🎒";
+                    detailsText = `${itemData.subject || ""} • Block ${itemData.block || ""} • Week ${itemData.week || ""} • ${itemData.classId || itemData.class_id || ""} • ${itemData.targetDay || ""}`;
+                    badgeStyle = "bg-emerald-50 text-emerald-800 border-emerald-200";
+                  }
 
-مثال:
-Sunday:
-- French: Unité 1. CW: Manuel p. 6-8 (Lien Kahoot: https://kahoot.it/...). HW: None. Remarque: Cahier bleu.
-- Mathematics: Numbers to 100. CW: Student book p. 12. HW: Practice book p. 14. Quiz on Tuesday!
-- Arabic: درس أنا أستطيع. أعمال الفصل: ص 10. الواجب المنزلي: كتابة ص 11. ملاحظات: إحضار كشكول العربي.`}
-                          className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white font-mono leading-relaxed"
-                          dir="auto"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  const title = itemData.title || itemData.task || itemData.arabicNote || itemData.note || "عنصر بدون عنوان";
 
-                  {/* Parse Action Button */}
-                  <div className="pt-2 flex flex-col md:flex-row items-stretch md:items-center gap-3">
-                    <button
-                      id="admin-parse-plan-btn"
-                      type="button"
-                      disabled={
-                        (planInputMode === 'pdf' && !planFile) ||
-                        (planInputMode === 'text' && !planTextInput.trim()) ||
-                        isParsingPlan
-                      }
-                      onClick={handleParseWeeklyPlan}
-                      className="px-6 py-2.5 rounded-xl text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 shrink-0"
+                  return (
+                    <div
+                      key={id}
+                      className="p-3 bg-white border border-rose-100 rounded-xl hover:border-rose-300 hover:shadow-2xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                     >
-                      {isParsingPlan ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>{parsingStep || 'جاري تفكيك الخطة وقراءتها...'}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-4 h-4" />
-                          <span>قراءة وتفكيك الخطة ذكياً بالـ AI</span>
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={isParsingPlan}
-                      onClick={handleLoadActiveData}
-                      className="px-6 py-2.5 rounded-xl text-xs font-black text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 shrink-0"
-                    >
-                      <span>✏️ تعديل / إضافة يدوية على الخطة الحالية</span>
-                    </button>
-
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
-                      * اضغط على <strong>تعديل / إضافة يدوية</strong> لفتح لوحة التحكم والتعديل مباشرةً لـ Block {planBlock} الأسبوع {planWeek} دون الحاجة لرفع ملف.
-                    </p>
-                  </div>
-
-                  {/* Parsed Result Preview Box */}
-                  {parsedResult && (
-                    <div className="mt-4 p-4 bg-white rounded-2xl border-2 border-indigo-200/90 shadow-sm space-y-4 animate-in fade-in duration-200">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                            <h4 className="text-sm font-black text-slate-900">
-                              تم تفكيك الخطة بنجاح! جاهزة للاعتماد والحفظ
-                            </h4>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            تمت مواءمة الحصص مع جدول الفصول، ونقل الاختبارات والملاحظات إلى Tomorrow، وتعيين واجبات الفرنساوي والـ ICT في الحصة الثالثة.
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${badgeStyle} shrink-0 mt-0.5`}>
+                          {typeLabel}
+                        </span>
+                        <div className="min-w-0 text-right">
+                          <p className="text-slate-900 font-black truncate text-xs">{title}</p>
+                          <p className="text-slate-500 font-semibold text-[11px] mt-0.5 leading-tight">{detailsText}</p>
+                          <p className="text-rose-600 text-[10px] font-bold mt-1 inline-flex items-center gap-1 bg-rose-50 px-1.5 py-0.5 rounded-md">
+                            <span>🗑️</span>
+                            <span>حُذف منذ {elapsedText}</span>
                           </p>
                         </div>
-
-                        {/* Summary Badges & Quick Action */}
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
-                              📘 {displayClasswork.length} أعمال فصل (CW)
-                            </span>
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">
-                              📝 {displayHomework.length} واجب (HW)
-                            </span>
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
-                              🎒 {displayTomorrow.length} ملاحظات وكويزات (Tomorrow)
-                            </span>
-                          </div>
-
-                          <button
-                            type="button"
-                            disabled={isPublishingPlan}
-                            onClick={handlePublishPlan}
-                            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 transition-all cursor-pointer shadow-xs shrink-0"
-                            title="نشر فوري لجميع الأجهزة والمتصفحات والموبايل"
-                          >
-                            {isPublishingPlan ? (
-                              <>
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                <span>جاري النشر...</span>
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>☁️ نشر للسحابة والموبايل الآن</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
                       </div>
 
-                      {/* Preview Tabs */}
-                      <div className="flex border-b border-slate-100 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewTab('classwork')}
-                          className={`pb-2 px-3 text-xs font-black border-b-2 transition-colors cursor-pointer ${
-                            previewTab === 'classwork'
-                              ? 'border-indigo-600 text-indigo-600'
-                              : 'border-transparent text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          أعمال الفصل (Classwork) ({displayClasswork.length})
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPreviewTab('homework')}
-                          className={`pb-2 px-3 text-xs font-black border-b-2 transition-colors cursor-pointer ${
-                            previewTab === 'homework'
-                              ? 'border-indigo-600 text-indigo-600'
-                              : 'border-transparent text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          الواجبات المنزلية (Homework) ({displayHomework.length})
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPreviewTab('tomorrow')}
-                          className={`pb-2 px-3 text-xs font-black border-b-2 transition-colors cursor-pointer ${
-                            previewTab === 'tomorrow'
-                              ? 'border-indigo-600 text-indigo-600'
-                              : 'border-transparent text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          تنبيهات الغد والكويزات (Tomorrow) ({displayTomorrow.length})
-                        </button>
-                      </div>
-
-                      {/* Preview Tab Content */}
-                      <div className="max-h-72 overflow-y-auto space-y-2 pr-1 text-xs">
-                        {previewTab === 'classwork' && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between pb-2 border-b border-slate-100 gap-2">
-                              <span className="text-[11px] text-slate-500 font-bold">
-                                يمكنك تعديل تفاصيل أي حصة، أرقام صفحاتها، أو حذفها مباشرةً:
-                              </span>
-                              <button
-                                type="button"
-                                onClick={openAddClasswork}
-                                id="add-classwork-task-btn"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] cursor-pointer transition-all shadow-xs shrink-0 hover:scale-[1.02]"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                                ➕ إضافة حصة جديدة يدوياً
-                              </button>
-                            </div>
-
-                            {displayClasswork.length === 0 ? (
-                              <p className="text-center py-4 text-slate-400 font-bold">
-                                لا توجد حصص مستخرجة حالياً. يمكنك الضغط على "+ إضافة حصة" لإضافة حصص يدوياً.
-                              </p>
-                            ) : (
-                              displayClasswork.map((cw, idx) => (
-                                <div
-                                  key={`preview-cw-${cw.id || 'item'}-${idx}`}
-                                  className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/10 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-                                >
-                                  <div className="flex items-center gap-2 shrink-0">
-                                    <span className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-800 font-black text-xs flex items-center justify-center shrink-0">
-                                      ح{cw.period}
-                                    </span>
-                                    <div className="flex flex-col">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="font-black text-slate-900 text-xs">{cw.subject}</span>
-                                        <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">
-                                          {cw.classId}
-                                        </span>
-                                        <span className="text-slate-500 text-[10px] font-medium">{cw.day}</span>
-                                      </div>
-                                      {cw.pages && (
-                                        <span className="text-[10px] font-bold text-amber-900 bg-amber-100/70 px-1.5 py-0.5 rounded border border-amber-200 inline-block w-fit mt-0.5">
-                                          📖 {cw.pages}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div className="flex-1 min-w-0 px-2 text-right">
-                                    <p className="text-slate-800 font-bold text-xs truncate">
-                                      {cw.title || cw.details || (cw as any).lesson || 'درس بدون عنوان'}
-                                    </p>
-                                    {cw.details && cw.details !== cw.title && (
-                                      <p className="text-slate-500 text-[11px] truncate font-medium">
-                                        {cw.details}
-                                      </p>
-                                    )}
-                                    {cw.linkUrl && (
-                                      <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-bold">
-                                        🔗 {cw.linkTitle || 'رابط الدرس'}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                                    <button
-                                      type="button"
-                                      onClick={() => openEditClasswork(cw, idx)}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 hover:border-indigo-400 text-indigo-700 font-black text-[11px] transition-all cursor-pointer shadow-3xs"
-                                      title="تعديل الحصة"
-                                    >
-                                      <Edit2 className="w-3 h-3 text-indigo-600" />
-                                      <span>تعديل ✏️</span>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteItem('classwork', idx)}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:border-rose-400 text-rose-700 font-black text-[11px] transition-all cursor-pointer shadow-3xs"
-                                      title="حذف الحصة"
-                                    >
-                                      <Trash2 className="w-3 h-3 text-rose-600" />
-                                      <span>حذف ❌</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        )}
-
-                        {previewTab === 'homework' && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between pb-2 border-b border-slate-100 gap-2">
-                              <span className="text-[11px] text-slate-500 font-bold">
-                                يمكنك مراجعة وتعديل الواجبات المنزلية وأرقام الصفحات مباشرةً:
-                              </span>
-                              <button
-                                type="button"
-                                onClick={openAddHomework}
-                                id="add-homework-task-btn"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] cursor-pointer transition-all shadow-xs shrink-0 hover:scale-[1.02]"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                                ➕ إضافة واجب جديد يدوياً
-                              </button>
-                            </div>
-
-                            {displayHomework.length === 0 ? (
-                              <p className="text-center py-4 text-slate-400 font-bold">
-                                لا توجد واجبات مستخرجة حالياً. يمكنك الضغط على "+ إضافة واجب" لإضافة واجب يدوياً.
-                              </p>
-                            ) : (
-                              displayHomework.map((hw, idx) => (
-                                <div
-                                  key={`preview-hw-${hw.id || 'item'}-${idx}`}
-                                  className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-amber-300 hover:bg-amber-50/10 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-                                >
-                                  <div className="flex items-center gap-2 shrink-0">
-                                    <span className="px-2 py-1 rounded-md bg-amber-100 text-amber-900 font-bold text-[11px]">
-                                      {hw.subject}
-                                    </span>
-                                    <div className="flex flex-col">
-                                      <div className="flex items-center gap-1 text-slate-500 text-[10px]">
-                                        <span className="font-bold text-slate-700">{hw.classId}</span>
-                                        <span>• يعطى: {hw.assignedDay}</span>
-                                        <span>• تسليم: {hw.dueDay}</span>
-                                      </div>
-                                      {hw.pages && (
-                                        <span className="text-[10px] font-bold text-indigo-900 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200 inline-block w-fit mt-0.5">
-                                          📖 {hw.pages}
-                                        </span>
-                                      )}
-                                    </div>
-                                    {hw.priority === 'urgent' && (
-                                      <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold animate-pulse">
-                                        🚨 عاجل
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <div className="flex-1 min-w-0 px-2 text-right">
-                                    <p className="text-slate-800 font-bold text-xs truncate">
-                                      {hw.task}
-                                    </p>
-                                    {hw.details && (
-                                      <p className="text-slate-500 text-[11px] truncate font-medium">
-                                        {hw.details}
-                                      </p>
-                                    )}
-                                    {hw.linkUrl && (
-                                      <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 text-[10px] font-bold">
-                                        🔗 رابط الواجب
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                                    <button
-                                      type="button"
-                                      onClick={() => openEditHomework(hw, idx)}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 hover:bg-amber-100 hover:border-amber-400 text-amber-800 font-black text-[11px] transition-all cursor-pointer shadow-3xs"
-                                      title="تعديل الواجب"
-                                    >
-                                      <Edit2 className="w-3 h-3 text-amber-600" />
-                                      <span>تعديل ✏️</span>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteItem('homework', idx)}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:border-rose-400 text-rose-700 font-black text-[11px] transition-all cursor-pointer shadow-3xs"
-                                      title="حذف الواجب"
-                                    >
-                                      <Trash2 className="w-3 h-3 text-rose-600" />
-                                      <span>حذف ❌</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        )}
-
-                        {previewTab === 'tomorrow' && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between pb-2 border-b border-slate-100 gap-2">
-                              <span className="text-[11px] text-slate-500 font-bold">
-                                يمكنك تعديل تنبيهات الغد والكويزات المدرسية مباشرةً:
-                              </span>
-                              <button
-                                type="button"
-                                onClick={openAddTomorrowNote}
-                                id="add-tomorrow-task-btn"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] cursor-pointer transition-all shadow-xs shrink-0 hover:scale-[1.02]"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                                ➕ إضافة تنبيه جديد يدوياً
-                              </button>
-                            </div>
-
-                            {displayTomorrow.length === 0 ? (
-                              <p className="text-center py-4 text-slate-400 font-bold">
-                                لا توجد تنبيهات مستخرجة حالياً. يمكنك الضغط على "+ إضافة تنبيه" لإضافة تنبيهات يدوياً.
-                              </p>
-                            ) : (
-                              displayTomorrow.map((note, idx) => {
-                                const isQuiz =
-                                  note.isQuiz ||
-                                  note.categoryType === 'quiz' ||
-                                  /quiz|test|exam|dictation|اختبار|امتحان|كويز|إملاء|تسميع|تقييم/i.test(
-                                    note.note + ' ' + (note.arabicNote || '')
-                                  );
-
-                                let badgeLabel = 'Notes';
-                                let badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
-
-                                if (isQuiz) {
-                                  badgeLabel = '🚨 اختبار / Quiz';
-                                  badgeStyle = 'bg-rose-100 text-rose-800 border-rose-200';
-                                } else if (
-                                  note.subject?.toLowerCase().includes('french') ||
-                                  note.subject?.includes('فرنساوي')
-                                ) {
-                                  badgeLabel = 'Remarque';
-                                  badgeStyle = 'bg-purple-100 text-purple-800 border-purple-200';
-                                } else if (
-                                  note.subject?.toLowerCase().includes('arabic') ||
-                                  note.subject?.toLowerCase().includes('social') ||
-                                  note.subject?.includes('عربي') ||
-                                  note.subject?.includes('دراسات')
-                                ) {
-                                  badgeLabel = 'ملاحظات';
-                                  badgeStyle = 'bg-emerald-100 text-emerald-800 border-emerald-200';
-                                }
-
-                                const dayArabicMap: Record<string, string> = {
-                                  Sunday: 'الأحد',
-                                  Monday: 'الاثنين',
-                                  Tuesday: 'الثلاثاء',
-                                  Wednesday: 'الأربعاء',
-                                  Thursday: 'الخميس',
-                                };
-
-                                return (
-                                  <div
-                                    key={`preview-note-${note.id || 'item'}-${idx}`}
-                                    className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/10 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-                                  >
-                                    <div className="flex-1 min-w-0 space-y-1">
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-black text-indigo-900 text-xs">
-                                          يوم {dayArabicMap[note.targetDay] || note.targetDay} — {note.subject}
-                                        </span>
-                                        <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">
-                                          {note.classId}
-                                        </span>
-                                        <span
-                                          className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${badgeStyle}`}
-                                        >
-                                          {badgeLabel}
-                                        </span>
-                                      </div>
-                                      <p className="text-slate-700 text-xs leading-relaxed font-medium">
-                                        {note.arabicNote || note.note}
-                                      </p>
-                                      {note.bagItem && (
-                                        <div className="mt-1">
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-amber-200 text-[11px] text-amber-900 font-bold">
-                                            🎒 الحقيبة المدرسية: {note.bagItem}
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-
-                                    <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                                      <button
-                                        type="button"
-                                        onClick={() => openEditTomorrowNote(note, idx)}
-                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-400 text-emerald-800 font-black text-[11px] transition-all cursor-pointer shadow-3xs"
-                                        title="تعديل التنبيه"
-                                      >
-                                        <Edit2 className="w-3 h-3 text-emerald-600" />
-                                        <span>تعديل ✏️</span>
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeleteItem('tomorrow', idx)}
-                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:border-rose-400 text-rose-700 font-black text-[11px] transition-all cursor-pointer shadow-3xs"
-                                        title="حذف التنبيه"
-                                      >
-                                        <Trash2 className="w-3 h-3 text-rose-600" />
-                                        <span>حذف ❌</span>
-                                      </button>
-                                    </div>
-                                  </div>
-                                );
-                              })
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Edit Sub-Modal Dialog */}
-                      {editingItemType && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-                            {/* Header */}
-                            <div className="px-5 py-4 bg-gradient-to-r from-indigo-900 to-slate-900 text-white flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <div className="p-2 rounded-xl bg-white/10 text-white">
-                                  <Edit2 className="w-5 h-5 text-indigo-300" />
-                                </div>
-                                <div>
-                                  <h3 className="font-black text-sm text-white">
-                                    {isAddingNewItem ? 'إضافة عنصر جديد للخطة' : 'تعديل تفاصيل العنصر قبل النشر'}
-                                  </h3>
-                                  <p className="text-[11px] text-slate-300">
-                                    {editingItemType === 'classwork'
-                                      ? 'حصة أعمال فصل (Classwork)'
-                                      : editingItemType === 'homework'
-                                      ? 'واجب منزلي (Homework)'
-                                      : 'تنبيه الغد أو الكويز (Tomorrow)'}
-                                  </p>
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingItemType(null);
-                                  setEditingItemIndex(null);
-                                  setIsAddingNewItem(false);
-                                }}
-                                className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                              >
-                                <X className="w-5 h-5" />
-                              </button>
-                            </div>
-
-                            {/* Form Body */}
-                            <div className="p-5 overflow-y-auto space-y-4 text-xs">
-                              {/* Class, Subject, Day Row */}
-                              <div className="grid grid-cols-3 gap-2.5">
-                                <div>
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-1">الفصل</label>
-                                  <select
-                                    value={formClassId}
-                                    onChange={(e) => setFormClassId(e.target.value as any)}
-                                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
-                                  >
-                                    <option value="G2A">G2A</option>
-                                    <option value="G2B">G2B</option>
-                                    <option value="G2C">G2C</option>
-                                    <option value="ALL">جميع الفصول (ALL)</option>
-                                  </select>
-                                </div>
-
-                                <div>
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-1">المادة</label>
-                                  <select
-                                    value={formSubject}
-                                    onChange={(e) => setFormSubject(e.target.value)}
-                                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
-                                  >
-                                    <option value="English">English</option>
-                                    <option value="Mathematics">Mathematics</option>
-                                    <option value="Arabic">Arabic (اللغة العربية)</option>
-                                    <option value="Science">Science (العلوم)</option>
-                                    <option value="Social Studies">Social Studies (دراسات)</option>
-                                    <option value="French">French (Français)</option>
-                                    <option value="Religion">Religion (التربية الدينية)</option>
-                                    <option value="ICT">ICT (تكنولوجيا المعلومات)</option>
-                                    <option value="Arts">Arts (التربية الفنية)</option>
-                                    <option value="Music">Music (التربية الموسيقية)</option>
-                                    <option value="PE">PE (التربية البدنية)</option>
-                                  </select>
-                                </div>
-
-                                <div>
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                                    {editingItemType === 'homework' ? 'يوم الإعطاء' : 'اليوم'}
-                                  </label>
-                                  <select
-                                    value={formDay}
-                                    onChange={(e) => setFormDay(e.target.value)}
-                                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
-                                  >
-                                    <option value="Sunday">Sunday (الأحد)</option>
-                                    <option value="Monday">Monday (الاثنين)</option>
-                                    <option value="Tuesday">Tuesday (الثلاثاء)</option>
-                                    <option value="Wednesday">Wednesday (الأربعاء)</option>
-                                    <option value="Thursday">Thursday (الخميس)</option>
-                                  </select>
-                                </div>
-                              </div>
-
-                              {/* Conditional Fields */}
-                              {editingItemType === 'classwork' && (
-                                <>
-                                  <div className="grid grid-cols-2 gap-2.5">
-                                    <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">رقم الحصة (Period)</label>
-                                      <select
-                                        value={formPeriod}
-                                        onChange={(e) => setFormPeriod(Number(e.target.value))}
-                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
-                                      >
-                                        {[1, 2, 3, 4, 5, 6, 7, 8].map((p) => (
-                                          <option key={`period-${p}`} value={p}>
-                                            الحصة {p}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">أرقام الصفحات (Book Pages)</label>
-                                      <input
-                                        type="text"
-                                        value={formPages}
-                                        onChange={(e) => setFormPages(e.target.value)}
-                                        placeholder="مثال: ص 24 أو ص 14-24"
-                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none placeholder:text-slate-400"
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">عنوان الدرس (Title)</label>
-                                    <input
-                                      type="text"
-                                      value={formTitle}
-                                      onChange={(e) => setFormTitle(e.target.value)}
-                                      placeholder="مثال: فصلي الجديد، Unit 1 Lesson 2"
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">التفاصيل والأنشطة (Details)</label>
-                                    <textarea
-                                      value={formDetails}
-                                      onChange={(e) => setFormDetails(e.target.value)}
-                                      rows={2}
-                                      placeholder="تفاصيل الدرس وشرح الأنشطة المدرسية..."
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-medium focus:border-indigo-500 focus:outline-none"
-                                    />
-                                  </div>
-
-                                  <div className="grid grid-cols-2 gap-2.5">
-                                    <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">رابط الدرس الإلكتروني (اختياري)</label>
-                                      <input
-                                        type="text"
-                                        value={formLinkUrl}
-                                        onChange={(e) => setFormLinkUrl(e.target.value)}
-                                        placeholder="https://..."
-                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
-                                        dir="ltr"
-                                      />
-                                    </div>
-                                    <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">اسم الرابط (Link Title)</label>
-                                      <input
-                                        type="text"
-                                        value={formLinkTitle}
-                                        onChange={(e) => setFormLinkTitle(e.target.value)}
-                                        placeholder="مثال: كاهوت 🔗، فيديو توضيحي"
-                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Classwork PDF Attachment */}
-                                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                      <label className="block text-[11px] font-black text-slate-700">📄 شيت الحصة كملف PDF (اختياري)</label>
-                                      {formPdfUrl && (
-                                        <div className="flex items-center gap-1.5 text-xs text-rose-700 font-bold">
-                                          <a href={formPdfUrl} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
-                                            <span>عرض الملف المرفق</span>
-                                            <ExternalLink className="w-3 h-3" />
-                                          </a>
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setFormPdfUrl('');
-                                              setHwSelectedFile(null);
-                                            }}
-                                            className="text-slate-400 hover:text-red-500 font-bold text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
-                                          >
-                                            إلغاء المرفق 🗑️
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                    
-                                    <input
-                                      type="file"
-                                      accept=".pdf"
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) setHwSelectedFile(file);
-                                      }}
-                                      className="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-black file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer"
-                                    />
-                                    {hwSelectedFile && (
-                                      <p className="text-[10px] font-bold text-emerald-700">
-                                        ✨ ملف مجهز للرفع عند الحفظ: {hwSelectedFile.name} ({(hwSelectedFile.size / 1024).toFixed(1)} KB)
-                                      </p>
-                                    )}
-                                  </div>
-                                </>
-                              )}
-
-                              {editingItemType === 'homework' && (
-                                <>
-                                  <div className="grid grid-cols-3 gap-2.5">
-                                    <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">يوم التسليم (Due Day)</label>
-                                      <select
-                                        value={formDueDay}
-                                        onChange={(e) => setFormDueDay(e.target.value)}
-                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
-                                      >
-                                        <option value="Sunday">Sunday (الأحد)</option>
-                                        <option value="Monday">Monday (الاثنين)</option>
-                                        <option value="Tuesday">Tuesday (الثلاثاء)</option>
-                                        <option value="Wednesday">Wednesday (الأربعاء)</option>
-                                        <option value="Thursday">Thursday (الخميس)</option>
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">أرقام الصفحات (Pages)</label>
-                                      <input
-                                        type="text"
-                                        value={formPages}
-                                        onChange={(e) => setFormPages(e.target.value)}
-                                        placeholder="مثال: ص 29-32"
-                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none placeholder:text-slate-400"
-                                      />
-                                    </div>
-                                    <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">الأهمية (Priority)</label>
-                                      <select
-                                        value={formPriority}
-                                        onChange={(e) => setFormPriority(e.target.value as any)}
-                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
-                                      >
-                                        <option value="normal">عادي (Normal)</option>
-                                        <option value="urgent">🚨 عاجل (Urgent)</option>
-                                      </select>
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">المهمة والواجب (Task)</label>
-                                    <input
-                                      type="text"
-                                      value={formTitle}
-                                      onChange={(e) => setFormTitle(e.target.value)}
-                                      placeholder="مثال: حل صفحة 29 بالكتاب، تدريب 3"
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">تفاصيل إضافية (Details)</label>
-                                    <textarea
-                                      value={formDetails}
-                                      onChange={(e) => setFormDetails(e.target.value)}
-                                      rows={2}
-                                      placeholder="تفاصيل وإرشادات حل الواجب..."
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-medium focus:border-indigo-500 focus:outline-none"
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">رابط الواجب الإلكتروني (اختياري)</label>
-                                    <input
-                                      type="text"
-                                      value={formLinkUrl}
-                                      onChange={(e) => setFormLinkUrl(e.target.value)}
-                                      placeholder="https://forms.gle/... أو رابط كاهوت"
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
-                                      dir="ltr"
-                                    />
-                                  </div>
-
-                                  {/* Homework PDF Attachment */}
-                                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                      <label className="block text-[11px] font-black text-slate-700">📄 شيت الواجب كملف PDF (اختياري)</label>
-                                      {formPdfUrl && (
-                                        <div className="flex items-center gap-1.5 text-xs text-rose-700 font-bold">
-                                          <a href={formPdfUrl} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
-                                            <span>عرض الملف المرفق</span>
-                                            <ExternalLink className="w-3 h-3" />
-                                          </a>
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setFormPdfUrl('');
-                                              setHwSelectedFile(null);
-                                            }}
-                                            className="text-slate-400 hover:text-red-500 font-bold text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
-                                          >
-                                            إلغاء المرفق 🗑️
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                    
-                                    <input
-                                      type="file"
-                                      accept=".pdf"
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) setHwSelectedFile(file);
-                                      }}
-                                      className="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-black file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer"
-                                    />
-
-                                    {/* Quick School Sheet Selector */}
-                                    <div className="flex flex-wrap gap-1.5 pt-1">
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setFormPdfUrl('/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf');
-                                          setHwSelectedFile(null);
-                                        }}
-                                        className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-all cursor-pointer ${
-                                          formPdfUrl?.includes('Homework 5')
-                                            ? 'bg-emerald-600 text-white border-emerald-700'
-                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'
-                                        }`}
-                                      >
-                                        📄 شيت السوشيال الرسمي (Homework 5)
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setFormPdfUrl('/materials/SocialStudies-Grade2-B1-HomeWork-1.pdf');
-                                          setHwSelectedFile(null);
-                                        }}
-                                        className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-all cursor-pointer ${
-                                          formPdfUrl?.includes('HomeWork-1')
-                                            ? 'bg-emerald-600 text-white border-emerald-700'
-                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'
-                                        }`}
-                                      >
-                                        📄 شيت دراسات (HomeWork 1)
-                                      </button>
-                                    </div>
-
-                                    {hwSelectedFile && (
-                                      <p className="text-[10px] font-bold text-emerald-700">
-                                        ✨ ملف مجهز للرفع عند الحفظ: {hwSelectedFile.name} ({(hwSelectedFile.size / 1024).toFixed(1)} KB)
-                                      </p>
-                                    )}
-                                  </div>
-                                </>
-                              )}
-
-                              {editingItemType === 'tomorrow' && (
-                                <>
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">نص الملاحظة أو التنبيه (Arabic Note)</label>
-                                    <textarea
-                                      value={formArabicNote}
-                                      onChange={(e) => setFormArabicNote(e.target.value)}
-                                      rows={3}
-                                      placeholder="مثال: اختبار في الوحدة الأولى، أو إحضار زي التربية الرياضية..."
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-bold focus:border-indigo-500 focus:outline-none"
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">أدوات الحقيبة المدرسية (Bag Item - اختياري)</label>
-                                    <input
-                                      type="text"
-                                      value={formBagItem}
-                                      onChange={(e) => setFormBagItem(e.target.value)}
-                                      placeholder="مثال: كشكول أزرق 60 ورقة، ألوان خشبية، مسطرة"
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 font-medium focus:border-indigo-500 focus:outline-none"
-                                    />
-                                  </div>
-
-                                  <div className="flex items-center gap-2 p-2 rounded-lg bg-rose-50 border border-rose-200">
-                                    <input
-                                      type="checkbox"
-                                      id="formIsQuizCheck"
-                                      checked={formIsQuiz}
-                                      onChange={(e) => setFormIsQuiz(e.target.checked)}
-                                      className="w-4 h-4 text-rose-600 rounded cursor-pointer"
-                                    />
-                                    <label htmlFor="formIsQuizCheck" className="text-xs font-bold text-rose-900 cursor-pointer">
-                                      🚨 هل هذا اختبار / Quiz / إملاء / تقييم أسبوعي؟
-                                    </label>
-                                  </div>
-
-                                  <div className="grid grid-cols-2 gap-2.5">
-                                    <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">رابط إضافي (اختياري)</label>
-                                      <input
-                                        type="text"
-                                        value={formLinkUrl}
-                                        onChange={(e) => setFormLinkUrl(e.target.value)}
-                                        placeholder="https://..."
-                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
-                                        dir="ltr"
-                                      />
-                                    </div>
-                                    <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">اسم الرابط (Link Title)</label>
-                                      <input
-                                        type="text"
-                                        value={formLinkTitle}
-                                        onChange={(e) => setFormLinkTitle(e.target.value)}
-                                        placeholder="مثال: رابط كويز، لعبة تفاعلية"
-                                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-900 text-xs focus:border-indigo-500 focus:outline-none"
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Tomorrow PDF Attachment */}
-                                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                      <label className="block text-[11px] font-black text-slate-700">📄 شيت التنبيه كملف PDF (اختياري)</label>
-                                      {formPdfUrl && (
-                                        <div className="flex items-center gap-1.5 text-xs text-rose-700 font-bold">
-                                          <a href={formPdfUrl} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
-                                            <span>عرض الملف المرفق</span>
-                                            <ExternalLink className="w-3 h-3" />
-                                          </a>
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setFormPdfUrl('');
-                                              setHwSelectedFile(null);
-                                            }}
-                                            className="text-slate-400 hover:text-red-500 font-bold text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
-                                          >
-                                            إلغاء المرفق 🗑️
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                    
-                                    <input
-                                      type="file"
-                                      accept=".pdf"
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) setHwSelectedFile(file);
-                                      }}
-                                      className="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-black file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer"
-                                    />
-                                    {hwSelectedFile && (
-                                      <p className="text-[10px] font-bold text-emerald-700">
-                                        ✨ ملف مجهز للرفع عند الحفظ: {hwSelectedFile.name} ({(hwSelectedFile.size / 1024).toFixed(1)} KB)
-                                      </p>
-                                    )}
-                                  </div>
-                                </>
-                              )}
-                            </div>
-
-                            {/* Footer */}
-                            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingItemType(null);
-                                  setEditingItemIndex(null);
-                                  setIsAddingNewItem(false);
-                                }}
-                                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-100 transition-colors cursor-pointer text-xs"
-                              >
-                                إلغاء
-                              </button>
-                              <button
-                                type="button"
-                                disabled={isUploadingHwPdf}
-                                onClick={handleSaveModalItem}
-                                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-md transition-colors cursor-pointer text-xs flex items-center gap-1.5 disabled:opacity-50"
-                              >
-                                {isUploadingHwPdf ? (
-                                  <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span>جاري رفع شيت الواجب...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <CheckCircle2 className="w-4 h-4" />
-                                    <span>حفظ التعديل في الخطة</span>
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Mode selection: Merge vs Replace */}
-                      <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-black text-slate-800">
-                            طريقة إدخال الخطة الأسبوعية:
-                          </label>
-                          <span className="text-[11px] font-bold text-slate-500">
-                            اختر ما إذا كنت تريد الإضافة مع الخطة القديمة أو استبدالها
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          <button
-                            type="button"
-                            id="plan-import-mode-replace-btn"
-                            onClick={() => setImportMode('replace')}
-                            className={`p-3 rounded-xl border text-right transition-all cursor-pointer flex items-start gap-2.5 ${
-                              importMode === 'replace'
-                                ? 'bg-purple-50/90 border-purple-500 text-purple-950 ring-1 ring-purple-400 shadow-2xs'
-                                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                            }`}
-                          >
-                            <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                              importMode === 'replace' ? 'border-purple-600 bg-purple-600 text-white' : 'border-slate-300 bg-white'
-                            }`}>
-                              {importMode === 'replace' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                            </div>
-                            <div>
-                              <div className="font-black text-xs text-purple-950 flex items-center gap-1.5">
-                                <span>🔄 استبدال القديمة بالجديدة (Replace)</span>
-                                <span className="px-1.5 py-0.2 rounded bg-purple-200 text-purple-900 text-[10px] font-bold">الموصى به</span>
-                              </div>
-                              <div className="text-[11px] text-slate-600 mt-1 leading-normal">
-                                استبدال وتحديث حصص وواجبات المواد المذكورة بالخطة الجديدة لتجنب أي تكرار.
-                              </div>
-                            </div>
-                          </button>
-
-                          <button
-                            type="button"
-                            id="plan-import-mode-merge-btn"
-                            onClick={() => setImportMode('merge')}
-                            className={`p-3 rounded-xl border text-right transition-all cursor-pointer flex items-start gap-2.5 ${
-                              importMode === 'merge'
-                                ? 'bg-indigo-50/90 border-indigo-500 text-indigo-950 ring-1 ring-indigo-400 shadow-2xs'
-                                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                            }`}
-                          >
-                            <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                              importMode === 'merge' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 bg-white'
-                            }`}>
-                              {importMode === 'merge' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                            </div>
-                            <div>
-                              <div className="font-black text-xs text-indigo-950">
-                                ➕ إدخالها مع القديمة (Merge / Add)
-                              </div>
-                              <div className="text-[11px] text-slate-600 mt-1 leading-normal">
-                                الإضافة إلى جانب الحصص والواجبات والملاحظات الموجودة مسبقاً دون حذف.
-                              </div>
-                            </div>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Publish and Cancel Buttons */}
-                      <div className="pt-2 flex flex-col sm:flex-row items-center gap-2 border-t border-slate-100">
-                        <button
-                          id="admin-publish-plan-btn"
-                          type="button"
-                          disabled={isPublishingPlan}
-                          onClick={handlePublishPlan}
-                          className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2"
-                        >
-                          {isPublishingPlan ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>جاري الاعتماد والحفظ في قاعدة البيانات...</span>
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle2 className="w-4 h-4" />
-                              <span>اعتماد ونشر الخطة في التطبيق وقاعدة البيانات</span>
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setParsedResult(null)}
-                          className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer text-center"
-                        >
-                          إلغاء أو إعادة المحاولة
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRestoreItemFromHistory(id, type)}
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs hover:shadow-sm cursor-pointer transition-all self-end sm:self-auto shrink-0 flex items-center gap-1.5 active:scale-95"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>استعادة والتراجع 🔄</span>
+                      </button>
                     </div>
-                  )}
-                </div>
-              )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Section 3: Existing Materials List */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-700" />
+                <h3 className="text-sm font-black text-slate-900">
+                  المحتويات المرفوعة حالياً في Materials ({materials.length})
+                </h3>
+              </div>
+              <span className="text-[11px] font-bold text-slate-400">
+                يمكنك المعاينة أو الفتح أو الطباعة أو المسح
+              </span>
             </div>
 
-            {/* Top Action Card: Primary Upload Button */}
-            <div className="bg-amber-50/60 border border-amber-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
-                    <Upload className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-black text-amber-950">
-                      زر تحميل وتوزيع الـ PDF والروابط على الـ Materials
-                    </h3>
-                    <p className="text-xs text-amber-800/80 font-medium">
-                      اختر الـ Block والقسم لتحميل ملف PDF أو إضافة رابط إلكتروني / فيديو
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  id="toggle-upload-form-btn"
-                  type="button"
-                  onClick={() => setShowUploadForm(!showUploadForm)}
-                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-1.5 ${
-                    showUploadForm
-                      ? 'bg-slate-200 text-slate-800 hover:bg-slate-300'
-                      : 'bg-amber-600 text-white hover:bg-amber-700'
-                  }`}
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>{showUploadForm ? 'إخفاء نموذج الإضافة' : 'إضافة ملف PDF أو رابط جديد'}</span>
-                </button>
+            {materials.length === 0 ? (
+              <div className="py-8 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center space-y-2">
+                <FileText className="w-8 h-8 text-slate-300 mx-auto" />
+                <p className="text-xs text-slate-500 font-bold">لا توجد ملفات أو روابط مرفوعة حتى الآن.</p>
+                <p className="text-[11px] text-slate-400 font-medium">
+                  اضغط على زر "إضافة مادة تعليمية جديدة" بالأعلى لرفع وتوزيع المواد.
+                </p>
               </div>
-
-              {/* Upload Form Box (when opened) */}
-              {showUploadForm && (
-                <div className="pt-3 border-t border-amber-200/80 space-y-4 animate-in fade-in duration-200">
-                  {/* Step 0: Choose Type (PDF vs Link) */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      1. نوع المحتوى المراد إضافته وتوزيعه:
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        id="admin-choose-type-pdf-btn"
-                        onClick={() => setMaterialUploadMode('pdf')}
-                        className={`py-2.5 px-3 rounded-xl text-xs font-black border flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                          materialUploadMode === 'pdf'
-                            ? 'bg-rose-600 text-white border-rose-700 shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-200 hover:bg-rose-50/50'
-                        }`}
-                      >
-                        <FileText className="w-4 h-4" />
-                        <span>ملف PDF (شيت أو مذكرة)</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        id="admin-choose-type-link-btn"
-                        onClick={() => setMaterialUploadMode('link')}
-                        className={`py-2.5 px-3 rounded-xl text-xs font-black border flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                          materialUploadMode === 'link'
-                            ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-200 hover:bg-indigo-50/50'
-                        }`}
-                      >
-                        <Link2 className="w-4 h-4" />
-                        <span>رابط إلكتروني / فيديو (Link)</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Step 1: Select Block */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      2. أنت عايز تضيف في أي بلوك؟ (اختر الـ Block):
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {blocks.map((b) => (
-                        <button
-                          key={b}
-                          type="button"
-                          id={`admin-select-block-${b}-btn`}
-                          onClick={() => setTargetBlock(b)}
-                          className={`py-2 px-3 rounded-xl text-xs font-black border transition-all cursor-pointer ${
-                            targetBlock === b
-                              ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
-                              : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50/50'
-                          }`}
-                        >
-                          Block {b}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Step 2: Select Section */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      3. عايز تضيف في الـ Main Sheet ولا في ويك معين؟:
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                      {sections.map((sec) => (
-                        <button
-                          key={sec}
-                          type="button"
-                          id={`admin-select-sec-${sec.replace(/\s+/g, '-')}-btn`}
-                          onClick={() => setTargetSection(sec)}
-                          className={`py-2 px-2.5 rounded-xl text-xs font-black border transition-all cursor-pointer text-center ${
-                            targetSection === sec
-                              ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
-                              : 'bg-white text-slate-700 border-slate-200 hover:bg-indigo-50/50'
-                          }`}
-                        >
-                          {sec}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Step 3: Select Target Class */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      4. تحديد الفصل (المستفيدين):
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[
-                        { id: 'ALL', label: 'كل الفصول (All Classes)' },
-                        { id: 'G2A', label: 'فصل G2A' },
-                        { id: 'G2B', label: 'فصل G2B' },
-                        { id: 'G2C', label: 'فصل G2C' },
-                      ].map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          id={`admin-select-class-${c.id}-btn`}
-                          onClick={() => setTargetClass(c.id as ClassId | 'ALL')}
-                          className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                            targetClass === c.id
-                              ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          {c.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Step 4: Mode Specific Form (PDF / Image / Word File Input vs Link Input) */}
-                  {materialUploadMode === 'pdf' ? (
-                    <div>
-                      <label className="block text-xs font-black text-slate-800 mb-1.5">
-                        5. اختيار الملف المطلوب رفعه (PDF, صورة JPG/PNG, مستند Word):
-                      </label>
-                      <div className="flex flex-col sm:flex-row items-center gap-3">
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,application/pdf,image/*,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                          onChange={handleFileChange}
-                          className="block w-full text-xs text-slate-500 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-amber-600 file:text-white hover:file:bg-amber-700 file:cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs"
-                        />
-                      </div>
-                      {selectedFile && (
-                        <div className="mt-2 p-2.5 bg-white rounded-xl border border-emerald-200 flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2 text-slate-800 font-bold truncate">
-                            <FileText className="w-4 h-4 text-rose-500 shrink-0" />
-                            <span className="truncate">{selectedFile.name}</span>
-                            <span className="text-slate-400 font-medium">
-                              ({formatBytes(selectedFile.size)})
-                            </span>
-                          </div>
-                          <span className="text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded-lg shrink-0">
-                            جاهز للرفع
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-3 bg-white p-3.5 rounded-xl border border-indigo-100 shadow-2xs">
-                      <div>
-                        <label className="block text-xs font-black text-slate-800 mb-1">
-                          5. عنوان أو اسم الرابط / الشيت:
-                        </label>
-                        <input
-                          type="text"
-                          id="admin-material-link-title"
-                          placeholder="مثال: فيديو درس أفراد العائلة - Les membres de ma famille"
-                          value={materialLinkTitle}
-                          onChange={(e) => setMaterialLinkTitle(e.target.value)}
-                          className="w-full text-xs border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium"
-                          dir="auto"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-black text-slate-800 mb-1">
-                          رابط الويب (URL) أو فيديو YouTube:
-                        </label>
-                        <div className="relative">
-                          <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input
-                            type="text"
-                            id="admin-material-link-url"
-                            placeholder="https://www.youtube.com/watch?v=... أو https://example.com"
-                            value={materialLinkUrl}
-                            onChange={(e) => setMaterialLinkUrl(e.target.value)}
-                            className="w-full text-xs border border-slate-200 rounded-xl py-2.5 pr-3 pl-9 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-left"
-                            dir="ltr"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Upload / Add Confirm Button */}
-                  <div className="pt-2 flex justify-end">
-                    <button
-                      id="admin-submit-upload-btn"
-                      type="button"
-                      disabled={isUploading}
-                      onClick={handleConfirmUpload}
-                      className={`px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-sm flex items-center gap-2 transition-all cursor-pointer ${
-                        isUploading
-                          ? 'bg-slate-300 cursor-not-allowed'
-                          : materialUploadMode === 'pdf'
-                          ? 'bg-emerald-600 hover:bg-emerald-700 active:scale-98'
-                          : 'bg-indigo-600 hover:bg-indigo-700 active:scale-98'
-                      }`}
+            ) : (
+              <div className="space-y-2.5">
+                {materials.map((item) => {
+                  const isLink = item.type === "link";
+                  return (
+                    <div
+                      key={item.id}
+                      className="p-3.5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-all"
                     >
-                      {materialUploadMode === 'pdf' ? (
-                        <Upload className="w-4 h-4" />
-                      ) : (
-                        <Link2 className="w-4 h-4" />
-                      )}
-                      <span>
-                        {isUploading
-                          ? 'جاري الحفظ...'
-                          : materialUploadMode === 'pdf'
-                          ? `تأكيد رفع PDF في Block ${targetBlock} (${targetSection})`
-                          : `تأكيد إضافة الرابط في Block ${targetBlock} (${targetSection})`}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* سلة محذوفات التراجع - 24 ساعة */}
-            <div className="bg-rose-50/70 border border-rose-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-xs shrink-0">
-                    <Trash2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-black text-rose-950">
-                      سلة محذوفات التراجع (24 ساعة) 🗑️
-                    </h3>
-                    <p className="text-xs text-rose-800/80 font-medium leading-normal">
-                      يمكنك كأدمن التراجع واستعادة أي درس أو واجب أو تنبيه محذوف فوراً وتحديث جميع الأجهزة والطلاب تلقائياً.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={fetchDeletedHistory}
-                  className="p-1.5 rounded-lg text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
-                  title="تحديث القائمة"
-                >
-                  <RotateCcw className="w-4 h-4 hover:rotate-180 transition-transform duration-500" />
-                </button>
-              </div>
-
-              {deletedHistory.length === 0 ? (
-                <div className="py-6 px-4 bg-white/50 rounded-xl border border-dashed border-rose-200 text-center space-y-1">
-                  <Trash2 className="w-6 h-6 text-rose-300 mx-auto opacity-60" />
-                  <p className="text-xs text-rose-900 font-bold">
-                    سلة المحذوفات فارغة حالياً.
-                  </p>
-                  <p className="text-[10px] text-rose-700/70 font-medium">
-                    أي درس أو واجب أو تنبيه تقوم بحذفه سيظهر هنا لمدة 24 ساعة لتتمكن من استعادته في أي وقت.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1 select-none">
-                  {deletedHistory.map((historyItem) => {
-                    const { id, type, deletedAt, itemData } = historyItem;
-                    if (!itemData) return null;
-
-                    const formattedTime = formatElapsedTime(deletedAt);
-                    let itemTypeLabel = '';
-                    let itemDetails = '';
-                    let badgeColor = '';
-
-                    if (type === 'classwork') {
-                      itemTypeLabel = 'حصة صفية 📘';
-                      itemDetails = `${itemData.subject || ''} • Block ${itemData.block || ''} • Week ${itemData.week || ''} • ${itemData.classId || itemData.class_id || ''} • ${itemData.day || ''}`;
-                      badgeColor = 'bg-blue-50 text-blue-800 border-blue-200';
-                    } else if (type === 'homework') {
-                      itemTypeLabel = 'واجب منزلي 📝';
-                      itemDetails = `${itemData.subject || ''} • Block ${itemData.block || ''} • Week ${itemData.week || ''} • ${itemData.classId || itemData.class_id || ''} • ${itemData.assignedDay || ''}`;
-                      badgeColor = 'bg-amber-50 text-amber-800 border-amber-200';
-                    } else if (type === 'tomorrowNotes') {
-                      itemTypeLabel = 'تنبيه الغد 🎒';
-                      itemDetails = `${itemData.subject || ''} • Block ${itemData.block || ''} • Week ${itemData.week || ''} • ${itemData.classId || itemData.class_id || ''} • ${itemData.targetDay || ''}`;
-                      badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200';
-                    }
-
-                    const itemTitle = itemData.title || itemData.task || itemData.arabicNote || itemData.note || 'عنصر بدون عنوان';
-
-                    return (
-                      <div
-                        key={id}
-                        className="p-3 bg-white border border-rose-100 rounded-xl hover:border-rose-300 hover:shadow-2xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-                      >
-                        <div className="flex items-start gap-2.5 min-w-0">
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${badgeColor} shrink-0 mt-0.5`}>
-                            {itemTypeLabel}
-                          </span>
-                          <div className="min-w-0 text-right">
-                            <p className="text-slate-900 font-black truncate text-xs">{itemTitle}</p>
-                            <p className="text-slate-500 font-semibold text-[11px] mt-0.5 leading-tight">{itemDetails}</p>
-                            <p className="text-rose-600 text-[10px] font-bold mt-1 inline-flex items-center gap-1 bg-rose-50 px-1.5 py-0.5 rounded-md">
-                              <span>🗑️</span>
-                              <span>حُذف منذ {formattedTime}</span>
-                            </p>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleRestoreItemFromHistory(id, type)}
-                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs hover:shadow-sm cursor-pointer transition-all self-end sm:self-auto shrink-0 flex items-center gap-1.5 active:scale-95"
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div
+                          className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 mt-0.5 ${
+                            isLink
+                              ? "bg-indigo-50 border-indigo-200 text-indigo-600"
+                              : "bg-rose-50 border-rose-200 text-rose-600"
+                          }`}
                         >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          <span>استعادة والتراجع 🔄</span>
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* List of Uploaded Materials with Delete Button */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-slate-700" />
-                  <h3 className="text-sm font-black text-slate-900">
-                    المحتويات المرفوعة حالياً في Materials ({materials.length})
-                  </h3>
-                </div>
-                <span className="text-[11px] font-bold text-slate-400">
-                  يمكنك المعاينة أو الفتح أو الطباعة أو المسح
-                </span>
-              </div>
-
-              {materials.length === 0 ? (
-                <div className="py-8 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center space-y-2">
-                  <FileText className="w-8 h-8 text-slate-300 mx-auto" />
-                  <p className="text-xs text-slate-500 font-bold">
-                    لا توجد ملفات أو روابط مرفوعة حتى الآن.
-                  </p>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    اضغط على زر "إضافة ملف PDF أو رابط جديد" بالأعلى لرفع وتوزيع المواد.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {materials.map((item) => {
-                    const isLink = item.type === 'link';
-
-                    return (
-                      <div
-                        key={item.id}
-                        className="p-3.5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-all"
-                      >
-                        {/* Left: Info */}
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div
-                            className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 mt-0.5 ${
-                              isLink
-                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
-                                : 'bg-rose-50 border-rose-200 text-rose-600'
-                            }`}
-                          >
-                            {isLink ? <ExternalLink className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs font-black text-slate-900 truncate">
-                                {item.fileName}
+                          {isLink ? <Link2 className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-black text-slate-900 truncate">{item.fileName}</span>
+                            <span className="text-[10px] font-extrabold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md">
+                              Block {item.block}
+                            </span>
+                            <span className="text-[10px] font-extrabold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded-md">
+                              {item.section}
+                            </span>
+                            <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded-md">
+                              {item.classId === "ALL" ? "كل الفصول" : item.classId}
+                            </span>
+                            {isLink ? (
+                              <span className="text-[10px] font-black bg-indigo-100 text-indigo-900 border border-indigo-200 px-1.5 py-0.5 rounded-md">
+                                رابط إلكتروني 🔗
                               </span>
-                              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md">
-                                Block {item.block}
-                              </span>
-                              <span className="text-[10px] font-extrabold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded-md">
-                                {item.section}
-                              </span>
-                              <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded-md">
-                                {item.classId === 'ALL' ? 'كل الفصول' : item.classId}
-                              </span>
-                              {isLink ? (
-                                <span className="text-[10px] font-black bg-indigo-100 text-indigo-900 border border-indigo-200 px-1.5 py-0.5 rounded-md">
-                                  رابط إلكتروني 🔗
-                                </span>
-                              ) : item.storageUrl && (
+                            ) : (
+                              item.storageUrl && (
                                 <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300 px-1.5 py-0.5 rounded-md">
                                   سحابي ☁️
                                 </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 text-[11px] text-slate-400 font-medium mt-1">
-                              {isLink ? (
-                                <span className="truncate max-w-[220px] text-indigo-600 font-mono" dir="ltr">
-                                  {item.linkUrl || item.storageUrl}
-                                </span>
-                              ) : (
-                                <span>الحجم: {formatBytes(item.fileSize)}</span>
-                              )}
-                              <span>•</span>
-                              <span>
-                                {new Date(item.uploadedAt).toLocaleDateString('ar-EG', {
-                                  day: 'numeric',
-                                  month: 'short',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
+                              )
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-[11px] text-slate-400 font-medium mt-1">
+                            {isLink ? (
+                              <span className="truncate max-w-[220px] text-indigo-600 font-mono" dir="ltr">
+                                {item.linkUrl || item.storageUrl}
                               </span>
-                            </div>
+                            ) : (
+                              <span>الحجم: {formatBytes(item.fileSize)}</span>
+                            )}
+                            <span>•</span>
+                            <span>
+                              {new Date(item.uploadedAt).toLocaleDateString("ar-EG", {
+                                day: "numeric",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
                           </div>
                         </div>
-
-                        {/* Right: Actions */}
-                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
-                          {/* Preview / Open */}
-                          <button
-                            type="button"
-                            id={`admin-preview-${item.id}-btn`}
-                            onClick={() => handlePreview(item)}
-                            className="p-2 rounded-xl text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
-                            title={isLink ? 'فتح الرابط في صفحة جديدة' : 'معاينة الملف'}
-                          >
-                            {isLink ? <ExternalLink className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                          </button>
-
-                          {/* Print (Only for PDF) */}
-                          {!isLink && (
-                            <button
-                              type="button"
-                              id={`admin-print-${item.id}-btn`}
-                              onClick={() => handlePrint(item)}
-                              className="p-2 rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
-                              title="طباعة الملف"
-                            >
-                              <Printer className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
-                          {/* Download (Only for PDF) */}
-                          {!isLink && (
-                            <button
-                              type="button"
-                              id={`admin-download-${item.id}-btn`}
-                              onClick={() => handleDownload(item)}
-                              className="p-2 rounded-xl text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
-                              title="تحميل الملف"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
-                          {/* Delete Button (زرار مسح) */}
-                          <button
-                            type="button"
-                            id={`admin-delete-${item.id}-btn`}
-                            onClick={() => handleDelete(item)}
-                            className="p-2 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
-                            title="مسح وحذف نهائياً"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+
+                      <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                        <button
+                          type="button"
+                          id={`admin-preview-${item.id}-btn`}
+                          onClick={() => handlePreviewMaterial(item)}
+                          className="p-2 rounded-xl text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
+                          title={isLink ? "فتح الرابط في صفحة جديدة" : "معاينة الملف"}
+                        >
+                          {isLink ? <Link2 className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+
+                        {!isLink && (
+                          <button
+                            type="button"
+                            id={`admin-print-${item.id}-btn`}
+                            onClick={() => handlePrintMaterial(item)}
+                            className="p-2 rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
+                            title="طباعة الملف"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        {!isLink && (
+                          <button
+                            type="button"
+                            id={`admin-download-${item.id}-btn`}
+                            onClick={() => handleDownloadMaterial(item)}
+                            className="p-2 rounded-xl text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
+                            title="تحميل الملف"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          id={`admin-delete-${item.id}-btn`}
+                          onClick={() => handleDeleteMaterial(item)}
+                          className="p-2 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                          title="مسح وحذف نهائياً"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Supabase Cloud Connection & Persistent Credentials Modal */}
       <SupabaseConfigModal
         isOpen={isSupabaseModalOpen}
         onClose={() => setIsSupabaseModalOpen(false)}
         onSaved={() => {
-          setSuccessMessage('تم حفظ إعدادات ومفاتيح Supabase وتحديث الاتصال بنجاح!');
+          setSuccessMessage("تم حفظ إعدادات ومفاتيح Supabase وتحديث الاتصال بنجاح!");
         }}
       />
-    </>
+    </div>
   );
 };
+
+

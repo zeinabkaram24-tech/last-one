@@ -566,6 +566,7 @@ app.post('/api/materials', (req, res) => {
         const filePath = path.join(MATERIALS_DIR, `${item.id}.${ext}`);
         fs.writeFileSync(filePath, buffer);
         item.storageUrl = `/api/materials/${item.id}/file`;
+        delete item.fileData; // Clean up heavy base64 payload from stored JSON
       } catch (fErr) {
         console.warn('Failed to write material file to disk:', fErr);
       }
@@ -575,7 +576,13 @@ app.post('/api/materials', (req, res) => {
     const existingIndex = current.findIndex((m: any) => m.id === item.id);
     if (existingIndex >= 0) {
       current[existingIndex] = { ...current[existingIndex], ...item };
+      if (current[existingIndex].storageUrl) {
+        delete current[existingIndex].fileData;
+      }
     } else {
+      if (item.storageUrl) {
+        delete item.fileData;
+      }
       current.unshift(item);
     }
     saveStoredMaterials(current);

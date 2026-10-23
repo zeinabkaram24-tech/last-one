@@ -1759,30 +1759,42 @@ export async function uploadPdfToSupabaseStorage(
   if (!isSupabaseConfigured) return null;
 
   try {
-    const bucketName = 'materials';
-    const cleanName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const path = `${Date.now()}_${cleanName}`;
+    const uploadPromise = (async () => {
+      const bucketName = "materials";
+      const cleanName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${Date.now()}_${cleanName}`;
+      const mimeType = (file as File).type || (fileName.endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
 
-    const { error: uploadError } = await supabase.storage
-      .from(bucketName)
-      .upload(path, file, {
-        cacheControl: '3600',
-        upsert: true,
-        contentType: 'application/pdf',
-      });
+      const { error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: true,
+          contentType: mimeType,
+        });
 
-    if (uploadError) {
-      console.warn('Storage upload notice (falling back to database or local):', uploadError.message);
-      return null;
-    }
+      if (uploadError) {
+        console.warn("Storage upload notice (falling back to local/server):", uploadError.message);
+        return null;
+      }
 
-    const { data: publicUrlData } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(path);
+      const { data: publicUrlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(path);
 
-    return publicUrlData.publicUrl || null;
+      return publicUrlData.publicUrl || null;
+    })();
+
+    const timeoutPromise = new Promise<null>((resolve) => {
+      setTimeout(() => {
+        console.warn("Supabase storage upload timed out after 5s, falling back to local server.");
+        resolve(null);
+      }, 5000);
+    });
+
+    return await Promise.race([uploadPromise, timeoutPromise]);
   } catch (e) {
-    console.warn('Network exception during Supabase Storage upload:', e);
+    console.warn("Network exception during Supabase Storage upload:", e);
     return null;
   }
 }

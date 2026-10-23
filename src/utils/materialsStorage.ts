@@ -196,25 +196,7 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
 
 // Save or add a material (saves locally AND to central server AND Supabase Cloud)
 export async function saveMaterial(item: MaterialItem): Promise<void> {
-  // 1. Save to local IndexedDB
-  try {
-    const db = await openDB();
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.put(item);
-
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
-    });
-  } catch (e) {
-    console.warn('Failed to save to IndexedDB, saving to fallback', e);
-    const existing = getFallbackMaterials().filter((m) => m.id !== item.id);
-    existing.push(item);
-    saveFallbackMaterials(existing);
-  }
-
-  // 2. Centralized Server Persistence (/api/materials) for laptop & all devices
+  // 1. Centralized Server Persistence (/api/materials) for laptop & all devices
   try {
     const res = await fetch('/api/materials', {
       method: 'POST',
@@ -225,10 +207,36 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
       const data = await res.json();
       if (data && data.item && data.item.storageUrl) {
         item.storageUrl = data.item.storageUrl;
+        delete item.fileData; // Clean up heavy base64 payload once stored on server
       }
     }
   } catch (serverErr) {
     console.warn('Failed to sync material to server API:', serverErr);
+  }
+
+  // 2. Save to local IndexedDB
+  try {
+    const db = await openDB();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const itemToSave = { ...item };
+      if (itemToSave.storageUrl && itemToSave.fileData) {
+        delete itemToSave.fileData;
+      }
+      const req = store.put(itemToSave);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.warn('Failed to save to IndexedDB, saving to fallback', e);
+    try {
+      const fallbackItem = { ...item };
+      delete fallbackItem.fileData; // Prevent localStorage QuotaExceededError
+      const existing = getFallbackMaterials().filter((m) => m.id !== item.id);
+      existing.push(fallbackItem);
+      saveFallbackMaterials(existing);
+    } catch {}
   }
 
   // 3. Sync to Supabase Cloud Database if configured
@@ -244,7 +252,6 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
 }
 
-// Delete a material (deletes locally, from server, and from Supabase Cloud)
 export async function deleteMaterial(id: string, storageUrl?: string): Promise<void> {
   // 0. Record deleted ID locally so it is filtered out everywhere
   recordLocalDeletedMaterialId(id);
