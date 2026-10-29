@@ -87,8 +87,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   // Materials Upload Form State
   const [materialUploadMode, setMaterialUploadMode] = useState<'pdf' | 'link'>('pdf');
   const [targetBlock, setTargetBlock] = useState<number>(currentBlock || 1);
-  const [targetSection, setTargetSection] = useState<string>('Main sheet');
+  const [targetWeek, setTargetWeek] = useState<number>(currentWeek || 1);
+  const [targetSection, setTargetSection] = useState<string>('Week 1');
+  const [targetSubject, setTargetSubject] = useState<string>('English');
   const [targetClass, setTargetClass] = useState<ClassId | 'ALL'>('ALL');
+  const [materialTitle, setMaterialTitle] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [materialLinkTitle, setMaterialLinkTitle] = useState<string>('');
   const [materialLinkUrl, setMaterialLinkUrl] = useState<string>('');
@@ -656,15 +659,19 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           fileType = "doc";
         }
 
+        const effectiveTitle = materialTitle.trim() || selectedFile.name;
+
         const newItem: MaterialItem = {
           id: "mat_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
-          fileName: selectedFile.name,
+          fileName: effectiveTitle,
           fileSize: selectedFile.size,
           fileData: fileData,
           storageUrl: cloudUrl || undefined,
           type: fileType,
           block: targetBlock,
+          week: targetWeek,
           section: targetSection,
+          subject: targetSubject,
           classId: targetClass,
           uploadedAt: new Date().toISOString(),
         };
@@ -675,10 +682,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         setSuccessMessage(
           cloudUrl
             ? `تم رفع الملف سحابياً بنجاح وتوفيره لجميع الأجهزة واللابتوب!`
-            : `تم حفظ الملف بنجاح في Block ${targetBlock} — ${targetSection}!`
+            : `تم حفظ الملف بنجاح في Block ${targetBlock} — ${targetSection} (${targetSubject})!`
         );
 
         setSelectedFile(null);
+        setMaterialTitle("");
         if (fileInputRef.current) fileInputRef.current.value = "";
 
         setTimeout(() => {
@@ -696,7 +704,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         setErrorMessage("يرجى إدخال رابط الويب (URL).");
         return;
       }
-      if (!materialLinkTitle.trim()) {
+      const effectiveLinkTitle = materialLinkTitle.trim() || materialTitle.trim();
+      if (!effectiveLinkTitle) {
         setErrorMessage("يرجى إدخال اسم أو عنوان الرابط / المادة.");
         return;
       }
@@ -712,13 +721,15 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
         const newItem: MaterialItem = {
           id: "mat_link_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
-          fileName: materialLinkTitle.trim(),
+          fileName: effectiveLinkTitle,
           fileSize: 0,
           storageUrl: cleanUrl,
           linkUrl: cleanUrl,
           type: "link",
           block: targetBlock,
+          week: targetWeek,
           section: targetSection,
+          subject: targetSubject,
           classId: targetClass,
           uploadedAt: new Date().toISOString(),
         };
@@ -727,10 +738,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         await refreshMaterials();
 
         setSuccessMessage(
-          `✨ تمت إضافة الرابط بنجاح في Block ${targetBlock} — ${targetSection}!`
+          `✨ تمت إضافة الرابط بنجاح في Block ${targetBlock} — ${targetSection} (${targetSubject})!`
         );
 
         setMaterialLinkTitle("");
+        setMaterialTitle("");
         setMaterialLinkUrl("");
 
         setTimeout(() => {
@@ -944,56 +956,102 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             </div>
 
-            {materialUploadMode === "pdf" ? (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">اختر البلوك (Block)</label>
-                  <select
-                    value={targetBlock}
-                    onChange={(e) => setTargetBlock(Number(e.target.value))}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value={1}>Block 1</option>
-                    <option value={2}>Block 2</option>
-                    <option value={3}>Block 3</option>
-                    <option value={4}>Block 4</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">القسم / المادة</label>
-                  <select
-                    value={targetSection}
-                    onChange={(e) => setTargetSection(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value="Main sheet">Main Sheet</option>
-                    <option value="English">English</option>
-                    <option value="Maths">Maths</option>
-                    <option value="Science">Science</option>
-                    <option value="French">French</option>
-                    <option value="German">German</option>
-                    <option value="ICT">ICT</option>
-                    <option value="Arabic">Arabic</option>
-                    <option value="Religion">Religion</option>
-                    <option value="Social">Social</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">الفصل الموجه</label>
-                  <select
-                    value={targetClass}
-                    onChange={(e) => setTargetClass(e.target.value as any)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value="ALL">جميع الفصول (G2A, G2B, G2C)</option>
-                    <option value="G2A">G2A فقط</option>
-                    <option value="G2B">G2B فقط</option>
-                    <option value="G2C">G2C فقط</option>
-                  </select>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">اختر البلوك (Block)</label>
+                <select
+                  value={targetBlock}
+                  onChange={(e) => setTargetBlock(Number(e.target.value))}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                >
+                  <option value={1}>Block 1</option>
+                  <option value={2}>Block 2</option>
+                  <option value={3}>Block 3</option>
+                  <option value={4}>Block 4</option>
+                </select>
+              </div>
 
-                <div className="sm:col-span-3">
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">الملف المراد رفعه</label>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">اختر الأسبوع / القسم (Week)</label>
+                <select
+                  value={targetSection}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTargetSection(val);
+                    if (val.startsWith("Week ")) {
+                      setTargetWeek(Number(val.replace("Week ", "")));
+                    } else if (val === "Main sheet") {
+                      setTargetWeek(1);
+                    }
+                  }}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="Week 1">Week 1 (الأسبوع الأول)</option>
+                  <option value="Week 2">Week 2 (الأسبوع الثاني)</option>
+                  <option value="Week 3">Week 3 (الأسبوع الثالث)</option>
+                  <option value="Week 4">Week 4 (الأسبوع الرابع)</option>
+                  <option value="Week 5">Week 5 (الأسبوع الخامس)</option>
+                  <option value="Main sheet">Main Sheet (المخطط الرئيسي)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">اختر المادة (Subject)</label>
+                <select
+                  value={targetSubject}
+                  onChange={(e) => setTargetSubject(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="English">English (لغة إنجليزية)</option>
+                  <option value="Mathematics">Mathematics (رياضيات / ماس)</option>
+                  <option value="Science">Science (علوم / ساينس)</option>
+                  <option value="Social Studies">Social Studies (دراسات)</option>
+                  <option value="French">French (لغة فرنسية)</option>
+                  <option value="ICT">ICT (تكنولوجيا المعلومات)</option>
+                  <option value="Arabic">Arabic (لغة عربية)</option>
+                  <option value="Religion">Religion (تربية دينية)</option>
+                  <option value="German">German (لغة ألمانية)</option>
+                  <option value="Arts">Arts (تربية فنية)</option>
+                  <option value="Music">Music (تربية موسيقية)</option>
+                  <option value="PE">PE (تربية رياضية)</option>
+                  <option value="Leadership">Leadership (القيادة)</option>
+                  <option value="Main sheet">Main Sheet (عام)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">الفصل الموجه (Class)</label>
+                <select
+                  value={targetClass}
+                  onChange={(e) => setTargetClass(e.target.value as any)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="ALL">جميع الفصول (G2A, G2B, G2C)</option>
+                  <option value="G2A">G2A فقط</option>
+                  <option value="G2B">G2B فقط</option>
+                  <option value="G2C">G2C فقط</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-2 lg:col-span-4">
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  اسم المادة / عنوان الملف أو الرابط (اختياري)
+                </label>
+                <input
+                  type="text"
+                  placeholder="مثال: شيت مراجعة الماس الخارجية - Block 2 Week 3"
+                  value={materialTitle}
+                  onChange={(e) => {
+                    setMaterialTitle(e.target.value);
+                    setMaterialLinkTitle(e.target.value);
+                  }}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              {materialUploadMode === "pdf" ? (
+                <div className="sm:col-span-2 lg:col-span-4">
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">اختر الملف المراد رفعه (PDF / صورة / Word)</label>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -1002,21 +1060,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     className="w-full text-xs text-slate-600 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
                   />
                 </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">عنوان الرابط / اسم المادة</label>
-                  <input
-                    type="text"
-                    placeholder="مثال: شيت مراجعة الماس الخارجية"
-                    value={materialLinkTitle}
-                    onChange={(e) => setMaterialLinkTitle(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">رابط الويب (URL)</label>
+              ) : (
+                <div className="sm:col-span-2 lg:col-span-4">
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">رابط الويب أو الفيديو (URL)</label>
                   <input
                     type="url"
                     placeholder="https://..."
@@ -1026,8 +1072,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     dir="ltr"
                   />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             <button
               type="button"

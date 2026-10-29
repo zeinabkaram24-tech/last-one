@@ -127,9 +127,12 @@ export interface MaterialItem {
   linkUrl?: string; // External web link or video link
   type?: 'pdf' | 'image' | 'doc' | 'link' | 'html'; // 'pdf' | 'image' | 'doc' | 'link' | 'html'
   block: number; // 1, 2, 3, 4
+  week?: number; // 1, 2, 3, 4, 5
   section: string; // 'Main sheet' | 'Week 1' | 'Week 2' | 'Week 3' | 'Week 4' | 'Week 5'
+  subject?: string;
   classId?: ClassId | 'ALL';
   uploadedAt: string;
+  description?: string;
 }
 
 export interface UserProfile {

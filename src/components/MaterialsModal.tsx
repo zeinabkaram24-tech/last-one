@@ -98,12 +98,25 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
 
   // Filter items for current selection and sort by download/upload date (newest on top)
   const currentSectionMaterials = [...materials]
-    .filter(
-      (item) =>
-        item.block === selectedBlock &&
-        item.section === selectedSection &&
-        (!item.classId || item.classId === 'ALL' || item.classId === currentClass)
-    )
+    .filter((item) => {
+      if (item.block !== selectedBlock) return false;
+      if (item.classId && item.classId !== 'ALL' && item.classId !== currentClass) return false;
+
+      if (selectedSection === 'Main sheet') {
+        return !item.section || item.section === 'Main sheet' || item.section === 'General';
+      }
+
+      if (selectedSection?.startsWith('Week ')) {
+        const weekNum = Number(selectedSection.replace('Week ', ''));
+        return (
+          item.section === selectedSection ||
+          item.week === weekNum ||
+          `Week ${item.week}` === selectedSection
+        );
+      }
+
+      return item.section === selectedSection;
+    })
     .sort((a, b) => {
       const timeA = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
       const timeB = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
@@ -405,6 +418,14 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                                     <span>•</span>
                                     <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
                                       سحابي Cloud ☁️
+                                    </span>
+                                  </>
+                                )}
+                                {file.subject && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-indigo-900 bg-indigo-50 px-1.5 py-0.5 rounded text-[10px] font-black border border-indigo-200">
+                                      {file.subject}
                                     </span>
                                   </>
                                 )}
