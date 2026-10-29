@@ -478,9 +478,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true; // Strictly disallowed on all days except Wednesday for Week 3!
     }
 
-    // 8. Strict user mandate: "امسح الـ task الموجودة في كلاس A وكلاس C في تنبيهات الغد بتاعة اختبار الـ Math"
-    // Math test in Tomorrow is strictly disallowed for all classes (Class A, Class B, Class C) in Week 4!
-    if (currentWeek === 4 || effectiveWeek === 4) {
+    // 8. Strict user mandate for Block 1 Week 4: "امسح الـ task الموجودة في كلاس A وكلاس C في تنبيهات الغد بتاعة اختبار الـ Math"
+    if (currentBlock === 1 && (currentWeek === 4 || effectiveWeek === 4)) {
       const fullText = (
         ((n as any).title || '') +
         ' ' +
@@ -493,7 +492,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       const isMath = fullText.includes('math') || fullText.includes('رياضيات') || (n.subject && n.subject.toLowerCase().includes('math'));
       const isTestOrQuiz = fullText.includes('test') || fullText.includes('quiz') || fullText.includes('اختبار') || fullText.includes('كويز') || fullText.includes('امتحان') || fullText.includes('تقييم');
       if (isMath && isTestOrQuiz) {
-        return true; // Strictly disallowed in Tomorrow for all classes in Week 4!
+        return true; // Strictly disallowed in Tomorrow for all classes in Block 1 Week 4!
       }
     }
 

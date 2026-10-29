@@ -12394,13 +12394,14 @@
       "dueDay": "Monday",
       "due_day": "Monday",
       "subject": "Mathematics",
-      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w)",
-      "details": "Unit 7: Measuring length and time - Extra Work Sheet (Extra H.w)",
-      "pages": "Extra H.w",
+      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w - Clock Past)",
+      "details": "Unit 7: Measuring length and time - Extra Work Sheet (Clock: Past)",
+      "pages": "Extra H.w Sheet",
       "completed": false,
       "priority": "normal",
       "block": 2,
-      "week": 4
+      "week": 4,
+      "pdfUrl": "/assets/aistudio/clock___past__h.w_b836cc58.pdf"
     },
     {
       "id": "hw-b2-w4-G2A-Monday-math",
@@ -12479,13 +12480,14 @@
       "dueDay": "Monday",
       "due_day": "Monday",
       "subject": "Mathematics",
-      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w)",
-      "details": "Unit 7: Measuring length and time - Extra Work Sheet (Extra H.w)",
-      "pages": "Extra H.w",
+      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w - Clock Past)",
+      "details": "Unit 7: Measuring length and time - Extra Work Sheet (Clock: Past)",
+      "pages": "Extra H.w Sheet",
       "completed": false,
       "priority": "normal",
       "block": 2,
-      "week": 4
+      "week": 4,
+      "pdfUrl": "/assets/aistudio/clock___past__h.w_b836cc58.pdf"
     },
     {
       "id": "hw-b2-w4-G2B-Monday-math",
@@ -12564,13 +12566,14 @@
       "dueDay": "Monday",
       "due_day": "Monday",
       "subject": "Mathematics",
-      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w)",
-      "details": "Unit 7: Measuring length and time - Extra Work Sheet (Extra H.w)",
-      "pages": "Extra H.w",
+      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w - Clock Past)",
+      "details": "Unit 7: Measuring length and time - Extra Work Sheet (Clock: Past)",
+      "pages": "Extra H.w Sheet",
       "completed": false,
       "priority": "normal",
       "block": 2,
-      "week": 4
+      "week": 4,
+      "pdfUrl": "/assets/aistudio/clock___past__h.w_b836cc58.pdf"
     },
     {
       "id": "hw-b2-w4-G2C-Monday-math",
@@ -13511,10 +13514,10 @@
       "week": 4
     },
     {
-      "id": "tn-b2-w4-G2A-Tuesday-math-test",
+      "id": "tn-b2-w4-G2A-Wed-math-test",
       "classId": "G2A",
       "class_id": "G2A",
-      "targetDay": "Tuesday",
+      "targetDay": "Wednesday",
       "subject": "Mathematics",
       "period": 1,
       "title": "⚡ Math Test yourself (Unit 7)",
@@ -13524,13 +13527,14 @@
       "isQuiz": true,
       "categoryType": "quiz",
       "block": 2,
-      "week": 4
+      "week": 4,
+      "isCustom": true
     },
     {
-      "id": "tn-b2-w4-G2B-Tuesday-math-test",
+      "id": "tn-b2-w4-G2B-Wed-math-test",
       "classId": "G2B",
       "class_id": "G2B",
-      "targetDay": "Tuesday",
+      "targetDay": "Wednesday",
       "subject": "Mathematics",
       "period": 5,
       "title": "⚡ Math Test yourself (Unit 7)",
@@ -13540,13 +13544,14 @@
       "isQuiz": true,
       "categoryType": "quiz",
       "block": 2,
-      "week": 4
+      "week": 4,
+      "isCustom": true
     },
     {
-      "id": "tn-b2-w4-G2C-Tuesday-math-test",
+      "id": "tn-b2-w4-G2C-Wed-math-test",
       "classId": "G2C",
       "class_id": "G2C",
-      "targetDay": "Tuesday",
+      "targetDay": "Wednesday",
       "subject": "Mathematics",
       "period": 7,
       "title": "⚡ Math Test yourself (Unit 7)",
@@ -13556,7 +13561,8 @@
       "isQuiz": true,
       "categoryType": "quiz",
       "block": 2,
-      "week": 4
+      "week": 4,
+      "isCustom": true
     }
   ],
   "deletedTomorrowNoteIds": [
@@ -13614,5 +13620,22 @@
     "hw-b1-w4-G2C-Tue-math",
     "hw-b1-w4-G2C-Thu-math"
   ],
-  "deletedHistory": []
+  "deletedHistory": [],
+  "materials": [
+    {
+      "id": "mat-b2-w4-math-clock-hw",
+      "fileName": "Math-Grade2-B2-W4-Clock-Past-HW.pdf",
+      "fileSize": 102400,
+      "storageUrl": "/assets/aistudio/clock___past__h.w_b836cc58.pdf",
+      "linkUrl": "/assets/aistudio/clock___past__h.w_b836cc58.pdf",
+      "type": "pdf",
+      "block": 2,
+      "week": 4,
+      "section": "Week 4",
+      "subject": "Mathematics",
+      "classId": "ALL",
+      "uploadedAt": "2026-10-29T19:23:04.450Z",
+      "description": "واجب أسبوع 4 - شيت الرياضيات الإضافي (Clock: Past)"
+    }
+  ]
 }

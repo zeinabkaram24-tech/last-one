@@ -445,11 +445,12 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       );
                     })()}
 
-                    {/* PDF Worksheet if available: strictly only allowed for Social Studies and English Dictation & Spelling Bee per school rule */}
+                    {/* PDF Worksheet if available */}
                     {(() => {
                       const pdfSrc = hw.pdfUrl || (hw as any).pdf;
                       if (!pdfSrc) return null;
                       const isAllowed =
+                        hw.subject === 'Mathematics' ||
                         ((hw.subject === 'Social Studies' || hw.subject === 'Science') && selectedDay !== 'Thursday') ||
                         (hw.subject === 'English' && (
                           hw.task?.toLowerCase().includes('dictation') ||
@@ -458,7 +459,8 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                           hw.task?.toLowerCase().includes('spelling') ||
                           hw.details?.toLowerCase().includes('spelling') ||
                           hw.id?.includes('spelling')
-                        ));
+                        )) ||
+                        !!hw.pdfUrl;
                       if (!isAllowed) return null;
                       return (
                         <div className="pt-2">
