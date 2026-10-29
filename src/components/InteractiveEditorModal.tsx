@@ -42,7 +42,8 @@ const SUBJECTS: SubjectName[] = [
   'ICT',
   'Arts',
   'Music',
-  'PE'
+  'PE',
+  'Leadership',
 ];
 
 export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({

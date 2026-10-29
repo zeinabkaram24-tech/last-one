@@ -206,6 +206,23 @@ export const SUBJECT_THEMES: Record<SubjectName, SubjectColorTheme> = {
     hwPagesBadge: 'bg-cyan-50/90 text-cyan-950 border-cyan-200',
     hwAccentBorder: 'border-s-cyan-500',
   },
+
+  Leadership: {
+    cwCard: 'bg-emerald-50/50 border-emerald-200/90 hover:border-emerald-300 hover:bg-emerald-50/70',
+    cwPeriodBox: 'bg-emerald-700 text-white',
+    cwSubjectBox: 'bg-white/95 text-emerald-950 border-emerald-300 shadow-2xs',
+    cwTeacherBox: 'bg-white/95 border-emerald-200/70 text-slate-800 shadow-2xs',
+    cwContentBox: 'bg-white/90 border-emerald-100/90 shadow-2xs',
+    cwPageBadge: 'bg-emerald-50 text-emerald-900 border-emerald-200',
+    cwDoneBadge: 'bg-emerald-100 text-emerald-950 border-emerald-300',
+
+    hwCard: 'bg-emerald-50/50 border-emerald-200/90 hover:border-emerald-300 hover:bg-emerald-50/70',
+    hwBorder: 'border-emerald-200',
+    hwSubjectBadge: 'bg-white text-emerald-950 border-emerald-300 shadow-2xs',
+    hwTag: 'bg-emerald-100/90 text-emerald-900 border-emerald-300/80',
+    hwPagesBadge: 'bg-emerald-50/90 text-emerald-950 border-emerald-200',
+    hwAccentBorder: 'border-s-emerald-500',
+  },
 };
 
 export function getSubjectTheme(subject: SubjectName): SubjectColorTheme {

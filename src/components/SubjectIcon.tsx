@@ -11,6 +11,7 @@ import {
   Music,
   Dumbbell,
   Bookmark,
+  Award,
 } from 'lucide-react';
 import { SubjectName } from '../types';
 
@@ -48,6 +49,8 @@ export const SubjectIcon: React.FC<SubjectIconProps> = ({
       return <Music className={`text-fuchsia-600 ${className}`} size={size} />;
     case 'PE':
       return <Dumbbell className={`text-orange-500 ${className}`} size={size} />;
+    case 'Leadership':
+      return <Award className={`text-emerald-600 ${className}`} size={size} />;
     default:
       return <BookOpen className={`text-slate-600 ${className}`} size={size} />;
   }

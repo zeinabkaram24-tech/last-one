@@ -29,6 +29,7 @@ function normalizeSubject(sub: string): SubjectName {
   if (s.includes('art') || s.includes('رسم') || s.includes('فني') || s.includes('فنية') || s.includes('ارت') || s.includes('آرت')) return 'Arts';
   if (s.includes('music') || s.includes('موسيق') || s.includes('ميوزيك')) return 'Music';
   if (s.includes('pe') || s.includes('sport') || s.includes('رياضي') || s.includes('بدن') || s.includes('ألعاب')) return 'PE';
+  if (s.includes('lead') || s.includes('قياد')) return 'Leadership';
   return (sub.charAt(0).toUpperCase() + sub.slice(1)) as SubjectName;
 }
 

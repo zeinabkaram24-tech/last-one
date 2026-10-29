@@ -13,7 +13,8 @@ export type SubjectName =
   | 'ICT'
   | 'Arts'
   | 'Music'
-  | 'PE';
+  | 'PE'
+  | 'Leadership';
 
 export interface PeriodSlot {
   period: number; // 1 to 8
