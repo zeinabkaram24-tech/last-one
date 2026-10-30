@@ -205,5 +205,20 @@
     "uploadedAt": "2026-10-17T08:00:00.000Z",
     "source": "planner",
     "section": "English"
+  },
+  {
+    "id": "mat-b2-w3-math-extra-hw-thu",
+    "fileName": "Math-Grade2-B2-W3-Extra-HW-Thursday.pdf",
+    "fileSize": 106629,
+    "storageUrl": "/materials/Math-Grade2-B2-W3-Extra-HW-Thursday.pdf",
+    "linkUrl": "/materials/Math-Grade2-B2-W3-Extra-HW-Thursday.pdf",
+    "type": "pdf",
+    "block": 2,
+    "week": 3,
+    "section": "Week 3",
+    "subject": "Mathematics",
+    "classId": "ALL",
+    "uploadedAt": "2026-10-30T13:19:06.569Z",
+    "description": "واجب يوم الخميس (أسبوع 3) - شيت الماث الإضافي (Extra Homework)"
   }
 ]
