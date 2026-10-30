@@ -158,15 +158,31 @@ function saveStoredSupabaseConfig(config: { url: string; key: string } | null): 
 
 // Helper to read materials from disk
 function getStoredMaterials(): any[] {
+  let diskItems: any[] = [];
   try {
     if (fs.existsSync(MATERIALS_FILE)) {
       const raw = fs.readFileSync(MATERIALS_FILE, 'utf-8');
-      return JSON.parse(raw);
+      diskItems = JSON.parse(raw);
     }
   } catch (err) {
     console.warn('Error reading materials.json:', err);
   }
-  return [];
+
+  let plannerMaterials: any[] = [];
+  try {
+    if (fs.existsSync(PLANNER_DATA_FILE)) {
+      const rawP = fs.readFileSync(PLANNER_DATA_FILE, 'utf-8');
+      const pData = JSON.parse(rawP);
+      if (Array.isArray(pData.materials)) {
+        plannerMaterials = pData.materials;
+      }
+    }
+  } catch {}
+
+  const map = new Map<string, any>();
+  plannerMaterials.forEach(m => map.set(m.id, m));
+  diskItems.forEach(m => map.set(m.id, m));
+  return Array.from(map.values());
 }
 
 function saveStoredMaterials(items: any[]): void {

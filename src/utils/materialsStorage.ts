@@ -6,6 +6,7 @@ import {
   saveMaterialToSupabase,
   deleteMaterialFromSupabase,
 } from '../lib/supabase';
+import initialData from '../data/initialData.json';
 
 const DB_NAME = 'SchoolMaterialsDB';
 const STORE_NAME = 'materials';
@@ -124,6 +125,15 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
   }
 
   const itemsMap = new Map<string, MaterialItem>();
+
+  // 0. Seed base materials from initialData.json
+  if (initialData && Array.isArray((initialData as any).materials)) {
+    (initialData as any).materials.forEach((m: MaterialItem) => {
+      if (m && m.id) itemsMap.set(m.id, m);
+    });
+  }
+
+  // 1. Merge local IndexedDB items
   localItems.forEach((item) => itemsMap.set(item.id, item));
 
   // 2. Fetch from centralized Server API (/api/materials) - Cross-device sync between Mobile, Laptop & Desktop!
@@ -142,12 +152,16 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
           }
         });
 
-        // If an item is in local IndexedDB but missing on the server, it has been deleted on the server, so we should delete it locally to keep them in sync and prevent resurrection.
+        // Clean up only items that were dynamically deleted on server (excluding initial base materials)
+        const baseIds = new Set(
+          initialData && Array.isArray((initialData as any).materials)
+            ? (initialData as any).materials.map((m: any) => m.id)
+            : []
+        );
         const missingOnServer = localItems.filter(
-          (loc) => !serverItems.some((srv) => srv.id === loc.id)
+          (loc) => !baseIds.has(loc.id) && !serverItems.some((srv) => srv.id === loc.id)
         );
         if (missingOnServer.length > 0) {
-          console.log(`[MaterialsSync] Cleaning up ${missingOnServer.length} deleted items from local DB to match server...`);
           try {
             const db = await openDB();
             const tx = db.transaction(STORE_NAME, 'readwrite');

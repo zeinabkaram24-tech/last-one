@@ -308,17 +308,31 @@ export function classworkToRow(entry: any): Omit<ClassworkRow, 'created_at'> {
 
 // Helper to pack and unpack homework details to support storing pdfUrl in details column without DB schema change
 export function unpackHomeworkDetails(detailsStr?: string | null) {
-  if (!detailsStr) return { details: undefined, pdfUrl: undefined };
-  const parts = detailsStr.split('||PDF_URL:');
+  if (!detailsStr) return { details: undefined, pdfUrl: undefined, pdfUrls: undefined };
+  let pdfUrls: string[] | undefined = undefined;
+  let remaining = detailsStr;
+  const partsUrls = detailsStr.split('||PDF_URLS:');
+  if (partsUrls.length > 1) {
+    remaining = partsUrls[0]?.trim() || '';
+    pdfUrls = partsUrls[1]?.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  const partsSingle = remaining.split('||PDF_URL:');
+  let pdfUrl = partsSingle[1]?.trim() || undefined;
+  if (!pdfUrl && pdfUrls && pdfUrls.length > 0) {
+    pdfUrl = pdfUrls[0];
+  }
   return {
-    details: parts[0]?.trim() || undefined,
-    pdfUrl: parts[1]?.trim() || undefined,
+    details: partsSingle[0]?.trim() || undefined,
+    pdfUrl,
+    pdfUrls,
   };
 }
 
-export function packHomeworkDetails(details?: string, pdfUrl?: string) {
+export function packHomeworkDetails(details?: string, pdfUrl?: string, pdfUrls?: string[]) {
   let res = details?.trim() || '';
-  if (pdfUrl) {
+  if (pdfUrls && pdfUrls.length > 0) {
+    res += ` ||PDF_URLS:${pdfUrls.join(',')}`;
+  } else if (pdfUrl) {
     res += ` ||PDF_URL:${pdfUrl.trim()}`;
   }
   return res || undefined;
@@ -345,6 +359,7 @@ export function rowToHomework(row: any): HomeworkEntry {
     isLinkTask: Boolean(row.is_link_task ?? row.isLinkTask),
     linkUrl: row.link_url || row.linkUrl || undefined,
     pdfUrl: unpacked.pdfUrl || row.pdfUrl || undefined,
+    pdfUrls: unpacked.pdfUrls || row.pdfUrls || (unpacked.pdfUrl || row.pdfUrl ? [unpacked.pdfUrl || row.pdfUrl] : undefined),
   };
 }
 
@@ -908,12 +923,28 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         const dbItems = (data as HomeworkRow[]).map(rowToHomework).filter(isGrade2Item);
         dbItems.forEach((h) => {
           if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-          if (h && h.id && !deletedSet.has(h.id)) resultMap.set(h.id, h);
+          if (h && h.id && !deletedSet.has(h.id)) {
+            const existing = resultMap.get(h.id);
+            resultMap.set(h.id, {
+              ...existing,
+              ...h,
+              pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
+              pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
+            });
+          }
         });
         const localCustom = getLocalCustomHomework().filter(isGrade2Item);
         localCustom.forEach((h) => {
           if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-          if (h && h.id && !deletedSet.has(h.id)) resultMap.set(h.id, h);
+          if (h && h.id && !deletedSet.has(h.id)) {
+            const existing = resultMap.get(h.id);
+            resultMap.set(h.id, {
+              ...existing,
+              ...h,
+              pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
+              pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
+            });
+          }
         });
         return Array.from(resultMap.values()).filter(isGrade2Item);
       }
@@ -939,7 +970,15 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         );
         const srvMap = new Map<string, HomeworkEntry>();
         baseItems.forEach((h) => srvMap.set(h.id, h));
-        srvData.homework.forEach((h: HomeworkEntry) => srvMap.set(h.id, h));
+        srvData.homework.forEach((h: HomeworkEntry) => {
+          const existing = srvMap.get(h.id);
+          srvMap.set(h.id, {
+            ...existing,
+            ...h,
+            pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
+            pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
+          });
+        });
         baseItems = Array.from(srvMap.values());
       }
     }
