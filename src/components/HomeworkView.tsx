@@ -445,10 +445,21 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       );
                     })()}
 
-                    {/* PDF Worksheet if available */}
+                    {/* PDF Worksheets if available */}
                     {(() => {
-                      const pdfSrc = hw.pdfUrl || (hw as any).pdf;
-                      if (!pdfSrc) return null;
+                      const pdfSources: { url: string; label?: string }[] = [];
+                      if (hw.pdfUrls && Array.isArray(hw.pdfUrls) && hw.pdfUrls.length > 0) {
+                        hw.pdfUrls.forEach((url, idx) => {
+                          if (url) pdfSources.push({ url, label: `مرفق شيت الواجب (${idx + 1})` });
+                        });
+                      } else if (hw.pdfUrl) {
+                        pdfSources.push({ url: hw.pdfUrl, label: 'مرفق شيت الواجب' });
+                      } else if ((hw as any).pdf) {
+                        pdfSources.push({ url: (hw as any).pdf, label: 'مرفق شيت الواجب' });
+                      }
+
+                      if (pdfSources.length === 0) return null;
+
                       const isAllowed =
                         hw.subject === 'Mathematics' ||
                         ((hw.subject === 'Social Studies' || hw.subject === 'Science') && selectedDay !== 'Thursday') ||
@@ -460,15 +471,20 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                           hw.details?.toLowerCase().includes('spelling') ||
                           hw.id?.includes('spelling')
                         )) ||
-                        !!hw.pdfUrl;
+                        pdfSources.length > 0;
+
                       if (!isAllowed) return null;
+
                       return (
-                        <div className="pt-2">
-                          <AttachmentPdfCard
-                            pdfUrl={pdfSrc}
-                            subject={hw.subject}
-                            label="مرفق شيت الواجب"
-                          />
+                        <div className="pt-2 space-y-2">
+                          {pdfSources.map((item, idx) => (
+                            <AttachmentPdfCard
+                              key={`${item.url}-${idx}`}
+                              pdfUrl={item.url}
+                              subject={hw.subject}
+                              label={item.label || `مرفق شيت الواجب (${idx + 1})`}
+                            />
+                          ))}
                         </div>
                       );
                     })()}

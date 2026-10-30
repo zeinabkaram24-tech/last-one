@@ -51,6 +51,7 @@ export interface ClassworkEntry {
   linkUrl?: string;
   linkTitle?: string;
   pdfUrl?: string;
+  pdfUrls?: string[];
 }
 
 export interface HomeworkEntry {
@@ -70,6 +71,7 @@ export interface HomeworkEntry {
   isLinkTask?: boolean;
   linkUrl?: string;
   pdfUrl?: string;
+  pdfUrls?: string[];
 }
 
 export function getItemClassId(item: { classId?: string; class_id?: string } | null | undefined): ClassId {

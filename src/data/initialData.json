@@ -14028,14 +14028,19 @@
       "dueDay": "Sunday",
       "due_day": "Sunday",
       "subject": "Mathematics",
-      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w)",
-      "details": "Unit 7: Measuring Length and Time - Extra Work Sheet (Extra H.w)",
-      "pages": "Extra H.w Sheet",
+      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w - 3 Sheets)",
+      "details": "Unit 7: Measuring Length and Time - Extra Worksheets (Telling Time 5-min intervals & Clock Past)",
+      "pages": "3 Extra Worksheets",
       "completed": false,
       "priority": "normal",
       "block": 2,
       "week": 3,
-      "pdfUrl": "/materials/Math-Grade2-B2-W3-Extra-HW-Thursday.pdf"
+      "pdfUrl": "/materials/Math-Grade2-B2-W3-TellingTime-Sheet1.html",
+      "pdfUrls": [
+        "/materials/Math-Grade2-B2-W3-TellingTime-Sheet1.html",
+        "/materials/Math-Grade2-B2-W3-TellingTime-Sheet2.html",
+        "/materials/Math-Grade2-B2-W3-Extra-HW-Thursday.pdf"
+      ]
     },
     {
       "id": "hw-b2-w3-G2B-sunday-math",
@@ -14114,14 +14119,19 @@
       "dueDay": "Sunday",
       "due_day": "Sunday",
       "subject": "Mathematics",
-      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w)",
-      "details": "Unit 7: Measuring Length and Time - Extra Work Sheet (Extra H.w)",
-      "pages": "Extra H.w Sheet",
+      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w - 3 Sheets)",
+      "details": "Unit 7: Measuring Length and Time - Extra Worksheets (Telling Time 5-min intervals & Clock Past)",
+      "pages": "3 Extra Worksheets",
       "completed": false,
       "priority": "normal",
       "block": 2,
       "week": 3,
-      "pdfUrl": "/materials/Math-Grade2-B2-W3-Extra-HW-Thursday.pdf"
+      "pdfUrl": "/materials/Math-Grade2-B2-W3-TellingTime-Sheet1.html",
+      "pdfUrls": [
+        "/materials/Math-Grade2-B2-W3-TellingTime-Sheet1.html",
+        "/materials/Math-Grade2-B2-W3-TellingTime-Sheet2.html",
+        "/materials/Math-Grade2-B2-W3-Extra-HW-Thursday.pdf"
+      ]
     },
     {
       "id": "hw-b2-w3-G2C-sunday-math",
@@ -14200,14 +14210,19 @@
       "dueDay": "Sunday",
       "due_day": "Sunday",
       "subject": "Mathematics",
-      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w)",
-      "details": "Unit 7: Measuring Length and Time - Extra Work Sheet (Extra H.w)",
-      "pages": "Extra H.w Sheet",
+      "task": "حل الشيت الإضافي لمادة الماث (Extra H.w - 3 Sheets)",
+      "details": "Unit 7: Measuring Length and Time - Extra Worksheets (Telling Time 5-min intervals & Clock Past)",
+      "pages": "3 Extra Worksheets",
       "completed": false,
       "priority": "normal",
       "block": 2,
       "week": 3,
-      "pdfUrl": "/materials/Math-Grade2-B2-W3-Extra-HW-Thursday.pdf"
+      "pdfUrl": "/materials/Math-Grade2-B2-W3-TellingTime-Sheet1.html",
+      "pdfUrls": [
+        "/materials/Math-Grade2-B2-W3-TellingTime-Sheet1.html",
+        "/materials/Math-Grade2-B2-W3-TellingTime-Sheet2.html",
+        "/materials/Math-Grade2-B2-W3-Extra-HW-Thursday.pdf"
+      ]
     },
     {
       "id": "hw-b2-w3-g2a-mon-sci",
@@ -17592,8 +17607,38 @@
   "deletedHistory": [],
   "materials": [
     {
-      "id": "mat-b2-w3-math-extra-hw-thu",
-      "fileName": "Math-Grade2-B2-W3-Extra-HW-Thursday.pdf",
+      "id": "mat-b2-w3-math-tellingtime-1",
+      "fileName": "Math-Grade2-B2-W3-TellingTime-Sheet1.html",
+      "fileSize": 106629,
+      "storageUrl": "/materials/Math-Grade2-B2-W3-TellingTime-Sheet1.html",
+      "linkUrl": "/materials/Math-Grade2-B2-W3-TellingTime-Sheet1.html",
+      "type": "html",
+      "block": 2,
+      "week": 3,
+      "section": "Week 3",
+      "subject": "Mathematics",
+      "classId": "ALL",
+      "uploadedAt": "2026-10-30T13:25:39.617Z",
+      "description": "شيت الرياضيات الإضافي (1) - Telling time 5-minute intervals"
+    },
+    {
+      "id": "mat-b2-w3-math-tellingtime-2",
+      "fileName": "Math-Grade2-B2-W3-TellingTime-Sheet2.html",
+      "fileSize": 106629,
+      "storageUrl": "/materials/Math-Grade2-B2-W3-TellingTime-Sheet2.html",
+      "linkUrl": "/materials/Math-Grade2-B2-W3-TellingTime-Sheet2.html",
+      "type": "html",
+      "block": 2,
+      "week": 3,
+      "section": "Week 3",
+      "subject": "Mathematics",
+      "classId": "ALL",
+      "uploadedAt": "2026-10-30T13:25:39.617Z",
+      "description": "شيت الرياضيات الإضافي (2) - Telling time 5-minute intervals"
+    },
+    {
+      "id": "mat-b2-w3-math-clockpast-3",
+      "fileName": "Math-Grade2-B2-W3-ClockPast-Sheet3.pdf",
       "fileSize": 106629,
       "storageUrl": "/materials/Math-Grade2-B2-W3-Extra-HW-Thursday.pdf",
       "linkUrl": "/materials/Math-Grade2-B2-W3-Extra-HW-Thursday.pdf",
@@ -17603,8 +17648,8 @@
       "section": "Week 3",
       "subject": "Mathematics",
       "classId": "ALL",
-      "uploadedAt": "2026-10-30T13:19:06.569Z",
-      "description": "واجب يوم الخميس (أسبوع 3) - شيت الماث الإضافي (Extra Homework)"
+      "uploadedAt": "2026-10-30T13:25:39.617Z",
+      "description": "شيت الرياضيات الإضافي (3) - Clock: Past (Digital and word form)"
     }
   ]
 }
