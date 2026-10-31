@@ -134,9 +134,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
     (h) => {
       if (!matchesClass(h)) return false;
 
-      // Strict User Mandate: Social Studies homework for Class A and Class C is Saturday ONLY; for Class B it is Sunday ONLY!
+      // Legacy Block 1 override: Social Studies homework for Class A and Class C was Saturday ONLY; for Class B it was Sunday ONLY!
       let isAssignedForDay = h.assignedDay === selectedDay;
-      if (h.subject === 'Social Studies') {
+      if (h.subject === 'Social Studies' && (h.block || 1) === 1) {
         const isClassAOrC = h.classId === 'G2A' || (h as any).class_id === 'G2A' || h.classId === 'G2C' || (h as any).class_id === 'G2C';
         const isClassB = h.classId === 'G2B' || (h as any).class_id === 'G2B';
         if (isClassAOrC) {

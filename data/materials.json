@@ -250,5 +250,31 @@
     "classId": "ALL",
     "uploadedAt": "2026-10-30T13:32:58.366Z",
     "description": "شيت الرياضيات الإضافي (3) - Clock: Past (Digital and word form)"
+  },
+  {
+    "id": "mat-social-b2-w4-hw3",
+    "title": "Social Studies Home Work 3 Sheet - Block 2 Week 4",
+    "description": "شيت واجب الدراسات الاجتماعية المرفق - الصفحة الأولى تصنيف السلوكيات، والصفحة الثانية أسئلة صح وخطأ.",
+    "fileUrl": "/assets/aistudio/SocialStudies-Grade2-B2-W3-U2-HomeWork3_-_Extra-__Minia__e3148d4c.pdf",
+    "fileName": "SocialStudies-Grade2-B2-W3-U2-HomeWork3 - Extra- (Minia).pdf",
+    "subject": "Social Studies",
+    "block": 2,
+    "week": 4,
+    "classId": "ALL",
+    "category": "homework",
+    "uploadedAt": "2026-10-30T14:43:43.717Z"
+  },
+  {
+    "id": "mat-french-b2-w4-dictee",
+    "title": "French Dictée - Unité 4 Leçon 2 (Le masculin et le féminin avec les adjectifs)",
+    "description": "صورة قواعد ومفردات الإملاء لمادة اللغة الفرنسية - Unité 4 Leçon 2 (petit/petite, grand/grande, méchant/méchante, fort/forte).",
+    "fileUrl": "/assets/aistudio/WhatsApp_Image_2026-10-30_at_4.44.33_PM_a6ceb7f2.jpeg",
+    "fileName": "French-Dictée-Unité4-Leçon2-LeMasculinEtLeFéminin.jpeg",
+    "subject": "French",
+    "block": 2,
+    "week": 4,
+    "classId": "ALL",
+    "category": "dictation",
+    "uploadedAt": "2026-10-30T14:48:32.926Z"
   }
 ]

@@ -153,7 +153,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (!n) return true;
     if (!isGrade2TomorrowNote(n)) return true;
 
-    // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies, Mathematics, ICT - French has no tomorrow notes per instructions)
+    // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies, Mathematics, ICT, French)
     if (
       (currentBlock === 2 || (n as any).block === 2) &&
       n.subject !== 'English' &&
@@ -162,9 +162,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       n.subject !== 'Social Studies' &&
       n.subject !== 'Mathematics' &&
       n.subject !== 'Math' &&
-      n.subject !== 'ICT'
+      n.subject !== 'ICT' &&
+      n.subject !== 'French'
     ) {
-      return true; // Disallow un-uploaded subjects (and French) for Block 2
+      return true; // Disallow un-uploaded subjects for Block 2
     }
 
     // Strict User Mandate for Social Studies in Block 2 Week 2:
@@ -496,8 +497,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
-    // 9. Strict user mandate: "وما تنزلهاليش في التومورو" - No French in Tomorrow for 2B Week 4!
-    if ((currentClass === 'G2B' || (n as any).classId === 'G2B') && (currentWeek === 4 || effectiveWeek === 4)) {
+    // 9. Strict user mandate for Block 1: "وما تنزلهاليش في التومورو" - No French in Tomorrow for 2B Week 4!
+    if (currentBlock === 1 && (currentClass === 'G2B' || (n as any).classId === 'G2B') && (currentWeek === 4 || effectiveWeek === 4)) {
       const fullText = (
         ((n as any).title || '') +
         ' ' +
@@ -1526,6 +1527,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                     if (!note.pdfUrl) return null;
                     const isAllowed =
                       note.subject === 'Social Studies' ||
+                      note.subject === 'French' ||
+                      Boolean(note.pdfUrl) ||
                       (note.subject === 'English' && (
                         ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictation') ||
                         ((note.note || '') + ' ' + (note.arabicNote || '')).includes('إملاء')
