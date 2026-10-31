@@ -204,15 +204,51 @@ interface StoredPlannerData {
 
 // Helper to read planner data
 function getStoredPlannerData(): StoredPlannerData {
+  let diskData: any = {};
   try {
     if (fs.existsSync(PLANNER_DATA_FILE)) {
       const raw = fs.readFileSync(PLANNER_DATA_FILE, 'utf-8');
-      return JSON.parse(raw);
+      diskData = JSON.parse(raw) || {};
     }
   } catch (err) {
     console.warn('Error reading planner_data.json:', err);
   }
-  return { classwork: [], homework: [], tomorrowNotes: [], deletedTomorrowNoteIds: [], deletedPlannerItemIds: [] };
+
+  // Load initialData base
+  let initCw: any[] = [];
+  let initHw: any[] = [];
+  let initTn: any[] = [];
+  try {
+    const initPath = path.join(process.cwd(), 'src', 'data', 'initialData.json');
+    if (fs.existsSync(initPath)) {
+      const initRaw = fs.readFileSync(initPath, 'utf-8');
+      const parsedInit = JSON.parse(initRaw);
+      initCw = parsedInit.classwork || [];
+      initHw = parsedInit.homework || [];
+      initTn = parsedInit.tomorrowNotes || [];
+    }
+  } catch {}
+
+  const cwMap = new Map<string, any>();
+  initCw.forEach(c => { if (c && c.id) cwMap.set(c.id, c); });
+  (diskData.classwork || []).forEach((c: any) => { if (c && c.id) cwMap.set(c.id, c); });
+
+  const hwMap = new Map<string, any>();
+  initHw.forEach(h => { if (h && h.id) hwMap.set(h.id, h); });
+  (diskData.homework || []).forEach((h: any) => { if (h && h.id) hwMap.set(h.id, h); });
+
+  const tnMap = new Map<string, any>();
+  initTn.forEach(n => { if (n && n.id) tnMap.set(n.id, n); });
+  (diskData.tomorrowNotes || []).forEach((n: any) => { if (n && n.id) tnMap.set(n.id, n); });
+
+  return {
+    classwork: Array.from(cwMap.values()),
+    homework: Array.from(hwMap.values()),
+    tomorrowNotes: Array.from(tnMap.values()),
+    deletedTomorrowNoteIds: diskData.deletedTomorrowNoteIds || [],
+    deletedPlannerItemIds: diskData.deletedPlannerItemIds || [],
+    deletedHistory: diskData.deletedHistory || [],
+  };
 }
 
 function saveStoredPlannerData(data: StoredPlannerData): void {
