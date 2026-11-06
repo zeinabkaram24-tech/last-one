@@ -276,5 +276,18 @@
     "classId": "ALL",
     "category": "dictation",
     "uploadedAt": "2026-10-30T14:48:32.926Z"
+  },
+  {
+    "id": "mat-social-b2-w5-hw4",
+    "title": "Social Studies Home Work 4 Sheet - Block 2 Week 5",
+    "description": "شيت واجب الدراسات الاجتماعية المرفق (Home Work 4) - تمرين مقارنة المدرسة قديماً وحديثاً والسبورة الذكية مقابل الطباشير.",
+    "fileUrl": "/assets/aistudio/SocialStudies-Grade2-B2-W4-U2-HomeWork4_-_Extra-__Minia__2c1c32d8.pdf",
+    "fileName": "SocialStudies-Grade2-B2-W4-U2-HomeWork4 - Extra- (Minia).pdf",
+    "subject": "Social Studies",
+    "block": 2,
+    "week": 5,
+    "classId": "ALL",
+    "category": "homework",
+    "uploadedAt": "2026-11-06T17:45:53.009Z"
   }
 ]
