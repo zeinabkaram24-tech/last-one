@@ -1,5 +1,22 @@
 [
   {
+    "id": "mat_weekly_plan_french_b2_w5",
+    "fileName": "Weekly_Plan_French_-_B2_-_W5-_Minia____deb03e2e.pdf",
+    "fileSize": 420000,
+    "storageUrl": "/assets/aistudio/Weekly_Plan_French_-_B2_-_W5-_Minia____deb03e2e.pdf",
+    "linkUrl": "/assets/aistudio/Weekly_Plan_French_-_B2_-_W5-_Minia____deb03e2e.pdf",
+    "subject": "French",
+    "grade": "Grade 2",
+    "term": "Term 1",
+    "block": 2,
+    "week": 5,
+    "section": "Weekly Plan",
+    "classId": "ALL",
+    "type": "pdf",
+    "uploadedAt": "2026-11-07T16:08:58.204Z",
+    "description": "Le plan de la semaine - Français - Grade 2 - Block 2 - Week 5 (Mme. Doaa Fekery & Mme. Lamiaa Mouhammed)"
+  },
+  {
     "id": "mat_weekly_plan_english_b2_w5",
     "fileName": "Weekly_Plan_English_-_B2_-_W5-_Minia____2dfcefd4.pdf",
     "fileSize": 480000,
@@ -13,7 +30,7 @@
     "section": "Weekly Plan",
     "classId": "ALL",
     "type": "pdf",
-    "uploadedAt": "2026-11-07T16:00:18.911Z",
+    "uploadedAt": "2026-11-07T16:06:13.924Z",
     "description": "The Weekly Plan - English - Grade 2 - Block 2 - Week 5 (Ms. Tuqa Mmdouh)"
   },
   {
