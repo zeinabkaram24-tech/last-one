@@ -357,5 +357,22 @@
     "classId": "ALL",
     "category": "homework",
     "uploadedAt": "2026-11-06T17:45:53.009Z"
+  },
+  {
+    "id": "mat_weekly_plan_ict_b2_w4",
+    "fileName": "Weekly_Plan_ICT_-_B2_-_W4-_Minia____93a7af56.pdf",
+    "fileSize": 330000,
+    "storageUrl": "/assets/aistudio/Weekly_Plan_ICT_-_B2_-_W4-_Minia____93a7af56.pdf",
+    "linkUrl": "/assets/aistudio/Weekly_Plan_ICT_-_B2_-_W4-_Minia____93a7af56.pdf",
+    "subject": "ICT",
+    "grade": "Grade 2",
+    "term": "Term 1",
+    "block": 2,
+    "week": 4,
+    "section": "Weekly Plan",
+    "classId": "ALL",
+    "type": "pdf",
+    "uploadedAt": "2026-11-07T19:44:14.382Z",
+    "description": "The Weekly Plan - ICT - Grade 2 - Block 2 - Week 4 (Mrs. Abeer Hassan & Ms. Mariam Ahmed)"
   }
 ]

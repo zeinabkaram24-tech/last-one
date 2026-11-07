@@ -285,6 +285,28 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       ) {
         return true; // Strictly disallowed!
       }
+
+      // Strict User Mandate: "مفيش ملاحظات ولا نوتس بتنزل في الإنجليزي غير التومورو أو لو فيه تيست أو الكلام ده كله، لكن حضور شيت كذا وحضور شيت كذا لا ده مبنزلهوش فامسحه"
+      // In English, ONLY allow test/dictation/quiz alerts. Disallow all routine book/sheet preparation notes:
+      if (s === 'english' || s.includes('إنجليز') || s.includes('انجليز')) {
+        const fullText = `${n.title || ''} ${n.note || ''} ${n.arabicNote || ''}`.toLowerCase();
+        const isTestOrDictation =
+          n.isQuiz ||
+          isQuizOrTest(n) ||
+          fullText.includes('dictation') ||
+          fullText.includes('ديكتيشن') ||
+          fullText.includes('إملاء') ||
+          fullText.includes('املاء') ||
+          fullText.includes('spelling') ||
+          fullText.includes('test') ||
+          fullText.includes('quiz') ||
+          fullText.includes('اختبار') ||
+          fullText.includes('كويز');
+
+        if (!isTestOrDictation) {
+          return true; // Strictly disallowed!
+        }
+      }
     }
 
     // UNCONDITIONAL ADMIN / USER OVERRIDE:

@@ -464,126 +464,11 @@ newHomework.push({
 
 // =========================================================================
 // 3. TOMORROW NOTES (Block 2 - Week 5)
+// STRICT USER MANDATE: No routine notes or "bring sheet" notes in English Tomorrow!
+// ONLY the Dictation warning 1 day before the dictation per class:
+// - Tuesday for G2B and G2C (targetDay: Tuesday)
+// - Thursday for G2A (targetDay: Thursday)
 // =========================================================================
-
-// --- Target: Sunday ---
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2a-sun-english',
-  classId: 'G2A',
-  class_id: 'G2A',
-  targetDay: 'Sunday',
-  subject: 'English',
-  period: englishPeriods.G2A.Sunday,
-  title: 'Present Continuous (CW. 57, 58)',
-  note: 'English Lesson: Present Continuous - Bring English Pupil Book & CW pages 57, 58.',
-  arabicNote: 'تحضير درس Present Continuous - إحضار كتاب الإنجليزي والبوكليت ص 57 و 58.',
-  bagItem: 'English Pupil Book & Booklet (CW. 57, 58)',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2b-sun-english',
-  classId: 'G2B',
-  class_id: 'G2B',
-  targetDay: 'Sunday',
-  subject: 'English',
-  period: englishPeriods.G2B.Sunday,
-  title: 'Reading & Listening (CW. 59, 60)',
-  note: 'English: Reading & Listening - Bring English Book (CW. 59, 60).',
-  arabicNote: 'تحضير درس Reading & Listening - إحضار كتاب الإنجليزي والبوكليت ص 59 و 60.',
-  bagItem: 'English Book & Booklet (CW. 59, 60)',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2c-sun-english',
-  classId: 'G2C',
-  class_id: 'G2C',
-  targetDay: 'Sunday',
-  subject: 'English',
-  period: englishPeriods.G2C.Sunday,
-  title: 'Present Continuous (CW. 57, 58)',
-  note: 'English: Present Continuous - Bring English Book (CW. 57, 58).',
-  arabicNote: 'تحضير درس Present Continuous - إحضار كتاب الإنجليزي والبوكليت ص 57 و 58.',
-  bagItem: 'English Book & Booklet (CW. 57, 58)',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
-
-// --- Target: Monday ---
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2a-mon-english',
-  classId: 'G2A',
-  class_id: 'G2A',
-  targetDay: 'Monday',
-  subject: 'English',
-  period: englishPeriods.G2A.Monday,
-  title: 'Movers Story (CW. 61, 62)',
-  note: 'English: Movers Story - Bring English Booklet (CW. 61, 62).',
-  arabicNote: 'تحضير درس Movers Story - إحضار بوكليت الإنجليزي ص 61 و 62.',
-  bagItem: 'English Booklet (CW. 61, 62)',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2b-mon-english',
-  classId: 'G2B',
-  class_id: 'G2B',
-  targetDay: 'Monday',
-  subject: 'English',
-  period: englishPeriods.G2B.Monday,
-  title: 'Present Continuous (CW. 57, 58)',
-  note: 'English: Present Continuous - Bring English Booklet (CW. 57, 58).',
-  arabicNote: 'تحضير درس Present Continuous - إحضار بوكليت الإنجليزي ص 57 و 58.',
-  bagItem: 'English Booklet (CW. 57, 58)',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2c-mon-english',
-  classId: 'G2C',
-  class_id: 'G2C',
-  targetDay: 'Monday',
-  subject: 'English',
-  period: englishPeriods.G2C.Monday,
-  title: 'Outdoor Activity',
-  note: 'English: Outdoor Activity - Interactive language session.',
-  arabicNote: 'نشاط لغوي تفاعلي خارجي (Outdoor Activity) - إحضار كشكول الإنجليزي والمقلمة.',
-  bagItem: 'English Notebook & Pencil Case',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
-
-// --- Target: Tuesday ---
-// G2A: عادي
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2a-tue-english',
-  classId: 'G2A',
-  class_id: 'G2A',
-  targetDay: 'Tuesday',
-  subject: 'English',
-  period: englishPeriods.G2A.Tuesday,
-  title: 'Reading & Listening (CW. 59, 60) + Extra Sheet',
-  note: 'English: Reading & Listening (CW. 59, 60) + Hand in Extra Sheet.',
-  arabicNote: 'تحضير درس Reading & Listening ص 59 و 60 + تسليم شيت Extra Sheet مع الإجابات النموذجية.',
-  bagItem: 'English Booklet (CW. 59, 60) & Solved Extra Sheet',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
 
 // G2B: 🚨 إنذار الديكتيشن قبليها بيوم (تجهيز الإثنين مساءً للثلاثاء) مع قائمة الكلمات وشيت الـ PDF
 newTomorrowNotes.push({
@@ -594,9 +479,9 @@ newTomorrowNotes.push({
   subject: 'English',
   period: englishPeriods.G2B.Tuesday,
   title: '🚨 إنذار وتنبيه: إملاء لغة إنجليزية غداً الثلاثاء (Class 2B)',
-  note: '🚨 Tomorrow Tuesday is English Dictation for Class 2B in Copy Book! 11 Words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School). Bring Copy Book + Hand in Extra Sheet.',
-  arabicNote: `🚨 إنذار وتنبيه هام: غداً الثلاثاء اختبار الإملاء (English Dictation) لكلاس 2B في كشكول الإملاء (Copy Book)! يرجى إحضار كشكول الإملاء، وبوكليت الإنجليزي ص 61 و 62، وتسليم شيت Extra Sheet.\n\n${dictationWordsArabic}`,
-  bagItem: 'Dictation Copy Book (كشكول الإملاء), Pencil, Eraser, CW 61-62 & Extra Sheet',
+  note: '🚨 Tomorrow Tuesday is English Dictation for Class 2B in Copy Book! 11 Words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School). Bring Copy Book.',
+  arabicNote: `🚨 إنذار وتنبيه هام: غداً الثلاثاء موعد اختبار الإملاء (English Dictation) لكلاس 2B في كشكول الإملاء (Copy Book)!\n\n${dictationWordsArabic}`,
+  bagItem: 'Dictation Copy Book (كشكول الإملاء)',
   isQuiz: true,
   categoryType: 'quiz',
   block,
@@ -617,9 +502,9 @@ newTomorrowNotes.push({
   subject: 'English',
   period: englishPeriods.G2C.Tuesday,
   title: '🚨 إنذار وتنبيه: إملاء لغة إنجليزية غداً الثلاثاء (Class 2C)',
-  note: '🚨 Tomorrow Tuesday is English Dictation for Class 2C in Copy Book! 11 Words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School). Bring Copy Book + Hand in Extra Sheet.',
-  arabicNote: `🚨 إنذار وتنبيه هام: غداً الثلاثاء اختبار الإملاء (English Dictation) لكلاس 2C في كشكول الإملاء (Copy Book)! يرجى إحضار كشكول الإملاء وقلم رصاص وممحاة، وتسليم شيت Extra Sheet.\n\n${dictationWordsArabic}`,
-  bagItem: 'Dictation Copy Book (كشكول الإملاء), Pencil, Eraser & Extra Sheet',
+  note: '🚨 Tomorrow Tuesday is English Dictation for Class 2C in Copy Book! 11 Words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School). Bring Copy Book.',
+  arabicNote: `🚨 إنذار وتنبيه هام: غداً الثلاثاء موعد اختبار الإملاء (English Dictation) لكلاس 2C في كشكول الإملاء (Copy Book)!\n\n${dictationWordsArabic}`,
+  bagItem: 'Dictation Copy Book (كشكول الإملاء)',
   isQuiz: true,
   categoryType: 'quiz',
   block,
@@ -631,57 +516,6 @@ newTomorrowNotes.push({
   attachmentName: dictationPdfName,
 });
 
-// --- Target: Wednesday ---
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2a-wed-english',
-  classId: 'G2A',
-  class_id: 'G2A',
-  targetDay: 'Wednesday',
-  subject: 'English',
-  period: englishPeriods.G2A.Wednesday,
-  title: 'Outdoor Activity',
-  note: 'English: Outdoor Activity - Interactive language session and communication games.',
-  arabicNote: 'نشاط لغوي تفاعلي خارجي (Outdoor Activity) - إحضار كشكول الإنجليزي والمقلمة.',
-  bagItem: 'English Notebook & Pencil Case',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2b-wed-english',
-  classId: 'G2B',
-  class_id: 'G2B',
-  targetDay: 'Wednesday',
-  subject: 'English',
-  period: englishPeriods.G2B.Wednesday,
-  title: 'Story Comprehension',
-  note: 'English: Story reading and discussion - Bring English Story Book & Notebook.',
-  arabicNote: 'تحضير حصة القصة (Story) - إحضار كتاب وقصة الإنجليزي وكشكول المادة.',
-  bagItem: 'English Story Book & Notebook',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2c-wed-english',
-  classId: 'G2C',
-  class_id: 'G2C',
-  targetDay: 'Wednesday',
-  subject: 'English',
-  period: englishPeriods.G2C.Wednesday,
-  title: 'Movers Story (CW. 61, 62)',
-  note: 'English: Movers Story - Bring English Booklet (CW. 61, 62).',
-  arabicNote: 'تحضير درس Movers Story - إحضار بوكليت الإنجليزي ص 61 و 62.',
-  bagItem: 'English Booklet (CW. 61, 62)',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
-
-// --- Target: Thursday ---
 // G2A: 🚨 إنذار الديكتيشن قبليها بيوم (تجهيز الأربعاء مساءً للخميس) مع قائمة الكلمات وشيت الـ PDF
 newTomorrowNotes.push({
   id: 'tn-b2-w5-g2a-thu-dictation',
@@ -691,9 +525,9 @@ newTomorrowNotes.push({
   subject: 'English',
   period: englishPeriods.G2A.Thursday,
   title: '🚨 إنذار وتنبيه: إملاء لغة إنجليزية غداً الخميس (Class 2A)',
-  note: '🚨 Tomorrow Thursday is English Dictation for Class 2A in Copy Book! 11 Words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School). Bring Copy Book + HW P. 88, 89 assigned.',
-  arabicNote: `🚨 إنذار وتنبيه هام: غداً الخميس اختبار الإملاء (English Dictation) لكلاس 2A في كشكول الإملاء (Copy Book)! يرجى إحضار كشكول الإملاء وقلم رصاص وممحاة بالإضافة إلى حل ص 88 و 89.\n\n${dictationWordsArabic}`,
-  bagItem: 'Dictation Copy Book (كشكول الإملاء), Pencil & Eraser',
+  note: '🚨 Tomorrow Thursday is English Dictation for Class 2A in Copy Book! 11 Words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School). Bring Copy Book.',
+  arabicNote: `🚨 إنذار وتنبيه هام: غداً الخميس موعد اختبار الإملاء (English Dictation) لكلاس 2A في كشكول الإملاء (Copy Book)!\n\n${dictationWordsArabic}`,
+  bagItem: 'Dictation Copy Book (كشكول الإملاء)',
   isQuiz: true,
   categoryType: 'quiz',
   block,
@@ -703,42 +537,6 @@ newTomorrowNotes.push({
   pdfUrls: [dictationPdfUrl],
   attachment: dictationPdfUrl,
   attachmentName: dictationPdfName,
-});
-
-// G2B: عادي
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2b-thu-english',
-  classId: 'G2B',
-  class_id: 'G2B',
-  targetDay: 'Thursday',
-  subject: 'English',
-  period: englishPeriods.G2B.Thursday,
-  title: 'Outdoor Activity',
-  note: 'English: Outdoor Activity - Communicative games and language interaction.',
-  arabicNote: 'نشاط تفاعلي خارجي لمادة الإنجليزي (Outdoor Activity) - إحضار كشكول الإنجليزي والمقلمة.',
-  bagItem: 'English Notebook & Pencil Case',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
-});
-
-// G2C: عادي
-newTomorrowNotes.push({
-  id: 'tn-b2-w5-g2c-thu-english',
-  classId: 'G2C',
-  class_id: 'G2C',
-  targetDay: 'Thursday',
-  subject: 'English',
-  period: englishPeriods.G2C.Thursday,
-  title: 'Reading & Listening (CW. 59, 60)',
-  note: 'English: Reading & Listening - Bring English Booklet (CW. 59, 60).',
-  arabicNote: 'تحضير درس Reading & Listening ص 59 و 60 - إحضار بوكليت الإنجليزي.',
-  bagItem: 'English Booklet (CW. 59, 60)',
-  isQuiz: false,
-  categoryType: 'note',
-  block,
-  week,
 });
 
 // Append entries to plannerData
