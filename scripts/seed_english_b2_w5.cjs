@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Starting Exact English Seeder for Block 2 - Week 5 (Grade 2)...');
+console.log('🚀 Starting Exact English Seeder for Block 2 - Week 5 with Dictation Words List...');
 
 const plannerPath = path.join(__dirname, '..', 'data', 'planner_data.json');
 const initialDataPath = path.join(__dirname, '..', 'src', 'data', 'initialData.json');
@@ -25,6 +25,8 @@ if (!plannerData.deletedTomorrowNoteIds) plannerData.deletedTomorrowNoteIds = []
 
 const block = 2;
 const week = 5;
+const dictationPdfUrl = '/assets/aistudio/English-Grade2-B2-W5-U2-StudySheet1_-_Extra-__Minia__1433ed04.pdf';
+const dictationPdfName = 'English-Grade2-B2-W5-U2-StudySheet1_-_Extra-__Minia__1433ed04.pdf';
 
 // 1. Clean existing English Block 2 Week 5 entries to ensure clean idempotency
 plannerData.classwork = plannerData.classwork.filter(
@@ -73,6 +75,26 @@ const englishPeriods = {
 const newClasswork = [];
 const newHomework = [];
 const newTomorrowNotes = [];
+
+const dictationWordsArabic = `📝 قائمة كلمات الإملاء المقررة (Dictation List - 11 كلمة):
+1. Cinema
+2. Post Office
+3. Hospital
+4. Flat
+5. Shop
+6. Cafe
+7. Police Station
+8. Park
+9. Restaurant
+10. Street
+11. School
+
+💡 Helping Words (كلمات مساعدة لتكوين الجمل):
+• next to • in front of • behind • across from • the
+
+⭐ تنبيه هام من المعلمة:
+Always start with a capital letter and end with a full stop.
+(يجب دائماً أن تبدأ الجملة بحرف كبير Capital Letter وتنتهي بنقطة Full Stop).`;
 
 // =========================================================================
 // 1. CLASSWORK ENTRIES (Block 2 - Week 5)
@@ -197,11 +219,15 @@ newClasswork.push({
   period: englishPeriods.G2B.Tuesday,
   subject: 'English',
   title: '📝 Dictation & Movers Story',
-  details: 'Unit: My town. 📝 Weekly Dictation in Copy Book + Movers Story reading and comprehension exercises on pages CW. 61, 62.',
+  details: `Unit: My town. 📝 Weekly Dictation in Copy Book on the 11 Town words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School) + Movers Story on pages CW. 61, 62.`,
   pages: 'Copy Book, CW. 61, 62',
   completed: false,
   block,
   week,
+  pdfUrl: dictationPdfUrl,
+  pdf_url: dictationPdfUrl,
+  attachment: dictationPdfUrl,
+  attachmentName: dictationPdfName,
 });
 // G2C: 📝 Dictation (Copy Book)
 newClasswork.push({
@@ -212,11 +238,15 @@ newClasswork.push({
   period: englishPeriods.G2C.Tuesday,
   subject: 'English',
   title: '📝 Dictation',
-  details: 'Unit: My town. 📝 Weekly Dictation assessment in Copy Book.',
+  details: `Unit: My town. 📝 Weekly Dictation in Copy Book on the 11 Town words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School).`,
   pages: 'Copy Book',
   completed: false,
   block,
   week,
+  pdfUrl: dictationPdfUrl,
+  pdf_url: dictationPdfUrl,
+  attachment: dictationPdfUrl,
+  attachmentName: dictationPdfName,
 });
 
 // --- Wednesday (11/11/2026) ---
@@ -276,11 +306,15 @@ newClasswork.push({
   period: englishPeriods.G2A.Thursday,
   subject: 'English',
   title: '📝 Dictation',
-  details: 'Unit: My town. 📝 Weekly Dictation assessment in Copy Book for Class 2A.',
+  details: `Unit: My town. 📝 Weekly Dictation in Copy Book for Class 2A on the 11 Town words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School).`,
   pages: 'Copy Book',
   completed: false,
   block,
   week,
+  pdfUrl: dictationPdfUrl,
+  pdf_url: dictationPdfUrl,
+  attachment: dictationPdfUrl,
+  attachmentName: dictationPdfName,
 });
 // G2B: Outdoor Activity
 newClasswork.push({
@@ -317,7 +351,7 @@ newClasswork.push({
 // 2. HOMEWORK ENTRIES (Block 2 - Week 5)
 // =========================================================================
 
-// --- Monday Regular Homework for ALL Classes (Assigned Monday, Due Tuesday): Extra Sheet with A.k ---
+// --- Monday Regular Homework for ALL Classes: Extra Sheet with A.k ---
 ['G2A', 'G2B', 'G2C'].forEach((cls) => {
   newHomework.push({
     id: `hw-b2-w5-${cls.toLowerCase()}-mon-english-extrasheet`,
@@ -339,7 +373,7 @@ newClasswork.push({
   });
 });
 
-// --- Thursday Regular Homework for Class G2A Only (Assigned Thursday, Due Sunday): P. 88, 89 ---
+// --- Thursday Regular Homework for Class G2A Only: P. 88, 89 ---
 newHomework.push({
   id: 'hw-b2-w5-g2a-thu-english-p88-89',
   classId: 'G2A',
@@ -359,11 +393,8 @@ newHomework.push({
   week,
 });
 
-// --- User Mandate: Dictation Homework Tasks ---
-// "في الهوم وورك هتنزل تاسك ديكتيشن من يوم السبت لغاية يوم الاثنين بالنسبة لكلاس B و C،
-// ومن يوم السبت ليوم الأربعاء بالنسبة لكلاس A."
-
-// 1) For Class B and Class C -> Saturday through Monday (Saturday, Sunday, Monday)
+// --- User Mandate: Dictation Homework Tasks with full words list ---
+// 1) For Class B and Class C -> Saturday through Monday (Assigned: Sat, Sun, Mon | Due: Tuesday)
 ['G2B', 'G2C'].forEach((cls) => {
   ['Saturday', 'Sunday', 'Monday'].forEach((day) => {
     const isNightBefore = day === 'Monday';
@@ -376,21 +407,29 @@ newHomework.push({
       dueDay: 'Tuesday',
       due_day: 'Tuesday',
       subject: 'English',
-      task: `🚨 English Dictation Preparation (Tuesday in Copy Book)`,
-      title: `English Dictation on Tuesday (${cls})`,
+      task: `🚨 Dictation List: Prepare for English Dictation on Tuesday (${cls})!`,
+      title: `English Dictation on Tuesday (${cls}) - 11 Words`,
       details: isNightBefore
-        ? `🚨 تنبيه واستعداد لاختبار الإملاء: غداً الثلاثاء اختبار إملاء مادة اللغة الإنجليزية لكلاس (${cls}) في كشكول الإملاء (Copy Book). يرجى تجهيز الكشكول وقلم رصاص وممحاة. (قائمة الكلمات ستحدد قريباً وسيتم إرفاقها فور إعلانها من المعلمة).`
-        : `🚨 تنبيه واستعداد لاختبار الإملاء: إملاء مادة اللغة الإنجليزية يوم الثلاثاء لكلاس (${cls}) في كشكول الإملاء (Copy Book). (قائمة الكلمات ستحدد قريباً وسيتم إرفاقها فور إعلانها من المعلمة).`,
-      pages: 'Copy Book (قائمة الكلمات ستحدد قريباً)',
+        ? `🚨 تنبيه عاجل: غداً الثلاثاء موعد اختبار إملاء مادة اللغة الإنجليزية لكلاس (${cls}) في كشكول الإملاء (Copy Book)! يرجى تجهيز الكشكول وقلم رصاص وممحاة.\n\n${dictationWordsArabic}`
+        : `🚨 تنبيه واستعداد لاختبار الإملاء: إملاء مادة اللغة الإنجليزية يوم الثلاثاء لكلاس (${cls}) في كشكول الإملاء (Copy Book).\n\n${dictationWordsArabic}`,
+      pages: 'Dictation Study Sheet (11 Words + Helping Words)',
       completed: false,
       priority: isNightBefore ? 'urgent' : 'high',
       block,
       week,
+      pdfUrl: dictationPdfUrl,
+      pdf_url: dictationPdfUrl,
+      pdfUrls: [dictationPdfUrl],
+      attachment: dictationPdfUrl,
+      attachmentName: dictationPdfName,
+      fileUrl: dictationPdfUrl,
+      fileName: dictationPdfName,
+      sheet: dictationPdfUrl,
     });
   });
 });
 
-// 2) For Class A -> Saturday through Wednesday (Saturday, Sunday, Monday, Tuesday, Wednesday)
+// 2) For Class A -> Saturday through Wednesday (Assigned: Sat, Sun, Mon, Tue, Wed | Due: Thursday)
 ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday'].forEach((day) => {
   const isNightBefore = day === 'Wednesday';
   newHomework.push({
@@ -402,30 +441,32 @@ newHomework.push({
     dueDay: 'Thursday',
     due_day: 'Thursday',
     subject: 'English',
-    task: `🚨 English Dictation Preparation (Thursday in Copy Book)`,
-    title: `English Dictation on Thursday (Class 2A)`,
+    task: `🚨 Dictation List: Prepare for English Dictation on Thursday (Class 2A)!`,
+    title: `English Dictation on Thursday (Class 2A) - 11 Words`,
     details: isNightBefore
-      ? `🚨 تنبيه واستعداد لاختبار الإملاء: غداً الخميس اختبار إملاء مادة اللغة الإنجليزية لكلاس 2A في كشكول الإملاء (Copy Book). يرجى تجهيز الكشكول وقلم رصاص وممحاة. (قائمة الكلمات ستحدد قريباً وسيتم إرفاقها فور إعلانها من المعلمة).`
-      : `🚨 تنبيه واستعداد لاختبار الإملاء: إملاء مادة اللغة الإنجليزية يوم الخميس لكلاس 2A في كشكول الإملاء (Copy Book). (قائمة الكلمات ستحدد قريباً وسيتم إرفاقها فور إعلانها من المعلمة).`,
-    pages: 'Copy Book (قائمة الكلمات ستحدد قريباً)',
+      ? `🚨 تنبيه عاجل: غداً الخميس موعد اختبار إملاء مادة اللغة الإنجليزية لكلاس 2A في كشكول الإملاء (Copy Book)! يرجى تجهيز الكشكول وقلم رصاص وممحاة.\n\n${dictationWordsArabic}`
+      : `🚨 تنبيه واستعداد لاختبار الإملاء: إملاء مادة اللغة الإنجليزية يوم الخميس لكلاس 2A في كشكول الإملاء (Copy Book).\n\n${dictationWordsArabic}`,
+    pages: 'Dictation Study Sheet (11 Words + Helping Words)',
     completed: false,
     priority: isNightBefore ? 'urgent' : 'high',
     block,
     week,
+    pdfUrl: dictationPdfUrl,
+    pdf_url: dictationPdfUrl,
+    pdfUrls: [dictationPdfUrl],
+    attachment: dictationPdfUrl,
+    attachmentName: dictationPdfName,
+    fileUrl: dictationPdfUrl,
+    fileName: dictationPdfName,
+    sheet: dictationPdfUrl,
   });
 });
 
 // =========================================================================
 // 3. TOMORROW NOTES (Block 2 - Week 5)
 // =========================================================================
-// User Mandate:
-// "بالنسبة لكلاس B و C، هتنزل في الـ tomorrow إنذار يوم الديكتيشن عندهم يوم الثلاثاء،
-// فهتنزل لهم الإنذار قبليها بيوم." (قبليها بيوم = الإثنين مساءً لتجهيز يوم الثلاثاء: targetDay: 'Tuesday')
-// "بالنسبة لكلاس A، الديكتيشن بتاعتهم يوم الخميس، فهتنزل الإنذار قبليها بيوم برضه."
-// (قبليها بيوم = الأربعاء مساءً لتجهيز يوم الخميس: targetDay: 'Thursday')
-// وعلى بقية الأيام: ملاحظات تحضير الدروس والكتب والأنشطة فقط بدون إنذار ديكتيشن.
 
-// --- Target: Sunday (تجهيز السبت مساءً) ---
+// --- Target: Sunday ---
 newTomorrowNotes.push({
   id: 'tn-b2-w5-g2a-sun-english',
   classId: 'G2A',
@@ -475,7 +516,7 @@ newTomorrowNotes.push({
   week,
 });
 
-// --- Target: Monday (تجهيز الأحد مساءً) ---
+// --- Target: Monday ---
 newTomorrowNotes.push({
   id: 'tn-b2-w5-g2a-mon-english',
   classId: 'G2A',
@@ -525,8 +566,8 @@ newTomorrowNotes.push({
   week,
 });
 
-// --- Target: Tuesday (تجهيز الإثنين مساءً) ---
-// G2A: عادي (ليس ديكتيشن)
+// --- Target: Tuesday ---
+// G2A: عادي
 newTomorrowNotes.push({
   id: 'tn-b2-w5-g2a-tue-english',
   classId: 'G2A',
@@ -544,7 +585,7 @@ newTomorrowNotes.push({
   week,
 });
 
-// G2B: 🚨 إنذار الديكتيشن قبليها بيوم (تجهيز الإثنين مساءً ليوم الثلاثاء)!
+// G2B: 🚨 إنذار الديكتيشن قبليها بيوم (تجهيز الإثنين مساءً للثلاثاء) مع قائمة الكلمات وشيت الـ PDF
 newTomorrowNotes.push({
   id: 'tn-b2-w5-g2b-tue-dictation',
   classId: 'G2B',
@@ -553,16 +594,21 @@ newTomorrowNotes.push({
   subject: 'English',
   period: englishPeriods.G2B.Tuesday,
   title: '🚨 إنذار وتنبيه: إملاء لغة إنجليزية غداً الثلاثاء (Class 2B)',
-  note: '🚨 Tomorrow Tuesday is English Dictation for Class 2B in Copy Book! Also bring CW. 61, 62 + Hand in Extra Sheet.',
-  arabicNote: '🚨 إنذار وتنبيه هام: غداً الثلاثاء اختبار الإملاء (English Dictation) لكلاس 2B في كشكول الإملاء (Copy Book)! يرجى إحضار كشكول الإملاء، وبوكليت الإنجليزي ص 61 و 62، وتسليم شيت Extra Sheet. (قائمة الكلمات ستحدد قريباً وسيتم إرفاقها فور إعلانها).',
+  note: '🚨 Tomorrow Tuesday is English Dictation for Class 2B in Copy Book! 11 Words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School). Bring Copy Book + Hand in Extra Sheet.',
+  arabicNote: `🚨 إنذار وتنبيه هام: غداً الثلاثاء اختبار الإملاء (English Dictation) لكلاس 2B في كشكول الإملاء (Copy Book)! يرجى إحضار كشكول الإملاء، وبوكليت الإنجليزي ص 61 و 62، وتسليم شيت Extra Sheet.\n\n${dictationWordsArabic}`,
   bagItem: 'Dictation Copy Book (كشكول الإملاء), Pencil, Eraser, CW 61-62 & Extra Sheet',
   isQuiz: true,
   categoryType: 'quiz',
   block,
   week,
+  pdfUrl: dictationPdfUrl,
+  pdf_url: dictationPdfUrl,
+  pdfUrls: [dictationPdfUrl],
+  attachment: dictationPdfUrl,
+  attachmentName: dictationPdfName,
 });
 
-// G2C: 🚨 إنذار الديكتيشن قبليها بيوم (تجهيز الإثنين مساءً ليوم الثلاثاء)!
+// G2C: 🚨 إنذار الديكتيشن قبليها بيوم (تجهيز الإثنين مساءً للثلاثاء) مع قائمة الكلمات وشيت الـ PDF
 newTomorrowNotes.push({
   id: 'tn-b2-w5-g2c-tue-dictation',
   classId: 'G2C',
@@ -571,17 +617,21 @@ newTomorrowNotes.push({
   subject: 'English',
   period: englishPeriods.G2C.Tuesday,
   title: '🚨 إنذار وتنبيه: إملاء لغة إنجليزية غداً الثلاثاء (Class 2C)',
-  note: '🚨 Tomorrow Tuesday is English Dictation for Class 2C in Copy Book! Hand in Extra Sheet.',
-  arabicNote: '🚨 إنذار وتنبيه هام: غداً الثلاثاء اختبار الإملاء (English Dictation) لكلاس 2C في كشكول الإملاء (Copy Book)! يرجى إحضار كشكول الإملاء وقلم رصاص وممحاة، وتسليم شيت Extra Sheet. (قائمة الكلمات ستحدد قريباً وسيتم إرفاقها فور إعلانها).',
+  note: '🚨 Tomorrow Tuesday is English Dictation for Class 2C in Copy Book! 11 Words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School). Bring Copy Book + Hand in Extra Sheet.',
+  arabicNote: `🚨 إنذار وتنبيه هام: غداً الثلاثاء اختبار الإملاء (English Dictation) لكلاس 2C في كشكول الإملاء (Copy Book)! يرجى إحضار كشكول الإملاء وقلم رصاص وممحاة، وتسليم شيت Extra Sheet.\n\n${dictationWordsArabic}`,
   bagItem: 'Dictation Copy Book (كشكول الإملاء), Pencil, Eraser & Extra Sheet',
   isQuiz: true,
   categoryType: 'quiz',
   block,
   week,
+  pdfUrl: dictationPdfUrl,
+  pdf_url: dictationPdfUrl,
+  pdfUrls: [dictationPdfUrl],
+  attachment: dictationPdfUrl,
+  attachmentName: dictationPdfName,
 });
 
-// --- Target: Wednesday (تجهيز الثلاثاء مساءً) ---
-// كل الفصول عادي بدون إنذار
+// --- Target: Wednesday ---
 newTomorrowNotes.push({
   id: 'tn-b2-w5-g2a-wed-english',
   classId: 'G2A',
@@ -631,8 +681,8 @@ newTomorrowNotes.push({
   week,
 });
 
-// --- Target: Thursday (تجهيز الأربعاء مساءً) ---
-// G2A: 🚨 إنذار الديكتيشن قبليها بيوم (تجهيز الأربعاء مساءً ليوم الخميس)!
+// --- Target: Thursday ---
+// G2A: 🚨 إنذار الديكتيشن قبليها بيوم (تجهيز الأربعاء مساءً للخميس) مع قائمة الكلمات وشيت الـ PDF
 newTomorrowNotes.push({
   id: 'tn-b2-w5-g2a-thu-dictation',
   classId: 'G2A',
@@ -641,16 +691,21 @@ newTomorrowNotes.push({
   subject: 'English',
   period: englishPeriods.G2A.Thursday,
   title: '🚨 إنذار وتنبيه: إملاء لغة إنجليزية غداً الخميس (Class 2A)',
-  note: '🚨 Tomorrow Thursday is English Dictation for Class 2A in Copy Book! Also homework P. 88, 89 assigned.',
-  arabicNote: '🚨 إنذار وتنبيه هام: غداً الخميس اختبار الإملاء (English Dictation) لكلاس 2A في كشكول الإملاء (Copy Book)! يرجى إحضار كشكول الإملاء وقلم رصاص وممحاة (قائمة الكلمات ستحدد قريباً وسيتم إرفاقها فور إعلانها). بالإضافة إلى حل ص 88 و 89.',
+  note: '🚨 Tomorrow Thursday is English Dictation for Class 2A in Copy Book! 11 Words (Cinema, Post Office, Hospital, Flat, Shop, Cafe, Police Station, Park, Restaurant, Street, School). Bring Copy Book + HW P. 88, 89 assigned.',
+  arabicNote: `🚨 إنذار وتنبيه هام: غداً الخميس اختبار الإملاء (English Dictation) لكلاس 2A في كشكول الإملاء (Copy Book)! يرجى إحضار كشكول الإملاء وقلم رصاص وممحاة بالإضافة إلى حل ص 88 و 89.\n\n${dictationWordsArabic}`,
   bagItem: 'Dictation Copy Book (كشكول الإملاء), Pencil & Eraser',
   isQuiz: true,
   categoryType: 'quiz',
   block,
   week,
+  pdfUrl: dictationPdfUrl,
+  pdf_url: dictationPdfUrl,
+  pdfUrls: [dictationPdfUrl],
+  attachment: dictationPdfUrl,
+  attachmentName: dictationPdfName,
 });
 
-// G2B: عادي (ليس ديكتيشن)
+// G2B: عادي
 newTomorrowNotes.push({
   id: 'tn-b2-w5-g2b-thu-english',
   classId: 'G2B',
@@ -660,7 +715,7 @@ newTomorrowNotes.push({
   period: englishPeriods.G2B.Thursday,
   title: 'Outdoor Activity',
   note: 'English: Outdoor Activity - Communicative games and language interaction.',
-  arabicNote: 'نشاط لغوي تفاعلي خارجي لمادة الإنجليزي (Outdoor Activity) - إحضار كشكول الإنجليزي والمقلمة.',
+  arabicNote: 'نشاط تفاعلي خارجي لمادة الإنجليزي (Outdoor Activity) - إحضار كشكول الإنجليزي والمقلمة.',
   bagItem: 'English Notebook & Pencil Case',
   isQuiz: false,
   categoryType: 'note',
@@ -668,7 +723,7 @@ newTomorrowNotes.push({
   week,
 });
 
-// G2C: عادي (ليس ديكتيشن)
+// G2C: عادي
 newTomorrowNotes.push({
   id: 'tn-b2-w5-g2c-thu-english',
   classId: 'G2C',
@@ -724,41 +779,40 @@ if (fs.existsSync(initialDataPath)) {
   }
 }
 
-// Register Weekly Plan PDF in materials.json
+// Register Dictation Study Sheet PDF in materials.json
 if (fs.existsSync(materialsPath)) {
   try {
     let materials = JSON.parse(fs.readFileSync(materialsPath, 'utf8'));
     if (!Array.isArray(materials)) materials = [];
-    const pdfPath = '/assets/aistudio/Weekly_Plan_English_-_B2_-_W5-_Minia____2dfcefd4.pdf';
-    const matId = 'mat_weekly_plan_english_b2_w5';
+    const matId = 'mat_english_b2_w5_dictation_list';
 
     materials = materials.filter((m) => m.id !== matId);
     materials.unshift({
       id: matId,
-      fileName: 'Weekly_Plan_English_-_B2_-_W5-_Minia____2dfcefd4.pdf',
-      fileSize: 480000,
-      storageUrl: pdfPath,
-      linkUrl: pdfPath,
+      fileName: dictationPdfName,
+      fileSize: 380000,
+      storageUrl: dictationPdfUrl,
+      linkUrl: dictationPdfUrl,
       subject: 'English',
       grade: 'Grade 2',
       term: 'Term 1',
       block: 2,
       week: 5,
-      section: 'Weekly Plan',
+      section: 'Dictation',
       classId: 'ALL',
       type: 'pdf',
       uploadedAt: new Date().toISOString(),
-      description: 'The Weekly Plan - English - Grade 2 - Block 2 - Week 5 (Ms. Tuqa Mmdouh)',
+      description: 'English Dictation List (11 Words + Helping Words) - Unit: My town - Block 2 Week 5 (Ms. Aya Abdalla)',
     });
 
     fs.writeFileSync(materialsPath, JSON.stringify(materials, null, 2), 'utf8');
-    console.log('✅ Updated data/materials.json with English Weekly Plan PDF');
+    console.log('✅ Updated data/materials.json with Dictation Study Sheet PDF');
   } catch (mErr) {
     console.warn('Could not update materials.json:', mErr);
   }
 }
 
-console.log(`🎉 English Block 2 Week 5 Seeding Complete!`);
+console.log(`🎉 English Block 2 Week 5 Seeding Complete with Dictation Sheet!`);
 console.log(`- Classwork added: ${newClasswork.length} entries`);
 console.log(`- Homework added: ${newHomework.length} entries`);
 console.log(`- Tomorrow Notes added: ${newTomorrowNotes.length} entries`);

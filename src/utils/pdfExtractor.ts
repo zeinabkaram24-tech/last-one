@@ -14,9 +14,9 @@ export async function extractTextFromPdf(file: File): Promise<string> {
     const extractionPromise = (async () => {
       try {
         const pdfjsLib = await import('pdfjs-dist');
-        if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions?.workerSrc) {
+        if (typeof window !== 'undefined') {
           try {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || '4.10.38'}/pdf.worker.min.mjs`;
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
           } catch {}
         }
 

@@ -4,11 +4,13 @@ import { MaterialItem, formatBytes, downloadPdfItem, printPdfItem } from '../uti
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Initialize PDF.js worker in browser environment
-if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions?.workerSrc) {
+if (typeof window !== 'undefined') {
   try {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || '4.10.38'}/pdf.worker.min.mjs`;
+    const version = pdfjsLib.version || '6.5.438';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
   } catch {}
 }
+
 
 // Sub-component to render a single PDF page with crisp details on canvas
 const PdfPageCanvas: React.FC<{ page: any; index: number }> = ({ page, index }) => {

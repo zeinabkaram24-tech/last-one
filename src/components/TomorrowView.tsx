@@ -265,6 +265,28 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
+    // Strict User Mandate: "ما فيش أي ملاحظات للعربي ولا للفرنش في أي يوم من الأيام، يعني مش هيبقى في أي حاجة في التومورو تخص العربي أو الفرنش"
+    // No notes or reminders whatsoever for Arabic or French in Tomorrow View for Block 2 Week 5:
+    if ((currentBlock === 2 || (n as any).block === 2) && (currentWeek === 5 || (n as any).week === 5)) {
+      const s = (n.subject || '').trim().toLowerCase();
+      const text = `${n.title || ''} ${n.note || ''} ${n.arabicNote || ''} ${n.subject || ''}`.toLowerCase();
+      if (
+        s === 'arabic' ||
+        s === 'french' ||
+        s.includes('عربي') ||
+        s.includes('اللغة العربية') ||
+        s.includes('فرنس') ||
+        s.includes('français') ||
+        text.includes('عربي') ||
+        text.includes('اللغة العربية') ||
+        text.includes('فرنس') ||
+        text.includes('french') ||
+        text.includes('fiche de devoir')
+      ) {
+        return true; // Strictly disallowed!
+      }
+    }
+
     // UNCONDITIONAL ADMIN / USER OVERRIDE:
     // Any note created, added, or edited by admin or user is unconditionally allowed without ANY restrictions!
     if (
@@ -932,6 +954,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (cid !== currentClass && (cid as any) !== 'ALL') return;
       if (h.week && h.week !== effectiveWeekForHw) return;
       if ((h.block || 1) !== currentBlock) return;
+      if (currentBlock === 2 && currentWeek === 5 && (h.subject === 'Arabic' || h.subject === 'French')) return;
       if (
         currentBlock === 2 &&
         h.subject !== 'English' &&
@@ -1014,6 +1037,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (cw.day !== tomorrowDay) return;
       if (cw.week && cw.week !== currentWeek) return;
       if ((cw.block || 1) !== currentBlock) return;
+      if (currentBlock === 2 && currentWeek === 5 && (cw.subject === 'Arabic' || cw.subject === 'French')) return;
       if (currentBlock === 2 && cw.subject !== 'English' && cw.subject !== 'Arabic') return;
       if (currentBlock === 2 && cw.subject === 'English') return; // Dedicated Tomorrow note handles Spelling Bee, avoiding duplicate linked-cw
       const cwAlertId = `linked-cw-${cw.id}`;
