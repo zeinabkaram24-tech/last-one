@@ -201,22 +201,22 @@ export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> 
   G2A: {
     Saturday: [],
     Sunday: [
-      { period: 1, time: '7:45 - 8:35', subject: 'Arts', teacher: 'Safaa' },
-      { period: 2, time: '8:35 - 9:25', subject: 'Mathematics', teacher: 'Maryem Sameer' },
-      { period: 3, time: '9:45 - 10:35', subject: 'ICT', teacher: 'Mariem' },
-      { period: 4, time: '10:35 - 11:25', subject: 'Leadership', teacher: 'Karin' },
-      { period: 5, time: '11:25 - 12:15', subject: 'English', teacher: 'Karin' },
-      { period: 6, time: '12:15 - 13:05', subject: 'PE', teacher: 'Rana' },
+      { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: "Aya Abdalla" },
+      { period: 2, time: '8:35 - 9:25', subject: 'English', teacher: "Aya Abdalla" },
+      { period: 3, time: '9:45 - 10:35', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 4, time: '10:35 - 11:25', subject: 'ICT', teacher: 'Mariem' },
+      { period: 5, time: '11:25 - 12:15', subject: 'Arts', teacher: 'Safaa' },
+      { period: 6, time: '12:15 - 13:05', subject: 'Science', teacher: 'Salma Ahmed' },
       { period: 7, time: '13:25 - 14:15', subject: 'Arabic', teacher: 'Eman' },
       { period: 8, time: '14:15 - 15:05', subject: 'Social Studies', teacher: 'Walaa Fayz' },
     ],
     Monday: [
       { period: 1, time: '7:45 - 8:35', subject: 'Arabic', teacher: 'Eman' },
       { period: 2, time: '8:35 - 9:25', subject: 'Arabic', teacher: 'Eman' },
-      { period: 3, time: '9:45 - 10:35', subject: 'English', teacher: 'Karin' },
-      { period: 4, time: '10:35 - 11:25', subject: 'English', teacher: 'Karin' },
-      { period: 5, time: '11:25 - 12:15', subject: 'PE', teacher: 'Rana' },
-      { period: 6, time: '12:15 - 13:05', subject: 'Science', teacher: 'Salma Ahmed' },
+      { period: 3, time: '9:45 - 10:35', subject: 'PE', teacher: 'Rana' },
+      { period: 4, time: '10:35 - 11:25', subject: 'English', teacher: "Aya Abdalla" },
+      { period: 5, time: '11:25 - 12:15', subject: 'English', teacher: "Aya Abdalla" },
+      { period: 6, time: '12:15 - 13:05', subject: 'PE', teacher: 'Rana' },
       { period: 7, time: '13:25 - 14:15', subject: 'Music', teacher: 'Afronia' },
       { period: 8, time: '14:15 - 15:05', subject: 'Mathematics', teacher: 'Maryem Sameer' },
     ],
@@ -227,7 +227,7 @@ export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> 
       { period: 4, time: '10:35 - 11:25', subject: 'Mathematics', teacher: 'Maryem Sameer' },
       { period: 5, time: '11:25 - 12:15', subject: 'Science', teacher: 'Salma Ahmed' },
       { period: 6, time: '12:15 - 13:05', subject: 'ICT', teacher: 'Mariem' },
-      { period: 7, time: '13:25 - 14:15', subject: 'English', teacher: 'Karin' },
+      { period: 7, time: '13:25 - 14:15', subject: 'English', teacher: "Aya Abdalla" },
       { period: 8, time: '14:15 - 15:05', subject: 'Arabic', teacher: 'Eman' },
     ],
     Wednesday: [
@@ -237,8 +237,8 @@ export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> 
       { period: 4, time: '10:35 - 11:25', subject: 'French', teacher: "Doa'a Fekry" },
       { period: 5, time: '11:25 - 12:15', subject: 'Social Studies', teacher: 'Walaa Fayz' },
       { period: 6, time: '12:15 - 13:05', subject: 'Arabic', teacher: 'Eman' },
-      { period: 7, time: '13:25 - 14:15', subject: 'English', teacher: 'Karin' },
-      { period: 8, time: '14:15 - 15:05', subject: 'English', teacher: 'Karin' },
+      { period: 7, time: '13:25 - 14:15', subject: 'English', teacher: "Aya Abdalla" },
+      { period: 8, time: '14:15 - 15:05', subject: 'English', teacher: "Aya Abdalla" },
     ],
     Thursday: [
       { period: 1, time: '7:45 - 8:35', subject: 'Arts', teacher: 'Safaa' },
@@ -246,24 +246,23 @@ export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> 
       { period: 3, time: '9:45 - 10:35', subject: 'French', teacher: "Doa'a Fekry" },
       { period: 4, time: '10:35 - 11:25', subject: 'Music', teacher: 'Afronia' },
       { period: 5, time: '11:25 - 12:15', subject: 'Arabic', teacher: 'Eman' },
-      { period: 6, time: '12:15 - 13:05', subject: 'English', teacher: 'Karin' },
+      { period: 6, time: '12:15 - 13:05', subject: 'English', teacher: "Aya Abdalla" },
       { period: 7, time: '13:25 - 14:15', subject: 'Social Studies', teacher: 'Walaa Fayz' },
       { period: 8, time: '14:15 - 15:05', subject: 'Science', teacher: 'Salma Ahmed' },
     ],
   },
-
   // G2B
   G2B: {
     Saturday: [],
     Sunday: [
       { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: "Ala'a" },
-      { period: 2, time: '8:35 - 9:25', subject: 'French', teacher: "Doa'a Fekry" },
-      { period: 3, time: '9:45 - 10:35', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 2, time: '8:35 - 9:25', subject: 'Mathematics', teacher: 'Maryem Sameer' },
+      { period: 3, time: '9:45 - 10:35', subject: 'French', teacher: "Doa'a Fekry" },
       { period: 4, time: '10:35 - 11:25', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
-      { period: 5, time: '11:25 - 12:15', subject: 'ICT', teacher: 'Mariem', notes: 'Leadership / ICT' },
-      { period: 6, time: '12:15 - 13:05', subject: 'Science', teacher: 'Salma Ahmed' },
-      { period: 7, time: '13:25 - 14:15', subject: 'Music', teacher: 'Afronia' },
-      { period: 8, time: '14:15 - 15:05', subject: 'Arts', teacher: 'Safaa' },
+      { period: 5, time: '11:25 - 12:15', subject: 'Science', teacher: 'Salma Ahmed' },
+      { period: 6, time: '12:15 - 13:05', subject: 'Leadership', teacher: 'Mariem' },
+      { period: 7, time: '13:25 - 14:15', subject: 'Arts', teacher: 'Safaa' },
+      { period: 8, time: '14:15 - 15:05', subject: 'Music', teacher: 'Afronia' },
     ],
     Monday: [
       { period: 1, time: '7:45 - 8:35', subject: 'Social Studies', teacher: 'Manar Hassan' },
@@ -306,7 +305,6 @@ export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> 
       { period: 8, time: '14:15 - 15:05', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
     ],
   },
-
   // G2C
   G2C: {
     Saturday: [],
@@ -352,7 +350,7 @@ export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> 
     ],
     Thursday: [
       { period: 1, time: '7:45 - 8:35', subject: 'Science', teacher: 'Salma Ahmed' },
-      { period: 2, time: '8:35 - 9:25', subject: 'ICT', teacher: 'Abeer', notes: 'Leadership / ICT' },
+      { period: 2, time: '8:35 - 9:25', subject: 'Leadership', teacher: 'Abeer' },
       { period: 3, time: '9:45 - 10:35', subject: 'Social Studies', teacher: 'Manar Hassan' },
       { period: 4, time: '10:35 - 11:25', subject: 'English', teacher: 'Toqa' },
       { period: 5, time: '11:25 - 12:15', subject: 'PE', teacher: 'Rana' },
