@@ -13214,19 +13214,6 @@
       "week": 5
     },
     {
-      "id": "cw-b2-w5-G2A-Wednesday-8-English",
-      "classId": "G2A",
-      "class_id": "G2A",
-      "day": "Wednesday",
-      "period": 8,
-      "subject": "English",
-      "title": "English - Class",
-      "details": "",
-      "completed": false,
-      "block": 2,
-      "week": 5
-    },
-    {
       "id": "cw-b2-w5-G2A-Thursday-2-Mathematics",
       "classId": "G2A",
       "class_id": "G2A",
@@ -14054,6 +14041,19 @@
       "subject": "Science",
       "title": "Science - Class",
       "details": "",
+      "completed": false,
+      "block": 2,
+      "week": 5
+    },
+    {
+      "id": "cw-b2-w5-G2C-Thursday-2-ICT",
+      "classId": "G2C",
+      "class_id": "G2C",
+      "day": "Thursday",
+      "period": 2,
+      "subject": "ICT",
+      "title": "ICT - Class",
+      "details": "Leadership / ICT",
       "completed": false,
       "block": 2,
       "week": 5
@@ -17791,11 +17791,8 @@
       "priority": "normal",
       "block": 2,
       "week": 1,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "pdf_url": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "fileName": "SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
-      "attachment": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
-      "attachmentName": "SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "sheet": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "fileUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "title": "شيت واجب الدراسات الاجتماعية - درس الاتجاهات الأصلية ووردة البوصلة"
@@ -17816,11 +17813,8 @@
       "priority": "normal",
       "block": 2,
       "week": 1,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "pdf_url": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "fileName": "SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
-      "attachment": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
-      "attachmentName": "SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "sheet": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "fileUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "title": "شيت واجب الدراسات الاجتماعية - درس الاتجاهات الأصلية ووردة البوصلة"
@@ -17935,12 +17929,9 @@
       "priority": "normal",
       "block": 2,
       "week": 1,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "pdf_url": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "linkUrl": null,
       "isLinkTask": false,
-      "attachment": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
-      "attachmentName": "SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "sheet": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "fileUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "fileName": "SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf"
@@ -23248,11 +23239,8 @@
       "categoryType": "note",
       "block": 2,
       "week": 1,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "pdf_url": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "fileName": "SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
-      "attachment": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
-      "attachmentName": "SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "sheet": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "fileUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf"
     },
@@ -23271,11 +23259,8 @@
       "categoryType": "note",
       "block": 2,
       "week": 1,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "pdf_url": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "fileName": "SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
-      "attachment": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
-      "attachmentName": "SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "sheet": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "fileUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf"
     },
@@ -23371,7 +23356,6 @@
       "categoryType": "note",
       "block": 2,
       "week": 1,
-      "pdfUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf",
       "class_id": "G2B"
     },
     {
