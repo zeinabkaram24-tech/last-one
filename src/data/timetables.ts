@@ -260,7 +260,7 @@ export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> 
       { period: 3, time: '9:45 - 10:35', subject: 'French', teacher: "Doa'a Fekry" },
       { period: 4, time: '10:35 - 11:25', subject: 'Arabic', teacher: 'Marwa Mamdouh' },
       { period: 5, time: '11:25 - 12:15', subject: 'Science', teacher: 'Salma Ahmed' },
-      { period: 6, time: '12:15 - 13:05', subject: 'Leadership', teacher: 'Mariem' },
+      { period: 6, time: '12:15 - 13:05', subject: 'ICT', teacher: 'Mariem', notes: 'Leadership / ICT' },
       { period: 7, time: '13:25 - 14:15', subject: 'Arts', teacher: 'Safaa' },
       { period: 8, time: '14:15 - 15:05', subject: 'Music', teacher: 'Afronia' },
     ],

@@ -273,19 +273,6 @@
       "class_id": "G2A"
     },
     {
-      "id": "cw-g2a-tue-5",
-      "classId": "G2A",
-      "day": "Tuesday",
-      "period": 2,
-      "subject": "Religion",
-      "title": "التربية الدينية: قيم التسامح وآداب الاستئذان",
-      "details": "مراجعة الآداب الإسلامية / المسيحية وأهمية الصدق والمحبة.",
-      "completed": false,
-      "block": 1,
-      "week": 1,
-      "class_id": "G2A"
-    },
-    {
       "id": "cw-g2a-tue-6",
       "classId": "G2A",
       "day": "Tuesday",
@@ -912,20 +899,6 @@
       "pages": "فيديو - كراسة نشاط ص 5-6",
       "completed": false,
       "linkUrl": "https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني",
-      "block": 1,
-      "week": 1,
-      "class_id": "G2B"
-    },
-    {
-      "id": "cw-g2b-wed-4",
-      "classId": "G2B",
-      "day": "Wednesday",
-      "period": 4,
-      "subject": "Arabic",
-      "title": "تدريبات لغوية على التاء المربوطة",
-      "details": "إكمال الكلمات بحرف التاء المربوطة والمفتوحة والهاء ص 6.",
-      "pages": "كراسة نشاط الوحدة الأولى ص 6",
-      "completed": false,
       "block": 1,
       "week": 1,
       "class_id": "G2B"
@@ -14106,6 +14079,20 @@
       "subject": "Arabic",
       "title": "Arabic - Class",
       "details": "",
+      "completed": false,
+      "block": 2,
+      "week": 5
+    },
+    {
+      "id": "cw-b2-w5-G2B-Sunday-6-ICT",
+      "classId": "G2B",
+      "class_id": "G2B",
+      "day": "Sunday",
+      "period": 6,
+      "subject": "ICT",
+      "title": "Unit 2: Communicating with Email & E-safety — Session 1 (Review & Practical Lab Practice)",
+      "details": "Unit: Communicating with Email & E-safety. Topics: Comprehensive review of Email components, sending/receiving messages, safe email etiquette, and avoiding online risks. Hands-on computer lab session.",
+      "pages": "Study sheet W5, ICT Booklet",
       "completed": false,
       "block": 2,
       "week": 5
