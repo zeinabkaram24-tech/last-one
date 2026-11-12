@@ -703,7 +703,7 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                 onChange={(e) => setWeek(Number(e.target.value))}
                 className="w-full text-xs font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
               >
-                {[1, 2, 3, 4, 5].map((w) => (
+                {[1, 2, 3, 4, 5, 6].map((w) => (
                   <option key={w} value={w}>الأسبوع {w}</option>
                 ))}
               </select>

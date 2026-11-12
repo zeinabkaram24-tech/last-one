@@ -27,12 +27,8 @@ export const BLOCK2_WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = SPECIAL_TEACHER
   (n) => Number(n.block || 1) === 2 && Number(n.week || 1) === 3
 );
 
-export const BLOCK2_WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = SPECIAL_TEACHER_NOTES.filter(
-  (n) => Number(n.block || 1) === 2 && Number(n.week || 1) === 4
-);
-
-export const BLOCK2_WEEK5_SPECIAL_NOTES: TomorrowSpecialNote[] = SPECIAL_TEACHER_NOTES.filter(
-  (n) => Number(n.block || 1) === 2 && Number(n.week || 1) === 5
+export const BLOCK2_WEEK6_SPECIAL_NOTES: TomorrowSpecialNote[] = SPECIAL_TEACHER_NOTES.filter(
+  (n) => Number(n.block || 1) === 2 && Number(n.week || 1) === 6
 );
 
 export const WEEK5_SPECIAL_NOTES: TomorrowSpecialNote[] = SPECIAL_TEACHER_NOTES.filter(

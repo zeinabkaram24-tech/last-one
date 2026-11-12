@@ -1702,9 +1702,9 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
     Thursday: 'Sunday',
   };
 
-  // 1. Auto-detect Week if mentioned anywhere in text (e.g. Week 5 / الأسبوع الخامس / الاسبوع 5)
+  // 1. Auto-detect Week if mentioned anywhere in text (e.g. Week 6 / الأسبوع السادس / الاسبوع 6)
   let activeWeek = Number(week) || 1;
-  const weekMatch = planText.match(/week\s*([1-5])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|[1-5])|الاسبوع\s*([1-5])|اسبوع\s*([1-5])/i);
+  const weekMatch = planText.match(/week\s*([1-6])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|السادس|[1-6])|الاسبوع\s*([1-6])|اسبوع\s*([1-6])/i);
   if (weekMatch) {
     if (weekMatch[1]) activeWeek = Number(weekMatch[1]);
     else if (weekMatch[3]) activeWeek = Number(weekMatch[3]);
@@ -1714,6 +1714,7 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
     else if (/الثالث|3/.test(weekMatch[2])) activeWeek = 3;
     else if (/الرابع|4/.test(weekMatch[2])) activeWeek = 4;
     else if (/الخامس|5/.test(weekMatch[2])) activeWeek = 5;
+    else if (/السادس|6/.test(weekMatch[2])) activeWeek = 6;
   }
 
   // 2. Auto-detect single subject if document is dedicated to a specific subject (e.g. Math, Social Studies, etc.)
@@ -2145,9 +2146,9 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
       }
     }
 
-    // Auto-detect Week if text mentions Week 1 to 5 / الأسبوع الأول إلى الخامس
+    // Auto-detect Week if text mentions Week 1 to 6 / الأسبوع الأول إلى السادس
     let detectedWeek = Number(week) || 2;
-    const weekMatch = extractedPdfText.match(/week\s*([1-5])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|[1-5])|الاسبوع\s*([1-5])|اسبوع\s*([1-5])/i);
+    const weekMatch = extractedPdfText.match(/week\s*([1-6])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|السادس|[1-6])|الاسبوع\s*([1-6])|اسبوع\s*([1-6])/i);
     if (weekMatch) {
       if (weekMatch[1]) detectedWeek = Number(weekMatch[1]);
       else if (weekMatch[3]) detectedWeek = Number(weekMatch[3]);
@@ -2157,6 +2158,7 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
       else if (/الثالث|3/.test(weekMatch[2])) detectedWeek = 3;
       else if (/الرابع|4/.test(weekMatch[2])) detectedWeek = 4;
       else if (/الخامس|5/.test(weekMatch[2])) detectedWeek = 5;
+      else if (/السادس|6/.test(weekMatch[2])) detectedWeek = 6;
     }
 
     const targetClasses = targetClass === 'ALL' ? ['G2A', 'G2B', 'G2C'] : [targetClass];
@@ -2315,9 +2317,9 @@ app.post('/api/parse-weekly-plan', async (req, res) => {
       return res.status(400).json({ error: 'planText is required' });
     }
 
-    // Auto-detect Week if text mentions Week 1 to 5 / الأسبوع الأول إلى الخامس
+    // Auto-detect Week if text mentions Week 1 to 6 / الأسبوع الأول إلى السادس
     let detectedWeek = Number(week) || 2;
-    const weekMatch = planText.match(/week\s*([1-5])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|[1-5])|الاسبوع\s*([1-5])|اسبوع\s*([1-5])/i);
+    const weekMatch = planText.match(/week\s*([1-6])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|السادس|[1-6])|الاسبوع\s*([1-6])|اسبوع\s*([1-6])/i);
     if (weekMatch) {
       if (weekMatch[1]) detectedWeek = Number(weekMatch[1]);
       else if (weekMatch[3]) detectedWeek = Number(weekMatch[3]);
@@ -2327,6 +2329,7 @@ app.post('/api/parse-weekly-plan', async (req, res) => {
       else if (/الثالث|3/.test(weekMatch[2])) detectedWeek = 3;
       else if (/الرابع|4/.test(weekMatch[2])) detectedWeek = 4;
       else if (/الخامس|5/.test(weekMatch[2])) detectedWeek = 5;
+      else if (/السادس|6/.test(weekMatch[2])) detectedWeek = 6;
     }
 
     const targetClasses = (!classId || classId === 'ALL') ? ['G2A', 'G2B', 'G2C'] : [classId];

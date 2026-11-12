@@ -134,9 +134,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
     (h) => {
       if (!matchesClass(h)) return false;
 
-      // Legacy Block 1 override: Social Studies homework for Class A and Class C was Saturday ONLY; for Class B it was Sunday ONLY!
+      // Strict User Mandate: Social Studies homework for Class A and Class C is Saturday ONLY; for Class B it is Sunday ONLY!
       let isAssignedForDay = h.assignedDay === selectedDay;
-      if (h.subject === 'Social Studies' && (h.block || 1) === 1) {
+      if (h.subject === 'Social Studies') {
         const isClassAOrC = h.classId === 'G2A' || (h as any).class_id === 'G2A' || h.classId === 'G2C' || (h as any).class_id === 'G2C';
         const isClassB = h.classId === 'G2B' || (h as any).class_id === 'G2B';
         if (isClassAOrC) {
@@ -356,18 +356,28 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         </span>
                       )}
 
-                      {hw.subject === 'English' && (
+                      {(hw.subject === 'English' || hw.subject === 'French') && (
                         hw.task.toLowerCase().includes('dictation') ||
+                        hw.task.toLowerCase().includes('dictée') ||
+                        hw.task.toLowerCase().includes('dictee') ||
                         hw.task.includes('إملاء') ||
                         hw.task.toLowerCase().includes('spelling') ||
-                        (hw.details && (hw.details.toLowerCase().includes('dictation') || hw.details.toLowerCase().includes('spelling')))
+                        (hw.details && (hw.details.toLowerCase().includes('dictation') || hw.details.toLowerCase().includes('dictée') || hw.details.toLowerCase().includes('dictee') || hw.details.toLowerCase().includes('spelling')))
                       ) && (
                         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-black shadow-2xs border ${
                           hw.task.toLowerCase().includes('spelling') || (hw.details && hw.details.toLowerCase().includes('spelling'))
                             ? 'bg-amber-50 text-amber-950 border-amber-300'
-                            : 'bg-indigo-50 text-indigo-900 border-indigo-200'
+                            : hw.subject === 'French'
+                              ? 'bg-sky-50 text-sky-900 border-sky-200'
+                              : 'bg-indigo-50 text-indigo-900 border-indigo-200'
                         }`}>
-                          <span>{hw.task.toLowerCase().includes('spelling') || (hw.details && hw.details.toLowerCase().includes('spelling')) ? 'Spelling Bee List 🐝' : 'Dictation list 📝'}</span>
+                          <span>
+                            {hw.subject === 'French'
+                              ? 'Dictée de français 📝'
+                              : hw.task.toLowerCase().includes('spelling') || (hw.details && hw.details.toLowerCase().includes('spelling'))
+                              ? 'Spelling Bee List 🐝'
+                              : 'Dictation list 📝'}
+                          </span>
                         </span>
                       )}
                     </div>
@@ -445,23 +455,11 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       );
                     })()}
 
-                    {/* PDF Worksheets if available */}
+                    {/* PDF Worksheet if available: strictly only allowed for Social Studies and English Dictation & Spelling Bee per school rule */}
                     {(() => {
-                      const pdfSources: { url: string; label?: string }[] = [];
-                      if (hw.pdfUrls && Array.isArray(hw.pdfUrls) && hw.pdfUrls.length > 0) {
-                        hw.pdfUrls.forEach((url, idx) => {
-                          if (url) pdfSources.push({ url, label: `مرفق شيت الواجب (${idx + 1})` });
-                        });
-                      } else if (hw.pdfUrl) {
-                        pdfSources.push({ url: hw.pdfUrl, label: 'مرفق شيت الواجب' });
-                      } else if ((hw as any).pdf) {
-                        pdfSources.push({ url: (hw as any).pdf, label: 'مرفق شيت الواجب' });
-                      }
-
-                      if (pdfSources.length === 0) return null;
-
+                      const pdfSrc = hw.pdfUrl || (hw as any).pdf;
+                      if (!pdfSrc) return null;
                       const isAllowed =
-                        hw.subject === 'Mathematics' ||
                         ((hw.subject === 'Social Studies' || hw.subject === 'Science') && selectedDay !== 'Thursday') ||
                         (hw.subject === 'English' && (
                           hw.task?.toLowerCase().includes('dictation') ||
@@ -471,20 +469,21 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                           hw.details?.toLowerCase().includes('spelling') ||
                           hw.id?.includes('spelling')
                         )) ||
-                        pdfSources.length > 0;
-
+                        (hw.subject === 'French' && (
+                          hw.task?.toLowerCase().includes('dictée') ||
+                          hw.task?.toLowerCase().includes('dictee') ||
+                          hw.details?.toLowerCase().includes('dictée') ||
+                          hw.details?.toLowerCase().includes('dictee') ||
+                          hw.task?.includes('إملاء')
+                        ));
                       if (!isAllowed) return null;
-
                       return (
-                        <div className="pt-2 space-y-2">
-                          {pdfSources.map((item, idx) => (
-                            <AttachmentPdfCard
-                              key={`${item.url}-${idx}`}
-                              pdfUrl={item.url}
-                              subject={hw.subject}
-                              label={item.label || `مرفق شيت الواجب (${idx + 1})`}
-                            />
-                          ))}
+                        <div className="pt-2">
+                          <AttachmentPdfCard
+                            pdfUrl={pdfSrc}
+                            subject={hw.subject}
+                            label="مرفق شيت الواجب"
+                          />
                         </div>
                       );
                     })()}

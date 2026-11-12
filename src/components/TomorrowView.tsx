@@ -20,6 +20,7 @@ import {
   BLOCK2_WEEK1_SPECIAL_NOTES,
   BLOCK2_WEEK2_SPECIAL_NOTES,
   BLOCK2_WEEK3_SPECIAL_NOTES,
+  BLOCK2_WEEK6_SPECIAL_NOTES,
   isGrade2TomorrowNote
 } from '../utils/tomorrowNotesStorage';
 import initialData from '../data/initialData.json';
@@ -704,7 +705,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
     const base =
-      currentBlock === 2 && (currentWeek === 3 || effectiveWeek === 3)
+      currentBlock === 2 && (currentWeek === 6 || effectiveWeek === 6)
+        ? BLOCK2_WEEK6_SPECIAL_NOTES.filter(
+            (n) =>
+              (n.classId === currentClass || (n.classId as any) === 'ALL') &&
+              n.targetDay === tomorrowDay
+          )
+        : currentBlock === 2 && (currentWeek === 3 || effectiveWeek === 3)
         ? BLOCK2_WEEK3_SPECIAL_NOTES.filter(
             (n) =>
               (n.classId === currentClass || (n.classId as any) === 'ALL') &&
@@ -1577,6 +1584,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                       Boolean(note.pdfUrl) ||
                       (note.subject === 'English' && (
                         ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictation') ||
+                        ((note.note || '') + ' ' + (note.arabicNote || '')).includes('إملاء')
+                      )) ||
+                      (note.subject === 'French' && (
+                        ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictée') ||
+                        ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictee') ||
                         ((note.note || '') + ' ' + (note.arabicNote || '')).includes('إملاء')
                       ));
                     if (!isAllowed) return null;

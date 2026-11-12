@@ -1,9 +1,9 @@
 import { ClassId, SchoolDay } from '../types';
-import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK4_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
+import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
 
-export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK4_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES };
+export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES };
 
 export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   // G2A: Session 2 is Wednesday (Prepare Wednesday evening)
@@ -591,14 +591,8 @@ export async function getTomorrowNotesForDay(
 
   // Base official notes for Block/Week or EffectiveWeek from static files
   const baseNotes: TomorrowSpecialNote[] =
-    block === 2 && (week === 5 || effectiveWeek === 5)
-      ? BLOCK2_WEEK5_SPECIAL_NOTES.filter(
-          (n) =>
-            (n.classId === classId || (n.classId as any) === 'ALL') &&
-            n.targetDay === targetDay
-        )
-      : block === 2 && (week === 4 || effectiveWeek === 4)
-      ? BLOCK2_WEEK4_SPECIAL_NOTES.filter(
+    block === 2 && (week === 6 || effectiveWeek === 6)
+      ? BLOCK2_WEEK6_SPECIAL_NOTES.filter(
           (n) =>
             (n.classId === classId || (n.classId as any) === 'ALL') &&
             n.targetDay === targetDay
@@ -688,7 +682,7 @@ export async function getTomorrowNotesForDay(
 
     const merged = Array.from(map.values());
     const filtered = merged.filter((n) => {
-      // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies, Mathematics, ICT, French)
+      // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies, Mathematics)
       if (
         block === 2 &&
         n.subject !== 'English' &&
@@ -696,16 +690,14 @@ export async function getTomorrowNotesForDay(
         n.subject !== 'Science' &&
         n.subject !== 'Social Studies' &&
         n.subject !== 'Mathematics' &&
-        n.subject !== 'Math' &&
-        n.subject !== 'ICT' &&
-        n.subject !== 'French'
+        n.subject !== 'Math'
       ) return false;
 
       if (isDisallowedMathNote(n)) return false;
       
       // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (Only for Week 3)
       const isCustomNote = n.isCustom || n.id?.startsWith('tomorrow-') || n.id?.startsWith('tn-') || n.id?.startsWith('note-') || n.id?.startsWith('custom-');
-      if (block === 1 && week === 3 && !isCustomNote && targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
+      if (week === 3 && !isCustomNote && targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
 
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       if (deletedIds.includes(key) || (n.id && deletedIds.includes(n.id))) {
@@ -908,7 +900,7 @@ export async function getTomorrowNotesForDay(
 
       // Strict user rule: "كلاس B وكلاس C يوم الاتنين في tomorrow." (Only for Week 3)
       const isCustomNote = n.isCustom || n.id?.startsWith('tomorrow-') || n.id?.startsWith('tn-') || n.id?.startsWith('note-') || n.id?.startsWith('custom-');
-      if (block === 1 && week === 3 && !isCustomNote && targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
+      if (week === 3 && !isCustomNote && targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
 
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       const semKey = getSemanticKey(n);

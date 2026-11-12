@@ -13,8 +13,7 @@ export type SubjectName =
   | 'ICT'
   | 'Arts'
   | 'Music'
-  | 'PE'
-  | 'Leadership';
+  | 'PE';
 
 export interface PeriodSlot {
   period: number; // 1 to 8
@@ -51,7 +50,6 @@ export interface ClassworkEntry {
   linkUrl?: string;
   linkTitle?: string;
   pdfUrl?: string;
-  pdfUrls?: string[];
 }
 
 export interface HomeworkEntry {
@@ -71,7 +69,6 @@ export interface HomeworkEntry {
   isLinkTask?: boolean;
   linkUrl?: string;
   pdfUrl?: string;
-  pdfUrls?: string[];
 }
 
 export function getItemClassId(item: { classId?: string; class_id?: string } | null | undefined): ClassId {
@@ -129,12 +126,9 @@ export interface MaterialItem {
   linkUrl?: string; // External web link or video link
   type?: 'pdf' | 'image' | 'doc' | 'link' | 'html'; // 'pdf' | 'image' | 'doc' | 'link' | 'html'
   block: number; // 1, 2, 3, 4
-  week?: number; // 1, 2, 3, 4, 5
-  section: string; // 'Main sheet' | 'Week 1' | 'Week 2' | 'Week 3' | 'Week 4' | 'Week 5'
-  subject?: string;
+  section: string; // 'Main sheet' | 'Week 1' | 'Week 2' | 'Week 3' | 'Week 4' | 'Week 5' | 'Week 6'
   classId?: ClassId | 'ALL';
   uploadedAt: string;
-  description?: string;
 }
 
 export interface UserProfile {

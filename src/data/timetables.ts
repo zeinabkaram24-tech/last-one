@@ -45,6 +45,7 @@ export const BLOCK_WEEK_DATES: Record<number, Record<number, string>> = {
     3: '25/10 - 29/10',
     4: '1/11 - 5/11',
     5: '8/11 - 12/11',
+    6: '15/11 - 19/11',
   },
   3: {
     1: '15/11 - 19/11',
