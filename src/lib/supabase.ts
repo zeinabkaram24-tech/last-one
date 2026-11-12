@@ -962,22 +962,20 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     if (res.ok) {
       const srvData = await res.json();
       if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {
-        const srvKeys = new Set(
-          srvData.homework.map((h: HomeworkEntry) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-        );
-        baseItems = baseItems.filter(
-          (h) => !srvKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-        );
         const srvMap = new Map<string, HomeworkEntry>();
-        baseItems.forEach((h) => srvMap.set(h.id, h));
         srvData.homework.forEach((h: HomeworkEntry) => {
-          const existing = srvMap.get(h.id);
-          srvMap.set(h.id, {
-            ...existing,
-            ...h,
-            pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
-            pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
-          });
+          if (h && h.id) srvMap.set(h.id, h);
+        });
+        baseItems.forEach((h) => {
+          if (h && h.id) {
+            const existing = srvMap.get(h.id);
+            srvMap.set(h.id, {
+              ...existing,
+              ...h,
+              pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
+              pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
+            });
+          }
         });
         baseItems = Array.from(srvMap.values());
       }

@@ -135,7 +135,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       if (!matchesClass(h)) return false;
 
       // Strict User Mandate: Social Studies homework for Class A and Class C is Saturday ONLY; for Class B it is Sunday ONLY!
-      let isAssignedForDay = h.assignedDay === selectedDay;
+      let isAssignedForDay = (h.assignedDay || '').trim().toLowerCase() === (selectedDay || '').trim().toLowerCase();
       if (h.subject === 'Social Studies') {
         const isClassAOrC = h.classId === 'G2A' || (h as any).class_id === 'G2A' || h.classId === 'G2C' || (h as any).class_id === 'G2C';
         const isClassB = h.classId === 'G2B' || (h as any).class_id === 'G2B';
@@ -171,9 +171,19 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       }
 
       // Strict Saturday rule:
-      // User mandate: "وامسح حكاية الـ homework الـ French من يوم السبت."
-      if (selectedDay === 'Saturday' && (h.subject === 'French' || (h.subject as string)?.toLowerCase() === 'french')) {
-        return false;
+      // User mandate: "وامسح حكاية الـ homework الـ French من يوم السبت." (except for French Dictée homework)
+      if (
+        selectedDay === 'Saturday' &&
+        (h.subject === 'French' || (h.subject as string)?.toLowerCase() === 'french')
+      ) {
+        const isDictee =
+          h.task?.toLowerCase().includes('dictée') ||
+          h.task?.toLowerCase().includes('dictee') ||
+          h.details?.toLowerCase().includes('dictée') ||
+          h.details?.toLowerCase().includes('dictee');
+        if (!isDictee) {
+          return false;
+        }
       }
 
       return true;
@@ -393,67 +403,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         : hw.task}
                     </p>
 
-                    {/* Elegant Word Cards Grid for Dictation & Spelling Bee Lists with Audio */}
-                    {hw.subject === 'English' && (
-                      hw.task.toLowerCase().includes('dictation') ||
-                      hw.task.includes('إملاء') ||
-                      hw.task.toLowerCase().includes('spelling') ||
-                      (hw.details && (hw.details.toLowerCase().includes('dictation') || hw.details.toLowerCase().includes('spelling')))
-                    ) && (() => {
-                      const isSpelling = hw.task.toLowerCase().includes('spelling') || (hw.details && hw.details.toLowerCase().includes('spelling'));
-                      const words = parseDictationWords(hw.details);
-                      return (
-                        <div className={`mt-3 p-3.5 rounded-2xl border space-y-2.5 ${
-                          isSpelling
-                            ? 'bg-amber-50/70 border-amber-200/90'
-                            : 'bg-slate-50/50 border-slate-150/80'
-                        }`}>
-                          <div className="flex items-center justify-between text-[11px] font-black text-slate-700 border-b border-amber-200/60 pb-2">
-                            <span className="flex items-center gap-1.5">
-                              {isSpelling ? '🐝 كلمات مسابقة التهجئة (Spelling Bee Words):' : '🗣️ English Dictation Words:'}
-                            </span>
-                            <span className={`${isSpelling ? 'text-amber-800' : 'text-indigo-600'} font-black`}>
-                              {words.length} Words • {words.length} كلمة (اضغط لسماع النطق 🔊)
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                            {words.map((word) => (
-                              <button
-                                key={word}
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if ('speechSynthesis' in window) {
-                                    window.speechSynthesis.cancel();
-                                    const utterance = new SpeechSynthesisUtterance(word);
-                                    utterance.lang = 'en-US';
-                                    utterance.rate = 0.85; // Natural learning speed for kids
-                                    window.speechSynthesis.speak(utterance);
-                                  }
-                                }}
-                                title="اضغط للاستماع للنطق / Click to listen"
-                                className={`px-2 py-1.5 flex items-center justify-center gap-1.5 rounded-xl border text-sm font-bold tracking-wider font-mono transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] shadow-3xs cursor-pointer ${
-                                  hw.completed
-                                    ? 'bg-slate-100/50 border-slate-200 text-slate-400 line-through'
-                                    : isSpelling
-                                      ? 'bg-white border-amber-200 text-slate-900 hover:border-amber-400 hover:bg-amber-100/70 hover:text-amber-950 hover:shadow-xs'
-                                      : 'bg-indigo-50/50 border-indigo-100/80 text-indigo-900 hover:border-indigo-400 hover:bg-indigo-100/60 hover:text-indigo-950 hover:shadow-xs'
-                                }`}
-                              >
-                                <span>{word}</span>
-                                {!hw.completed && (
-                                  <Volume2 className={`w-3.5 h-3.5 ${isSpelling ? 'text-amber-600 hover:text-amber-800' : 'text-indigo-400 hover:text-indigo-600'} transition-colors shrink-0`} />
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                          <div className="text-[10px] text-slate-500 font-bold flex justify-between pt-1 border-t border-slate-100/50 mt-1">
-                            <span>{isSpelling ? '⭐ التدريب اليومي على حفظ ونطق حروف الكلمات لمسابقة الـ Spelling Bee' : '⚠️ Note: Always start with capital letters.'}</span>
-                            <span>{isSpelling ? 'Round ' + (currentWeek || 2) + ' • ' + words.length + ' Words' : 'Outcome: R7 picture dictionary'}</span>
-                          </div>
-                        </div>
-                      );
-                    })()}
+
 
                     {/* PDF Worksheet if available: strictly only allowed for Social Studies and English Dictation & Spelling Bee per school rule */}
                     {(() => {

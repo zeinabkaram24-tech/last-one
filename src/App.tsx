@@ -192,11 +192,11 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
   } catch {}
 
   const map = new Map<string, HomeworkEntry>();
-  const baseItems: HomeworkEntry[] = ((initialData && Array.isArray((initialData as any).homework)) ? (initialData as any).homework : INITIAL_HOMEWORK);
-  baseItems.forEach((h) => {
+  (cached || []).forEach((h) => {
     if (h && h.id && !deletedSet.has(h.id) && isGrade2Item(h)) map.set(h.id, h);
   });
-  (cached || []).forEach((h) => {
+  const baseItems: HomeworkEntry[] = ((initialData && Array.isArray((initialData as any).homework)) ? (initialData as any).homework : INITIAL_HOMEWORK);
+  baseItems.forEach((h) => {
     if (h && h.id && !deletedSet.has(h.id) && isGrade2Item(h)) map.set(h.id, h);
   });
   const source = Array.from(map.values()).filter(isGrade2Item);

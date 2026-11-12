@@ -13,7 +13,8 @@ export type SubjectName =
   | 'ICT'
   | 'Arts'
   | 'Music'
-  | 'PE';
+  | 'PE'
+  | 'Leadership';
 
 export interface PeriodSlot {
   period: number; // 1 to 8
@@ -69,6 +70,7 @@ export interface HomeworkEntry {
   isLinkTask?: boolean;
   linkUrl?: string;
   pdfUrl?: string;
+  pdfUrls?: string[];
 }
 
 export function getItemClassId(item: { classId?: string; class_id?: string } | null | undefined): ClassId {
