@@ -169,18 +169,18 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true; // Disallow un-uploaded subjects for Block 2
     }
 
-    // Strict User Mandate for Social Studies in Block 2 Week 2:
-    // "وخد بالك ان التومورو والهوم وورك بتاع كلاس A وكلاس C يوم السبت بس. والتومورو والهوم وورك بتاع كلاس B يوم الأحد بس. تمام؟ وما يبقاش بأي شيت مرفق، يعني ما ترفقليش أي شيت خالص."
+    // Strict User Mandate for Social Studies in Block 2 Week 2 & Week 6:
+    // "وخد بالك ان التومورو والهوم وورك بتاع كلاس A وكلاس C يوم السبت بس. والتومورو والهوم وورك بتاع كلاس B يوم الأحد بس. تمام؟"
     if (
       (currentBlock === 2 || (n as any).block === 2) &&
-      (currentWeek === 2 || (n as any).week === 2) &&
+      (currentWeek === 2 || (n as any).week === 2 || currentWeek === 6 || (n as any).week === 6) &&
       n.subject === 'Social Studies'
     ) {
-      if ((currentClass === 'G2A' || (n as any).classId === 'G2A' || currentClass === 'G2C' || (n as any).classId === 'G2C') && selectedDay === 'Saturday') {
-        return false; // Allowed only on Saturday
+      if ((currentClass === 'G2A' || (n as any).classId === 'G2A' || currentClass === 'G2C' || (n as any).classId === 'G2C') && (selectedDay === 'Saturday' || tomorrowDay === 'Sunday')) {
+        return false; // Allowed on Saturday
       }
-      if ((currentClass === 'G2B' || (n as any).classId === 'G2B') && selectedDay === 'Sunday') {
-        return false; // Allowed only on Sunday
+      if ((currentClass === 'G2B' || (n as any).classId === 'G2B') && (selectedDay === 'Sunday' || tomorrowDay === 'Monday')) {
+        return false; // Allowed on Sunday
       }
       return true; // Disallowed on all other days!
     }
@@ -1260,7 +1260,135 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           categoryType: 'note',
           block: 2,
           week: 2,
-          pdfUrl: '/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf',
+        }, true);
+      }
+    }
+
+    // Explicit guaranteed injection for Social Studies in Block 2 Week 6:
+    // User mandate: "الشيت اللي هتنزله أو هترفقوه في التاسك بتاعة السوشيال في الهوم ورك للتلات فصول، كل واحد حسب ميعاده."
+    if (currentBlock === 2 && currentWeek === 6) {
+      if ((currentClass === 'G2A' || currentClass === 'G2C') && selectedDay === 'Saturday') {
+        addOrMergeNote({
+          id: `tn-b2-w6-social-sheet-${currentClass}-Sunday`,
+          classId: currentClass,
+          targetDay: 'Sunday',
+          subject: 'Social Studies',
+          period: currentClass === 'G2A' ? 2 : 7,
+          title: '🌍 تسليم شيت واجب الدراسات الاجتماعية (Home Work 5)',
+          note: 'تسليم شيت واجب الدراسات الاجتماعية المرفق (Home Work 5: الاتجاهات الأصلية والفرعية + شخصيات المدرسة)',
+          arabicNote: 'تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق (Home Work 5) وإحضاره للتسليم في الحصة غداً الأحد.',
+          bagItem: 'شيت واجب الدراسات الاجتماعية (Home Work 5)',
+          isQuiz: false,
+          categoryType: 'note',
+          block: 2,
+          week: 6,
+          pdfUrl: '/materials/SocialStudies-Grade2-B2-W5-U2-HomeWork5 - Extra- (Minia).pdf',
+        }, true);
+      } else if (currentClass === 'G2B' && selectedDay === 'Sunday') {
+        addOrMergeNote({
+          id: 'tn-b2-w6-social-sheet-G2B-Monday',
+          classId: 'G2B',
+          targetDay: 'Monday',
+          subject: 'Social Studies',
+          period: 1,
+          title: '🌍 تسليم شيت واجب الدراسات الاجتماعية (Home Work 5)',
+          note: 'تسليم شيت واجب الدراسات الاجتماعية المرفق (Home Work 5: الاتجاهات الأصلية والفرعية + شخصيات المدرسة)',
+          arabicNote: 'تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق (Home Work 5) وإحضاره للتسليم في الحصة الأولى غداً الإثنين.',
+          bagItem: 'شيت واجب الدراسات الاجتماعية (Home Work 5)',
+          isQuiz: false,
+          categoryType: 'note',
+          block: 2,
+          week: 6,
+          pdfUrl: '/materials/SocialStudies-Grade2-B2-W5-U2-HomeWork5 - Extra- (Minia).pdf',
+        }, true);
+      }
+
+      // Block 2 Week 6: English Dictation tomorrow alerts
+      if (currentClass === 'G2A' && tomorrowDay === 'Monday') {
+        addOrMergeNote({
+          id: 'tn-b2-w6-eng-dictation-G2A-Monday',
+          classId: 'G2A',
+          targetDay: 'Monday',
+          subject: 'English',
+          period: 4,
+          title: '🚨 إملاء لغة إنجليزية غداً (Days of the Week)',
+          note: 'Listening & Dictation: Days of the Week (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)',
+          arabicNote: 'تذكير إملاء لغة إنجليزية غداً الإثنين في الحصة الرابعة: حفظ وكتابة أيام الأسبوع (Days of the Week) مع مراعاة البدء بحرف كبير Capital Letter دائماً.',
+          bagItem: 'English Copybook (كشكول الإنجليزي)',
+          isQuiz: true,
+          categoryType: 'quiz',
+          block: 2,
+          week: 6,
+          pdfUrl: '/assets/aistudio/Weekly_Plan_English_-_B2_-_W6-_Minia____40c60cff.pdf',
+        }, true);
+      } else if (currentClass === 'G2B' && tomorrowDay === 'Tuesday') {
+        addOrMergeNote({
+          id: 'tn-b2-w6-eng-dictation-G2B-Tuesday',
+          classId: 'G2B',
+          targetDay: 'Tuesday',
+          subject: 'English',
+          period: 7,
+          title: '🚨 إملاء لغة إنجليزية غداً (Days of the Week)',
+          note: 'Listening & Dictation: Days of the Week (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)',
+          arabicNote: 'تذكير إملاء لغة إنجليزية غداً الثلاثاء في الحصة السابعة: حفظ وكتابة أيام الأسبوع (Days of the Week) مع مراعاة البدء بحرف كبير Capital Letter دائماً.',
+          bagItem: 'English Copybook (كشكول الإنجليزي)',
+          isQuiz: true,
+          categoryType: 'quiz',
+          block: 2,
+          week: 6,
+          pdfUrl: '/assets/aistudio/Weekly_Plan_English_-_B2_-_W6-_Minia____40c60cff.pdf',
+        }, true);
+      } else if (currentClass === 'G2C' && tomorrowDay === 'Wednesday') {
+        addOrMergeNote({
+          id: 'tn-b2-w6-eng-dictation-G2C-Wednesday',
+          classId: 'G2C',
+          targetDay: 'Wednesday',
+          subject: 'English',
+          period: 4,
+          title: '🚨 إملاء لغة إنجليزية غداً (Days of the Week)',
+          note: 'Listening & Dictation: Days of the Week (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)',
+          arabicNote: 'تذكير إملاء لغة إنجليزية غداً الأربعاء في الحصة الرابعة: حفظ وكتابة أيام الأسبوع (Days of the Week) مع مراعاة البدء بحرف كبير Capital Letter دائماً.',
+          bagItem: 'English Copybook (كشكول الإنجليزي)',
+          isQuiz: true,
+          categoryType: 'quiz',
+          block: 2,
+          week: 6,
+          pdfUrl: '/assets/aistudio/Weekly_Plan_English_-_B2_-_W6-_Minia____40c60cff.pdf',
+        }, true);
+      }
+
+      // Block 2 Week 6: French Dictée tomorrow alerts
+      if ((currentClass === 'G2B' || currentClass === 'G2C') && tomorrowDay === 'Sunday') {
+        addOrMergeNote({
+          id: `tn-b2-w6-french-dictee-${currentClass}-Sunday`,
+          classId: currentClass,
+          targetDay: 'Sunday',
+          subject: 'French',
+          period: currentClass === 'G2B' ? 5 : 8,
+          title: '🚨 Dictée de français demain (إملاء لغة فرنسية غداً)',
+          note: 'Préparation à la dictée en classe',
+          arabicNote: 'تذكير إملاء لغة فرنسية غداً الأحد: يرجى مراجعة كلمات الإملاء وإحضار كراس الفصل (Cahier de classe).',
+          bagItem: 'Cahier de classe (كراس الفرنش)',
+          isQuiz: true,
+          categoryType: 'quiz',
+          block: 2,
+          week: 6,
+        }, true);
+      } else if (currentClass === 'G2A' && tomorrowDay === 'Tuesday') {
+        addOrMergeNote({
+          id: 'tn-b2-w6-french-dictee-G2A-Tuesday',
+          classId: 'G2A',
+          targetDay: 'Tuesday',
+          subject: 'French',
+          period: 1,
+          title: '🚨 Dictée de français demain (إملاء لغة فرنسية غداً)',
+          note: 'Préparation à la dictée en classe',
+          arabicNote: 'تذكير إملاء لغة فرنسية غداً الثلاثاء في الحصة الأولى: يرجى مراجعة كلمات الإملاء وإحضار كراس الفصل (Cahier de classe).',
+          bagItem: 'Cahier de classe (كراس الفرنش)',
+          isQuiz: true,
+          categoryType: 'quiz',
+          block: 2,
+          week: 6,
         }, true);
       }
     }
@@ -1581,6 +1709,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                     const isAllowed =
                       note.subject === 'Social Studies' ||
                       note.subject === 'French' ||
+                      note.subject === 'Mathematics' ||
+                      note.subject === 'Math' ||
                       Boolean(note.pdfUrl) ||
                       (note.subject === 'English' && (
                         ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictation') ||

@@ -92,11 +92,7 @@ const parseDictationWords = (details: string | undefined): string[] => {
     return SPELLING_BEE_WORDS;
   }
   
-  return [
-    "Teacher", "Desk", "Chair", "Computer", "Door", "Whiteboard", "Window",
-    "Pen", "Pencil", "Sharpener", "Eraser", "Table", "Notebook", "Glue",
-    "Scissors", "Book", "Bookshelf", "Backpack", "Ruler", "Cupboard", "Bookcase"
-  ];
+  return [];
 };
 
 export const HomeworkView: React.FC<HomeworkViewProps> = ({
@@ -112,6 +108,24 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   onEditHomework,
   onDeleteHomework,
 }) => {
+  const [speakingWord, setSpeakingWord] = React.useState<string | null>(null);
+
+  const speakWord = (word: string, lang: 'en-US' | 'fr-FR' = 'en-US') => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = lang;
+      utterance.rate = 0.85;
+      setSpeakingWord(word);
+      utterance.onend = () => setSpeakingWord(null);
+      utterance.onerror = () => setSpeakingWord(null);
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      setSpeakingWord(null);
+    }
+  };
+
   const matchesClass = (h: any) => {
     if (!isGrade2Item(h)) return false;
     const cid = h.class_id || h.classId;
@@ -134,15 +148,15 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
     (h) => {
       if (!matchesClass(h)) return false;
 
-      // Strict User Mandate: Social Studies homework for Class A and Class C is Saturday ONLY; for Class B it is Sunday ONLY!
+      // Strict User Mandate: Social Studies homework for Class A and Class C is Saturday (and Wednesday for W6); for Class B it is Sunday (and Wednesday for W6)!
       let isAssignedForDay = (h.assignedDay || '').trim().toLowerCase() === (selectedDay || '').trim().toLowerCase();
       if (h.subject === 'Social Studies') {
         const isClassAOrC = h.classId === 'G2A' || (h as any).class_id === 'G2A' || h.classId === 'G2C' || (h as any).class_id === 'G2C';
         const isClassB = h.classId === 'G2B' || (h as any).class_id === 'G2B';
         if (isClassAOrC) {
-          isAssignedForDay = selectedDay === 'Saturday';
+          isAssignedForDay = selectedDay === 'Saturday' || (selectedDay === 'Wednesday' && (h.week === 6 || h.assignedDay === 'Wednesday'));
         } else if (isClassB) {
-          isAssignedForDay = selectedDay === 'Sunday';
+          isAssignedForDay = selectedDay === 'Sunday' || (selectedDay === 'Wednesday' && (h.week === 6 || h.assignedDay === 'Wednesday'));
         }
       }
 
@@ -182,6 +196,24 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
           h.details?.toLowerCase().includes('dictée') ||
           h.details?.toLowerCase().includes('dictee');
         if (!isDictee) {
+          return false;
+        }
+      }
+
+      // Strict User Mandate for Block 2 Week 6 English Dictation:
+      // "كلاس B الديكتيشن بتاعهم يوم الثلاثاء، فالهوم ورك هيقف عند يوم الاثنين بتاع الديكتيشن، يوم الثلاثاء مفيش هوم ورك ديكتيشن.
+      // كلاس C الديكتيشن بتاعهم يوم الأربعاء، فبرضه الهوم ورك بتاع الديكتيشن هيقف عند يوم الثلاثاء، مش هيبقى في يوم الأربعاء هوم ورك ديكتيشن."
+      if (
+        (h.block || 1) === 2 &&
+        (h.week || 1) === 6 &&
+        h.subject === 'English' &&
+        (h.task?.toLowerCase().includes('dictation') || h.details?.toLowerCase().includes('dictation') || h.task?.includes('إملاء'))
+      ) {
+        const cid = h.classId || (h as any).class_id;
+        if (cid === 'G2B' && selectedDay === 'Tuesday') {
+          return false;
+        }
+        if (cid === 'G2C' && selectedDay === 'Wednesday') {
           return false;
         }
       }
@@ -403,7 +435,88 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                         : hw.task}
                     </p>
 
+                    {/* Interactive Word Cards with Speech Synthesis */}
+                    {(() => {
+                      const isDictOrSpelling =
+                        (hw.subject === 'English' || hw.subject === 'French') &&
+                        (hw.task.toLowerCase().includes('dictation') ||
+                         hw.task.toLowerCase().includes('dictée') ||
+                         hw.task.toLowerCase().includes('dictee') ||
+                         hw.task.includes('إملاء') ||
+                         hw.task.toLowerCase().includes('spelling') ||
+                         (hw.details && (
+                           hw.details.toLowerCase().includes('words to study') ||
+                           hw.details.toLowerCase().includes('dictation') ||
+                           hw.details.toLowerCase().includes('dictée') ||
+                           hw.details.toLowerCase().includes('dictee') ||
+                           hw.details.toLowerCase().includes('spelling') ||
+                           hw.details.includes('إملاء')
+                         )));
+                      if (!isDictOrSpelling) return null;
 
+                      const words = parseDictationWords(hw.details);
+                      if (!words || words.length === 0) return null;
+
+                      // Extract teacher note if present in details
+                      let teacherNote = '';
+                      if (hw.details) {
+                        const noteMatch = hw.details.match(/(?:Note:|ملحوظة:|ملحوظة المعلمة:)\s*([^\n]+(?:\n[^\n]+)?)/i);
+                        if (noteMatch) {
+                          teacherNote = noteMatch[1].trim();
+                        }
+                      }
+
+                      return (
+                        <div className="pt-2 space-y-2.5">
+                          {teacherNote && (
+                            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-xs font-bold leading-relaxed flex items-start gap-2 shadow-2xs">
+                              <span className="text-amber-600 text-sm">💡</span>
+                              <div>
+                                <span className="font-black text-amber-900 block mb-0.5">تنبيه المعلمة:</span>
+                                <span>{teacherNote}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200/90 space-y-2">
+                            <div className="flex items-center justify-between text-xs font-black text-slate-800">
+                              <span className="flex items-center gap-1.5">
+                                <Volume2 className="w-4 h-4 text-indigo-600 animate-pulse" />
+                                <span>بطاقات كلمات الإملاء (اضغط للاستماع للنطق) 🗣️</span>
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 text-[11px] font-black border border-indigo-200">
+                                {words.length} كلمات
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 pt-1">
+                              {words.map((word, idx) => {
+                                const isSpeaking = speakingWord === word;
+                                return (
+                                  <button
+                                    key={`${word}-${idx}`}
+                                    type="button"
+                                    onClick={() => speakWord(word, hw.subject === 'French' ? 'fr-FR' : 'en-US')}
+                                    className={`flex items-center justify-between px-3 py-2 rounded-xl border text-sm font-black transition-all cursor-pointer select-none text-left shadow-2xs ${
+                                      isSpeaking
+                                        ? 'bg-indigo-600 text-white border-indigo-700 scale-102 ring-2 ring-indigo-400'
+                                        : 'bg-white hover:bg-indigo-50 text-slate-900 hover:text-indigo-950 border-slate-200 hover:border-indigo-300 active:scale-95'
+                                    }`}
+                                    title={`اضغط لنطق: ${word}`}
+                                  >
+                                    <span className="flex items-center gap-1.5">
+                                      <span className="text-[10px] font-mono opacity-60">#{idx + 1}</span>
+                                      <span className="tracking-wide text-xs sm:text-sm font-black font-sans">{word}</span>
+                                    </span>
+                                    <Volume2 className={`w-3.5 h-3.5 shrink-0 ${isSpeaking ? 'text-white animate-spin' : 'text-indigo-500'}`} />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* PDF Worksheet if available: strictly only allowed for Social Studies and English Dictation & Spelling Bee per school rule */}
                     {(() => {
