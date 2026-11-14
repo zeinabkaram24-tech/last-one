@@ -1,9 +1,9 @@
 import { ClassId, SchoolDay } from '../types';
-import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
+import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage, isFrozenPeriod, withTimeout } from '../lib/supabase';
 
-export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES };
+export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES };
 
 export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   // G2A: Session 2 is Wednesday (Prepare Wednesday evening)
@@ -593,6 +593,12 @@ export async function getTomorrowNotesForDay(
   const baseNotes: TomorrowSpecialNote[] =
     block === 2 && (week === 6 || effectiveWeek === 6)
       ? BLOCK2_WEEK6_SPECIAL_NOTES.filter(
+          (n) =>
+            (n.classId === classId || (n.classId as any) === 'ALL') &&
+            n.targetDay === targetDay
+        )
+      : block === 2 && (week === 5 || effectiveWeek === 5)
+      ? BLOCK2_WEEK5_SPECIAL_NOTES.filter(
           (n) =>
             (n.classId === classId || (n.classId as any) === 'ALL') &&
             n.targetDay === targetDay
