@@ -20,6 +20,7 @@ import {
   BLOCK2_WEEK1_SPECIAL_NOTES,
   BLOCK2_WEEK2_SPECIAL_NOTES,
   BLOCK2_WEEK3_SPECIAL_NOTES,
+  BLOCK2_WEEK4_SPECIAL_NOTES,
   BLOCK2_WEEK5_SPECIAL_NOTES,
   BLOCK2_WEEK6_SPECIAL_NOTES,
   isGrade2TomorrowNote
@@ -170,11 +171,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true; // Disallow un-uploaded subjects for Block 2
     }
 
-    // Strict User Mandate for Social Studies in Block 2 Week 2, Week 5 & Week 6:
+    // Strict User Mandate for Social Studies in Block 2 Week 2, Week 4, Week 5 & Week 6:
     // "وخد بالك ان التومورو والهوم وورك بتاع كلاس A وكلاس C يوم السبت بس. والتومورو والهوم وورك بتاع كلاس B يوم الأحد بس. تمام؟"
     if (
       (currentBlock === 2 || (n as any).block === 2) &&
-      (currentWeek === 2 || (n as any).week === 2 || currentWeek === 5 || (n as any).week === 5 || currentWeek === 6 || (n as any).week === 6) &&
+      (currentWeek === 2 || (n as any).week === 2 || currentWeek === 4 || (n as any).week === 4 || currentWeek === 5 || (n as any).week === 5 || currentWeek === 6 || (n as any).week === 6) &&
       n.subject === 'Social Studies'
     ) {
       if ((currentClass === 'G2A' || (n as any).classId === 'G2A' || currentClass === 'G2C' || (n as any).classId === 'G2C') && (selectedDay === 'Saturday' || tomorrowDay === 'Sunday')) {
@@ -725,6 +726,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           )
         : currentBlock === 2 && (currentWeek === 5 || effectiveWeek === 5)
         ? BLOCK2_WEEK5_SPECIAL_NOTES.filter(
+            (n) =>
+              (n.classId === currentClass || (n.classId as any) === 'ALL') &&
+              n.targetDay === tomorrowDay
+          )
+        : currentBlock === 2 && (currentWeek === 4 || effectiveWeek === 4)
+        ? BLOCK2_WEEK4_SPECIAL_NOTES.filter(
             (n) =>
               (n.classId === currentClass || (n.classId as any) === 'ALL') &&
               n.targetDay === tomorrowDay

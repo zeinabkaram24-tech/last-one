@@ -212,8 +212,15 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     }
   }
 
-  // Only include user-added custom entries if they were explicitly created during live edit mode
-  const customOnlyEntries = availableClasswork.filter((c) => !matchedCwIds.has(c.id) && c.id?.startsWith('custom-user-'));
+  // Include user-added custom entries and historical pre-Nov-6 timetable entries (B1 or B2 W1-4)
+  const isHistoricalScheduleWeek = currentBlock === 1 || (currentBlock === 2 && currentWeek <= 4);
+  const customOnlyEntries = availableClasswork.filter(
+    (c) =>
+      !matchedCwIds.has(c.id) &&
+      (c.id?.startsWith('custom-user-') ||
+        (isHistoricalScheduleWeek &&
+          Boolean((c.title && c.title.trim().length > 0 && !/^(none|لا يوجد|\-|\/|n\/a|لم يتم إدخال|بدون عنوان)$/i.test(c.title.trim())) || (c.pages && c.pages.trim().length > 0))))
+  );
   const additionalSlots: GroupedPeriodSlot[] = customOnlyEntries.map((c, i) => ({
     slotId: `custom-${selectedDay}-${c.id || i}`,
     periods: [c.period || 1],
@@ -224,7 +231,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     cwEntry: c,
   }));
 
-  const visibleSlots = [...activeTimetablePeriods, ...additionalSlots];
+  const visibleSlots = [...activeTimetablePeriods, ...additionalSlots].sort(
+    (a, b) => (a.periods[0] || 0) - (b.periods[0] || 0)
+  );
 
   // Stats for the day based on visible cards
   const completedCount = visibleSlots.filter((slot) => (slot.cwEntry || getCwEntryForSlot(slot))?.completed).length;
