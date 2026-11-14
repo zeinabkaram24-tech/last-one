@@ -563,6 +563,13 @@ export function saveLocalCustomHomework(entries: HomeworkEntry[], mode: 'merge' 
   } catch {}
 }
 
+// Freeze Block 1 (all weeks) and Block 2 (Weeks 1-5) in static initialData.json for instant loading
+export function isFrozenPeriod(block?: number | null, week?: number | null): boolean {
+  const b = Number(block) || 1;
+  const w = Number(week) || 1;
+  return b === 1 || (b === 2 && w <= 5);
+}
+
 // =========================================================================
 // CRUD Operations for Classwork
 // =========================================================================
@@ -576,7 +583,8 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const resultMap = new Map<string, ClassworkEntry>();
   baseItems.forEach((c) => resultMap.set(c.id, c));
 
-  // If Supabase is configured, fetch directly from cloud database for Grade 2 classes (G2A, G2B, G2C)
+  // If Supabase is configured, fetch ONLY active/unfrozen periods (Block 2 Week 6+ and Block 3+)
+  // Frozen periods (Block 1 and Block 2 Weeks 1-5) remain static and instant from initialData.json
   if (isSupabaseConfigured) {
     try {
       const res = await withTimeout<any>(
@@ -584,18 +592,31 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
           .from('classwork')
           .select('*')
           .in('class_id', ['G2A', 'G2B', 'G2C'])
+          .or('block.gt.2,and(block.eq.2,week.gte.6)')
           .order('period', { ascending: true }),
-        800,
+        1500,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
       );
       const { data, error } = res;
 
       if (!error && data && Array.isArray(data) && data.length > 0) {
-        const dbItems = (data as ClassworkRow[]).map(rowToClasswork).filter(isGrade2Item);
+        const dbItems = (data as ClassworkRow[])
+          .map(rowToClasswork)
+          .filter((c) => isGrade2Item(c) && !isFrozenPeriod(c.block, c.week));
         dbItems.forEach((c) => {
-          if (c && c.id && !deletedSet.has(c.id)) resultMap.set(c.id, c);
+          if (c && c.id && !deletedSet.has(c.id)) {
+            const existing = resultMap.get(c.id);
+            resultMap.set(c.id, {
+              ...existing,
+              ...c,
+              title: (c.title && c.title.trim()) ? c.title : (existing?.title || ''),
+              details: (c.details && c.details.trim()) ? c.details : existing?.details,
+            });
+          }
         });
-        const localCustom = getLocalCustomClasswork().filter(isGrade2Item);
+        const localCustom = getLocalCustomClasswork().filter(
+          (c) => isGrade2Item(c) && !isFrozenPeriod(c.block, c.week)
+        );
         localCustom.forEach((c) => {
           if (c && c.id && !deletedSet.has(c.id)) resultMap.set(c.id, c);
         });
@@ -607,39 +628,37 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   }
 
   // Fallback if Supabase is unconfigured or returns offline/empty
-  const localCustom = getLocalCustomClasswork();
+  const localCustom = getLocalCustomClasswork().filter((c) => !isFrozenPeriod(c.block, c.week));
 
-  // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
+  // 1. Fetch active periods from server-side centralized storage
   try {
-    const res = await fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' });
-    if (res.ok) {
+    const res = await withTimeout(fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' }), 1500, null as any);
+    if (res && res.ok) {
       const srvData = await res.json();
       if (srvData && Array.isArray(srvData.classwork) && srvData.classwork.length > 0) {
-        const srvKeys = new Set(
-          srvData.classwork.map((c: ClassworkEntry) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
-        );
-        baseItems = baseItems.filter(
-          (c) => !srvKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
-        );
-        const srvMap = new Map<string, ClassworkEntry>();
-        baseItems.forEach((c) => srvMap.set(c.id, c));
-        srvData.classwork.forEach((c: ClassworkEntry) => srvMap.set(c.id, c));
-        baseItems = Array.from(srvMap.values());
+        const activeSrvCw = srvData.classwork.filter((c: ClassworkEntry) => !isFrozenPeriod(c.block, c.week));
+        activeSrvCw.forEach((c: ClassworkEntry) => {
+          if (c && c.id && !deletedSet.has(c.id)) {
+            const existing = resultMap.get(c.id);
+            resultMap.set(c.id, {
+              ...existing,
+              ...c,
+              title: (c.title && c.title.trim()) ? c.title : (existing?.title || ''),
+              details: (c.details && c.details.trim()) ? c.details : existing?.details,
+            });
+          }
+        });
       }
     }
   } catch (err) {
     // Server fetch fallback
   }
 
-  // Merge srvData and localCustom over baseItems
-  const map = new Map<string, ClassworkEntry>();
-  baseItems.forEach((c) => {
-    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
-  });
+  // Merge localCustom over resultMap for active periods
   localCustom.forEach((c) => {
-    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+    if (c && c.id && !deletedSet.has(c.id)) resultMap.set(c.id, c);
   });
-  return Array.from(map.values()).filter(isGrade2Item);
+  return Array.from(resultMap.values()).filter(isGrade2Item);
 }
 
 export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkEntry> {
@@ -905,7 +924,8 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const resultMap = new Map<string, HomeworkEntry>();
   baseItems.forEach((h) => resultMap.set(h.id, h));
 
-  // If Supabase is configured, fetch directly from cloud database for Grade 2 classes (G2A, G2B, G2C)
+  // If Supabase is configured, fetch ONLY active/unfrozen periods (Block 2 Week 6+ and Block 3+)
+  // Frozen periods (Block 1 and Block 2 Weeks 1-5) load instantaneously from initialData.json
   if (isSupabaseConfigured) {
     try {
       const res = await withTimeout<any>(
@@ -913,14 +933,17 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           .from('homework')
           .select('*')
           .in('class_id', ['G2A', 'G2B', 'G2C'])
+          .or('block.gt.2,and(block.eq.2,week.gte.6)')
           .order('created_at', { ascending: false }),
-        800,
+        1500,
         { data: null, error: { message: 'Supabase homework query timeout' } }
       );
       const { data, error } = res;
 
       if (!error && data && Array.isArray(data) && data.length > 0) {
-        const dbItems = (data as HomeworkRow[]).map(rowToHomework).filter(isGrade2Item);
+        const dbItems = (data as HomeworkRow[])
+          .map(rowToHomework)
+          .filter((h) => isGrade2Item(h) && !isFrozenPeriod(h.block, h.week));
         dbItems.forEach((h) => {
           if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
           if (h && h.id && !deletedSet.has(h.id)) {
@@ -933,7 +956,9 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
             });
           }
         });
-        const localCustom = getLocalCustomHomework().filter(isGrade2Item);
+        const localCustom = getLocalCustomHomework().filter(
+          (h) => isGrade2Item(h) && !isFrozenPeriod(h.block, h.week)
+        );
         localCustom.forEach((h) => {
           if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
           if (h && h.id && !deletedSet.has(h.id)) {
@@ -954,22 +979,19 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   }
 
   // Fallback if Supabase is unconfigured or returns offline/empty
-  const localCustom = getLocalCustomHomework();
+  const localCustom = getLocalCustomHomework().filter((h) => !isFrozenPeriod(h.block, h.week));
 
-  // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
+  // 1. Fetch active periods from server-side centralized storage
   try {
-    const res = await fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' });
-    if (res.ok) {
+    const res = await withTimeout(fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' }), 1500, null as any);
+    if (res && res.ok) {
       const srvData = await res.json();
       if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {
-        const srvMap = new Map<string, HomeworkEntry>();
-        srvData.homework.forEach((h: HomeworkEntry) => {
-          if (h && h.id) srvMap.set(h.id, h);
-        });
-        baseItems.forEach((h) => {
-          if (h && h.id) {
-            const existing = srvMap.get(h.id);
-            srvMap.set(h.id, {
+        const activeSrvHw = srvData.homework.filter((h: HomeworkEntry) => !isFrozenPeriod(h.block, h.week));
+        activeSrvHw.forEach((h: HomeworkEntry) => {
+          if (h && h.id && !deletedSet.has(h.id) && !h.id.endsWith('-Tue-arabic-dictation-alert')) {
+            const existing = resultMap.get(h.id);
+            resultMap.set(h.id, {
               ...existing,
               ...h,
               pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
@@ -977,49 +999,19 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
             });
           }
         });
-        baseItems = Array.from(srvMap.values());
       }
     }
   } catch (err) {
     // Server fetch fallback
   }
 
-  // Ensure Tuesday Week 2 Arabic homework is page 47
-  const normalizedBase = baseItems.map((item) => {
-    const isTargetArabicHw =
-      item.id === 'hw-w2-ar-tue-g2a-wb' ||
-      item.id === 'hw-w2-ar-tue-g2b-wb' ||
-      item.id === 'hw-w2-ar-tue-g2c-wb' ||
-      (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
-
-    if (
-      isTargetArabicHw &&
-      ((item.task && item.task.includes('46')) || (item.pages && item.pages.includes('46')) || (item.details && item.details.includes('46')))
-    ) {
-      const corrected: HomeworkEntry = {
-        ...item,
-        task: item.task ? item.task.replace(/46/g, '47') : item.task,
-        pages: item.pages ? item.pages.replace(/46/g, '47') : '47',
-        details: item.details ? item.details.replace(/46/g, '47') : item.details,
-      };
-      return corrected;
-    }
-
-    return item;
-  });
-
-  // Merge normalizedBase and localCustom
-  const map = new Map<string, HomeworkEntry>();
-  normalizedBase.forEach((h) => {
-    if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-  });
+  // Merge localCustom over resultMap for active periods
   localCustom.forEach((h) => {
     if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+    if (h && h.id && !deletedSet.has(h.id)) resultMap.set(h.id, h);
   });
-  
-  return Array.from(map.values()).filter(isGrade2Item);
+
+  return Array.from(resultMap.values()).filter(isGrade2Item);
 }
 
 export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntry> {

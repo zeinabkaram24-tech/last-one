@@ -1,7 +1,7 @@
 import { ClassId, SchoolDay } from '../types';
 import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
-import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage, isFrozenPeriod, withTimeout } from '../lib/supabase';
 
 export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES };
 
@@ -646,6 +646,48 @@ export async function getTomorrowNotesForDay(
       (n.week || 1) === week
   );
 
+  // Frozen periods (Block 1 all weeks & Block 2 Weeks 1-5) resolve synchronously from static data in 0ms
+  if (isFrozenPeriod(block, week)) {
+    const frozenDeletedIds = getDeletedTomorrowNoteIdsSync();
+    const frozenMap = new Map<string, TomorrowSpecialNote>();
+    baseNotes.forEach((n) => {
+      if (isGrade2TomorrowNote(n)) {
+        const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+        frozenMap.set(key, n);
+      }
+    });
+    localCustom.forEach((n) => {
+      if (isGrade2TomorrowNote(n)) {
+        const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+        frozenMap.set(key, { ...n, isCustom: true });
+      }
+    });
+
+    const frozenFiltered = Array.from(frozenMap.values()).filter((n) => {
+      if (isDisallowedMathNote(n)) return false;
+      const isCustomNote = n.isCustom || n.id?.startsWith('tomorrow-') || n.id?.startsWith('tn-') || n.id?.startsWith('note-') || n.id?.startsWith('custom-');
+      if (block === 1 && week === 3 && !isCustomNote && targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      const semKey = getSemanticKey(n);
+      if (frozenDeletedIds.includes(key) || (n.id && frozenDeletedIds.includes(n.id)) || (semKey && frozenDeletedIds.includes(semKey))) {
+        return false;
+      }
+      return true;
+    });
+
+    frozenFiltered.sort((a, b) => (b.pdfUrl ? 1 : 0) - (a.pdfUrl ? 1 : 0));
+    const seenFrozenEng = new Set<string>();
+    return frozenFiltered.filter((n) => {
+      const text = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
+      if (n.subject === 'English' && (text.includes('dictation') || text.includes('إملاء') || text.includes('ديكتيشن'))) {
+        const k = `${n.classId || 'ALL'}-${n.targetDay}`;
+        if (seenFrozenEng.has(k)) return false;
+        seenFrozenEng.add(k);
+      }
+      return true;
+    });
+  }
+
   const deletedIds = await getDeletedTomorrowNoteIds();
 
   if (!isSupabaseConfigured) {
@@ -661,8 +703,8 @@ export async function getTomorrowNotesForDay(
     });
 
     try {
-      const res = await fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' });
-      if (res.ok) {
+      const res = await withTimeout(fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' }), 1500, null as any);
+      if (res && res.ok) {
         const pData = await res.json();
         if (pData && Array.isArray(pData.tomorrowNotes)) {
           pData.tomorrowNotes.forEach((n: any) => {
@@ -682,7 +724,7 @@ export async function getTomorrowNotesForDay(
 
     const merged = Array.from(map.values());
     const filtered = merged.filter((n) => {
-      // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies, Mathematics)
+      // BLOCK 2: Allow uploaded subjects (English, Arabic, Science, Social Studies, Mathematics, ICT, French)
       if (
         block === 2 &&
         n.subject !== 'English' &&
@@ -690,7 +732,9 @@ export async function getTomorrowNotesForDay(
         n.subject !== 'Science' &&
         n.subject !== 'Social Studies' &&
         n.subject !== 'Mathematics' &&
-        n.subject !== 'Math'
+        n.subject !== 'Math' &&
+        n.subject !== 'ICT' &&
+        n.subject !== 'French'
       ) return false;
 
       if (isDisallowedMathNote(n)) return false;
@@ -700,7 +744,8 @@ export async function getTomorrowNotesForDay(
       if (week === 3 && !isCustomNote && targetDay === 'Monday' && (classId === 'G2B' || classId === 'G2C')) return false;
 
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-      if (deletedIds.includes(key) || (n.id && deletedIds.includes(n.id))) {
+      const semKey = getSemanticKey(n);
+      if (deletedIds.includes(key) || (n.id && deletedIds.includes(n.id)) || (semKey && deletedIds.includes(semKey))) {
         return false;
       }
       return true;
@@ -726,19 +771,25 @@ export async function getTomorrowNotesForDay(
   }
 
   try {
-    // 1. Fetch from classwork table
-    const { data: cwList, error: cwErr } = await supabase
-      .from('classwork')
-      .select('*')
-      .eq('class_id', classId)
-      .eq('block', block)
-      .eq('week', week)
-      .eq('day', targetDay);
+    // Run active-week queries in parallel with strict 1500ms timeouts for fast cross-device loading
+    const cwQuery = block === 2
+      ? supabase
+          .from('classwork')
+          .select('*')
+          .eq('class_id', classId)
+          .eq('block', block)
+          .eq('week', week)
+          .eq('day', targetDay)
+          .or('id.like.tomorrow-%,id.like.tn-%,id.like.note-%,id.like.custom-%')
+      : supabase
+          .from('classwork')
+          .select('*')
+          .eq('class_id', classId)
+          .eq('block', block)
+          .eq('week', week)
+          .eq('day', targetDay);
 
-    if (cwErr) console.warn('Error fetching classwork for tomorrow view:', cwErr);
-
-    // 2. Fetch from homework table (due tomorrow)
-    const { data: hwList, error: hwErr } = await supabase
+    const hwQuery = supabase
       .from('homework')
       .select('*')
       .eq('class_id', classId)
@@ -746,7 +797,20 @@ export async function getTomorrowNotesForDay(
       .eq('week', week)
       .eq('due_day', targetDay);
 
-    if (hwErr) console.warn('Error fetching homework for tomorrow view:', hwErr);
+    const psQuery = supabase
+      .from('planner_settings')
+      .select('key,value')
+      .in('key', ['g2_tomorrow_special_notes', 'tomorrow_special_notes']);
+
+    const [cwRes, hwRes, psRes, plannerApiRes] = await Promise.all([
+      withTimeout<any>(cwQuery, 1500, { data: null, error: null }),
+      withTimeout<any>(hwQuery, 1500, { data: null, error: null }),
+      withTimeout<any>(psQuery, 1500, { data: null, error: null }),
+      withTimeout<any>(fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' }), 1500, null),
+    ]);
+
+    const cwList = cwRes?.data;
+    const hwList = hwRes?.data;
 
     const dynamicNotes: TomorrowSpecialNote[] = [];
 
@@ -805,25 +869,12 @@ export async function getTomorrowNotesForDay(
       });
     }
 
-    // 2.5 Fetch from Supabase planner_settings (g2_tomorrow_special_notes or tomorrow_special_notes)
+    // 2.5 Merge from Supabase planner_settings (already fetched in parallel)
     try {
-      let psRowValue: string | null = null;
-      const { data: g2Row } = await supabase
-        .from('planner_settings')
-        .select('value')
-        .eq('key', 'g2_tomorrow_special_notes')
-        .maybeSingle();
-
-      if (g2Row && g2Row.value) {
-        psRowValue = g2Row.value;
-      } else {
-        const { data: fallbackRow } = await supabase
-          .from('planner_settings')
-          .select('value')
-          .eq('key', 'tomorrow_special_notes')
-          .maybeSingle();
-        if (fallbackRow && fallbackRow.value) psRowValue = fallbackRow.value;
-      }
+      const psRows: Array<{ key: string; value: string }> = Array.isArray(psRes?.data) ? psRes.data : [];
+      const g2Row = psRows.find((r) => r.key === 'g2_tomorrow_special_notes');
+      const fallbackRow = psRows.find((r) => r.key === 'tomorrow_special_notes');
+      const psRowValue = (g2Row && g2Row.value) ? g2Row.value : (fallbackRow && fallbackRow.value ? fallbackRow.value : null);
 
       if (psRowValue) {
         const parsed = JSON.parse(psRowValue);
@@ -843,11 +894,10 @@ export async function getTomorrowNotesForDay(
       }
     } catch {}
 
-    // 3. Fetch from central planner-data endpoint
+    // 3. Merge from central planner-data endpoint (already fetched in parallel)
     try {
-      const res = await fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' });
-      if (res.ok) {
-        const pData = await res.json();
+      if (plannerApiRes && plannerApiRes.ok) {
+        const pData = await plannerApiRes.json();
         if (pData && Array.isArray(pData.tomorrowNotes)) {
           pData.tomorrowNotes.forEach((n: any) => {
             if (
@@ -893,7 +943,6 @@ export async function getTomorrowNotesForDay(
       }
     });
 
-    const deletedIds = await getDeletedTomorrowNoteIds();
     const merged = Array.from(map.values()).filter(isGrade2TomorrowNote);
     const filtered = merged.filter((n) => {
       if (isDisallowedMathNote(n)) return false;
@@ -1300,43 +1349,45 @@ export async function getTomorrowNotesForDay(
   } catch (err) {
     console.error('Error loading dynamic tomorrow notes from database tables:', err);
     const fb = baseNotes.filter((n) => !isDisallowedMathNote(n));
-    fb.forEach((note) => {
-      if (note.subject === 'Science') {
-        if (
-          note.note?.toLowerCase().includes('submission') ||
-          note.note?.includes('تسليم') ||
-          note.arabicNote?.includes('تسليم') ||
-          note.note?.toLowerCase().includes('submit') ||
-          note.id?.includes('hw-submit')
-        ) {
-          note.note = 'تسليم بوكلت الساينس';
-          note.arabicNote = 'تسليم بوكلت الساينس';
-          note.bagItem = 'بوكليت الساينس';
-        } else {
-          const materialText = "Colored sheets with different colors , glue , colored pencils , a little crochet yarn";
-          const arabicMaterialText = "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.";
-          note.bagItem = materialText;
-          note.note = `Science Tools: ${materialText}`;
-          note.arabicNote = `أدوات الساينس المطلوبة: ${arabicMaterialText}`;
+    if (block === 1 && week === 3) {
+      fb.forEach((note) => {
+        if (note.subject === 'Science') {
+          if (
+            note.note?.toLowerCase().includes('submission') ||
+            note.note?.includes('تسليم') ||
+            note.arabicNote?.includes('تسليم') ||
+            note.note?.toLowerCase().includes('submit') ||
+            note.id?.includes('hw-submit')
+          ) {
+            note.note = 'تسليم بوكلت الساينس';
+            note.arabicNote = 'تسليم بوكلت الساينس';
+            note.bagItem = 'بوكليت الساينس';
+          } else {
+            const materialText = "Colored sheets with different colors , glue , colored pencils , a little crochet yarn";
+            const arabicMaterialText = "ورق ملون بألوان مختلفة، صمغ، ألوان خشبية، وقليل من خيط الكروشيه.";
+            note.bagItem = materialText;
+            note.note = `Science Tools: ${materialText}`;
+            note.arabicNote = `أدوات الساينس المطلوبة: ${arabicMaterialText}`;
+          }
         }
-      }
-    });
+      });
 
-    if (targetDay === 'Thursday' || targetDay === 'Wednesday') {
-      if (classId === 'G2A' || classId === 'G2B') {
-        fb.push({
-          id: `tn-b1-w3-${classId}-Wed-science-hw-submit`,
-          classId: classId,
-          targetDay: targetDay,
-          subject: 'Science',
-          note: 'تسليم بوكلت الساينس',
-          arabicNote: 'تسليم بوكلت الساينس',
-          bagItem: 'بوكليت الساينس',
-          isQuiz: false,
-          categoryType: 'note',
-          block: 1,
-          week: 3,
-        });
+      if (targetDay === 'Thursday' || targetDay === 'Wednesday') {
+        if (classId === 'G2A' || classId === 'G2B') {
+          fb.push({
+            id: `tn-b1-w3-${classId}-Wed-science-hw-submit`,
+            classId: classId,
+            targetDay: targetDay,
+            subject: 'Science',
+            note: 'تسليم بوكلت الساينس',
+            arabicNote: 'تسليم بوكلت الساينس',
+            bagItem: 'بوكليت الساينس',
+            isQuiz: false,
+            categoryType: 'note',
+            block: 1,
+            week: 3,
+          });
+        }
       }
     }
 
@@ -1394,11 +1445,16 @@ export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
     }
     
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
-        .from('planner_settings')
-        .select('value')
-        .eq('key', 'deleted_tomorrow_note_ids')
-        .single();
+      const res = await withTimeout<any>(
+        supabase
+          .from('planner_settings')
+          .select('value')
+          .eq('key', 'deleted_tomorrow_note_ids')
+          .maybeSingle(),
+        1200,
+        { data: null, error: null }
+      );
+      const data = res?.data;
       if (data && data.value) {
         const dbList = JSON.parse(data.value);
         if (Array.isArray(dbList)) {
@@ -1566,7 +1622,7 @@ export async function saveTomorrowNotes(
 
 export function getSemanticKey(n: TomorrowSpecialNote): string {
   const normSubject = (n.subject || '').trim().toLowerCase();
-  const text = (n.arabicNote || n.note || '').toLowerCase().replace(/[🚨📝🎒]/g, '').trim();
+  const text = ((n.title || '') + ' ' + (n.arabicNote || '') + ' ' + (n.note || '')).toLowerCase().replace(/[🚨📝🎒🧪🔌]/g, '').trim();
 
   // 1. Social studies homework submission
   if (normSubject.includes('social') || normSubject.includes('دراسات')) {
@@ -1575,8 +1631,11 @@ export function getSemanticKey(n: TomorrowSpecialNote): string {
     }
   }
 
-  // 2. Science booklet submission or tools
+  // 2. Science project, booklet submission, or tools
   if (normSubject.includes('science') || normSubject.includes('علوم') || normSubject.includes('ساينس')) {
+    if (text.includes('project') || text.includes('مشروع') || n.id?.includes('science-G2')) {
+      return `science-project-${n.classId || 'ALL'}-${n.targetDay}`;
+    }
     if (text.includes('بوكلت') || text.includes('بوكليت') || text.includes('تسليم') || text.includes('تجميع') || n.id?.includes('hw-submit')) {
       return `science-booklet-submission-${n.targetDay}`;
     }
@@ -1585,8 +1644,11 @@ export function getSemanticKey(n: TomorrowSpecialNote): string {
     }
   }
 
-  // 3. French Quiz
+  // 3. French Quiz or Dictée
   if (normSubject.includes('french') || normSubject.includes('فرنش') || normSubject.includes('فرنسي')) {
+    if (text.includes('dictée') || text.includes('dictee') || text.includes('إملاء') || n.id?.includes('dictee')) {
+      return `french-dictee-${n.classId || 'ALL'}-${n.targetDay}`;
+    }
     if (text.includes('quiz') || text.includes('كويز') || text.includes('اختبار')) {
       return `french-quiz-${n.targetDay}`;
     }
@@ -1610,7 +1672,7 @@ export function getSemanticKey(n: TomorrowSpecialNote): string {
 
   // 5. Mathematics tests
   if (normSubject.includes('math') || normSubject.includes('رياضيات')) {
-    if (text.includes('test') || text.includes('اختبار') || text.includes('unit 1')) {
+    if (text.includes('test') || text.includes('اختبار') || text.includes('unit 1') || text.includes('unit 2')) {
       return `math-test-${n.targetDay}`;
     }
   }
@@ -1620,6 +1682,11 @@ export function getSemanticKey(n: TomorrowSpecialNote): string {
     if (text.includes('dictation') || text.includes('إملاء') || text.includes('ديكتيشن')) {
       return `english-dictation-${n.targetDay}`;
     }
+  }
+
+  // 7. ICT supplies
+  if (normSubject === 'ict' || normSubject.includes('تكنولوجيا')) {
+    return `ict-supplies-${n.classId || 'ALL'}-${n.targetDay}`;
   }
 
   // Default: group by subject and normalized first words

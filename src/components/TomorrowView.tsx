@@ -257,11 +257,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     }
 
     // Strict User Mandate for Science in Block 2:
-    // Only bring requested supplies from notes (Foam clay, A4 colored sheet, Glue, Ruler).
-    // STRICTLY DISALLOW any booklet submission ("تسليم بوكلت" / "بوكليت"):
+    // Allow Science Project notes (Unit 3: Rocks), while disallowing legacy Week 3/4 booklet submissions:
     if ((currentBlock === 2 || (n as any).block === 2) && n.subject === 'Science') {
       const text = `${n.title || ''} ${n.note || ''} ${n.arabicNote || ''}`.toLowerCase();
-      if (text.includes('بوكلت') || text.includes('بوكليت') || text.includes('booklet') || text.includes('تسليم') || text.includes('submission')) {
+      const isProject = text.includes('project') || text.includes('مشروع') || n.id?.includes('science-G2');
+      if (!isProject && (text.includes('بوكلت') || text.includes('بوكليت') || text.includes('booklet') || text.includes('تسليم') || text.includes('submission'))) {
         return true; // Strictly disallowed!
       }
     }
@@ -614,7 +614,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const getSemanticKey = (n: TomorrowSpecialNote): string => {
     const normSubject = (n.subject || '').trim().toLowerCase();
-    const text = ((n.title || '') + ' ' + (n.arabicNote || '') + ' ' + (n.note || '')).toLowerCase().replace(/[🚨📝🎒]/g, '').trim();
+    const text = ((n.title || '') + ' ' + (n.arabicNote || '') + ' ' + (n.note || '')).toLowerCase().replace(/[🚨📝🎒🧪🔌]/g, '').trim();
 
     // 1. Social studies homework submission
     if (normSubject.includes('social') || normSubject.includes('دراسات')) {
@@ -623,8 +623,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
-    // 2. Science booklet submission, tools, or quiz
+    // 2. Science project, booklet submission, tools, or quiz
     if (normSubject.includes('science') || normSubject.includes('علوم') || normSubject.includes('ساينس')) {
+      if (text.includes('project') || text.includes('مشروع') || n.id?.includes('science-G2')) {
+        return `science-project-${n.classId || currentClass || 'ALL'}-${n.targetDay}`;
+      }
       if (text.includes('quiz') || text.includes('كويز') || text.includes('test') || text.includes('اختبار') || n.id?.includes('quiz') || n.id?.includes('test')) {
         return `science-quiz-${n.targetDay}`;
       }
@@ -636,8 +639,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
-    // 3. French Quiz
+    // 3. French Dictée & Quiz
     if (normSubject.includes('french') || normSubject.includes('فرنش') || normSubject.includes('فرنسي')) {
+      if (text.includes('dictée') || text.includes('dictee') || text.includes('إملاء') || n.id?.includes('dictee')) {
+        return `french-dictee-${n.classId || currentClass || 'ALL'}-${n.targetDay}`;
+      }
       if (text.includes('quiz') || text.includes('كويز') || text.includes('اختبار')) {
         return `french-quiz-${n.targetDay}`;
       }
@@ -674,6 +680,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       if (text.includes('dictation') || text.includes('إملاء') || text.includes('ديكتيشن')) {
         return `english-dictation-${n.targetDay}`;
       }
+    }
+
+    // 7. ICT supplies
+    if (normSubject === 'ict' || normSubject.includes('تكنولوجيا')) {
+      return `ict-supplies-${n.classId || currentClass || 'ALL'}-${n.targetDay}`;
     }
 
     // Default: group by subject and normalized first words
@@ -783,9 +794,11 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
     loadNotes();
     const unsubscribe = subscribeToTomorrowNotes(loadNotes);
+    window.addEventListener('planner_force_refresh', loadNotes);
     return () => {
       isMounted = false;
       unsubscribe();
+      window.removeEventListener('planner_force_refresh', loadNotes);
     };
   }, [currentBlock, currentWeek, currentClass, tomorrowDay]);
 
@@ -793,8 +806,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (!n) return '';
     const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
     
-    // Force Science booklet/submission text to strictly be "تسليم بوكليت الساينس" with no pages or details as per user request
-    if (n.subject === 'Science' && (fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('booklet') || fullText.includes('submission') || fullText.includes('تسليم'))) {
+    // Force Science booklet/submission text (excluding Science Project) to strictly be "تسليم بوكليت الساينس"
+    const isScienceProject = fullText.includes('project') || fullText.includes('مشروع');
+    if (n.subject === 'Science' && !isScienceProject && (fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('booklet') || fullText.includes('submission') || fullText.includes('تسليم'))) {
       return 'تسليم بوكليت الساينس';
     }
 
@@ -813,8 +827,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     if (!n) return '';
     const fullText = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase();
     
-    // Force Science booklet bagItem to be strictly "بوكليت الساينس" as per user request
-    if (n.subject === 'Science' && (fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('booklet') || fullText.includes('submission') || fullText.includes('تسليم'))) {
+    // Force Science booklet bagItem (excluding Science Project) to be strictly "بوكليت الساينس"
+    const isScienceProject = fullText.includes('project') || fullText.includes('مشروع');
+    if (n.subject === 'Science' && !isScienceProject && (fullText.includes('بوكلت') || fullText.includes('بوكليت') || fullText.includes('booklet') || fullText.includes('submission') || fullText.includes('تسليم'))) {
       return 'بوكليت الساينس';
     }
 
@@ -848,6 +863,17 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     }
     
     const fullText = ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase();
+
+    // Science Project dedicated badge (before booklet/submission checks)
+    if (note.subject === 'Science' && (fullText.includes('project') || fullText.includes('مشروع'))) {
+      return {
+        label: '🧪 مشروع الساينس (Project)',
+        badgeClass: 'bg-teal-600 text-white font-black shadow-2xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px]',
+        cardClass: 'bg-teal-50/70 border-2 border-teal-300 text-teal-950 font-bold shadow-2xs',
+        subjectName: 'الساينس (Science)',
+        isAlert: false,
+      };
+    }
 
     // Force Science booklet/booklet submissions to always be styled as regular, non-critical notes
     if (
@@ -1264,135 +1290,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
-    // Explicit guaranteed injection for Social Studies in Block 2 Week 6:
-    // User mandate: "الشيت اللي هتنزله أو هترفقوه في التاسك بتاعة السوشيال في الهوم ورك للتلات فصول، كل واحد حسب ميعاده."
-    if (currentBlock === 2 && currentWeek === 6) {
-      if ((currentClass === 'G2A' || currentClass === 'G2C') && selectedDay === 'Saturday') {
-        addOrMergeNote({
-          id: `tn-b2-w6-social-sheet-${currentClass}-Sunday`,
-          classId: currentClass,
-          targetDay: 'Sunday',
-          subject: 'Social Studies',
-          period: currentClass === 'G2A' ? 2 : 7,
-          title: '🌍 تسليم شيت واجب الدراسات الاجتماعية (Home Work 5)',
-          note: 'تسليم شيت واجب الدراسات الاجتماعية المرفق (Home Work 5: الاتجاهات الأصلية والفرعية + شخصيات المدرسة)',
-          arabicNote: 'تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق (Home Work 5) وإحضاره للتسليم في الحصة غداً الأحد.',
-          bagItem: 'شيت واجب الدراسات الاجتماعية (Home Work 5)',
-          isQuiz: false,
-          categoryType: 'note',
-          block: 2,
-          week: 6,
-          pdfUrl: '/materials/SocialStudies-Grade2-B2-W5-U2-HomeWork5 - Extra- (Minia).pdf',
-        }, true);
-      } else if (currentClass === 'G2B' && selectedDay === 'Sunday') {
-        addOrMergeNote({
-          id: 'tn-b2-w6-social-sheet-G2B-Monday',
-          classId: 'G2B',
-          targetDay: 'Monday',
-          subject: 'Social Studies',
-          period: 1,
-          title: '🌍 تسليم شيت واجب الدراسات الاجتماعية (Home Work 5)',
-          note: 'تسليم شيت واجب الدراسات الاجتماعية المرفق (Home Work 5: الاتجاهات الأصلية والفرعية + شخصيات المدرسة)',
-          arabicNote: 'تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق (Home Work 5) وإحضاره للتسليم في الحصة الأولى غداً الإثنين.',
-          bagItem: 'شيت واجب الدراسات الاجتماعية (Home Work 5)',
-          isQuiz: false,
-          categoryType: 'note',
-          block: 2,
-          week: 6,
-          pdfUrl: '/materials/SocialStudies-Grade2-B2-W5-U2-HomeWork5 - Extra- (Minia).pdf',
-        }, true);
-      }
-
-      // Block 2 Week 6: English Dictation tomorrow alerts
-      if (currentClass === 'G2A' && tomorrowDay === 'Monday') {
-        addOrMergeNote({
-          id: 'tn-b2-w6-eng-dictation-G2A-Monday',
-          classId: 'G2A',
-          targetDay: 'Monday',
-          subject: 'English',
-          period: 4,
-          title: '🚨 إملاء لغة إنجليزية غداً (Days of the Week)',
-          note: 'Listening & Dictation: Days of the Week (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)',
-          arabicNote: 'تذكير إملاء لغة إنجليزية غداً الإثنين في الحصة الرابعة: حفظ وكتابة أيام الأسبوع (Days of the Week) مع مراعاة البدء بحرف كبير Capital Letter دائماً.',
-          bagItem: 'English Copybook (كشكول الإنجليزي)',
-          isQuiz: true,
-          categoryType: 'quiz',
-          block: 2,
-          week: 6,
-          pdfUrl: '/assets/aistudio/Weekly_Plan_English_-_B2_-_W6-_Minia____40c60cff.pdf',
-        }, true);
-      } else if (currentClass === 'G2B' && tomorrowDay === 'Tuesday') {
-        addOrMergeNote({
-          id: 'tn-b2-w6-eng-dictation-G2B-Tuesday',
-          classId: 'G2B',
-          targetDay: 'Tuesday',
-          subject: 'English',
-          period: 7,
-          title: '🚨 إملاء لغة إنجليزية غداً (Days of the Week)',
-          note: 'Listening & Dictation: Days of the Week (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)',
-          arabicNote: 'تذكير إملاء لغة إنجليزية غداً الثلاثاء في الحصة السابعة: حفظ وكتابة أيام الأسبوع (Days of the Week) مع مراعاة البدء بحرف كبير Capital Letter دائماً.',
-          bagItem: 'English Copybook (كشكول الإنجليزي)',
-          isQuiz: true,
-          categoryType: 'quiz',
-          block: 2,
-          week: 6,
-          pdfUrl: '/assets/aistudio/Weekly_Plan_English_-_B2_-_W6-_Minia____40c60cff.pdf',
-        }, true);
-      } else if (currentClass === 'G2C' && tomorrowDay === 'Wednesday') {
-        addOrMergeNote({
-          id: 'tn-b2-w6-eng-dictation-G2C-Wednesday',
-          classId: 'G2C',
-          targetDay: 'Wednesday',
-          subject: 'English',
-          period: 4,
-          title: '🚨 إملاء لغة إنجليزية غداً (Days of the Week)',
-          note: 'Listening & Dictation: Days of the Week (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)',
-          arabicNote: 'تذكير إملاء لغة إنجليزية غداً الأربعاء في الحصة الرابعة: حفظ وكتابة أيام الأسبوع (Days of the Week) مع مراعاة البدء بحرف كبير Capital Letter دائماً.',
-          bagItem: 'English Copybook (كشكول الإنجليزي)',
-          isQuiz: true,
-          categoryType: 'quiz',
-          block: 2,
-          week: 6,
-          pdfUrl: '/assets/aistudio/Weekly_Plan_English_-_B2_-_W6-_Minia____40c60cff.pdf',
-        }, true);
-      }
-
-      // Block 2 Week 6: French Dictée tomorrow alerts
-      if ((currentClass === 'G2B' || currentClass === 'G2C') && tomorrowDay === 'Sunday') {
-        addOrMergeNote({
-          id: `tn-b2-w6-french-dictee-${currentClass}-Sunday`,
-          classId: currentClass,
-          targetDay: 'Sunday',
-          subject: 'French',
-          period: currentClass === 'G2B' ? 5 : 8,
-          title: '🚨 Dictée de français demain (إملاء لغة فرنسية غداً)',
-          note: 'Préparation à la dictée en classe',
-          arabicNote: 'تذكير إملاء لغة فرنسية غداً الأحد: يرجى مراجعة كلمات الإملاء وإحضار كراس الفصل (Cahier de classe).',
-          bagItem: 'Cahier de classe (كراس الفرنش)',
-          isQuiz: true,
-          categoryType: 'quiz',
-          block: 2,
-          week: 6,
-        }, true);
-      } else if (currentClass === 'G2A' && tomorrowDay === 'Tuesday') {
-        addOrMergeNote({
-          id: 'tn-b2-w6-french-dictee-G2A-Tuesday',
-          classId: 'G2A',
-          targetDay: 'Tuesday',
-          subject: 'French',
-          period: 1,
-          title: '🚨 Dictée de français demain (إملاء لغة فرنسية غداً)',
-          note: 'Préparation à la dictée en classe',
-          arabicNote: 'تذكير إملاء لغة فرنسية غداً الثلاثاء في الحصة الأولى: يرجى مراجعة كلمات الإملاء وإحضار كراس الفصل (Cahier de classe).',
-          bagItem: 'Cahier de classe (كراس الفرنش)',
-          isQuiz: true,
-          categoryType: 'quiz',
-          block: 2,
-          week: 6,
-        }, true);
-      }
-    }
-
     // Automatically inject French Quiz warning (ONLY for Block 1 - Week 3, exactly 1 day before the session per class)
     if (currentBlock === 1 && currentWeek === 3) {
       let injectFrenchQuiz = false;
@@ -1706,22 +1603,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                   )}
                   {(() => {
                     if (!note.pdfUrl) return null;
-                    const isAllowed =
-                      note.subject === 'Social Studies' ||
-                      note.subject === 'French' ||
-                      note.subject === 'Mathematics' ||
-                      note.subject === 'Math' ||
-                      Boolean(note.pdfUrl) ||
-                      (note.subject === 'English' && (
-                        ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictation') ||
-                        ((note.note || '') + ' ' + (note.arabicNote || '')).includes('إملاء')
-                      )) ||
-                      (note.subject === 'French' && (
-                        ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictée') ||
-                        ((note.note || '') + ' ' + (note.arabicNote || '')).toLowerCase().includes('dictee') ||
-                        ((note.note || '') + ' ' + (note.arabicNote || '')).includes('إملاء')
-                      ));
-                    if (!isAllowed) return null;
+                    if (note.subject === 'ICT' || note.subject === 'Mathematics' || note.subject === 'Math' || note.subject === 'Science') return null;
                     return (
                       <div className="pt-2">
                         <AttachmentPdfCard

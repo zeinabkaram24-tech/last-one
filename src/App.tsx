@@ -57,6 +57,7 @@ import {
   getLocalCustomHomework,
   removeDeletedPlannerItemId,
   isGrade2Item,
+  isFrozenPeriod,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
@@ -144,7 +145,7 @@ try {
 } catch {}
 
 function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
-  const cached = getLocalCustomClasswork().filter(isGrade2Item);
+  const cached = getLocalCustomClasswork().filter((c) => isGrade2Item(c) && !isFrozenPeriod(c.block, c.week));
   let deletedSet = new Set<string>();
   try {
     const raw = appStorage.getItem('nile_g2_deleted_planner_item_ids_v4') || appStorage.getItem('nile_deleted_planner_item_ids_v3');
@@ -181,7 +182,7 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
 }
 
 function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
-  const cached = getLocalCustomHomework().filter(isGrade2Item);
+  const cached = getLocalCustomHomework().filter((h) => isGrade2Item(h) && !isFrozenPeriod(h.block, h.week));
   let deletedSet = new Set<string>();
   try {
     const raw = appStorage.getItem('nile_g2_deleted_planner_item_ids_v4') || appStorage.getItem('nile_deleted_planner_item_ids_v3');
@@ -192,11 +193,11 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
   } catch {}
 
   const map = new Map<string, HomeworkEntry>();
-  (cached || []).forEach((h) => {
-    if (h && h.id && !deletedSet.has(h.id) && isGrade2Item(h)) map.set(h.id, h);
-  });
   const baseItems: HomeworkEntry[] = ((initialData && Array.isArray((initialData as any).homework)) ? (initialData as any).homework : INITIAL_HOMEWORK);
   baseItems.forEach((h) => {
+    if (h && h.id && !deletedSet.has(h.id) && isGrade2Item(h)) map.set(h.id, h);
+  });
+  (cached || []).forEach((h) => {
     if (h && h.id && !deletedSet.has(h.id) && isGrade2Item(h)) map.set(h.id, h);
   });
   const source = Array.from(map.values()).filter(isGrade2Item);
@@ -239,10 +240,10 @@ export default function App() {
     return saved ? Number(saved) : 2;
   });
 
-  // Current Week (1, 2, 3, 4, 5) - Default to Week 2
+  // Current Week (1..6) - Default to Week 6
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = appStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 2;
+    return saved ? Number(saved) : 6;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
@@ -437,10 +438,11 @@ export default function App() {
     }
   }, [isAdminEditMode]);
 
-  // Persistence & Sync effects for class, week, day
+  // Persistence & Sync effects for class, week, day (skip initial mount so local cache never overwrites cloud defaults)
+  const settingsMountedRef = React.useRef(false);
   useEffect(() => {
     appStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
-    if (isSupabaseConfigured) {
+    if (settingsMountedRef.current && isSupabaseConfigured) {
       savePlannerSetting('g2_current_class', currentClass);
       savePlannerSetting('current_class', currentClass);
     }
@@ -448,16 +450,17 @@ export default function App() {
 
   useEffect(() => {
     appStorage.setItem(STORAGE_KEYS.WEEK, String(currentWeek));
-    if (isSupabaseConfigured) {
+    if (settingsMountedRef.current && isSupabaseConfigured) {
       savePlannerSetting('g2_current_week', String(currentWeek));
     }
   }, [currentWeek]);
 
   useEffect(() => {
     appStorage.setItem(STORAGE_KEYS.DAY, selectedDay);
-    if (isSupabaseConfigured) {
+    if (settingsMountedRef.current && isSupabaseConfigured) {
       savePlannerSetting('g2_selected_day', selectedDay);
     }
+    settingsMountedRef.current = true;
   }, [selectedDay]);
 
   // Initial Server and Supabase Data Initialization & Realtime Subscriptions
@@ -572,7 +575,7 @@ export default function App() {
         const localWeek = appStorage.getItem(STORAGE_KEYS.WEEK);
         const resolvedDbWeek = settings.g2_current_week || settings.current_week;
         if (!localWeek && resolvedDbWeek) {
-          setCurrentWeek(Number(resolvedDbWeek) || 1);
+          setCurrentWeek(Number(resolvedDbWeek) || 6);
         }
         const localDay = appStorage.getItem(STORAGE_KEYS.DAY);
         const resolvedDbDay = settings.g2_selected_day || settings.selected_day;
@@ -708,14 +711,19 @@ export default function App() {
       }
     } catch {}
 
-    // 4. Window Visibility & Focus (Mobile screen unlock / tab switch)
+    // 4. Window Visibility & Focus (Mobile screen unlock / tab switch) — throttled to 30s to prevent UI flicker
+    let lastFocusSyncAt = Date.now();
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && Date.now() - lastFocusSyncAt > 30000) {
+        lastFocusSyncAt = Date.now();
         performLiveSync('تحديث الشاشة');
       }
     };
     const handleWindowFocus = () => {
-      performLiveSync();
+      if (Date.now() - lastFocusSyncAt > 30000) {
+        lastFocusSyncAt = Date.now();
+        performLiveSync();
+      }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleWindowFocus);
@@ -1234,10 +1242,11 @@ export default function App() {
             savePlannerSetting('current_block', String(b)).catch(() => {});
           }
           if (b === 2) {
-            setCurrentWeek(1);
-            appStorage.setItem(STORAGE_KEYS.WEEK, '1');
+            setCurrentWeek(6);
+            appStorage.setItem(STORAGE_KEYS.WEEK, '6');
             if (isSupabaseConfigured) {
-              savePlannerSetting('current_week', '1').catch(() => {});
+              savePlannerSetting('g2_current_week', '6').catch(() => {});
+              savePlannerSetting('current_week', '6').catch(() => {});
             }
           }
           showToast(`Switched to Block ${b}`);
