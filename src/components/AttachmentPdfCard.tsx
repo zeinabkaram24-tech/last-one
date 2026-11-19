@@ -5,6 +5,8 @@ import {
   openPdfItem,
   downloadPdfItem,
   resolveMaterialItem,
+  resolveMaterialUrl,
+  prefetchMaterialFile,
   MaterialItem,
 } from '../utils/materialsStorage';
 
@@ -30,6 +32,8 @@ export const AttachmentPdfCard: React.FC<AttachmentPdfCardProps> = ({
   return (
     <div
       id={id || `attachment-card-${item.id}`}
+      onMouseEnter={() => prefetchMaterialFile(item)}
+      onTouchStart={() => prefetchMaterialFile(item)}
       className={`bg-slate-50 hover:bg-slate-100/80 border border-slate-300 rounded-xl p-3 shadow-2xs transition-all flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap ${className}`}
     >
       {/* File Details: Exact File Name with Icon */}
@@ -107,7 +111,7 @@ export const AttachmentPdfCard: React.FC<AttachmentPdfCardProps> = ({
         {/* External Link */}
         <a
           id={`external-attach-${item.id}`}
-          href={item.storageUrl || item.linkUrl || `/materials/${item.fileName}`}
+          href={resolveMaterialUrl(item) || `/materials/${item.fileName}`}
           target="_blank"
           rel="noopener noreferrer"
           className="p-1.5 rounded-lg bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors"

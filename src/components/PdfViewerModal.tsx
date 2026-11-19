@@ -1,70 +1,115 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Download, ExternalLink, Printer, FileText, Image as ImageIcon, Maximize2, Loader2, AlertTriangle } from 'lucide-react';
-import { MaterialItem, formatBytes, downloadPdfItem, printPdfItem } from '../utils/materialsStorage';
+import {
+  MaterialItem,
+  formatBytes,
+  downloadPdfItem,
+  printPdfItem,
+  resolveMaterialUrl,
+  getProxiedOrLocalUrl,
+} from '../utils/materialsStorage';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Initialize PDF.js worker in browser environment
 if (typeof window !== 'undefined') {
   try {
-    const version = pdfjsLib.version || '6.5.438';
     pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
   } catch {}
 }
 
+// In-memory LRU cache for parsed PDF documents so reopening / mode-switching is instantaneous
+const pdfDocCache = new Map<string, any>();
 
-// Sub-component to render a single PDF page with crisp details on canvas
-const PdfPageCanvas: React.FC<{ page: any; index: number }> = ({ page, index }) => {
+// Sub-component to lazily render a single PDF page with crisp details when scrolled into view
+const PdfPageCanvas: React.FC<{ pdfDoc: any; pageNumber: number }> = ({ pdfDoc, pageNumber }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const renderTaskRef = useRef<any>(null);
+  const [isVisible, setIsVisible] = useState(pageNumber <= 2);
+  const [rendered, setRendered] = useState(false);
 
   useEffect(() => {
-    if (!page || !canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-
-    // Use a scale of 1.5 for crisp and sharp text rendering on all screens
-    const viewport = page.getViewport({ scale: 1.5 });
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-
-    // Cancel existing render task if any
-    if (renderTaskRef.current) {
-      renderTaskRef.current.cancel();
+    if (isVisible || !containerRef.current) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true);
+      return;
     }
-
-    const renderContext = {
-      canvasContext: context,
-      viewport: viewport,
-    };
-
-    const renderTask = page.render(renderContext);
-    renderTaskRef.current = renderTask;
-
-    renderTask.promise.then(
-      () => {
-        renderTaskRef.current = null;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
       },
-      (err: any) => {
-        if (err.name !== 'RenderingCancelledException') {
+      { rootMargin: '500px 0px' }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible || !pdfDoc || !canvasRef.current || rendered) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const page = await pdfDoc.getPage(pageNumber);
+        if (cancelled || !canvasRef.current) return;
+
+        const canvas = canvasRef.current;
+        const context = canvas.getContext('2d');
+        if (!context) return;
+
+        const viewport = page.getViewport({ scale: 1.5 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        if (renderTaskRef.current) {
+          renderTaskRef.current.cancel();
+        }
+
+        const renderTask = page.render({
+          canvasContext: context,
+          viewport,
+        });
+        renderTaskRef.current = renderTask;
+        await renderTask.promise;
+        if (!cancelled) {
+          renderTaskRef.current = null;
+          setRendered(true);
+        }
+      } catch (err: any) {
+        if (err?.name !== 'RenderingCancelledException') {
           console.error('Page rendering error:', err);
         }
       }
-    );
+    })();
 
     return () => {
+      cancelled = true;
       if (renderTaskRef.current) {
         renderTaskRef.current.cancel();
       }
     };
-  }, [page]);
+  }, [isVisible, pdfDoc, pageNumber, rendered]);
 
   return (
-    <div className="bg-white p-2.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200/80 max-w-full flex flex-col items-center gap-2 relative mb-6">
-      <canvas ref={canvasRef} className="max-w-full h-auto rounded-xl shadow-2xs border border-slate-100" />
+    <div
+      ref={containerRef}
+      className="bg-white p-2.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200/80 max-w-full flex flex-col items-center gap-2 relative mb-6 min-h-[260px] w-full max-w-3xl"
+    >
+      {!rendered && (
+        <div className="my-auto py-12 flex items-center gap-2 text-xs font-bold text-slate-400">
+          <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
+          <span>جاري تجهيز صفحة {pageNumber}...</span>
+        </div>
+      )}
+      <canvas
+        ref={canvasRef}
+        className={`max-w-full h-auto rounded-xl shadow-2xs border border-slate-100 ${rendered ? 'block' : 'hidden'}`}
+      />
       <div className="text-[11px] font-black text-slate-500 bg-slate-100 px-3.5 py-1 rounded-full border border-slate-200">
-        صفحة {index}
+        صفحة {pageNumber}
       </div>
     </div>
   );
@@ -92,9 +137,11 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewMode, setViewMode] = useState<'proxy' | 'direct'>('proxy');
   const [pdfRenderer, setPdfRenderer] = useState<'iframe' | 'canvas'>('iframe');
+  const [isFrameLoading, setIsFrameLoading] = useState(false);
 
-  // Client-side PDF rendering states
-  const [pdfPages, setPdfPages] = useState<any[]>([]);
+  // Client-side PDF rendering states (used ONLY when pdfRenderer === 'canvas')
+  const [pdfDoc, setPdfDoc] = useState<any>(null);
+  const [numPages, setNumPages] = useState<number>(0);
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState('');
   const [isHtmlContent, setIsHtmlContent] = useState(false);
@@ -117,17 +164,19 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
       if (!detail) return;
 
       setIsHtmlContent(false);
+      setPdfError('');
       if (typeof detail === 'string') {
         setActiveUrl(detail);
         const name = detail.split('/').pop()?.split('?')[0] || 'مستند مرفق';
         setActiveTitle(name);
         setActiveItem(null);
       } else if (detail && typeof detail === 'object') {
-        const url = detail.fileData || detail.storageUrl || detail.linkUrl || (detail.id ? `/api/materials/${detail.id}/file` : '');
+        const url = resolveMaterialUrl(detail);
         setActiveUrl(url);
-        setActiveTitle(detail.fileName || 'ملف مرفق');
+        setActiveTitle(detail.fileName || detail.title || 'ملف مرفق');
         setActiveItem(detail);
       }
+      setIsFrameLoading(true);
       setInternalOpen(true);
     };
 
@@ -145,6 +194,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     if (propPdfUrl) {
       setActiveUrl(propPdfUrl);
       setIsHtmlContent(false);
+      setIsFrameLoading(true);
     }
     if (propFileName) {
       setActiveTitle(propFileName);
@@ -153,8 +203,11 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
       setActiveItem(propItem);
       setIsHtmlContent(false);
       if (propItem.fileName) setActiveTitle(propItem.fileName);
-      const url = propItem.fileData || propItem.storageUrl || propItem.linkUrl || (propItem.id ? `/api/materials/${propItem.id}/file` : '');
-      if (url) setActiveUrl(url);
+      const url = resolveMaterialUrl(propItem);
+      if (url) {
+        setActiveUrl(url);
+        setIsFrameLoading(true);
+      }
     }
   }, [propIsOpen, propPdfUrl, propFileName, propItem]);
 
@@ -164,6 +217,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     setInternalOpen(false);
     setActiveUrl('');
     setActiveItem(null);
+    setIsFrameLoading(false);
     if (propOnClose) propOnClose();
   };
 
@@ -171,7 +225,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   const isImage = Boolean(
     activeItem?.type === 'image' ||
     activeUrl.startsWith('data:image/') ||
-    /\.(jpg|jpeg|png|webp|gif)$/i.test(fileTitle || activeUrl)
+    /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(fileTitle || activeUrl)
   );
 
   const isHtml = Boolean(
@@ -199,6 +253,13 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     }
   }
 
+  // Fallback timer so iframe spinner never sticks if a browser suppresses iframe load on inline PDF
+  useEffect(() => {
+    if (!isOpen || !isFrameLoading) return;
+    const t = setTimeout(() => setIsFrameLoading(false), 2500);
+    return () => clearTimeout(t);
+  }, [isOpen, isFrameLoading, iframeSrc]);
+
   const handleDownload = () => {
     if (activeItem) {
       downloadPdfItem(activeItem);
@@ -224,7 +285,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     if (activeItem) {
       printPdfItem(activeItem);
     } else {
-      const a = window.open(activeUrl, '_blank');
+      const a = window.open(getProxiedOrLocalUrl(activeUrl), '_blank');
       a?.focus();
     }
   };
@@ -252,22 +313,34 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     return () => document.removeEventListener('fullscreenchange', onFsChange);
   }, []);
 
-  // Fetch and parse PDF pages using pdfjs-dist safely inside client session
+  // ONLY load PDF.js when user explicitly switches to Canvas renderer (eliminates double-download!)
   useEffect(() => {
-    if (!isOpen || !activeUrl || isImage || isHtml) {
-      setPdfPages([]);
+    if (!isOpen || !activeUrl || isImage || isHtml || pdfRenderer !== 'canvas') {
+      setPdfDoc(null);
+      setNumPages(0);
       setLoadingPdf(false);
+      return;
+    }
+
+    const fetchTarget = getProxiedOrLocalUrl(activeUrl);
+    const cachedDoc = pdfDocCache.get(fetchTarget);
+    if (cachedDoc) {
+      setPdfDoc(cachedDoc);
+      setNumPages(cachedDoc.numPages || 0);
+      setLoadingPdf(false);
+      setPdfError('');
       return;
     }
 
     let isCurrent = true;
     setLoadingPdf(true);
     setPdfError('');
-    setPdfPages([]);
+    setPdfDoc(null);
+    setNumPages(0);
 
     const fetchAndLoadPdf = async () => {
       try {
-        const response = await fetch(activeUrl);
+        const response = await fetch(fetchTarget);
         if (!response.ok) {
           throw new Error(`تعذر تحميل الملف من الخادم (رمز الخطأ: ${response.status})`);
         }
@@ -289,16 +362,15 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         const pdf = await loadingTask.promise;
         if (!isCurrent) return;
 
-        const pages = [];
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          pages.push(page);
+        if (pdfDocCache.size >= 8) {
+          const firstKey = pdfDocCache.keys().next().value;
+          if (firstKey) pdfDocCache.delete(firstKey);
         }
+        pdfDocCache.set(fetchTarget, pdf);
 
-        if (isCurrent) {
-          setPdfPages(pages);
-          setLoadingPdf(false);
-        }
+        setPdfDoc(pdf);
+        setNumPages(pdf.numPages || 0);
+        setLoadingPdf(false);
       } catch (err: any) {
         console.error('Failed to load PDF via Canvas:', err);
         if (isCurrent) {
@@ -313,7 +385,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     return () => {
       isCurrent = false;
     };
-  }, [activeUrl, isOpen, isImage, isHtml]);
+  }, [activeUrl, isOpen, isImage, isHtml, pdfRenderer]);
 
   if (!isOpen || !activeUrl) return null;
 
@@ -423,10 +495,18 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         {/* Viewer Body (Images vs HTML vs PDF/Doc) */}
         <div className="flex-1 bg-slate-900/90 relative min-h-0 overflow-hidden flex flex-col p-2 sm:p-4">
           {isImage ? (
-            <div className="flex flex-col items-center justify-center max-w-full max-h-full space-y-3 my-auto overflow-auto">
+            <div className="flex flex-col items-center justify-center max-w-full max-h-full space-y-3 my-auto overflow-auto relative">
+              {isFrameLoading && (
+                <div className="flex items-center gap-2 text-xs font-bold text-white/90 py-8">
+                  <Loader2 className="w-5 h-5 animate-spin text-amber-400" />
+                  <span>جاري تحميل الصورة...</span>
+                </div>
+              )}
               <img
                 src={activeUrl}
                 alt={fileTitle}
+                onLoad={() => setIsFrameLoading(false)}
+                onError={() => setIsFrameLoading(false)}
                 className="max-w-full max-h-[78vh] object-contain rounded-2xl shadow-2xl border-2 border-white/20 bg-white"
               />
             </div>
@@ -454,10 +534,19 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
 
               {/* Scrollable container with responsive iframe */}
               <div className="flex-1 w-full min-h-0 relative bg-slate-100 overflow-hidden flex flex-col">
+                {isFrameLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10 pointer-events-none">
+                    <div className="flex items-center gap-2 text-xs font-black text-slate-700">
+                      <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
+                      <span>جاري فتح الشيت التفاعلي...</span>
+                    </div>
+                  </div>
+                )}
                 <iframe
                   id="interactive-sheet-frame"
                   src={activeUrl}
                   title={fileTitle}
+                  onLoad={() => setIsFrameLoading(false)}
                   className="w-full h-full border-0 bg-white flex-1"
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                 />
@@ -485,22 +574,31 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
               {/* PDF Container: Native PDF frame as default for guaranteed 100% reliability and speed */}
               {pdfRenderer === 'iframe' ? (
                 <div className="flex-1 w-full min-h-0 relative bg-slate-100 flex flex-col overflow-hidden">
+                  {isFrameLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-100/90 z-10 pointer-events-none">
+                      <div className="flex flex-col items-center gap-2 bg-white px-5 py-3.5 rounded-2xl shadow-sm border border-slate-200">
+                        <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+                        <span className="text-xs font-black text-slate-700">جاري عرض الملف...</span>
+                      </div>
+                    </div>
+                  )}
                   <iframe
                     id="native-pdf-frame"
                     src={`${iframeSrc}#toolbar=1&navpanes=0`}
                     title={fileTitle}
+                    onLoad={() => setIsFrameLoading(false)}
                     className="w-full h-full border-0 bg-white flex-1"
                   />
                 </div>
               ) : (
-                /* Scrollable container for Canvas pages */
+                /* Scrollable container for lazy Canvas pages */
                 <div className="flex-1 w-full min-h-0 relative bg-slate-100 overflow-y-auto p-4 flex flex-col items-center">
                   {loadingPdf && (
                     <div className="my-auto flex flex-col items-center gap-3 p-8 text-center max-w-sm">
                       <Loader2 className="w-9 h-9 text-indigo-600 animate-spin shrink-0" />
-                      <div className="text-sm font-black text-slate-800">جاري تحميل شيت الدراسات الاجتماعية...</div>
+                      <div className="text-sm font-black text-slate-800">جاري تحميل صفحات الملف...</div>
                       <div className="text-xs text-slate-500 font-bold leading-relaxed">
-                        نقوم الآن بتهيئة صفحات الملف وعرضها بدقة عالية تناسب جميع الشاشات.
+                        يتم عرض الصفحة الأولى فوراً وتجهيز باقي الصفحات أثناء التصفح.
                       </div>
                     </div>
                   )}
@@ -518,13 +616,14 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
                     </div>
                   )}
 
-                  {!loadingPdf && !pdfError && pdfPages.length === 0 && (
+                  {!loadingPdf && !pdfError && numPages === 0 && (
                     <div className="my-auto text-xs text-slate-500 font-bold">لا توجد صفحات لعرضها.</div>
                   )}
 
-                  {!loadingPdf && !pdfError && pdfPages.map((page, idx) => (
-                    <PdfPageCanvas key={`pdf-page-${idx}`} page={page} index={idx + 1} />
-                  ))}
+                  {!loadingPdf && !pdfError && pdfDoc && numPages > 0 &&
+                    Array.from({ length: numPages }, (_, idx) => (
+                      <PdfPageCanvas key={`pdf-page-${idx + 1}`} pdfDoc={pdfDoc} pageNumber={idx + 1} />
+                    ))}
                 </div>
               )}
             </div>

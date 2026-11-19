@@ -58,7 +58,9 @@ import {
   removeDeletedPlannerItemId,
   isGrade2Item,
   isFrozenPeriod,
+  invalidatePlannerDataCache,
 } from './lib/supabase';
+import { getAllMaterials, invalidateMaterialsClientCache } from './utils/materialsStorage';
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
 
@@ -345,6 +347,8 @@ export default function App() {
       keysToClear.forEach((k) => {
         try { localStorage.removeItem(k); } catch {}
       });
+      invalidatePlannerDataCache();
+      invalidateMaterialsClientCache();
 
       const [cwData, hwData] = await Promise.all([
         fetchAllClasswork(),
@@ -471,26 +475,26 @@ export default function App() {
       try {
         if (isSupabaseConfigured) {
           setSupabaseStatus('connecting');
-          const seedRes = await seedInitialDataIfEmpty().catch((e) => {
-            console.warn('Initial seed check warning:', e);
-            return null;
-          });
-          if (seedRes && seedRes.seeded) {
-            console.log(`[Supabase] Seeded ${seedRes.classworkCount} classwork and ${seedRes.homeworkCount} homework rows.`);
-          }
         } else {
           setSupabaseStatus('unconfigured');
         }
 
-        // Fetch classwork, homework, and planner settings IMMEDIATELY in parallel
+        // Fetch classwork, homework, and planner settings IMMEDIATELY in parallel (do not wait for seed check!)
         const [cwData, hwData, settings] = await Promise.all([
           fetchAllClasswork(),
           fetchAllHomework(),
           fetchPlannerSettings(),
         ]);
 
-        // Background non-blocking tasks: credentials sync, local data sync
+        // Background non-blocking tasks: seed check, credentials sync, local data sync
         Promise.allSettled([
+          isSupabaseConfigured
+            ? seedInitialDataIfEmpty().then((seedRes) => {
+                if (seedRes && seedRes.seeded) {
+                  console.log(`[Supabase] Seeded ${seedRes.classworkCount} classwork and ${seedRes.homeworkCount} homework rows.`);
+                }
+              })
+            : Promise.resolve(),
           syncLocalDataToServer(),
           syncSupabaseConfigWithServer(),
         ]).catch(() => {});
@@ -743,6 +747,25 @@ export default function App() {
     };
   }, []);
 
+  const prefetchMaterialsExperience = React.useCallback(() => {
+    import('./components/MaterialsModal').catch(() => {});
+    import('./components/PdfViewerModal').catch(() => {});
+    getAllMaterials(false).catch(() => {});
+  }, []);
+
+  // Preload Materials & PDF Viewer chunks + metadata in browser idle time so opening them is instant
+  useEffect(() => {
+    const win = window as any;
+    if (typeof win.requestIdleCallback === 'function') {
+      const id = win.requestIdleCallback(() => prefetchMaterialsExperience(), { timeout: 1800 });
+      return () => {
+        if (typeof win.cancelIdleCallback === 'function') win.cancelIdleCallback(id);
+      };
+    }
+    const timer = setTimeout(() => prefetchMaterialsExperience(), 900);
+    return () => clearTimeout(timer);
+  }, [prefetchMaterialsExperience]);
+
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 4500);
@@ -968,6 +991,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, type: 'homework' }),
       });
+      invalidatePlannerDataCache();
     } catch (e) {
       console.error('Error deleting homework:', e);
     }
@@ -984,6 +1008,7 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, type: 'homework' }),
         });
+        invalidatePlannerDataCache();
       } catch (e) {
         console.error('Error restoring homework:', e);
       }
@@ -1067,6 +1092,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, type: 'classwork' }),
       });
+      invalidatePlannerDataCache();
     } catch (e) {
       console.error('Error deleting classwork:', e);
     }
@@ -1083,6 +1109,7 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, type: 'classwork' }),
         });
+        invalidatePlannerDataCache();
       } catch (e) {
         console.error('Error restoring classwork:', e);
       }
@@ -1167,6 +1194,7 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, ids: linkedHwId ? [id, linkedHwId] : [id], type: 'tomorrowNotes' }),
         }).catch(() => {});
+        invalidatePlannerDataCache();
 
         setUndoAction(() => async () => {
           try {
@@ -1179,6 +1207,7 @@ export default function App() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ id, ids: linkedHwId ? [id, linkedHwId] : [id], type: 'tomorrowNotes' }),
             });
+            invalidatePlannerDataCache();
           } catch (e) {
             console.error('Error restoring tomorrow note:', e);
           }
@@ -1275,6 +1304,7 @@ export default function App() {
         onOpenProfileModal={() => setIsAuthModalOpen(true)}
         onOpenAdminAuth={() => setIsAdminAuthOpen(true)}
         onOpenMaterials={() => setIsMaterialsModalOpen(true)}
+        onPrefetchMaterials={prefetchMaterialsExperience}
         onOpenSupabaseConfig={() => setIsSupabaseConfigOpen(true)}
         supabaseStatus={supabaseStatus}
         onRefreshData={handleManualForceRefresh}

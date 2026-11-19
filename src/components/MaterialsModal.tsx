@@ -16,11 +16,14 @@ import {
 import { ClassId, MaterialItem } from '../types';
 import {
   getAllMaterials,
+  getCachedMaterialsSync,
   subscribeToMaterials,
   formatBytes,
   openPdfItem,
   printPdfItem,
   downloadPdfItem,
+  resolveMaterialUrl,
+  prefetchMaterialFile,
 } from '../utils/materialsStorage';
 
 interface MaterialsModalProps {
@@ -38,23 +41,25 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
 }) => {
   const [selectedBlock, setSelectedBlock] = useState<number | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
-  const [materials, setMaterials] = useState<MaterialItem[]>([]);
+  const [materials, setMaterials] = useState<MaterialItem[]>(() => getCachedMaterialsSync());
 
   // Load materials from storage
-  const loadMaterials = async () => {
-    const all = await getAllMaterials();
+  const loadMaterials = async (force = false) => {
+    const all = await getAllMaterials(force);
     setMaterials(all);
   };
 
   useEffect(() => {
     if (isOpen) {
-      loadMaterials();
+      // Preload viewer modal chunk so opening any file is instantaneous
+      import('./PdfViewerModal').catch(() => {});
+      loadMaterials(false);
     }
   }, [isOpen]);
 
   useEffect(() => {
     const unsub = subscribeToMaterials(() => {
-      loadMaterials();
+      loadMaterials(true);
     });
     return () => unsub();
   }, []);
@@ -301,7 +306,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                   <div className="space-y-3 pt-1">
                     {currentSectionMaterials.map((file) => {
                       const isLink = file.type === 'link';
-                      const targetLink = file.linkUrl || file.storageUrl || '';
+                      const directUrl = resolveMaterialUrl(file);
 
                       if (isLink) {
                         return (
@@ -368,6 +373,8 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                       return (
                         <div
                           key={file.id}
+                          onMouseEnter={() => prefetchMaterialFile(file)}
+                          onTouchStart={() => prefetchMaterialFile(file)}
                           className="bg-white border-2 border-slate-200 hover:border-amber-300 rounded-2xl p-4 shadow-2xs space-y-3 transition-all"
                         >
                           {/* File Details */}
@@ -386,9 +393,9 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                                 <h4 className="text-sm font-black text-slate-900 truncate">
                                   {file.fileName}
                                 </h4>
-                                {(file.storageUrl || file.linkUrl) && (
+                                {directUrl && (
                                   <a
-                                    href={file.storageUrl || file.linkUrl}
+                                    href={directUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="shrink-0 px-2 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] border border-indigo-200 flex items-center gap-1 transition-colors cursor-pointer"

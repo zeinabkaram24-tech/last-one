@@ -5,6 +5,7 @@ import {
   fetchAllMaterialsFromSupabase,
   saveMaterialToSupabase,
   deleteMaterialFromSupabase,
+  withTimeout,
 } from '../lib/supabase';
 import initialData from '../data/initialData.json';
 
@@ -13,6 +14,17 @@ const STORE_NAME = 'materials';
 const DB_VERSION = 1;
 const EVENT_NAME = 'school_materials_updated';
 const DELETED_IDS_KEY = 'school_materials_deleted_ids';
+const META_CACHE_KEY = 'school_materials_meta_cache_v1';
+const MATERIALS_CACHE_TTL_MS = 10000;
+
+let materialsMemCache: { items: MaterialItem[]; ts: number } | null = null;
+let materialsInFlight: Promise<MaterialItem[]> | null = null;
+const prefetchedFileUrls = new Set<string>();
+
+export function invalidateMaterialsClientCache(): void {
+  materialsMemCache = null;
+  materialsInFlight = null;
+}
 
 export function getLocalDeletedMaterialIds(): string[] {
   try {
@@ -36,6 +48,132 @@ export function recordLocalDeletedMaterialId(id: string): void {
   } catch (e) {
     console.warn('Error saving deleted material id:', e);
   }
+}
+
+export function resolveMaterialUrl(item?: Partial<MaterialItem> | null): string {
+  if (!item) return '';
+  return (
+    item.fileData ||
+    item.storageUrl ||
+    item.fileUrl ||
+    item.linkUrl ||
+    (item.id ? `/api/materials/${encodeURIComponent(item.id)}/file` : '')
+  );
+}
+
+export function getProxiedOrLocalUrl(rawUrl: string): string {
+  if (!rawUrl) return '';
+  if (
+    rawUrl.startsWith('data:') ||
+    rawUrl.startsWith('blob:') ||
+    rawUrl.startsWith('/') ||
+    rawUrl.startsWith('.') ||
+    (typeof window !== 'undefined' && rawUrl.includes(window.location.host))
+  ) {
+    return rawUrl;
+  }
+  return `/api/proxy-file?url=${encodeURIComponent(rawUrl)}`;
+}
+
+function normalizeMaterialItem(m: MaterialItem): MaterialItem {
+  const effectiveUrl = m.storageUrl || m.fileUrl || m.linkUrl;
+  let type = m.type;
+  if (!type) {
+    const checkTarget = `${m.fileName || ''} ${effectiveUrl || ''}`.toLowerCase();
+    if (/\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(checkTarget)) {
+      type = 'image';
+    } else if (/\.(html|htm)(\?|$)/i.test(checkTarget)) {
+      type = 'html';
+    } else if (/\.(doc|docx)(\?|$)/i.test(checkTarget)) {
+      type = 'doc';
+    } else if (
+      effectiveUrl &&
+      (effectiveUrl.startsWith('http://') || effectiveUrl.startsWith('https://')) &&
+      !/\.pdf(\?|$)/i.test(checkTarget)
+    ) {
+      type = 'link';
+    } else {
+      type = 'pdf';
+    }
+  }
+  return {
+    ...m,
+    type,
+    ...(effectiveUrl && !m.storageUrl ? { storageUrl: effectiveUrl } : {}),
+  };
+}
+
+function saveMetaCacheToStorage(items: MaterialItem[]): void {
+  try {
+    if (typeof window === 'undefined') return;
+    const lightweight = items.map((m) => {
+      const { fileData, ...rest } = m;
+      return rest;
+    });
+    localStorage.setItem(META_CACHE_KEY, JSON.stringify(lightweight));
+  } catch {}
+}
+
+function readMetaCacheFromStorage(): MaterialItem[] {
+  try {
+    if (typeof window === 'undefined') return [];
+    const raw = localStorage.getItem(META_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getCachedMaterialsSync(): MaterialItem[] {
+  if (materialsMemCache && materialsMemCache.items.length > 0) {
+    return materialsMemCache.items;
+  }
+  const deletedSet = new Set(getLocalDeletedMaterialIds());
+  const map = new Map<string, MaterialItem>();
+  if (initialData && Array.isArray((initialData as any).materials)) {
+    (initialData as any).materials.forEach((m: MaterialItem) => {
+      if (m && m.id && !deletedSet.has(m.id)) {
+        map.set(m.id, normalizeMaterialItem(m));
+      }
+    });
+  }
+  const cachedMeta = readMetaCacheFromStorage();
+  cachedMeta.forEach((m) => {
+    if (m && m.id && !deletedSet.has(m.id)) {
+      map.set(m.id, normalizeMaterialItem(m));
+    }
+  });
+  const list = Array.from(map.values());
+  if (!materialsMemCache && list.length > 0) {
+    materialsMemCache = { items: list, ts: 0 };
+  }
+  return list;
+}
+
+export function prefetchMaterialFile(itemOrUrl?: MaterialItem | string | null): void {
+  if (typeof window === 'undefined' || !itemOrUrl) return;
+  let rawUrl = '';
+  if (typeof itemOrUrl === 'string') {
+    rawUrl = itemOrUrl;
+  } else {
+    if (itemOrUrl.fileData) return; // Already in memory
+    if (itemOrUrl.type === 'link') return; // Don't prefetch generic web pages
+    rawUrl = resolveMaterialUrl(itemOrUrl);
+  }
+  if (!rawUrl || rawUrl.startsWith('data:') || rawUrl.startsWith('blob:')) return;
+
+  const targetUrl = getProxiedOrLocalUrl(rawUrl);
+  if (!targetUrl || prefetchedFileUrls.has(targetUrl)) return;
+  if (prefetchedFileUrls.size > 40) {
+    prefetchedFileUrls.clear();
+  }
+  prefetchedFileUrls.add(targetUrl);
+
+  fetch(targetUrl).catch(() => {
+    prefetchedFileUrls.delete(targetUrl);
+  });
 }
 
 // Helper to open IndexedDB
@@ -100,112 +238,137 @@ async function saveItemsToLocalDB(items: MaterialItem[]): Promise<void> {
   }
 }
 
-// Retrieve all materials (from Server API + Supabase Cloud + Local IndexedDB merged seamlessly)
-export async function getAllMaterials(): Promise<MaterialItem[]> {
-  // 1. Fetch local items first
-  let localItems: MaterialItem[] = [];
+async function readLocalIndexedDBItems(): Promise<MaterialItem[]> {
   try {
     const db = await openDB();
-    localItems = await new Promise((resolve) => {
+    return await new Promise((resolve) => {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
       const req = store.getAll();
-
-      req.onsuccess = () => {
-        resolve(req.result || []);
-      };
-
-      req.onerror = () => {
-        resolve(getFallbackMaterials());
-      };
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve(getFallbackMaterials());
     });
-  } catch (e) {
-    console.warn('IndexedDB read failed, using fallback', e);
-    localItems = getFallbackMaterials();
+  } catch {
+    return getFallbackMaterials();
+  }
+}
+
+// Retrieve all materials (from IndexedDB + Server API + Supabase Cloud IN PARALLEL with instant caching)
+export async function getAllMaterials(forceRefresh = false): Promise<MaterialItem[]> {
+  if (
+    !forceRefresh &&
+    materialsMemCache &&
+    materialsMemCache.ts > 0 &&
+    Date.now() - materialsMemCache.ts < MATERIALS_CACHE_TTL_MS
+  ) {
+    return materialsMemCache.items;
   }
 
-  const itemsMap = new Map<string, MaterialItem>();
-
-  // 0. Seed base materials from initialData.json
-  if (initialData && Array.isArray((initialData as any).materials)) {
-    (initialData as any).materials.forEach((m: MaterialItem) => {
-      if (m && m.id) itemsMap.set(m.id, m);
-    });
+  if (!forceRefresh && materialsInFlight) {
+    return materialsInFlight;
   }
 
-  // 1. Merge local IndexedDB items
-  localItems.forEach((item) => itemsMap.set(item.id, item));
+  const loadPromise = (async () => {
+    const localPromise = readLocalIndexedDBItems();
+    const serverPromise = withTimeout<MaterialItem[] | null>(
+      fetch('/api/materials')
+        .then((res) => (res.ok ? res.json() : null))
+        .catch(() => null),
+      3000,
+      null
+    );
+    const cloudPromise = isSupabaseConfigured
+      ? withTimeout<MaterialItem[]>(
+          fetchAllMaterialsFromSupabase().catch(() => []),
+          1500,
+          []
+        )
+      : Promise.resolve<MaterialItem[]>([]);
 
-  // 2. Fetch from centralized Server API (/api/materials) - Cross-device sync between Mobile, Laptop & Desktop!
-  try {
-    const res = await fetch('/api/materials');
-    if (res.ok) {
-      const serverItems: MaterialItem[] = await res.json();
-      if (Array.isArray(serverItems)) {
-        serverItems.forEach((serverItem) => {
-          const localMatch = itemsMap.get(serverItem.id);
-          // If local has fileData but server doesn't, keep local fileData
-          if (localMatch && localMatch.fileData && !serverItem.fileData) {
-            itemsMap.set(serverItem.id, { ...serverItem, fileData: localMatch.fileData });
-          } else {
-            itemsMap.set(serverItem.id, serverItem);
-          }
-        });
+    const [localItems, serverItems, cloudItems] = await Promise.all([
+      localPromise,
+      serverPromise,
+      cloudPromise,
+    ]);
 
-        // Clean up only items that were dynamically deleted on server (excluding initial base materials)
-        const baseIds = new Set(
-          initialData && Array.isArray((initialData as any).materials)
-            ? (initialData as any).materials.map((m: any) => m.id)
-            : []
-        );
-        const missingOnServer = localItems.filter(
-          (loc) => !baseIds.has(loc.id) && !serverItems.some((srv) => srv.id === loc.id)
-        );
-        if (missingOnServer.length > 0) {
-          try {
-            const db = await openDB();
+    const itemsMap = new Map<string, MaterialItem>();
+
+    // 0. Seed base materials from initialData.json
+    if (initialData && Array.isArray((initialData as any).materials)) {
+      (initialData as any).materials.forEach((m: MaterialItem) => {
+        if (m && m.id) itemsMap.set(m.id, normalizeMaterialItem(m));
+      });
+    }
+
+    // 1. Merge local IndexedDB items
+    localItems.forEach((item) => {
+      if (item && item.id) itemsMap.set(item.id, normalizeMaterialItem(item));
+    });
+
+    // 2. Merge Server API (/api/materials)
+    if (Array.isArray(serverItems)) {
+      serverItems.forEach((serverItem) => {
+        const normalized = normalizeMaterialItem(serverItem);
+        const localMatch = itemsMap.get(normalized.id);
+        if (localMatch && localMatch.fileData && !normalized.fileData) {
+          itemsMap.set(normalized.id, { ...normalized, fileData: localMatch.fileData });
+        } else {
+          itemsMap.set(normalized.id, normalized);
+        }
+      });
+
+      // Clean up dynamically deleted items from IndexedDB in background
+      const baseIds = new Set(
+        initialData && Array.isArray((initialData as any).materials)
+          ? (initialData as any).materials.map((m: any) => m.id)
+          : []
+      );
+      const missingOnServer = localItems.filter(
+        (loc) => !baseIds.has(loc.id) && !serverItems.some((srv) => srv.id === loc.id)
+      );
+      if (missingOnServer.length > 0) {
+        missingOnServer.forEach((item) => itemsMap.delete(item.id));
+        openDB()
+          .then((db) => {
             const tx = db.transaction(STORE_NAME, 'readwrite');
             const store = tx.objectStore(STORE_NAME);
-            missingOnServer.forEach((item) => {
-              store.delete(item.id);
-              itemsMap.delete(item.id);
-            });
-          } catch (e) {
-            console.warn('Failed to clean local deleted items from IndexedDB:', e);
-          }
+            missingOnServer.forEach((item) => store.delete(item.id));
+          })
+          .catch(() => {});
+      }
+    }
+
+    // 3. Merge Supabase Cloud
+    if (Array.isArray(cloudItems) && cloudItems.length > 0) {
+      cloudItems.forEach((cloudItem) => {
+        const normalized = normalizeMaterialItem(cloudItem);
+        const existing = itemsMap.get(normalized.id);
+        if (existing && existing.fileData && !normalized.fileData) {
+          itemsMap.set(normalized.id, { ...normalized, fileData: existing.fileData });
+        } else {
+          itemsMap.set(normalized.id, normalized);
         }
-      }
+      });
     }
-  } catch (serverErr) {
-    console.warn('Could not fetch server materials:', serverErr);
-  }
 
-  // 3. Fetch from Supabase Cloud if configured
-  if (isSupabaseConfigured) {
-    try {
-      const cloudItems = await fetchAllMaterialsFromSupabase();
-      if (cloudItems && cloudItems.length > 0) {
-        cloudItems.forEach((cloudItem) => {
-          const existing = itemsMap.get(cloudItem.id);
-          if (existing && existing.fileData && !cloudItem.fileData) {
-            itemsMap.set(cloudItem.id, { ...cloudItem, fileData: existing.fileData });
-          } else {
-            itemsMap.set(cloudItem.id, cloudItem);
-          }
-        });
-      }
-    } catch (err) {
-      console.warn('Could not fetch cloud materials:', err);
+    const deletedSet = new Set(getLocalDeletedMaterialIds());
+    const finalItems = Array.from(itemsMap.values()).filter((item) => !deletedSet.has(item.id));
+
+    materialsMemCache = { items: finalItems, ts: Date.now() };
+    saveMetaCacheToStorage(finalItems);
+    saveItemsToLocalDB(finalItems).catch(() => {});
+
+    return finalItems;
+  })();
+
+  materialsInFlight = loadPromise;
+  try {
+    return await loadPromise;
+  } finally {
+    if (materialsInFlight === loadPromise) {
+      materialsInFlight = null;
     }
   }
-
-  const deletedSet = new Set(getLocalDeletedMaterialIds());
-  const finalItems = Array.from(itemsMap.values()).filter((item) => !deletedSet.has(item.id));
-
-  // Cache back to local DB so it's always accessible offline on laptop as well
-  saveItemsToLocalDB(finalItems).catch(() => {});
-
-  return finalItems;
 }
 
 // Save or add a material (saves locally AND to central server AND Supabase Cloud)
@@ -228,13 +391,20 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
     console.warn('Failed to sync material to server API:', serverErr);
   }
 
+  // Update client memory & localStorage metadata cache immediately
+  const normalized = normalizeMaterialItem(item);
+  const currentCached = getCachedMaterialsSync().filter((m) => m.id !== normalized.id);
+  const updatedCache = [normalized, ...currentCached];
+  materialsMemCache = { items: updatedCache, ts: Date.now() };
+  saveMetaCacheToStorage(updatedCache);
+
   // 2. Save to local IndexedDB
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
-      const itemToSave = { ...item };
+      const itemToSave = { ...normalized };
       if (itemToSave.storageUrl && itemToSave.fileData) {
         delete itemToSave.fileData;
       }
@@ -245,9 +415,9 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
   } catch (e) {
     console.warn('Failed to save to IndexedDB, saving to fallback', e);
     try {
-      const fallbackItem = { ...item };
+      const fallbackItem = { ...normalized };
       delete fallbackItem.fileData; // Prevent localStorage QuotaExceededError
-      const existing = getFallbackMaterials().filter((m) => m.id !== item.id);
+      const existing = getFallbackMaterials().filter((m) => m.id !== normalized.id);
       existing.push(fallbackItem);
       saveFallbackMaterials(existing);
     } catch {}
@@ -256,7 +426,7 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
   // 3. Sync to Supabase Cloud Database if configured
   if (isSupabaseConfigured) {
     try {
-      await saveMaterialToSupabase(item);
+      await saveMaterialToSupabase(normalized);
     } catch (err) {
       console.warn('Failed to sync material to Supabase cloud:', err);
     }
@@ -269,6 +439,11 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
 export async function deleteMaterial(id: string, storageUrl?: string): Promise<void> {
   // 0. Record deleted ID locally so it is filtered out everywhere
   recordLocalDeletedMaterialId(id);
+
+  // Update client memory & localStorage metadata cache immediately
+  const updatedCache = getCachedMaterialsSync().filter((m) => m.id !== id);
+  materialsMemCache = { items: updatedCache, ts: Date.now() };
+  saveMetaCacheToStorage(updatedCache);
 
   // 1. Delete from local IndexedDB and fallback cache
   try {
@@ -347,16 +522,18 @@ export function dataUrlToBlob(dataUrl: string): Blob {
 
 // Resolve a MaterialItem from a given URL or file name cleanly without unwanted cross-linking
 export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): MaterialItem {
-  const all = getFallbackMaterials();
+  const all = [...getCachedMaterialsSync(), ...getFallbackMaterials()];
 
   // 1. If specific URL or name matches known stored materials
   if (urlOrName) {
     const found = all.find(
       (m) =>
         m.storageUrl === urlOrName ||
+        m.fileUrl === urlOrName ||
         m.linkUrl === urlOrName ||
         (m.fileName && urlOrName.includes(m.fileName)) ||
-        (m.storageUrl && m.storageUrl.includes(urlOrName))
+        (m.storageUrl && m.storageUrl.includes(urlOrName)) ||
+        (m.fileUrl && m.fileUrl.includes(urlOrName))
     );
     if (found) return found;
   }
@@ -370,6 +547,7 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
     } catch {}
 
     const isHtml = cleanName.endsWith('.html') || urlOrName.endsWith('.html');
+    const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(cleanName);
     return {
       id: `mat-${cleanName.replace(/[^a-zA-Z0-9_-]/g, '_')}`,
       fileName: cleanName,
@@ -377,7 +555,7 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
       block: 2,
       section: 'Materials',
       classId: 'ALL',
-      type: isHtml ? 'html' : 'pdf',
+      type: isHtml ? 'html' : isImage ? 'image' : 'pdf',
       storageUrl: urlOrName,
       uploadedAt: new Date().toISOString(),
     };
@@ -408,18 +586,17 @@ export function openPdfItem(item: MaterialItem): void {
   }
 }
 
-// Universal Print Function for PDF item (supports storageUrl, server endpoint, and dataUrl)
+// Universal Print Function for PDF item (supports storageUrl, fileUrl, linkUrl, server endpoint, and dataUrl via same-origin proxy)
 export function printPdfItem(item: MaterialItem): void {
   try {
-    const targetUrl = item.storageUrl
-      ? item.storageUrl
-      : item.fileData
+    const rawUrl = item.fileData
       ? URL.createObjectURL(dataUrlToBlob(item.fileData))
-      : `/api/materials/${item.id}/file`;
+      : resolveMaterialUrl(item);
 
-    if (!targetUrl) return;
+    if (!rawUrl) return;
+    const targetUrl = getProxiedOrLocalUrl(rawUrl);
 
-    // Create a hidden iframe with the URL to trigger browser print dialog
+    // Create a hidden iframe with the same-origin URL to trigger browser print dialog without CORS issues
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -448,7 +625,7 @@ export function printPdfItem(item: MaterialItem): void {
     };
 
     iframe.onload = () => {
-      setTimeout(executePrint, 400);
+      setTimeout(executePrint, 300);
     };
 
     setTimeout(() => {
@@ -459,17 +636,19 @@ export function printPdfItem(item: MaterialItem): void {
   }
 }
 
-// Universal Download Function (supports storageUrl, server endpoint, and dataUrl)
+// Universal Download Function (supports storageUrl, fileUrl, linkUrl, server endpoint, and dataUrl)
 export function downloadPdfItem(item: MaterialItem): void {
   try {
-    const fallbackUrl = `/api/materials/${item.id}/file`;
-    const targetUrl = item.storageUrl || (item.fileData ? URL.createObjectURL(dataUrlToBlob(item.fileData)) : fallbackUrl);
+    const targetUrl = item.fileData
+      ? URL.createObjectURL(dataUrlToBlob(item.fileData))
+      : resolveMaterialUrl(item);
+
+    if (!targetUrl) return;
 
     const a = document.createElement('a');
     a.href = targetUrl;
     const cleanFileName = item.fileName?.trim() || 'document.pdf';
-    a.download = cleanFileName.endsWith('.pdf') ? cleanFileName : `${cleanFileName}.pdf`;
-    // Do NOT set target='_blank' because it causes browsers to open an empty about:blank tab!
+    a.download = cleanFileName.includes('.') ? cleanFileName : `${cleanFileName}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

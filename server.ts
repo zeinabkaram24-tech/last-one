@@ -1,6 +1,8 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
 import { createClient } from '@supabase/supabase-js';
@@ -15,24 +17,62 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+app.use(compression({
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.path === '/api/realtime-stream') return false;
+    return compression.filter(req, res);
+  },
+}));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use('/materials', express.static(path.join(process.cwd(), 'public', 'materials')));
-app.use(express.static(path.join(process.cwd(), 'public')));
+app.use('/materials', express.static(path.join(process.cwd(), 'public', 'materials'), {
+  maxAge: '7d',
+  etag: true,
+  lastModified: true,
+}));
+app.use(express.static(path.join(process.cwd(), 'public'), {
+  maxAge: '7d',
+  etag: true,
+  lastModified: true,
+}));
 
 // Directories for server-side persistence
 const DATA_DIR = path.join(process.cwd(), 'data');
 const MATERIALS_DIR = path.join(process.cwd(), 'uploads', 'materials');
+const PROXY_CACHE_DIR = path.join(process.cwd(), 'uploads', 'proxy_cache');
 const MATERIALS_FILE = path.join(DATA_DIR, 'materials.json');
 const DELETED_MATERIALS_FILE = path.join(DATA_DIR, 'deleted_materials.json');
 
+let deletedMaterialIdsCache: string[] | null = null;
+let materialsListCache: any[] | null = null;
+let materialsJsonResponseCache: { json: string; etag: string } | null = null;
+let materialFilePathCache = new Map<string, string>();
+let initialDataCache: any | null = null;
+let plannerDataCache: StoredPlannerData | null = null;
+let plannerPayloadCache: { json: string; etag: string } | null = null;
+
+function invalidateMaterialsCache() {
+  materialsListCache = null;
+  materialsJsonResponseCache = null;
+}
+
+function invalidatePlannerCache() {
+  plannerDataCache = null;
+  plannerPayloadCache = null;
+}
+
 function getDeletedMaterialIds(): string[] {
+  if (deletedMaterialIdsCache) return deletedMaterialIdsCache;
   try {
     if (fs.existsSync(DELETED_MATERIALS_FILE)) {
-      return JSON.parse(fs.readFileSync(DELETED_MATERIALS_FILE, 'utf-8'));
+      deletedMaterialIdsCache = JSON.parse(fs.readFileSync(DELETED_MATERIALS_FILE, 'utf-8'));
+      return deletedMaterialIdsCache!;
     }
   } catch {}
-  return [];
+  deletedMaterialIdsCache = [];
+  return deletedMaterialIdsCache;
 }
 
 function recordDeletedMaterialId(id: string): void {
@@ -40,7 +80,9 @@ function recordDeletedMaterialId(id: string): void {
     const list = getDeletedMaterialIds();
     if (!list.includes(id)) {
       list.push(id);
+      deletedMaterialIdsCache = list;
       fs.writeFileSync(DELETED_MATERIALS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+      invalidateMaterialsCache();
     }
   } catch (e) {
     console.warn('Error recording deleted material id:', e);
@@ -107,6 +149,7 @@ function isGrade2ItemServer(item: any): boolean {
 try {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(MATERIALS_DIR)) fs.mkdirSync(MATERIALS_DIR, { recursive: true });
+  if (!fs.existsSync(PROXY_CACHE_DIR)) fs.mkdirSync(PROXY_CACHE_DIR, { recursive: true });
 } catch (e) {
   console.warn('Could not ensure data/upload directories:', e);
 }
@@ -157,8 +200,23 @@ function saveStoredSupabaseConfig(config: { url: string; key: string } | null): 
   }
 }
 
-// Helper to read materials from disk
+function getInitialDataCached(): any {
+  if (initialDataCache) return initialDataCache;
+  try {
+    const initPath = path.join(process.cwd(), 'src', 'data', 'initialData.json');
+    if (fs.existsSync(initPath)) {
+      initialDataCache = JSON.parse(fs.readFileSync(initPath, 'utf-8'));
+      return initialDataCache;
+    }
+  } catch {}
+  initialDataCache = {};
+  return initialDataCache;
+}
+
+// Helper to read materials from memory cache / disk
 function getStoredMaterials(): any[] {
+  if (materialsListCache) return materialsListCache;
+
   let diskItems: any[] = [];
   try {
     if (fs.existsSync(MATERIALS_FILE)) {
@@ -171,23 +229,23 @@ function getStoredMaterials(): any[] {
 
   let plannerMaterials: any[] = [];
   try {
-    if (fs.existsSync(PLANNER_DATA_FILE)) {
-      const rawP = fs.readFileSync(PLANNER_DATA_FILE, 'utf-8');
-      const pData = JSON.parse(rawP);
-      if (Array.isArray(pData.materials)) {
-        plannerMaterials = pData.materials;
-      }
+    const initData = getInitialDataCached();
+    if (Array.isArray(initData?.materials)) {
+      plannerMaterials = initData.materials;
     }
   } catch {}
 
   const map = new Map<string, any>();
-  plannerMaterials.forEach(m => map.set(m.id, m));
-  diskItems.forEach(m => map.set(m.id, m));
-  return Array.from(map.values());
+  plannerMaterials.forEach((m) => { if (m && m.id) map.set(m.id, m); });
+  diskItems.forEach((m) => { if (m && m.id) map.set(m.id, m); });
+  materialsListCache = Array.from(map.values());
+  return materialsListCache;
 }
 
 function saveStoredMaterials(items: any[]): void {
   try {
+    materialsListCache = items;
+    materialsJsonResponseCache = null;
     fs.writeFileSync(MATERIALS_FILE, JSON.stringify(items, null, 2), 'utf-8');
   } catch (err) {
     console.warn('Error writing materials.json:', err);
@@ -203,8 +261,12 @@ interface StoredPlannerData {
   deletedHistory?: any[];
 }
 
-// Helper to read planner data
+// Helper to read planner data (in-memory cached)
 function getStoredPlannerData(): StoredPlannerData {
+  if (plannerDataCache) {
+    return plannerDataCache;
+  }
+
   let diskData: any = {};
   try {
     if (fs.existsSync(PLANNER_DATA_FILE)) {
@@ -215,34 +277,24 @@ function getStoredPlannerData(): StoredPlannerData {
     console.warn('Error reading planner_data.json:', err);
   }
 
-  // Load initialData base
-  let initCw: any[] = [];
-  let initHw: any[] = [];
-  let initTn: any[] = [];
-  try {
-    const initPath = path.join(process.cwd(), 'src', 'data', 'initialData.json');
-    if (fs.existsSync(initPath)) {
-      const initRaw = fs.readFileSync(initPath, 'utf-8');
-      const parsedInit = JSON.parse(initRaw);
-      initCw = parsedInit.classwork || [];
-      initHw = parsedInit.homework || [];
-      initTn = parsedInit.tomorrowNotes || [];
-    }
-  } catch {}
+  const parsedInit = getInitialDataCached();
+  const initCw: any[] = parsedInit.classwork || [];
+  const initHw: any[] = parsedInit.homework || [];
+  const initTn: any[] = parsedInit.tomorrowNotes || [];
 
   const cwMap = new Map<string, any>();
-  initCw.forEach(c => { if (c && c.id) cwMap.set(c.id, c); });
+  initCw.forEach((c) => { if (c && c.id) cwMap.set(c.id, c); });
   (diskData.classwork || []).forEach((c: any) => { if (c && c.id) cwMap.set(c.id, c); });
 
   const hwMap = new Map<string, any>();
-  initHw.forEach(h => { if (h && h.id) hwMap.set(h.id, h); });
+  initHw.forEach((h) => { if (h && h.id) hwMap.set(h.id, h); });
   (diskData.homework || []).forEach((h: any) => { if (h && h.id) hwMap.set(h.id, h); });
 
   const tnMap = new Map<string, any>();
-  initTn.forEach(n => { if (n && n.id) tnMap.set(n.id, n); });
+  initTn.forEach((n) => { if (n && n.id) tnMap.set(n.id, n); });
   (diskData.tomorrowNotes || []).forEach((n: any) => { if (n && n.id) tnMap.set(n.id, n); });
 
-  return {
+  plannerDataCache = {
     classwork: Array.from(cwMap.values()),
     homework: Array.from(hwMap.values()),
     tomorrowNotes: Array.from(tnMap.values()),
@@ -250,10 +302,13 @@ function getStoredPlannerData(): StoredPlannerData {
     deletedPlannerItemIds: diskData.deletedPlannerItemIds || [],
     deletedHistory: diskData.deletedHistory || [],
   };
+  return plannerDataCache;
 }
 
 function saveStoredPlannerData(data: StoredPlannerData): void {
   try {
+    plannerDataCache = data;
+    plannerPayloadCache = null;
     fs.writeFileSync(PLANNER_DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {
     console.warn('Error writing planner_data.json:', err);
@@ -532,7 +587,56 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Universal File Proxy Endpoint to bypass browser CORS / iframe restrictions on mobile & desktop
+// Persistent disk cache + request coalescing for /api/proxy-file
+const proxyInFlight = new Map<string, Promise<{ dataPath: string; contentType: string }>>();
+
+async function getOrFetchProxiedFile(targetUrl: string): Promise<{ dataPath: string; contentType: string }> {
+  const hash = crypto.createHash('sha256').update(targetUrl).digest('hex');
+  const dataPath = path.join(PROXY_CACHE_DIR, `${hash}.bin`);
+  const metaPath = path.join(PROXY_CACHE_DIR, `${hash}.meta.json`);
+
+  // 1. Instant hit from disk cache
+  if (fs.existsSync(dataPath) && fs.existsSync(metaPath)) {
+    try {
+      const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+      if (meta && meta.contentType) {
+        return { dataPath, contentType: meta.contentType };
+      }
+    } catch {}
+  }
+
+  // 2. Coalesce concurrent upstream fetches for the same URL
+  const existing = proxyInFlight.get(hash);
+  if (existing) return existing;
+
+  const fetchPromise = (async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch(targetUrl, { signal: controller.signal });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch upstream file (${response.status}): ${response.statusText}`);
+      }
+      const contentType = response.headers.get('content-type') || getMaterialMimeType(targetUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      const tmpDataPath = `${dataPath}.tmp-${Date.now()}`;
+      await fs.promises.writeFile(tmpDataPath, buffer);
+      await fs.promises.rename(tmpDataPath, dataPath);
+      await fs.promises.writeFile(metaPath, JSON.stringify({ contentType, url: targetUrl, cachedAt: Date.now() }), 'utf-8');
+      return { dataPath, contentType };
+    } finally {
+      clearTimeout(timeoutId);
+      proxyInFlight.delete(hash);
+    }
+  })();
+
+  proxyInFlight.set(hash, fetchPromise);
+  return fetchPromise;
+}
+
+// Universal File Proxy Endpoint to bypass browser CORS / iframe restrictions on mobile & desktop (with disk cache + Range support)
 app.get('/api/proxy-file', async (req, res) => {
   try {
     const rawUrl = req.query.url as string;
@@ -543,22 +647,12 @@ app.get('/api/proxy-file', async (req, res) => {
       targetUrl = 'https://' + targetUrl;
     }
 
-    const response = await fetch(targetUrl);
-    if (!response.ok) {
-      return res.status(response.status).send(`Failed to fetch upstream file: ${response.statusText}`);
-    }
-
-    const contentType = response.headers.get('content-type') || getMaterialMimeType(targetUrl);
-    const contentLength = response.headers.get('content-length');
-
+    const { dataPath, contentType } = await getOrFetchProxiedFile(targetUrl);
     res.setHeader('Content-Type', contentType);
-    if (contentLength) res.setHeader('Content-Length', contentLength);
     res.setHeader('Content-Disposition', 'inline');
     res.setHeader('Access-Control-Allow-Origin', '*');
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    res.send(buffer);
+    res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+    return res.sendFile(dataPath);
   } catch (err: any) {
     console.error('Error in /api/proxy-file:', err);
     res.status(500).send('Proxy error: ' + (err.message || 'Unknown error'));
@@ -582,11 +676,33 @@ function getMaterialMimeType(fileName?: string, dataUrl?: string): string {
   return 'application/pdf';
 }
 
-// Materials endpoints (Accessible across Mobile, Laptop & Desktop)
+// Materials endpoints (Accessible across Mobile, Laptop & Desktop - fast cached metadata)
 app.get('/api/materials', (req, res) => {
-  const deletedSet = new Set(getDeletedMaterialIds());
-  const list = getStoredMaterials().filter((m: any) => !deletedSet.has(m.id));
-  res.json(list);
+  if (!materialsJsonResponseCache) {
+    const deletedSet = new Set(getDeletedMaterialIds());
+    const list = getStoredMaterials()
+      .filter((m: any) => !deletedSet.has(m.id))
+      .map((m: any) => {
+        // Strip heavy base64 blobs from metadata list response
+        const { fileData, ...rest } = m;
+        const resolvedUrl = m.storageUrl || m.fileUrl || m.linkUrl || (fileData ? `/api/materials/${m.id}/file` : undefined);
+        return {
+          ...rest,
+          ...(resolvedUrl ? { storageUrl: resolvedUrl } : {}),
+        };
+      });
+    const json = JSON.stringify(list);
+    const etag = `"${crypto.createHash('md5').update(json).digest('hex')}"`;
+    materialsJsonResponseCache = { json, etag };
+  }
+
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('ETag', materialsJsonResponseCache.etag);
+  res.setHeader('Cache-Control', 'public, max-age=5, stale-while-revalidate=30');
+  if (req.headers['if-none-match'] === materialsJsonResponseCache.etag) {
+    return res.status(304).end();
+  }
+  res.send(materialsJsonResponseCache.json);
 });
 
 app.post('/api/materials', (req, res) => {
@@ -618,6 +734,7 @@ app.post('/api/materials', (req, res) => {
         const ext = (item.fileName || 'file').split('.').pop() || 'bin';
         const filePath = path.join(MATERIALS_DIR, `${item.id}.${ext}`);
         fs.writeFileSync(filePath, buffer);
+        materialFilePathCache.set(item.id, filePath);
         item.storageUrl = `/api/materials/${item.id}/file`;
         delete item.fileData; // Clean up heavy base64 payload from stored JSON
       } catch (fErr) {
@@ -625,7 +742,7 @@ app.post('/api/materials', (req, res) => {
       }
     }
 
-    const current = getStoredMaterials();
+    const current = [...getStoredMaterials()];
     const existingIndex = current.findIndex((m: any) => m.id === item.id);
     if (existingIndex >= 0) {
       current[existingIndex] = { ...current[existingIndex], ...item };
@@ -653,19 +770,43 @@ app.get('/api/materials/:id/file', (req, res) => {
   const fileName = found?.fileName || 'material.pdf';
   const mimeType = getMaterialMimeType(fileName, found?.fileData);
 
+  // Check cached disk path first
+  const cachedPath = materialFilePathCache.get(id);
+  if (cachedPath && fs.existsSync(cachedPath)) {
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(fileName)}"`);
+    res.setHeader('Cache-Control', 'public, max-age=604800');
+    return res.sendFile(cachedPath);
+  }
+
   // Check disk for matching file with any extension
   try {
     const files = fs.readdirSync(MATERIALS_DIR);
     const matchedFile = files.find((f) => f.startsWith(`${id}.`) || f === id);
     if (matchedFile) {
       const filePath = path.join(MATERIALS_DIR, matchedFile);
+      materialFilePathCache.set(id, filePath);
       res.setHeader('Content-Type', mimeType);
       res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(fileName)}"`);
-      const stream = fs.createReadStream(filePath);
-      return stream.pipe(res);
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+      return res.sendFile(filePath);
     }
   } catch (e) {
     console.warn('Error reading MATERIALS_DIR:', e);
+  }
+
+  // Check if item points to a local public file or external URL
+  const candidateUrl = found?.storageUrl || found?.fileUrl;
+  if (candidateUrl && typeof candidateUrl === 'string' && candidateUrl.startsWith('/')) {
+    const cleanRel = candidateUrl.split('?')[0].replace(/^\/+/, '');
+    const publicCandidate = path.join(process.cwd(), 'public', cleanRel);
+    if (fs.existsSync(publicCandidate)) {
+      materialFilePathCache.set(id, publicCandidate);
+      res.setHeader('Content-Type', mimeType);
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(fileName)}"`);
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+      return res.sendFile(publicCandidate);
+    }
   }
 
   // Check if fileData in materials.json
@@ -674,6 +815,7 @@ app.get('/api/materials/:id/file', (req, res) => {
     const buffer = Buffer.from(base64Data, 'base64');
     res.setHeader('Content-Type', mimeType);
     res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(fileName)}"`);
+    res.setHeader('Cache-Control', 'public, max-age=604800');
     return res.send(buffer);
   }
 
@@ -685,6 +827,7 @@ app.delete('/api/materials/:id', (req, res) => {
   recordDeletedMaterialId(id);
   const current = getStoredMaterials().filter((m: any) => m.id !== id);
   saveStoredMaterials(current);
+  materialFilePathCache.delete(id);
   try {
     const files = fs.readdirSync(MATERIALS_DIR);
     const matchedFiles = files.filter((f) => f.startsWith(`${id}.`) || f === id);
@@ -742,52 +885,69 @@ app.get('/api/realtime-stream', (req, res) => {
   });
 });
 
-// Planner Data endpoints (Backup & sync across all devices)
+// Planner Data endpoints (Backup & sync across all devices — served from memory cache)
 app.get('/api/planner-data', (req, res) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
   try {
-    const data = getStoredPlannerData();
-    if (Array.isArray(data.deletedTomorrowNoteIds) && data.deletedTomorrowNoteIds.length > 0) {
-      const delSet = new Set(data.deletedTomorrowNoteIds);
-      data.tomorrowNotes = (data.tomorrowNotes || []).filter((n: any) => !delSet.has(n.id));
-    }
-    if (Array.isArray(data.deletedPlannerItemIds) && data.deletedPlannerItemIds.length > 0) {
-      const delSet = new Set(data.deletedPlannerItemIds);
-      data.classwork = (data.classwork || []).filter((c: any) => !delSet.has(c.id));
-      data.homework = (data.homework || []).filter((h: any) => !delSet.has(h.id));
-    }
-    // Guarantee both classId and class_id are populated on every item returned, and strictly filter for Grade 2
-    if (Array.isArray(data.classwork)) {
+    if (!plannerPayloadCache) {
+      const rawData = getStoredPlannerData();
+      const data: StoredPlannerData = {
+        ...rawData,
+        classwork: rawData.classwork || [],
+        homework: rawData.homework || [],
+        tomorrowNotes: rawData.tomorrowNotes || [],
+        deletedTomorrowNoteIds: rawData.deletedTomorrowNoteIds || [],
+        deletedPlannerItemIds: rawData.deletedPlannerItemIds || [],
+        deletedHistory: rawData.deletedHistory || [],
+      };
+
+      if (data.deletedTomorrowNoteIds && data.deletedTomorrowNoteIds.length > 0) {
+        const delSet = new Set(data.deletedTomorrowNoteIds);
+        data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => !delSet.has(n.id));
+      }
+      if (data.deletedPlannerItemIds && data.deletedPlannerItemIds.length > 0) {
+        const delSet = new Set(data.deletedPlannerItemIds);
+        data.classwork = data.classwork.filter((c: any) => !delSet.has(c.id));
+        data.homework = data.homework.filter((h: any) => !delSet.has(h.id));
+      }
+
       data.classwork = data.classwork.filter(isGrade2ItemServer).map((c: any) => {
         const cid = c.class_id || c.classId || 'G2B';
         return { ...c, classId: cid, class_id: cid };
       });
-    }
-    if (Array.isArray(data.homework)) {
       data.homework = data.homework.filter(isGrade2ItemServer).map((h: any) => {
         const cid = h.class_id || h.classId || 'G2B';
         return { ...h, classId: cid, class_id: cid };
       });
-    }
-    if (Array.isArray(data.tomorrowNotes)) {
       data.tomorrowNotes = data.tomorrowNotes.filter(isGrade2ItemServer).map((n: any) => {
         const cid = n.class_id || n.classId || 'G2B';
         return { ...n, classId: cid, class_id: cid };
       });
+
+      // Only prune & persist deletedHistory if expired entries actually exist (avoid disk write on normal reads)
+      const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+      if (Array.isArray(rawData.deletedHistory) && rawData.deletedHistory.length > 0) {
+        const pruned = rawData.deletedHistory.filter((item: any) => item.deletedAt >= twentyFourHoursAgo);
+        data.deletedHistory = pruned;
+        if (pruned.length !== rawData.deletedHistory.length) {
+          rawData.deletedHistory = pruned;
+          fs.promises.writeFile(PLANNER_DATA_FILE, JSON.stringify(rawData, null, 2), 'utf-8').catch(() => {});
+        }
+      } else {
+        data.deletedHistory = [];
+      }
+
+      const json = JSON.stringify(data);
+      const etag = `"${crypto.createHash('md5').update(json).digest('hex')}"`;
+      plannerPayloadCache = { json, etag };
     }
 
-    // Filter out deleted items older than 24 hours
-    const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
-    if (Array.isArray(data.deletedHistory)) {
-      data.deletedHistory = data.deletedHistory.filter((item: any) => item.deletedAt >= twentyFourHoursAgo);
-      saveStoredPlannerData(data);
-    } else {
-      data.deletedHistory = [];
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('ETag', plannerPayloadCache.etag);
+    res.setHeader('Cache-Control', 'no-cache');
+    if (req.headers['if-none-match'] === plannerPayloadCache.etag) {
+      return res.status(304).end();
     }
-
-    res.json(data);
+    res.send(plannerPayloadCache.json);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to read planner data' });
   }

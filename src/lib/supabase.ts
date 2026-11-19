@@ -187,14 +187,53 @@ export async function syncSupabaseConfigWithServer(): Promise<boolean> {
   return false;
 }
 
+let plannerDataInFlight: Promise<any | null> | null = null;
+let plannerDataMemCache: { data: any; ts: number } | null = null;
+const PLANNER_DATA_CACHE_TTL_MS = 3000;
+
+export function invalidatePlannerDataCache(): void {
+  plannerDataMemCache = null;
+  plannerDataInFlight = null;
+}
+
+export async function fetchPlannerDataCached(force = false): Promise<any | null> {
+  if (!force && plannerDataMemCache && Date.now() - plannerDataMemCache.ts < PLANNER_DATA_CACHE_TTL_MS) {
+    return plannerDataMemCache.data;
+  }
+  if (!force && plannerDataInFlight) {
+    return plannerDataInFlight;
+  }
+
+  const reqPromise = (async () => {
+    try {
+      const url = force ? `/api/planner-data?t=${Date.now()}` : '/api/planner-data';
+      const res = await withTimeout(fetch(url, force ? { cache: 'no-store' } : {}), 2000, null as any);
+      if (res && res.ok) {
+        const json = await res.json();
+        plannerDataMemCache = { data: json, ts: Date.now() };
+        return json;
+      }
+    } catch {}
+    return plannerDataMemCache?.data || null;
+  })();
+
+  plannerDataInFlight = reqPromise;
+  try {
+    return await reqPromise;
+  } finally {
+    if (plannerDataInFlight === reqPromise) {
+      plannerDataInFlight = null;
+    }
+  }
+}
+
 export async function syncLocalDataToServer(): Promise<void> {
   try {
     const localCw = getLocalCustomClasswork();
     const localHw = getLocalCustomHomework();
     if (localCw.length > 0 || localHw.length > 0) {
-      const dataRes = await fetch('/api/planner-data');
-      if (dataRes.ok) {
-        const srvData = await dataRes.json();
+      const srvData = await fetchPlannerDataCached();
+      if (srvData) {
         const serverCwEmpty = !srvData || !Array.isArray(srvData.classwork) || srvData.classwork.length === 0;
         const serverHwEmpty = !srvData || !Array.isArray(srvData.homework) || srvData.homework.length === 0;
         
@@ -205,6 +244,7 @@ export async function syncLocalDataToServer(): Promise<void> {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ classwork: localCw, mode: 'merge' }),
           });
+          invalidatePlannerDataCache();
         }
         if (serverHwEmpty && localHw.length > 0) {
           console.log('[Sync] Uploading pre-existing local custom homework to server...');
@@ -213,6 +253,7 @@ export async function syncLocalDataToServer(): Promise<void> {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ homework: localHw, mode: 'merge' }),
           });
+          invalidatePlannerDataCache();
         }
       }
     }
@@ -578,83 +619,70 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const deletedIds = await getDeletedPlannerItemIds();
   const deletedSet = new Set(deletedIds);
 
-  let baseItems: ClassworkEntry[] = ((initialData && Array.isArray((initialData as any).classwork)) ? (initialData as any).classwork : INITIAL_CLASSWORK)
+  const baseItems: ClassworkEntry[] = ((initialData && Array.isArray((initialData as any).classwork)) ? (initialData as any).classwork : INITIAL_CLASSWORK)
     .filter((c: any) => c && c.id && !deletedSet.has(c.id));
   const resultMap = new Map<string, ClassworkEntry>();
   baseItems.forEach((c) => resultMap.set(c.id, c));
 
-  // If Supabase is configured, fetch ONLY active/unfrozen periods (Block 2 Week 6+ and Block 3+)
-  // Frozen periods (Block 1 and Block 2 Weeks 1-5) remain static and instant from initialData.json
-  if (isSupabaseConfigured) {
-    try {
-      const res = await withTimeout<any>(
+  // Fetch local server data and Supabase in parallel so slow cloud queries never block UI
+  const srvPromise = fetchPlannerDataCached();
+  const sbPromise = isSupabaseConfigured
+    ? withTimeout<any>(
         supabase
           .from('classwork')
           .select('*')
           .in('class_id', ['G2A', 'G2B', 'G2C'])
           .or('block.gt.2,and(block.eq.2,week.gte.6)')
           .order('period', { ascending: true }),
-        1500,
+        1200,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
-      );
-      const { data, error } = res;
+      ).catch(() => ({ data: null, error: true }))
+    : Promise.resolve({ data: null, error: null });
 
-      if (!error && data && Array.isArray(data) && data.length > 0) {
-        const dbItems = (data as ClassworkRow[])
-          .map(rowToClasswork)
-          .filter((c) => isGrade2Item(c) && !isFrozenPeriod(c.block, c.week));
-        dbItems.forEach((c) => {
-          if (c && c.id && !deletedSet.has(c.id)) {
-            const existing = resultMap.get(c.id);
-            resultMap.set(c.id, {
-              ...existing,
-              ...c,
-              title: (c.title && c.title.trim()) ? c.title : (existing?.title || ''),
-              details: (c.details && c.details.trim()) ? c.details : existing?.details,
-            });
-          }
-        });
-        const localCustom = getLocalCustomClasswork().filter(
-          (c) => isGrade2Item(c) && !isFrozenPeriod(c.block, c.week)
-        );
-        localCustom.forEach((c) => {
-          if (c && c.id && !deletedSet.has(c.id)) resultMap.set(c.id, c);
-        });
-        return Array.from(resultMap.values()).filter(isGrade2Item);
-      }
-    } catch (err) {
-      console.warn('Network exception fetching classwork from Supabase (falling back):', err);
+  const [srvData, sbRes] = await Promise.all([srvPromise, sbPromise]);
+
+  if (srvData && Array.isArray(srvData.deletedPlannerItemIds)) {
+    srvData.deletedPlannerItemIds.forEach((id: string) => deletedSet.add(id));
+    for (const delId of srvData.deletedPlannerItemIds) {
+      resultMap.delete(delId);
     }
   }
 
-  // Fallback if Supabase is unconfigured or returns offline/empty
-  const localCustom = getLocalCustomClasswork().filter((c) => !isFrozenPeriod(c.block, c.week));
+  const sbData = sbRes && !sbRes.error && Array.isArray(sbRes.data) && sbRes.data.length > 0 ? sbRes.data : null;
 
-  // 1. Fetch active periods from server-side centralized storage
-  try {
-    const res = await withTimeout(fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' }), 1500, null as any);
-    if (res && res.ok) {
-      const srvData = await res.json();
-      if (srvData && Array.isArray(srvData.classwork) && srvData.classwork.length > 0) {
-        const activeSrvCw = srvData.classwork.filter((c: ClassworkEntry) => !isFrozenPeriod(c.block, c.week));
-        activeSrvCw.forEach((c: ClassworkEntry) => {
-          if (c && c.id && !deletedSet.has(c.id)) {
-            const existing = resultMap.get(c.id);
-            resultMap.set(c.id, {
-              ...existing,
-              ...c,
-              title: (c.title && c.title.trim()) ? c.title : (existing?.title || ''),
-              details: (c.details && c.details.trim()) ? c.details : existing?.details,
-            });
-          }
+  if (sbData) {
+    const dbItems = (sbData as ClassworkRow[])
+      .map(rowToClasswork)
+      .filter((c) => isGrade2Item(c) && !isFrozenPeriod(c.block, c.week));
+    dbItems.forEach((c) => {
+      if (c && c.id && !deletedSet.has(c.id)) {
+        const existing = resultMap.get(c.id);
+        resultMap.set(c.id, {
+          ...existing,
+          ...c,
+          title: (c.title && c.title.trim()) ? c.title : (existing?.title || ''),
+          details: (c.details && c.details.trim()) ? c.details : existing?.details,
         });
       }
-    }
-  } catch (err) {
-    // Server fetch fallback
+    });
+  } else if (srvData && Array.isArray(srvData.classwork) && srvData.classwork.length > 0) {
+    const activeSrvCw = srvData.classwork.filter((c: ClassworkEntry) => !isFrozenPeriod(c.block, c.week));
+    activeSrvCw.forEach((c: ClassworkEntry) => {
+      if (c && c.id && !deletedSet.has(c.id)) {
+        const existing = resultMap.get(c.id);
+        resultMap.set(c.id, {
+          ...existing,
+          ...c,
+          title: (c.title && c.title.trim()) ? c.title : (existing?.title || ''),
+          details: (c.details && c.details.trim()) ? c.details : existing?.details,
+        });
+      }
+    });
   }
 
-  // Merge localCustom over resultMap for active periods
+  const localCustom = getLocalCustomClasswork().filter(
+    (c) => isGrade2Item(c) && !isFrozenPeriod(c.block, c.week)
+  );
   localCustom.forEach((c) => {
     if (c && c.id && !deletedSet.has(c.id)) resultMap.set(c.id, c);
   });
@@ -665,6 +693,7 @@ export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkE
   // If item was previously deleted, un-delete it
   await removeDeletedPlannerItemId(entry.id);
   saveLocalCustomClasswork([entry]);
+  invalidatePlannerDataCache();
 
   // Centralized cross-device sync backup
   try {
@@ -707,6 +736,7 @@ export async function updateClassworkCompletion(id: string, completed: boolean):
   if (target) {
     target.completed = completed;
     saveLocalCustomClasswork([target]);
+    invalidatePlannerDataCache();
 
     // Centralized cross-device sync backup
     try {
@@ -748,19 +778,14 @@ export async function getDeletedPlannerItemIds(): Promise<string[]> {
     }
   } catch {}
 
-  // Background non-blocking sync of deleted IDs
-  Promise.resolve().then(async () => {
-    try {
-      const res = await withTimeout(fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' }), 600, null as any);
-      if (res && res.ok) {
-        const srvData = await res.json();
-        if (Array.isArray(srvData.deletedPlannerItemIds)) {
-          const combined = Array.from(new Set([...localList, ...srvData.deletedPlannerItemIds]));
-          appStorage.setItem(DELETED_ITEMS_STORAGE_KEY, JSON.stringify(combined));
-        }
-      }
-    } catch {}
-  });
+  // Use cached server payload if already available, or rely on fetchPlannerDataCached in callers
+  if (plannerDataMemCache?.data && Array.isArray(plannerDataMemCache.data.deletedPlannerItemIds)) {
+    const combined = Array.from(new Set([...localList, ...plannerDataMemCache.data.deletedPlannerItemIds]));
+    if (combined.length !== localList.length) {
+      appStorage.setItem(DELETED_ITEMS_STORAGE_KEY, JSON.stringify(combined));
+    }
+    return combined;
+  }
 
   return localList;
 }
@@ -816,6 +841,7 @@ export async function deleteClasswork(id: string): Promise<void> {
     const updated = current.filter((c) => c.id !== id);
     appStorage.setItem(LOCAL_CUSTOM_CW_KEY, JSON.stringify(updated));
   } catch {}
+  invalidatePlannerDataCache();
 
   // Centralized cross-device sync backup
   try {
@@ -843,6 +869,7 @@ export async function deleteClasswork(id: string): Promise<void> {
 export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merge' | 'replace' = 'merge'): Promise<void> {
   if (entries.length === 0) return;
   saveLocalCustomClasswork(entries, mode);
+  invalidatePlannerDataCache();
 
   // Centralized cross-device sync backup
   try {
@@ -919,96 +946,84 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const deletedIds = await getDeletedPlannerItemIds();
   const deletedSet = new Set(deletedIds.filter((id) => !PROTECTED_HOMEWORK_IDS.has(id)));
 
-  let baseItems: HomeworkEntry[] = ((initialData && Array.isArray((initialData as any).homework)) ? (initialData as any).homework : INITIAL_HOMEWORK)
+  const baseItems: HomeworkEntry[] = ((initialData && Array.isArray((initialData as any).homework)) ? (initialData as any).homework : INITIAL_HOMEWORK)
     .filter((h: any) => h && h.id && !deletedSet.has(h.id));
   const resultMap = new Map<string, HomeworkEntry>();
   baseItems.forEach((h) => resultMap.set(h.id, h));
 
-  // If Supabase is configured, fetch ONLY active/unfrozen periods (Block 2 Week 6+ and Block 3+)
-  // Frozen periods (Block 1 and Block 2 Weeks 1-5) load instantaneously from initialData.json
-  if (isSupabaseConfigured) {
-    try {
-      const res = await withTimeout<any>(
+  // Fetch local server data and Supabase in parallel so slow cloud queries never block UI
+  const srvPromise = fetchPlannerDataCached();
+  const sbPromise = isSupabaseConfigured
+    ? withTimeout<any>(
         supabase
           .from('homework')
           .select('*')
           .in('class_id', ['G2A', 'G2B', 'G2C'])
           .or('block.gt.2,and(block.eq.2,week.gte.6)')
           .order('created_at', { ascending: false }),
-        1500,
+        1200,
         { data: null, error: { message: 'Supabase homework query timeout' } }
-      );
-      const { data, error } = res;
+      ).catch(() => ({ data: null, error: true }))
+    : Promise.resolve({ data: null, error: null });
 
-      if (!error && data && Array.isArray(data) && data.length > 0) {
-        const dbItems = (data as HomeworkRow[])
-          .map(rowToHomework)
-          .filter((h) => isGrade2Item(h) && !isFrozenPeriod(h.block, h.week));
-        dbItems.forEach((h) => {
-          if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-          if (h && h.id && !deletedSet.has(h.id)) {
-            const existing = resultMap.get(h.id);
-            resultMap.set(h.id, {
-              ...existing,
-              ...h,
-              pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
-              pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
-            });
-          }
-        });
-        const localCustom = getLocalCustomHomework().filter(
-          (h) => isGrade2Item(h) && !isFrozenPeriod(h.block, h.week)
-        );
-        localCustom.forEach((h) => {
-          if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-          if (h && h.id && !deletedSet.has(h.id)) {
-            const existing = resultMap.get(h.id);
-            resultMap.set(h.id, {
-              ...existing,
-              ...h,
-              pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
-              pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
-            });
-          }
-        });
-        return Array.from(resultMap.values()).filter(isGrade2Item);
+  const [srvData, sbRes] = await Promise.all([srvPromise, sbPromise]);
+
+  if (srvData && Array.isArray(srvData.deletedPlannerItemIds)) {
+    srvData.deletedPlannerItemIds.forEach((id: string) => {
+      if (!PROTECTED_HOMEWORK_IDS.has(id)) {
+        deletedSet.add(id);
+        resultMap.delete(id);
       }
-    } catch (err) {
-      console.warn('Network exception fetching homework from Supabase (falling back):', err);
-    }
+    });
   }
 
-  // Fallback if Supabase is unconfigured or returns offline/empty
-  const localCustom = getLocalCustomHomework().filter((h) => !isFrozenPeriod(h.block, h.week));
+  const sbData = sbRes && !sbRes.error && Array.isArray(sbRes.data) && sbRes.data.length > 0 ? sbRes.data : null;
 
-  // 1. Fetch active periods from server-side centralized storage
-  try {
-    const res = await withTimeout(fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' }), 1500, null as any);
-    if (res && res.ok) {
-      const srvData = await res.json();
-      if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {
-        const activeSrvHw = srvData.homework.filter((h: HomeworkEntry) => !isFrozenPeriod(h.block, h.week));
-        activeSrvHw.forEach((h: HomeworkEntry) => {
-          if (h && h.id && !deletedSet.has(h.id) && !h.id.endsWith('-Tue-arabic-dictation-alert')) {
-            const existing = resultMap.get(h.id);
-            resultMap.set(h.id, {
-              ...existing,
-              ...h,
-              pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
-              pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
-            });
-          }
+  if (sbData) {
+    const dbItems = (sbData as HomeworkRow[])
+      .map(rowToHomework)
+      .filter((h) => isGrade2Item(h) && !isFrozenPeriod(h.block, h.week));
+    dbItems.forEach((h) => {
+      if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
+      if (h && h.id && !deletedSet.has(h.id)) {
+        const existing = resultMap.get(h.id);
+        resultMap.set(h.id, {
+          ...existing,
+          ...h,
+          pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
+          pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
         });
       }
-    }
-  } catch (err) {
-    // Server fetch fallback
+    });
+  } else if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {
+    const activeSrvHw = srvData.homework.filter((h: HomeworkEntry) => !isFrozenPeriod(h.block, h.week));
+    activeSrvHw.forEach((h: HomeworkEntry) => {
+      if (h && h.id && !deletedSet.has(h.id) && !h.id.endsWith('-Tue-arabic-dictation-alert')) {
+        const existing = resultMap.get(h.id);
+        resultMap.set(h.id, {
+          ...existing,
+          ...h,
+          pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
+          pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
+        });
+      }
+    });
   }
 
-  // Merge localCustom over resultMap for active periods
+  const localCustom = getLocalCustomHomework().filter(
+    (h) => isGrade2Item(h) && !isFrozenPeriod(h.block, h.week)
+  );
   localCustom.forEach((h) => {
     if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-    if (h && h.id && !deletedSet.has(h.id)) resultMap.set(h.id, h);
+    if (h && h.id && !deletedSet.has(h.id)) {
+      const existing = resultMap.get(h.id);
+      resultMap.set(h.id, {
+        ...existing,
+        ...h,
+        pdfUrl: h.pdfUrl || (existing && existing.pdfUrl) || undefined,
+        pdfUrls: (h.pdfUrls && h.pdfUrls.length > 0) ? h.pdfUrls : (existing && existing.pdfUrls) || undefined,
+      });
+    }
   });
 
   return Array.from(resultMap.values()).filter(isGrade2Item);
@@ -1018,6 +1033,7 @@ export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntr
   // If item was previously deleted, un-delete it
   await removeDeletedPlannerItemId(entry.id);
   saveLocalCustomHomework([entry]);
+  invalidatePlannerDataCache();
 
   // Centralized cross-device sync backup
   try {
@@ -1060,6 +1076,7 @@ export async function updateHomeworkCompletion(id: string, completed: boolean): 
   if (target) {
     target.completed = completed;
     saveLocalCustomHomework([target]);
+    invalidatePlannerDataCache();
 
     // Centralized cross-device sync backup
     try {
@@ -1098,6 +1115,7 @@ export async function deleteHomework(id: string): Promise<void> {
     const updated = current.filter((h) => h.id !== id);
     appStorage.setItem(LOCAL_CUSTOM_HW_KEY, JSON.stringify(updated));
   } catch {}
+  invalidatePlannerDataCache();
 
   // Centralized cross-device sync backup
   try {
@@ -1125,6 +1143,7 @@ export async function deleteHomework(id: string): Promise<void> {
 export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge' | 'replace' = 'merge'): Promise<void> {
   if (entries.length === 0) return;
   saveLocalCustomHomework(entries, mode);
+  invalidatePlannerDataCache();
 
   // Centralized cross-device sync backup
   try {
@@ -1829,19 +1848,24 @@ export async function uploadPdfToSupabaseStorage(
 }
 
 /**
- * Fetch all materials metadata from Supabase 'materials' table
+ * Fetch all materials metadata from Supabase 'materials' table (fast metadata-only select + strict timeout)
  */
 export async function fetchAllMaterialsFromSupabase(): Promise<MaterialItem[]> {
   if (!isSupabaseConfigured) return [];
 
   try {
-    const { data, error } = await supabase
-      .from('materials')
-      .select('*')
-      .order('uploaded_at', { ascending: false });
+    const res = await withTimeout<any>(
+      supabase
+        .from('materials')
+        .select('id,file_name,file_size,block,section,class_id,storage_url,uploaded_at')
+        .order('uploaded_at', { ascending: false }),
+      1200,
+      { data: null, error: { message: 'Supabase materials query timeout' } }
+    );
+    const { data, error } = res || {};
 
-    if (error) {
-      console.warn('Supabase fetch materials notice:', error.message);
+    if (error || !Array.isArray(data)) {
+      if (error) console.warn('Supabase fetch materials notice:', error.message);
       return [];
     }
 

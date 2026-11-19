@@ -34,6 +34,7 @@ interface NavbarProps {
   onOpenProfileModal?: () => void;
   onOpenAdminAuth?: () => void;
   onOpenMaterials?: () => void;
+  onPrefetchMaterials?: () => void;
   onOpenSupabaseConfig?: () => void;
   supabaseStatus?: 'connecting' | 'connected' | 'unconfigured' | 'error';
   onRefreshData?: () => void;
@@ -57,6 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProfileModal,
   onOpenAdminAuth,
   onOpenMaterials,
+  onPrefetchMaterials,
   onOpenSupabaseConfig,
   supabaseStatus = 'unconfigured',
   onRefreshData,
@@ -293,6 +295,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               id="materials-btn"
               type="button"
               onClick={onOpenMaterials}
+              onMouseEnter={onPrefetchMaterials}
+              onTouchStart={onPrefetchMaterials}
               className="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100/80 border border-amber-200 text-amber-950 font-black text-xs rounded-xl px-2.5 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-amber-500"
               title="Materials"
             >

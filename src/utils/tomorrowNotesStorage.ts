@@ -1,7 +1,7 @@
 import { ClassId, SchoolDay } from '../types';
 import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK4_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
-import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage, isFrozenPeriod, withTimeout } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage, isFrozenPeriod, withTimeout, fetchPlannerDataCached, invalidatePlannerDataCache } from '../lib/supabase';
 
 export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK4_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES };
 
@@ -715,22 +715,19 @@ export async function getTomorrowNotesForDay(
     });
 
     try {
-      const res = await withTimeout(fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' }), 1500, null as any);
-      if (res && res.ok) {
-        const pData = await res.json();
-        if (pData && Array.isArray(pData.tomorrowNotes)) {
-          pData.tomorrowNotes.forEach((n: any) => {
-            if (
-              (n.classId === classId || n.classId === 'ALL') &&
-              n.targetDay === targetDay &&
-              (n.block || 1) === block &&
-              (n.week || 1) === week
-            ) {
-              const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-              map.set(key, n);
-            }
-          });
-        }
+      const pData = await fetchPlannerDataCached();
+      if (pData && Array.isArray(pData.tomorrowNotes)) {
+        pData.tomorrowNotes.forEach((n: any) => {
+          if (
+            (n.classId === classId || n.classId === 'ALL') &&
+            n.targetDay === targetDay &&
+            (n.block || 1) === block &&
+            (n.week || 1) === week
+          ) {
+            const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+            map.set(key, n);
+          }
+        });
       }
     } catch {}
 
@@ -814,11 +811,11 @@ export async function getTomorrowNotesForDay(
       .select('key,value')
       .in('key', ['g2_tomorrow_special_notes', 'tomorrow_special_notes']);
 
-    const [cwRes, hwRes, psRes, plannerApiRes] = await Promise.all([
-      withTimeout<any>(cwQuery, 1500, { data: null, error: null }),
-      withTimeout<any>(hwQuery, 1500, { data: null, error: null }),
-      withTimeout<any>(psQuery, 1500, { data: null, error: null }),
-      withTimeout<any>(fetch(`/api/planner-data?t=${Date.now()}`, { cache: 'no-store' }), 1500, null),
+    const [cwRes, hwRes, psRes, pData] = await Promise.all([
+      withTimeout<any>(cwQuery, 1200, { data: null, error: null }),
+      withTimeout<any>(hwQuery, 1200, { data: null, error: null }),
+      withTimeout<any>(psQuery, 1200, { data: null, error: null }),
+      fetchPlannerDataCached(),
     ]);
 
     const cwList = cwRes?.data;
@@ -908,21 +905,18 @@ export async function getTomorrowNotesForDay(
 
     // 3. Merge from central planner-data endpoint (already fetched in parallel)
     try {
-      if (plannerApiRes && plannerApiRes.ok) {
-        const pData = await plannerApiRes.json();
-        if (pData && Array.isArray(pData.tomorrowNotes)) {
-          pData.tomorrowNotes.forEach((n: any) => {
-            if (
-              (n.classId === classId || (n.classId === 'ALL' && isGrade2TomorrowNote(n))) &&
-              n.targetDay === targetDay &&
-              (n.block || 1) === block &&
-              (n.week || 1) === week &&
-              isGrade2TomorrowNote(n)
-            ) {
-              dynamicNotes.push({ ...n, isCustom: true });
-            }
-          });
-        }
+      if (pData && Array.isArray(pData.tomorrowNotes)) {
+        pData.tomorrowNotes.forEach((n: any) => {
+          if (
+            (n.classId === classId || (n.classId === 'ALL' && isGrade2TomorrowNote(n))) &&
+            n.targetDay === targetDay &&
+            (n.block || 1) === block &&
+            (n.week || 1) === week &&
+            isGrade2TomorrowNote(n)
+          ) {
+            dynamicNotes.push({ ...n, isCustom: true });
+          }
+        });
       }
     } catch {}
 
@@ -1494,6 +1488,7 @@ export async function saveDeletedTomorrowNoteId(noteId: string): Promise<void> {
   appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(currentList));
   IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(currentList);
 
+  invalidatePlannerDataCache();
   try {
     await fetch('/api/planner-data/delete', {
       method: 'POST',
@@ -1560,6 +1555,7 @@ export async function saveTomorrowNotes(
 
   saveLocalCustomTomorrowNotes(notes, mode);
 
+  invalidatePlannerDataCache();
   try {
     await fetch('/api/planner-data', {
       method: 'POST',
