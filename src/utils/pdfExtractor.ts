@@ -13,10 +13,13 @@ export async function extractTextFromPdf(file: File): Promise<string> {
     
     const extractionPromise = (async () => {
       try {
-        const pdfjsLib = await import('pdfjs-dist');
+        const [pdfjsLib, workerModule] = await Promise.all([
+          import('pdfjs-dist'),
+          import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
+        ]);
         if (typeof window !== 'undefined') {
           try {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+            pdfjsLib.GlobalWorkerOptions.workerSrc = workerModule.default;
           } catch {}
         }
 

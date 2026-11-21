@@ -9,11 +9,12 @@ import {
   getProxiedOrLocalUrl,
 } from '../utils/materialsStorage';
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// Initialize PDF.js worker in browser environment
+// Initialize PDF.js worker in browser environment using Vite-bundled asset URL
 if (typeof window !== 'undefined') {
   try {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
   } catch {}
 }
 
