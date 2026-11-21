@@ -863,6 +863,10 @@ export default function App() {
   };
 
   const handleSaveClasswork = async (entry: ClassworkEntry) => {
+    if (isFrozenPeriod(entry.block || currentBlock, entry.week || currentWeek)) {
+      showToast('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما.');
+      return;
+    }
     try {
       await removeDeletedPlannerItemId(entry.id);
     } catch {}
@@ -935,6 +939,10 @@ export default function App() {
   };
 
   const handleAddHomework = async (entry: HomeworkEntry) => {
+    if (isFrozenPeriod(entry.block || currentBlock, entry.week || currentWeek)) {
+      showToast('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما.');
+      return;
+    }
     try {
       await removeDeletedPlannerItemId(entry.id);
     } catch {}
@@ -966,6 +974,10 @@ export default function App() {
   const handleDeleteHomework = async (id: string) => {
     const originalItem = homeworkList.find((h) => h.id === id);
     if (!originalItem) return;
+    if (isFrozenPeriod(originalItem.block || currentBlock, originalItem.week || currentWeek)) {
+      showToast('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن الحذف منهما.');
+      return;
+    }
 
     setHomeworkList((prev) => {
       const next = prev.filter((h) => h.id !== id);
@@ -1022,28 +1034,34 @@ export default function App() {
     newHomework: HomeworkEntry[],
     mode: 'merge' | 'replace' = 'replace'
   ) => {
+    const mutableCw = newClasswork.filter((c) => !isFrozenPeriod(c.block, c.week));
+    const mutableHw = newHomework.filter((h) => !isFrozenPeriod(h.block, h.week));
+    if (mutableCw.length === 0 && mutableHw.length === 0) {
+      showToast('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما.');
+      return;
+    }
     if (mode === 'replace') {
-      const cwKeys = new Set(newClasswork.map((c) => `${c.block || 1}-${c.week || 1}-${c.class_id || c.classId}-${c.subject}`));
-      const hwKeys = new Set(newHomework.map((h) => `${h.block || 1}-${h.week || 1}-${h.class_id || h.classId}-${h.subject}`));
+      const cwKeys = new Set(mutableCw.map((c) => `${c.block || 1}-${c.week || 1}-${c.class_id || c.classId}-${c.subject}`));
+      const hwKeys = new Set(mutableHw.map((h) => `${h.block || 1}-${h.week || 1}-${h.class_id || h.classId}-${h.subject}`));
 
       setClassworkList((prev) => [
-        ...newClasswork,
-        ...prev.filter((c) => !cwKeys.has(`${c.block || 1}-${c.week || 1}-${c.class_id || c.classId}-${c.subject}`)),
+        ...mutableCw,
+        ...prev.filter((c) => isFrozenPeriod(c.block, c.week) || !cwKeys.has(`${c.block || 1}-${c.week || 1}-${c.class_id || c.classId}-${c.subject}`)),
       ]);
       setHomeworkList((prev) => [
-        ...newHomework,
-        ...prev.filter((h) => !hwKeys.has(`${h.block || 1}-${h.week || 1}-${h.class_id || h.classId}-${h.subject}`)),
+        ...mutableHw,
+        ...prev.filter((h) => isFrozenPeriod(h.block, h.week) || !hwKeys.has(`${h.block || 1}-${h.week || 1}-${h.class_id || h.classId}-${h.subject}`)),
       ]);
     } else {
-      setClassworkList((prev) => [...newClasswork, ...prev]);
-      setHomeworkList((prev) => [...newHomework, ...prev]);
+      setClassworkList((prev) => [...mutableCw, ...prev]);
+      setHomeworkList((prev) => [...mutableHw, ...prev]);
     }
 
     if (isSupabaseConfigured) {
       try {
         await Promise.all([
-          bulkInsertClasswork(newClasswork, mode),
-          bulkInsertHomework(newHomework, mode),
+          bulkInsertClasswork(mutableCw, mode),
+          bulkInsertHomework(mutableHw, mode),
         ]);
       } catch (e) {
         console.error('Error saving weekly plan to Supabase:', e);
@@ -1056,33 +1074,18 @@ export default function App() {
     );
   };
 
-  // Reset to sample plan
+  // Reset to sample plan (safe guard: never overwrite frozen Block 1 & Block 2)
   const handleResetToDefaults = async () => {
-    if (confirm('هل تريد استعادة الخطة الأصلية ومزامنتها مباشرة مع Supabase؟')) {
-      setClassworkList(INITIAL_CLASSWORK.map((c) => ({ ...c, completed: false })));
-      setHomeworkList(INITIAL_HOMEWORK.map((h) => ({ ...h, completed: false })));
-
-      if (userProfile?.mode === 'student' && userProfile.studentName) {
-        saveStudentProgress(userProfile.studentName, [], [], currentClass);
-      }
-
-      if (isSupabaseConfigured) {
-        try {
-          await Promise.all([
-            bulkInsertClasswork(INITIAL_CLASSWORK),
-            bulkInsertHomework(INITIAL_HOMEWORK),
-          ]);
-        } catch (e) {
-          console.error('Failed to sync default data to Supabase:', e);
-        }
-      }
-      showToast('تمت استعادة الخطة الأولية وتحديث Supabase.');
-    }
+    showToast('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي للحفاظ على كافة البيانات بدون أي تغيير.');
   };
 
   const handleDeleteClasswork = async (id: string) => {
     const originalItem = classworkList.find((c) => c.id === id);
     if (!originalItem) return;
+    if (isFrozenPeriod(originalItem.block || currentBlock, originalItem.week || currentWeek)) {
+      showToast('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن الحذف منهما.');
+      return;
+    }
 
     setClassworkList((prev) => prev.filter((c) => c.id !== id));
     try {
@@ -1119,6 +1122,14 @@ export default function App() {
   };
 
   const handleSaveInteractiveItem = async (type: 'classwork' | 'homework' | 'tomorrow', data: any) => {
+    const targetBlock = Number(data.block || currentBlock);
+    const targetWeek = Number(data.week || currentWeek);
+    if (isFrozenPeriod(targetBlock, targetWeek)) {
+      showToast('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما.');
+      setIsEditorModalOpen(false);
+      return;
+    }
+
     if (data.classId && (data.classId as any) !== 'ALL') {
       setCurrentClass(data.classId as ClassId);
     }
@@ -1175,6 +1186,10 @@ export default function App() {
     } else if (type === 'homework') {
       await handleDeleteHomework(id);
     } else if (type === 'tomorrow') {
+      if (isFrozenPeriod(currentBlock, currentWeek)) {
+        showToast('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن الحذف منهما.');
+        return;
+      }
       try {
         await saveDeletedTomorrowNoteId(id);
 
@@ -1270,15 +1285,14 @@ export default function App() {
           if (isSupabaseConfigured) {
             savePlannerSetting('current_block', String(b)).catch(() => {});
           }
-          if (b === 2) {
-            setCurrentWeek(6);
-            appStorage.setItem(STORAGE_KEYS.WEEK, '6');
-            if (isSupabaseConfigured) {
-              savePlannerSetting('g2_current_week', '6').catch(() => {});
-              savePlannerSetting('current_week', '6').catch(() => {});
-            }
+          const nextWeek = b === 2 ? 6 : 1;
+          setCurrentWeek(nextWeek);
+          appStorage.setItem(STORAGE_KEYS.WEEK, String(nextWeek));
+          if (isSupabaseConfigured) {
+            savePlannerSetting('g2_current_week', String(nextWeek)).catch(() => {});
+            savePlannerSetting('current_week', String(nextWeek)).catch(() => {});
           }
-          showToast(`Switched to Block ${b}`);
+          showToast(`Switched to Block ${b} (Week ${nextWeek})`);
         }}
         currentWeek={currentWeek}
         onSelectWeek={(w) => {

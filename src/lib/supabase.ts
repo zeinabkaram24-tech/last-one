@@ -604,11 +604,19 @@ export function saveLocalCustomHomework(entries: HomeworkEntry[], mode: 'merge' 
   } catch {}
 }
 
-// Freeze Block 1 (all weeks) and Block 2 (Weeks 1-5) in static initialData.json for instant loading
-export function isFrozenPeriod(block?: number | null, week?: number | null): boolean {
+// Freeze Block 1 (all weeks) and Block 2 (all weeks) in static initialData.json — read-only & instant loading
+export function isFrozenPeriod(block?: number | null, _week?: number | null): boolean {
   const b = Number(block) || 1;
-  const w = Number(week) || 1;
-  return b === 1 || (b === 2 && w <= 5);
+  return b === 1 || b === 2;
+}
+
+function isFrozenInitialItemId(id: string, collection: 'classwork' | 'homework'): boolean {
+  if (!id) return false;
+  const list = (initialData && Array.isArray((initialData as any)[collection]))
+    ? (initialData as any)[collection]
+    : [];
+  const found = list.find((item: any) => item && item.id === id);
+  return Boolean(found && isFrozenPeriod(found.block, found.week));
 }
 
 // =========================================================================
@@ -620,7 +628,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const deletedSet = new Set(deletedIds);
 
   const baseItems: ClassworkEntry[] = ((initialData && Array.isArray((initialData as any).classwork)) ? (initialData as any).classwork : INITIAL_CLASSWORK)
-    .filter((c: any) => c && c.id && !deletedSet.has(c.id));
+    .filter((c: any) => c && c.id && (!deletedSet.has(c.id) || isFrozenPeriod(c.block, c.week)));
   const resultMap = new Map<string, ClassworkEntry>();
   baseItems.forEach((c) => resultMap.set(c.id, c));
 
@@ -632,7 +640,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
           .from('classwork')
           .select('*')
           .in('class_id', ['G2A', 'G2B', 'G2C'])
-          .or('block.gt.2,and(block.eq.2,week.gte.6)')
+          .gt('block', 2)
           .order('period', { ascending: true }),
         1200,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
@@ -642,10 +650,12 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const [srvData, sbRes] = await Promise.all([srvPromise, sbPromise]);
 
   if (srvData && Array.isArray(srvData.deletedPlannerItemIds)) {
-    srvData.deletedPlannerItemIds.forEach((id: string) => deletedSet.add(id));
-    for (const delId of srvData.deletedPlannerItemIds) {
-      resultMap.delete(delId);
-    }
+    srvData.deletedPlannerItemIds.forEach((id: string) => {
+      if (!isFrozenInitialItemId(id, 'classwork')) {
+        deletedSet.add(id);
+        resultMap.delete(id);
+      }
+    });
   }
 
   const sbData = sbRes && !sbRes.error && Array.isArray(sbRes.data) && sbRes.data.length > 0 ? sbRes.data : null;
@@ -690,6 +700,10 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
 }
 
 export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkEntry> {
+  if (isFrozenPeriod(entry.block, entry.week)) {
+    console.warn('Blocked upsertClasswork on frozen Block 1/2:', entry.id);
+    return entry;
+  }
   // If item was previously deleted, un-delete it
   await removeDeletedPlannerItemId(entry.id);
   saveLocalCustomClasswork([entry]);
@@ -832,7 +846,11 @@ export async function removeDeletedPlannerItemId(itemId: string): Promise<void> 
   }
 }
 
-export async function deleteClasswork(id: string): Promise<void> {
+export async function deleteClasswork(id: string, block?: number, week?: number): Promise<void> {
+  if ((block !== undefined && isFrozenPeriod(block, week)) || isFrozenInitialItemId(id, 'classwork')) {
+    console.warn('Blocked deleteClasswork on frozen Block 1/2:', id);
+    return;
+  }
   await saveDeletedPlannerItemId(id);
 
   // Remove from local custom classwork storage immediately
@@ -867,8 +885,9 @@ export async function deleteClasswork(id: string): Promise<void> {
 }
 
 export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merge' | 'replace' = 'merge'): Promise<void> {
-  if (entries.length === 0) return;
-  saveLocalCustomClasswork(entries, mode);
+  const mutableEntries = entries.filter((e) => !isFrozenPeriod(e.block, e.week));
+  if (mutableEntries.length === 0) return;
+  saveLocalCustomClasswork(mutableEntries, mode);
   invalidatePlannerDataCache();
 
   // Centralized cross-device sync backup
@@ -876,7 +895,7 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merg
     await fetch('/api/planner-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ classwork: entries, mode }),
+      body: JSON.stringify({ classwork: mutableEntries, mode }),
     });
   } catch (err) {
     console.warn('Central server sync error in bulkInsertClasswork:', err);
@@ -887,7 +906,7 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merg
   if (mode === 'replace') {
     try {
       const combos = new Map<string, { block: number; week: number; classes: Set<string> }>();
-      entries.forEach((e) => {
+      mutableEntries.forEach((e) => {
         const key = `${e.block || 1}-${e.week || 1}`;
         if (!combos.has(key)) {
           combos.set(key, { block: e.block || 1, week: e.week || 1, classes: new Set() });
@@ -896,6 +915,7 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merg
       });
 
       for (const combo of combos.values()) {
+        if (isFrozenPeriod(combo.block, combo.week)) continue;
         if (combo.classes.has('ALL')) {
           await supabase
             .from('classwork')
@@ -917,7 +937,7 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merg
     }
   }
 
-  const rows = entries.map(classworkToRow);
+  const rows = mutableEntries.map(classworkToRow);
   for (let i = 0; i < rows.length; i += 50) {
     const chunk = rows.slice(i, i + 50);
     try {
@@ -947,7 +967,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const deletedSet = new Set(deletedIds.filter((id) => !PROTECTED_HOMEWORK_IDS.has(id)));
 
   const baseItems: HomeworkEntry[] = ((initialData && Array.isArray((initialData as any).homework)) ? (initialData as any).homework : INITIAL_HOMEWORK)
-    .filter((h: any) => h && h.id && !deletedSet.has(h.id));
+    .filter((h: any) => h && h.id && (!deletedSet.has(h.id) || isFrozenPeriod(h.block, h.week)));
   const resultMap = new Map<string, HomeworkEntry>();
   baseItems.forEach((h) => resultMap.set(h.id, h));
 
@@ -959,7 +979,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           .from('homework')
           .select('*')
           .in('class_id', ['G2A', 'G2B', 'G2C'])
-          .or('block.gt.2,and(block.eq.2,week.gte.6)')
+          .gt('block', 2)
           .order('created_at', { ascending: false }),
         1200,
         { data: null, error: { message: 'Supabase homework query timeout' } }
@@ -970,7 +990,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
 
   if (srvData && Array.isArray(srvData.deletedPlannerItemIds)) {
     srvData.deletedPlannerItemIds.forEach((id: string) => {
-      if (!PROTECTED_HOMEWORK_IDS.has(id)) {
+      if (!PROTECTED_HOMEWORK_IDS.has(id) && !isFrozenInitialItemId(id, 'homework')) {
         deletedSet.add(id);
         resultMap.delete(id);
       }
@@ -1030,6 +1050,10 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
 }
 
 export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntry> {
+  if (isFrozenPeriod(entry.block, entry.week)) {
+    console.warn('Blocked upsertHomework on frozen Block 1/2:', entry.id);
+    return entry;
+  }
   // If item was previously deleted, un-delete it
   await removeDeletedPlannerItemId(entry.id);
   saveLocalCustomHomework([entry]);
@@ -1106,7 +1130,11 @@ export async function updateHomeworkCompletion(id: string, completed: boolean): 
   }
 }
 
-export async function deleteHomework(id: string): Promise<void> {
+export async function deleteHomework(id: string, block?: number, week?: number): Promise<void> {
+  if ((block !== undefined && isFrozenPeriod(block, week)) || isFrozenInitialItemId(id, 'homework')) {
+    console.warn('Blocked deleteHomework on frozen Block 1/2:', id);
+    return;
+  }
   await saveDeletedPlannerItemId(id);
 
   // Remove from local custom homework storage immediately
@@ -1141,8 +1169,9 @@ export async function deleteHomework(id: string): Promise<void> {
 }
 
 export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge' | 'replace' = 'merge'): Promise<void> {
-  if (entries.length === 0) return;
-  saveLocalCustomHomework(entries, mode);
+  const mutableEntries = entries.filter((e) => !isFrozenPeriod(e.block, e.week));
+  if (mutableEntries.length === 0) return;
+  saveLocalCustomHomework(mutableEntries, mode);
   invalidatePlannerDataCache();
 
   // Centralized cross-device sync backup
@@ -1150,7 +1179,7 @@ export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge'
     await fetch('/api/planner-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ homework: entries, mode }),
+      body: JSON.stringify({ homework: mutableEntries, mode }),
     });
   } catch (err) {
     console.warn('Central server sync error in bulkInsertHomework:', err);
@@ -1161,7 +1190,7 @@ export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge'
   if (mode === 'replace') {
     try {
       const combos = new Map<string, { block: number; week: number; classes: Set<string> }>();
-      entries.forEach((e) => {
+      mutableEntries.forEach((e) => {
         const key = `${e.block || 1}-${e.week || 1}`;
         if (!combos.has(key)) {
           combos.set(key, { block: e.block || 1, week: e.week || 1, classes: new Set() });
@@ -1170,6 +1199,7 @@ export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge'
       });
 
       for (const combo of combos.values()) {
+        if (isFrozenPeriod(combo.block, combo.week)) continue;
         if (combo.classes.has('ALL')) {
           await supabase
             .from('homework')
@@ -1191,7 +1221,7 @@ export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge'
     }
   }
 
-  const rows = entries.map(homeworkToRow);
+  const rows = mutableEntries.map(homeworkToRow);
   for (let i = 0; i < rows.length; i += 50) {
     const chunk = rows.slice(i, i + 50);
     try {

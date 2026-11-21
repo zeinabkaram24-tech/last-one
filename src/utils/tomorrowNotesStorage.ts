@@ -2,6 +2,7 @@ import { ClassId, SchoolDay } from '../types';
 import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK4_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage, isFrozenPeriod, withTimeout, fetchPlannerDataCached, invalidatePlannerDataCache } from '../lib/supabase';
+import initialData from '../data/initialData.json';
 
 export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK4_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES };
 
@@ -1479,8 +1480,42 @@ export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
   return [];
 }
 
-export async function saveDeletedTomorrowNoteId(noteId: string): Promise<void> {
+let frozenTomorrowIdSetCache: Set<string> | null = null;
+function isFrozenTomorrowNoteId(noteId: string): boolean {
+  if (!noteId) return false;
+  if (/^(?:tn|tomorrow)-b[12]-/i.test(noteId)) return true;
+  if (!frozenTomorrowIdSetCache) {
+    const set = new Set<string>();
+    const sources: any[] = [
+      ...(((initialData as any)?.tomorrowNotes) || []),
+      ...SPECIAL_TEACHER_NOTES,
+      ...WEEK2_SPECIAL_NOTES,
+      ...WEEK3_SPECIAL_NOTES,
+      ...WEEK4_SPECIAL_NOTES,
+      ...WEEK5_SPECIAL_NOTES,
+      ...BLOCK2_WEEK1_SPECIAL_NOTES,
+      ...BLOCK2_WEEK2_SPECIAL_NOTES,
+      ...BLOCK2_WEEK3_SPECIAL_NOTES,
+      ...BLOCK2_WEEK4_SPECIAL_NOTES,
+      ...BLOCK2_WEEK5_SPECIAL_NOTES,
+      ...BLOCK2_WEEK6_SPECIAL_NOTES,
+    ];
+    sources.forEach((n) => {
+      if (n && n.id && isFrozenPeriod(n.block || 1, n.week || 1)) {
+        set.add(n.id);
+      }
+    });
+    frozenTomorrowIdSetCache = set;
+  }
+  return frozenTomorrowIdSetCache.has(noteId);
+}
+
+export async function saveDeletedTomorrowNoteId(noteId: string, block?: number, week?: number): Promise<void> {
   if (!noteId) return;
+  if ((block !== undefined && isFrozenPeriod(block, week)) || isFrozenTomorrowNoteId(noteId)) {
+    console.warn('Blocked saveDeletedTomorrowNoteId on frozen Block 1/2:', noteId);
+    return;
+  }
   const currentList = await getDeletedTomorrowNoteIds();
   if (!currentList.includes(noteId)) {
     currentList.push(noteId);
@@ -1543,7 +1578,14 @@ export async function saveTomorrowNotes(
   notes: TomorrowSpecialNote[],
   mode: 'merge' | 'replace' = 'merge'
 ): Promise<void> {
-  for (const note of notes) {
+  if (isFrozenPeriod(block, week)) {
+    console.warn(`Blocked saveTomorrowNotes on frozen Block ${block} Week ${week}`);
+    return;
+  }
+  const mutableNotes = notes.filter((n) => !isFrozenPeriod(n.block || block, n.week || week));
+  if (mutableNotes.length === 0) return;
+
+  for (const note of mutableNotes) {
     if (note.id) {
       await removeDeletedTomorrowNoteId(note.id);
     }
@@ -1553,14 +1595,14 @@ export async function saveTomorrowNotes(
     }
   }
 
-  saveLocalCustomTomorrowNotes(notes, mode);
+  saveLocalCustomTomorrowNotes(mutableNotes, mode);
 
   invalidatePlannerDataCache();
   try {
     await fetch('/api/planner-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tomorrowNotes: notes, mode }),
+      body: JSON.stringify({ tomorrowNotes: mutableNotes, mode, block, week }),
     });
   } catch (err) {
     console.warn('Central server sync error in saveTomorrowNotes:', err);
@@ -1569,27 +1611,29 @@ export async function saveTomorrowNotes(
   if (isSupabaseConfigured) {
     try {
       if (mode === 'replace') {
-        const targetBlock = notes[0]?.block || block;
-        const targetWeek = notes[0]?.week || week;
-        const deletePatterns = ['tomorrow-%', 'note-%', 'tn-%'];
-        for (const pattern of deletePatterns) {
-          await supabase
-            .from('classwork')
-            .delete()
-            .eq('block', targetBlock)
-            .eq('week', targetWeek)
-            .like('id', pattern);
+        const targetBlock = mutableNotes[0]?.block || block;
+        const targetWeek = mutableNotes[0]?.week || week;
+        if (!isFrozenPeriod(targetBlock, targetWeek)) {
+          const deletePatterns = ['tomorrow-%', 'note-%', 'tn-%'];
+          for (const pattern of deletePatterns) {
+            await supabase
+              .from('classwork')
+              .delete()
+              .eq('block', targetBlock)
+              .eq('week', targetWeek)
+              .like('id', pattern);
 
-          await supabase
-            .from('homework')
-            .delete()
-            .eq('block', targetBlock)
-            .eq('week', targetWeek)
-            .like('id', pattern);
+            await supabase
+              .from('homework')
+              .delete()
+              .eq('block', targetBlock)
+              .eq('week', targetWeek)
+              .like('id', pattern);
+          }
         }
       }
 
-      for (const note of notes) {
+      for (const note of mutableNotes) {
         // ALWAYS use tomorrow-cw prefix to identify tomorrow notes, preventing leaks to the homework table!
         const targetId = note.id || `tomorrow-cw-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         const targetClasses: ClassId[] =

@@ -213,6 +213,31 @@ function getInitialDataCached(): any {
   return initialDataCache;
 }
 
+function isFrozenBlockServer(block?: any): boolean {
+  const b = Number(block);
+  return b === 1 || b === 2;
+}
+
+let frozenItemIdsServerCache: Set<string> | null = null;
+function isFrozenItemIdServer(id?: string): boolean {
+  if (!id) return false;
+  if (/^(?:cw|hw|tn|tomorrow)-b[12]-/i.test(id)) return true;
+  if (!frozenItemIdsServerCache) {
+    const set = new Set<string>();
+    const init = getInitialDataCached();
+    ['classwork', 'homework', 'tomorrowNotes'].forEach((key) => {
+      const list = Array.isArray(init?.[key]) ? init[key] : [];
+      list.forEach((item: any) => {
+        if (item && item.id && isFrozenBlockServer(item.block || 1)) {
+          set.add(item.id);
+        }
+      });
+    });
+    frozenItemIdsServerCache = set;
+  }
+  return frozenItemIdsServerCache.has(id);
+}
+
 // Helper to read materials from memory cache / disk
 function getStoredMaterials(): any[] {
   if (materialsListCache) return materialsListCache;
@@ -486,27 +511,27 @@ app.post('/api/supabase/delete-week3', async (req, res) => {
     const effectiveUrl = cleanSupabaseUrl(storedConfig?.url || process.env.VITE_SUPABASE_URL || '');
     const effectiveKey = (storedConfig?.key || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
-    // 1. Delete week 3 from local planner_data.json
+    // 1. Delete week 3 ONLY for non-frozen blocks (block > 2) from local planner_data.json
     const data = getStoredPlannerData();
     if (Array.isArray(data.classwork)) {
-      data.classwork = data.classwork.filter((c: any) => Number(c.week) !== 3);
+      data.classwork = data.classwork.filter((c: any) => isFrozenBlockServer(c.block || 1) || Number(c.week) !== 3);
     }
     if (Array.isArray(data.homework)) {
-      data.homework = data.homework.filter((h: any) => Number(h.week) !== 3);
+      data.homework = data.homework.filter((h: any) => isFrozenBlockServer(h.block || 1) || Number(h.week) !== 3);
     }
     if (Array.isArray(data.tomorrowNotes)) {
-      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => Number(n.week) !== 3);
+      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => isFrozenBlockServer(n.block || 1) || Number(n.week) !== 3);
     }
     saveStoredPlannerData(data);
     broadcastPlannerUpdate('planner_updated', { source: 'delete_week3' });
 
-    // 2. If Supabase is configured, delete week 3 rows from Supabase
+    // 2. If Supabase is configured, delete week 3 rows ONLY for block > 2
     let deletedFromSupabase = false;
     if (effectiveUrl && effectiveKey) {
       const client = createClient(effectiveUrl, effectiveKey);
       await Promise.all([
-        client.from('classwork').delete().eq('week', 3),
-        client.from('homework').delete().eq('week', 3),
+        client.from('classwork').delete().eq('week', 3).gt('block', 2),
+        client.from('homework').delete().eq('week', 3).gt('block', 2),
       ]);
       deletedFromSupabase = true;
     }
@@ -521,43 +546,41 @@ app.post('/api/supabase/delete-week3', async (req, res) => {
   }
 });
 
-// Delete all Tomorrow items for Week 4 across all classes
+// Delete all Tomorrow items for Week 4 across all classes (non-frozen blocks only)
 app.post('/api/supabase/delete-tomorrow-week4', async (req, res) => {
   try {
     const storedConfig = getStoredSupabaseConfig();
     const effectiveUrl = cleanSupabaseUrl(storedConfig?.url || process.env.VITE_SUPABASE_URL || '');
     const effectiveKey = (storedConfig?.key || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
-    // 1. Delete week 4 tomorrow notes from local planner_data.json
+    // 1. Delete week 4 tomorrow notes (only block > 2) from local planner_data.json
     const data = getStoredPlannerData();
     if (Array.isArray(data.tomorrowNotes)) {
-      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week-4') && !n.id?.includes('week4'));
+      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => isFrozenBlockServer(n.block || 1) || (Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week-4') && !n.id?.includes('week4')));
     }
-    // Also remove any rogue tomorrow items stored directly in classwork or homework table
+    // Also remove any rogue tomorrow items stored directly in classwork or homework table (only block > 2)
     if (Array.isArray(data.classwork)) {
-      data.classwork = data.classwork.filter((c: any) => !(Number(c.week) === 4 && (c.id?.startsWith('tomorrow-') || c.id?.startsWith('tn-w4'))));
+      data.classwork = data.classwork.filter((c: any) => isFrozenBlockServer(c.block || 1) || !(Number(c.week) === 4 && (c.id?.startsWith('tomorrow-') || c.id?.startsWith('tn-w4'))));
     }
     if (Array.isArray(data.deletedTomorrowNoteIds)) {
-      data.deletedTomorrowNoteIds = data.deletedTomorrowNoteIds.filter((id: string) => !id.includes('w4') && !id.includes('week4') && !id.includes('week-4'));
+      data.deletedTomorrowNoteIds = data.deletedTomorrowNoteIds.filter((id: string) => isFrozenItemIdServer(id) || (!id.includes('w4') && !id.includes('week4') && !id.includes('week-4')));
     }
     saveStoredPlannerData(data);
     broadcastPlannerUpdate('planner_updated', { source: 'delete_tomorrow_week4' });
 
-    // 2. If Supabase is configured, update tomorrow notes in Supabase
+    // 2. If Supabase is configured, update tomorrow notes in Supabase (only block > 2)
     let deletedFromSupabase = false;
     if (effectiveUrl && effectiveKey) {
       const client = createClient(effectiveUrl, effectiveKey);
       try {
-        // Delete any tomorrow-row in classwork for week 4
-        await client.from('classwork').delete().eq('week', 4).like('id', 'tomorrow-%');
-        
-        // Update planner_settings for tomorrow_special_notes
+        await client.from('classwork').delete().eq('week', 4).gt('block', 2).like('id', 'tomorrow-%');
+
         const { data: psRow } = await client.from('planner_settings').select('value').eq('key', 'tomorrow_special_notes').single();
         if (psRow && psRow.value) {
           try {
             const parsed = JSON.parse(psRow.value);
             if (Array.isArray(parsed)) {
-              const updated = parsed.filter((n: any) => Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week4'));
+              const updated = parsed.filter((n: any) => isFrozenBlockServer(n.block || 1) || (Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week4')));
               await client.from('planner_settings').upsert({
                 key: 'tomorrow_special_notes',
                 value: JSON.stringify(updated),
@@ -958,7 +981,7 @@ app.post('/api/planner-data', (req, res) => {
     const { classwork, homework, tomorrowNotes, mode = 'merge', block, week, classId } = req.body;
     let current = getStoredPlannerData();
 
-    // Normalize incoming items to have both classId and class_id, strictly filtered for Grade 2
+    // Normalize incoming items to have both classId and class_id, strictly filtered for Grade 2 and non-frozen blocks (block > 2)
     const normalizedCw = Array.isArray(classwork)
       ? classwork.filter(isGrade2ItemServer).map((c: any) => {
           const cid = c.class_id || c.classId || 'G2B';
@@ -980,66 +1003,90 @@ app.post('/api/planner-data', (req, res) => {
         })
       : [];
 
+    const mutableCw = normalizedCw.filter((c: any) => !isFrozenBlockServer(c.block || block || 1));
+    const mutableHw = normalizedHw.filter((h: any) => !isFrozenBlockServer(h.block || block || 1));
+    const mutableTn = normalizedTn.filter((n: any) => !isFrozenBlockServer(n.block || block || 1));
+
     if (mode === 'replace') {
       // Intelligently infer target block, week, and classId if not explicitly provided
       const targetBlock = Number(block) || Number(normalizedCw[0]?.block) || Number(normalizedHw[0]?.block) || Number(normalizedTn[0]?.block) || 1;
       const targetWeek = Number(week) || Number(normalizedCw[0]?.week) || Number(normalizedHw[0]?.week) || Number(normalizedTn[0]?.week) || 1;
       const targetClassId = classId || normalizedCw[0]?.classId || normalizedHw[0]?.classId || normalizedTn[0]?.classId || 'ALL';
 
-      // 1. If classwork is provided, replace classwork for this block, week, and target class
+      if (isFrozenBlockServer(targetBlock)) {
+        return res.status(403).json({
+          error: 'Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل أو الاستبدال عليهما.',
+          frozen: true,
+        });
+      }
+
+      // 1. If classwork is provided, replace classwork for this block, week, and target class (never touch frozen items)
       if (Array.isArray(classwork)) {
         current.classwork = current.classwork.filter((cw: any) => {
+          if (isFrozenBlockServer(cw.block || 1)) return true;
           const isTargetBlockWeek = Number(cw.block || 1) === targetBlock && Number(cw.week || 1) === targetWeek;
           const isTargetClass = targetClassId === 'ALL' || cw.classId === targetClassId || cw.class_id === targetClassId;
           return !(isTargetBlockWeek && isTargetClass);
         });
-        current.classwork.push(...normalizedCw);
+        current.classwork.push(...mutableCw);
       }
 
-      // 2. If homework is provided, replace homework for this block, week, and target class
+      // 2. If homework is provided, replace homework for this block, week, and target class (never touch frozen items)
       if (Array.isArray(homework)) {
         current.homework = current.homework.filter((hw: any) => {
+          if (isFrozenBlockServer(hw.block || 1)) return true;
           const isTargetBlockWeek = Number(hw.block || 1) === targetBlock && Number(hw.week || 1) === targetWeek;
           const isTargetClass = targetClassId === 'ALL' || hw.classId === targetClassId || hw.class_id === targetClassId;
           return !(isTargetBlockWeek && isTargetClass);
         });
-        current.homework.push(...normalizedHw);
+        current.homework.push(...mutableHw);
       }
 
-      // 3. If tomorrowNotes is provided, replace tomorrowNotes for this block, week, and target class
+      // 3. If tomorrowNotes is provided, replace tomorrowNotes for this block, week, and target class (never touch frozen items)
       if (Array.isArray(tomorrowNotes)) {
         current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => {
+          if (isFrozenBlockServer(n.block || 1)) return true;
           const isTargetBlockWeek = Number(n.block || 1) === targetBlock && Number(n.week || 1) === targetWeek;
           const isTargetClass = targetClassId === 'ALL' || n.classId === targetClassId || n.class_id === targetClassId;
           return !(isTargetBlockWeek && isTargetClass);
         });
-        current.tomorrowNotes.push(...normalizedTn);
+        current.tomorrowNotes.push(...mutableTn);
       }
     } else {
-      // Merge mode
-      if (Array.isArray(classwork)) {
+      // Reject request if all supplied items belong solely to frozen blocks
+      const totalIncoming = normalizedCw.length + normalizedHw.length + normalizedTn.length;
+      const totalMutable = mutableCw.length + mutableHw.length + mutableTn.length;
+      if (totalIncoming > 0 && totalMutable === 0) {
+        return res.status(403).json({
+          error: 'Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما.',
+          frozen: true,
+        });
+      }
+
+      // Merge mode (strictly using mutable non-frozen normalized entries)
+      if (Array.isArray(classwork) && mutableCw.length > 0) {
         const cwMap = new Map<string, any>();
         current.classwork.forEach((cw: any) => cwMap.set(cw.id, cw));
-        classwork.forEach((cw: any) => cwMap.set(cw.id, cw));
+        mutableCw.forEach((cw: any) => cwMap.set(cw.id, cw));
         current.classwork = Array.from(cwMap.values());
         if (current.deletedPlannerItemIds) {
-          const addedIds = new Set(classwork.map((cw: any) => cw.id).filter(Boolean));
+          const addedIds = new Set(mutableCw.map((cw: any) => cw.id).filter(Boolean));
           current.deletedPlannerItemIds = current.deletedPlannerItemIds.filter((id: string) => !addedIds.has(id));
         }
       }
 
-      if (Array.isArray(homework)) {
+      if (Array.isArray(homework) && mutableHw.length > 0) {
         const hwMap = new Map<string, any>();
         current.homework.forEach((hw: any) => hwMap.set(hw.id, hw));
-        homework.forEach((hw: any) => hwMap.set(hw.id, hw));
+        mutableHw.forEach((hw: any) => hwMap.set(hw.id, hw));
         current.homework = Array.from(hwMap.values());
         if (current.deletedPlannerItemIds) {
-          const addedIds = new Set(homework.map((hw: any) => hw.id).filter(Boolean));
+          const addedIds = new Set(mutableHw.map((hw: any) => hw.id).filter(Boolean));
           current.deletedPlannerItemIds = current.deletedPlannerItemIds.filter((id: string) => !addedIds.has(id));
         }
       }
 
-      if (Array.isArray(tomorrowNotes)) {
+      if (Array.isArray(tomorrowNotes) && mutableTn.length > 0) {
         const notesMap = new Map<string, any>();
         const getNoteContentKey = (n: any) => {
           const normText = (n.arabicNote || n.note || '').replace(/[🚨📝🎒]/g, '').trim().slice(0, 25);
@@ -1050,14 +1097,14 @@ app.post('/api/planner-data', (req, res) => {
           const contentKey = getNoteContentKey(n);
           notesMap.set(contentKey, n);
         });
-        tomorrowNotes.forEach((n: any) => {
+        mutableTn.forEach((n: any) => {
           const contentKey = getNoteContentKey(n);
           // Incoming note takes precedence or updates existing
           notesMap.set(contentKey, n);
         });
         current.tomorrowNotes = Array.from(notesMap.values());
         if (current.deletedTomorrowNoteIds) {
-          const addedIds = new Set(tomorrowNotes.map((n: any) => n.id).filter(Boolean));
+          const addedIds = new Set(mutableTn.map((n: any) => n.id).filter(Boolean));
           current.deletedTomorrowNoteIds = current.deletedTomorrowNoteIds.filter((id: string) => !addedIds.has(id));
         }
       }
@@ -1074,16 +1121,33 @@ app.post('/api/planner-data', (req, res) => {
 app.post('/api/planner-data/delete', (req, res) => {
   try {
     const { id, ids, type } = req.body; // type: 'classwork' | 'homework' | 'tomorrowNotes'
-    const targetIds: string[] = Array.isArray(ids) ? ids : id ? [id] : [];
+    const rawTargetIds: string[] = Array.isArray(ids) ? ids : id ? [id] : [];
     let current = getStoredPlannerData();
     if (!current.deletedPlannerItemIds) current.deletedPlannerItemIds = [];
     if (!current.deletedTomorrowNoteIds) current.deletedTomorrowNoteIds = [];
     if (!current.deletedHistory) current.deletedHistory = [];
 
+    // Filter out any IDs belonging to frozen Block 1 or Block 2
+    const frozenIdInCurrent = new Set<string>();
+    const scanList = type === 'classwork' ? current.classwork : type === 'homework' ? current.homework : current.tomorrowNotes;
+    scanList.forEach((item: any) => {
+      if (item && item.id && isFrozenBlockServer(item.block || 1)) {
+        frozenIdInCurrent.add(item.id);
+      }
+    });
+
+    const targetIds = rawTargetIds.filter((tId) => !frozenIdInCurrent.has(tId) && !isFrozenItemIdServer(tId));
+    if (rawTargetIds.length > 0 && targetIds.length === 0) {
+      return res.status(403).json({
+        error: 'Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن الحذف منهما.',
+        frozen: true,
+      });
+    }
+
     const timestamp = Date.now();
 
     if (type === 'classwork') {
-      const itemsToDelete = current.classwork.filter((c: any) => targetIds.includes(c.id));
+      const itemsToDelete = current.classwork.filter((c: any) => targetIds.includes(c.id) && !isFrozenBlockServer(c.block || 1));
       itemsToDelete.forEach((item) => {
         // Prevent duplicate entries in history
         if (!current.deletedHistory!.some((h: any) => h.id === item.id)) {
@@ -1095,14 +1159,14 @@ app.post('/api/planner-data/delete', (req, res) => {
           });
         }
       });
-      current.classwork = current.classwork.filter((c: any) => !targetIds.includes(c.id));
+      current.classwork = current.classwork.filter((c: any) => isFrozenBlockServer(c.block || 1) || !targetIds.includes(c.id));
       targetIds.forEach((tId) => {
         if (!current.deletedPlannerItemIds.includes(tId)) {
           current.deletedPlannerItemIds.push(tId);
         }
       });
     } else if (type === 'homework') {
-      const itemsToDelete = current.homework.filter((h: any) => targetIds.includes(h.id));
+      const itemsToDelete = current.homework.filter((h: any) => targetIds.includes(h.id) && !isFrozenBlockServer(h.block || 1));
       itemsToDelete.forEach((item) => {
         if (!current.deletedHistory!.some((h: any) => h.id === item.id)) {
           current.deletedHistory!.push({
@@ -1113,14 +1177,14 @@ app.post('/api/planner-data/delete', (req, res) => {
           });
         }
       });
-      current.homework = current.homework.filter((h: any) => !targetIds.includes(h.id));
+      current.homework = current.homework.filter((h: any) => isFrozenBlockServer(h.block || 1) || !targetIds.includes(h.id));
       targetIds.forEach((tId) => {
         if (!current.deletedPlannerItemIds.includes(tId)) {
           current.deletedPlannerItemIds.push(tId);
         }
       });
     } else if (type === 'tomorrowNotes') {
-      const itemsToDelete = current.tomorrowNotes.filter((n: any) => targetIds.includes(n.id));
+      const itemsToDelete = current.tomorrowNotes.filter((n: any) => targetIds.includes(n.id) && !isFrozenBlockServer(n.block || 1));
       itemsToDelete.forEach((item) => {
         if (!current.deletedHistory!.some((h: any) => h.id === item.id)) {
           current.deletedHistory!.push({
@@ -1131,7 +1195,7 @@ app.post('/api/planner-data/delete', (req, res) => {
           });
         }
       });
-      current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => !targetIds.includes(n.id));
+      current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => isFrozenBlockServer(n.block || 1) || !targetIds.includes(n.id));
       targetIds.forEach((tId) => {
         if (!current.deletedTomorrowNoteIds.includes(tId)) {
           current.deletedTomorrowNoteIds.push(tId);

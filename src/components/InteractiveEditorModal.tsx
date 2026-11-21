@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Upload, Link2, FileText, Sparkles, BookOpen, ExternalLink, Calendar, HelpCircle, Mic, MicOff, Loader2, Check } from 'lucide-react';
 import { ClassId, SchoolDay, SubjectName, ClassworkEntry, HomeworkEntry, TomorrowSpecialNote } from '../types';
 import { NEXT_SCHOOL_DAY } from '../data/timetables';
+import { isFrozenPeriod } from '../lib/supabase';
 
 interface InteractiveEditorModalProps {
   isOpen: boolean;
@@ -189,11 +190,14 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
           setTargetDay(initialData.targetDay || selectedDay);
         }
       } else {
-        // Defaults for Add Mode
+        // Defaults for Add Mode — auto-target Block 3 Week 1 if current view is frozen (Block 1 or Block 2)
         setClassId(initialData?.classId || currentClass);
         setSubject(initialData?.subject || 'Arabic');
-        setBlock(initialData?.block || currentBlock);
-        setWeek(initialData?.week || currentWeek);
+        const requestedBlock = initialData?.block || currentBlock;
+        const requestedWeek = initialData?.week || currentWeek;
+        const isRequestedFrozen = isFrozenPeriod(requestedBlock, requestedWeek);
+        setBlock(isRequestedFrozen ? 3 : requestedBlock);
+        setWeek(isRequestedFrozen ? 1 : requestedWeek);
         setTitle(initialData?.title || '');
         setDetails(initialData?.details || '');
         setPages(initialData?.pages || '');
@@ -553,6 +557,11 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isFrozenPeriod(block, week)) {
+      alert('Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل أو الإضافة عليهما. يرجى اختيار Block 3 أو Block 4.');
+      return;
+    }
+
     const baseData: any = {
       id: mode === 'edit' && initialData?.id ? initialData.id : `${itemType}-${Date.now()}`,
       classId: classId === 'ALL' ? 'ALL' : (classId || currentClass),
@@ -688,10 +697,13 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
               <select
                 value={block}
                 onChange={(e) => setBlock(Number(e.target.value))}
+                disabled={mode === 'edit' && isFrozenPeriod(block, week)}
                 className="w-full text-xs font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
               >
                 {[1, 2, 3, 4].map((b) => (
-                  <option key={b} value={b}>Block {b}</option>
+                  <option key={b} value={b} disabled={isFrozenPeriod(b, week)}>
+                    Block {b}{isFrozenPeriod(b, week) ? ' (🔒 مجمد)' : ''}
+                  </option>
                 ))}
               </select>
             </div>
@@ -703,12 +715,18 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                 onChange={(e) => setWeek(Number(e.target.value))}
                 className="w-full text-xs font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
               >
-                {[1, 2, 3, 4, 5, 6].map((w) => (
+                {(block === 2 ? [1, 2, 3, 4, 5, 6] : [1, 2, 3, 4, 5]).map((w) => (
                   <option key={w} value={w}>الأسبوع {w}</option>
                 ))}
               </select>
             </div>
           </div>
+
+          {isFrozenPeriod(block, week) && (
+            <div className="p-3 bg-amber-50 border border-amber-300 rounded-2xl text-xs font-bold text-amber-950">
+              🔒 Block {block} مجمد للقراءة فقط ولا يمكن الحفظ فيه. انتقل إلى <strong>Block 3</strong> لإدخال التعديلات الجديدة.
+            </div>
+          )}
 
           {/* Global AI Voice Smart Assistant Card */}
           <div className="bg-gradient-to-br from-indigo-50/70 to-indigo-100/50 p-4 rounded-2xl border border-indigo-200/80 shadow-xs space-y-3">
@@ -1270,10 +1288,10 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={uploadProgress}
-              className="py-2.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5 hover:scale-[1.02]"
+              disabled={uploadProgress || isFrozenPeriod(block, week)}
+              className="py-2.5 px-6 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5 hover:scale-[1.02]"
             >
-              {uploadProgress ? 'جاري التحميل...' : 'حفظ ونشر التغييرات 💾'}
+              {uploadProgress ? 'جاري التحميل...' : isFrozenPeriod(block, week) ? '🔒 مجمد للقراءة فقط' : 'حفظ ونشر التغييرات 💾'}
             </button>
           </div>
         </form>

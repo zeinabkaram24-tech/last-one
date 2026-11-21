@@ -27,6 +27,7 @@ import {
 } from '../utils/tomorrowNotesStorage';
 import initialData from '../data/initialData.json';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
+import { isFrozenPeriod } from '../lib/supabase';
 
 const OBSOLETE_DELETED_TOMORROW_IDS = new Set([
   'science-booklet-submission-Sunday',
@@ -696,6 +697,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   const handleDeleteTomorrowNote = (noteOrId: TomorrowSpecialNote | string) => {
     const note = typeof noteOrId === 'object' ? noteOrId : tomorrowNotes.find((n) => n.id === noteOrId);
+    if (isFrozenPeriod(note?.block || currentBlock, note?.week || currentWeek)) {
+      return;
+    }
     const noteId = typeof noteOrId === 'string' ? noteOrId : noteOrId?.id;
     const semKey = note ? getSemanticKey(note) : '';
     const idsToDelete = [noteId, ...(note?.linkedIds || []), semKey].filter(Boolean) as string[];
@@ -1040,19 +1044,21 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
       // A) Tests, quizzes, dictations
       if (isForTomorrow && checkText(fullText)) {
-        if (currentWeek === 4 || effectiveWeekForHw === 4) {
-          const lower = fullText.toLowerCase();
-          if ((lower.includes('math') || lower.includes('رياضيات') || h.subject === 'Mathematics') && (lower.includes('test') || lower.includes('quiz') || lower.includes('اختبار') || lower.includes('كويز'))) {
+        if (currentBlock === 1) {
+          if (currentWeek === 4 || effectiveWeekForHw === 4) {
+            const lower = fullText.toLowerCase();
+            if ((lower.includes('math') || lower.includes('رياضيات') || h.subject === 'Mathematics') && (lower.includes('test') || lower.includes('quiz') || lower.includes('اختبار') || lower.includes('كويز'))) {
+              return;
+            }
+          }
+          if (currentClass === 'G2B' && (h.subject === 'French' || fullText.toLowerCase().includes('french'))) {
             return;
           }
-        }
-        if (currentClass === 'G2B' && (h.subject === 'French' || fullText.toLowerCase().includes('french'))) {
-          return;
-        }
-        if (selectedDay !== 'Wednesday') {
-          const lower = fullText.toLowerCase();
-          if (lower.includes('dictation') || lower.includes('ديكتيشن') || lower.includes('إملاء')) {
-            return;
+          if (selectedDay !== 'Wednesday') {
+            const lower = fullText.toLowerCase();
+            if (lower.includes('dictation') || lower.includes('ديكتيشن') || lower.includes('إملاء')) {
+              return;
+            }
           }
         }
         alerts.push({
@@ -1078,9 +1084,14 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           if ((currentClass === 'G2A' || currentClass === 'G2C') && selectedDay !== 'Saturday') return;
           if (currentClass === 'G2B' && selectedDay !== 'Sunday') return;
         }
-        const socialTitle = h.task || 'Social Studies Grade 2 B1 Week 5 U1 Homework 5';
-        const socialArabic = h.details || 'Social Studies Grade 2 B1 Week 5 U1 Homework 5 (تسليم يوم الاثنين)';
-        const socialBagItem = h.pages || 'Social Studies Grade 2 B1 Week 5 U1 Homework 5';
+        const socialTitle = h.task || (currentBlock === 1 ? 'Social Studies Grade 2 B1 Week 5 U1 Homework 5' : 'واجب الدراسات الاجتماعية');
+        const socialArabic = h.details || (currentBlock === 1 ? 'Social Studies Grade 2 B1 Week 5 U1 Homework 5 (تسليم يوم الاثنين)' : h.task || 'تسليم واجب الدراسات الاجتماعية');
+        const socialBagItem = h.pages || (currentBlock === 1 ? 'Social Studies Grade 2 B1 Week 5 U1 Homework 5' : 'شيت / كتاب الدراسات الاجتماعية');
+        const defaultSocialPdf = isB2W2Social
+          ? '/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf'
+          : currentBlock === 1
+          ? '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf'
+          : undefined;
         alerts.push({
           id: hwDueAlertId,
           classId: currentClass,
@@ -1093,7 +1104,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
-          pdfUrl: (selectedDay === 'Thursday' && h.subject === 'Social Studies') ? undefined : (h.pdfUrl || (isB2W2Social ? '/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf' : '/materials/Social Studies Grade 2 B1 Week 5 U1 Homework 5.pdf')),
+          pdfUrl: (currentBlock <= 2 && selectedDay === 'Thursday' && h.subject === 'Social Studies') ? undefined : (h.pdfUrl || defaultSocialPdf),
         });
       }
     });
@@ -1186,7 +1197,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
 
       // Strict rule: For French Quiz, user mandate: ONLY once before the session, no clutter
-      if (semKey.startsWith('french-quiz-') && currentWeek === 3) {
+      if (semKey.startsWith('french-quiz-') && currentBlock === 1 && currentWeek === 3) {
         n.title = 'Quiz';
         n.note = 'Quiz';
         n.arabicNote = 'كويز فرنش (Quiz)';
@@ -1194,7 +1205,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         n.pdfUrl = undefined;
       }
 
-      const isSocialOnThursday = selectedDay === 'Thursday' && n.subject === 'Social Studies';
+      const isSocialOnThursday = currentBlock <= 2 && selectedDay === 'Thursday' && n.subject === 'Social Studies';
       if (isSocialOnThursday) {
         n.pdfUrl = undefined;
       }
@@ -1530,7 +1541,12 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
             <span>الملاحظات والإنذارات ليوم {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})</span>
           </div>
-          {isAdminEditMode && onAddTomorrowNote && (
+          {isAdminEditMode && isFrozenPeriod(currentBlock, currentWeek) && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-300 text-[11px] font-black rounded-lg">
+              🔒 Block {currentBlock} مجمد للقراءة فقط
+            </span>
+          )}
+          {isAdminEditMode && !isFrozenPeriod(currentBlock, currentWeek) && onAddTomorrowNote && (
             <button
               onClick={() => onAddTomorrowNote({ targetDay: tomorrowDay })}
               className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black rounded-lg transition-all shadow-xs cursor-pointer"
@@ -1561,7 +1577,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-black shadow-2xs ${badgeInfo.badgeClass}`}>
                       {badgeInfo.label} • {badgeInfo.subjectName}
                     </span>
-                    {isAdminEditMode && (
+                    {isAdminEditMode && !isFrozenPeriod(currentBlock, currentWeek) && (
                       <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => onEditTomorrowNote?.(note)}

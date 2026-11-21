@@ -52,6 +52,7 @@ import {
   deleteClasswork,
   deleteHomework,
   removeDeletedPlannerItemId,
+  isFrozenPeriod,
 } from '../lib/supabase';
 import { saveTomorrowNotes, saveDeletedTomorrowNoteId, getSemanticKey, notifyTomorrowNotesListeners, removeDeletedTomorrowNoteId, WEEK3_SPECIAL_NOTES } from '../utils/tomorrowNotesStorage';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
@@ -113,11 +114,20 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [previewTab, setPreviewTab] = useState<'classwork' | 'homework' | 'tomorrow'>('classwork');
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
-  // Synchronize when modal opens
+  // Synchronize when modal opens — auto-focus Block 3 Week 1 when viewing frozen Block 1/2
   useEffect(() => {
     if (isOpen) {
-      if (currentBlock) setPlanBlock(currentBlock);
-      if (currentWeek) setPlanWeek(currentWeek);
+      if (isFrozenPeriod(currentBlock, currentWeek)) {
+        setPlanBlock(3);
+        setPlanWeek(1);
+        setTargetBlock(3);
+      } else {
+        if (currentBlock) {
+          setPlanBlock(currentBlock);
+          setTargetBlock(currentBlock);
+        }
+        if (currentWeek) setPlanWeek(currentWeek);
+      }
     }
   }, [isOpen, currentBlock, currentWeek]);
 
@@ -163,6 +173,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const openAddClasswork = () => {
+    if (isFrozenPeriod(planBlock, planWeek)) {
+      setErrorMessage('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما. اختر Block 3.');
+      return;
+    }
     setEditingItemType('classwork');
     setEditingItemIndex(null);
     setIsAddingNewItem(true);
@@ -180,6 +194,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const openEditHomework = (hw: HomeworkEntry, index: number) => {
+    if (isFrozenPeriod(planBlock, planWeek)) {
+      setErrorMessage('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما. اختر Block 3.');
+      return;
+    }
     setEditingItemType('homework');
     setEditingItemIndex(index);
     setIsAddingNewItem(false);
@@ -197,6 +215,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const openAddHomework = () => {
+    if (isFrozenPeriod(planBlock, planWeek)) {
+      setErrorMessage('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما. اختر Block 3.');
+      return;
+    }
     setEditingItemType('homework');
     setEditingItemIndex(null);
     setIsAddingNewItem(true);
@@ -214,6 +236,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const openEditTomorrowNote = (note: TomorrowSpecialNote, index: number) => {
+    if (isFrozenPeriod(planBlock, planWeek)) {
+      setErrorMessage('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما. اختر Block 3.');
+      return;
+    }
     setEditingItemType('tomorrow');
     setEditingItemIndex(index);
     setIsAddingNewItem(false);
@@ -231,6 +257,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const openAddTomorrowNote = () => {
+    if (isFrozenPeriod(planBlock, planWeek)) {
+      setErrorMessage('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما. اختر Block 3.');
+      return;
+    }
     setEditingItemType('tomorrow');
     setEditingItemIndex(null);
     setIsAddingNewItem(true);
@@ -248,6 +278,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const handleDeleteItem = async (type: 'classwork' | 'homework' | 'tomorrow', index: number) => {
+    if (isFrozenPeriod(planBlock, planWeek)) {
+      setErrorMessage('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن الحذف منهما.');
+      return;
+    }
     const currentParsed = parsedResult || { classwork: [], homework: [], tomorrowNotes: [] };
     if (type === 'classwork') {
       const item = currentParsed.classwork[index];
@@ -309,6 +343,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
   const handleSaveModalItem = async () => {
     if (!editingItemType) return;
+    if (isFrozenPeriod(planBlock, planWeek)) {
+      setErrorMessage('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن الحفظ عليهما.');
+      return;
+    }
     const currentParsed = parsedResult || { classwork: [], homework: [], tomorrowNotes: [] };
 
     let finalPdfUrl = formPdfUrl;
@@ -884,6 +922,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
   // AI Parse Weekly Plan Handler
   const handleParseWeeklyPlan = async () => {
+    if (isFrozenPeriod(planBlock, planWeek)) {
+      setErrorMessage('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما. اختر Block 3 للبدء في إدخال الخطط الجديدة.');
+      return;
+    }
     if (planInputMode === 'pdf' && !planFile) {
       setErrorMessage('يرجى اختيار ملف PDF الخاص بالخطة الأسبوعية أولاً.');
       return;
@@ -971,6 +1013,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   // Publish Parsed Plan to Supabase & Storage
   const handlePublishPlan = async () => {
     if (!parsedResult) return;
+    if (isFrozenPeriod(planBlock, planWeek)) {
+      setErrorMessage('🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن النشر أو الاستبدال فيهما.');
+      return;
+    }
 
     try {
       setIsPublishingPlan(true);
@@ -1047,7 +1093,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const blocks = [1, 2, 3, 4];
-  const planWeeks = [1, 2, 3, 4, 5, 6];
+  const planWeeks = planBlock === 2 ? [1, 2, 3, 4, 5, 6] : [1, 2, 3, 4, 5];
+  const isPlanPeriodFrozen = isFrozenPeriod(planBlock, planWeek);
   const sections = ['Main sheet', 'Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'];
 
   return (
@@ -1189,22 +1236,55 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       1. اختر البلوك المستهدف (Target Block):
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {blocks.map((b) => (
-                        <button
-                          key={b}
-                          type="button"
-                          id={`admin-plan-block-${b}-btn`}
-                          onClick={() => setPlanBlock(b)}
-                          className={`py-2 px-3 rounded-xl text-xs font-black border transition-all cursor-pointer ${
-                            planBlock === b
-                              ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
-                              : 'bg-white text-slate-700 border-slate-200 hover:bg-indigo-50/50'
-                          }`}
-                        >
-                          Block {b}
-                        </button>
-                      ))}
+                      {blocks.map((b) => {
+                        const isFrozenB = isFrozenPeriod(b, planWeek);
+                        return (
+                          <button
+                            key={b}
+                            type="button"
+                            id={`admin-plan-block-${b}-btn`}
+                            onClick={() => {
+                              setPlanBlock(b);
+                              setParsedResult(null);
+                              if (b !== 2 && planWeek > 5) {
+                                setPlanWeek(1);
+                              }
+                            }}
+                            className={`py-2 px-3 rounded-xl text-xs font-black border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                              planBlock === b
+                                ? isFrozenB
+                                  ? 'bg-amber-600 text-white border-amber-700 shadow-xs'
+                                  : 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
+                                : isFrozenB
+                                  ? 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-amber-50'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:bg-indigo-50/50'
+                            }`}
+                          >
+                            <span>Block {b}</span>
+                            {isFrozenB && <span className="text-[10px]">🔒 مجمد</span>}
+                          </button>
+                        );
+                      })}
                     </div>
+                    {isPlanPeriodFrozen && (
+                      <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-950 font-bold">
+                        <span>
+                          🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي (للقراءة فقط) ولا يمكن تعديلهما أو استبدالهما. لإدخال مدخلات جديدة انتقل إلى Block 3.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPlanBlock(3);
+                            setPlanWeek(1);
+                            setParsedResult(null);
+                            setErrorMessage(null);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[11px] shrink-0 cursor-pointer"
+                        >
+                          الانتقال إلى Block 3 - Week 1 ⬅️
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Step 2: Select Week */}
@@ -1346,6 +1426,7 @@ Sunday:
                       id="admin-parse-plan-btn"
                       type="button"
                       disabled={
+                        isPlanPeriodFrozen ||
                         (planInputMode === 'pdf' && !planFile) ||
                         (planInputMode === 'text' && !planTextInput.trim()) ||
                         isParsingPlan
@@ -1361,14 +1442,14 @@ Sunday:
                       ) : (
                         <>
                           <Sparkles className="w-4 h-4" />
-                          <span>قراءة وتفكيك الخطة ذكياً بالـ AI</span>
+                          <span>{isPlanPeriodFrozen ? '🔒 مجمد للقراءة فقط' : 'قراءة وتفكيك الخطة ذكياً بالـ AI'}</span>
                         </>
                       )}
                     </button>
 
                     <button
                       type="button"
-                      disabled={isParsingPlan}
+                      disabled={isParsingPlan || isPlanPeriodFrozen}
                       onClick={handleLoadActiveData}
                       className="px-6 py-2.5 rounded-xl text-xs font-black text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 shrink-0"
                     >

@@ -16,7 +16,7 @@ import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
-import { isGrade2Item } from '../lib/supabase';
+import { isGrade2Item, isFrozenPeriod } from '../lib/supabase';
 
 interface HomeworkViewProps {
   currentClass: ClassId;
@@ -108,6 +108,8 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   onEditHomework,
   onDeleteHomework,
 }) => {
+  const isPeriodFrozen = isFrozenPeriod(currentBlock, currentWeek);
+  const canAdminEdit = isAdminEditMode && !isPeriodFrozen;
   const [speakingWord, setSpeakingWord] = React.useState<string | null>(null);
 
   const speakWord = (word: string, lang: 'en-US' | 'fr-FR' = 'en-US') => {
@@ -259,8 +261,18 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
   return (
     <div className="space-y-3.5">
-      {/* Admin Quick Add Row */}
-      {isAdminEditMode && onAddHomework && (
+      {/* Admin Quick Add Row or Frozen Notice */}
+      {isAdminEditMode && isPeriodFrozen && (
+        <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-300 shadow-2xs flex items-center justify-between gap-3 animate-fade-in" dir="rtl">
+          <div className="text-right">
+            <h4 className="text-xs font-black text-amber-950">🔒 Block {currentBlock} مجمد بالكامل للقراءة فقط</h4>
+            <p className="text-[11px] font-bold text-amber-800 mt-0.5">
+              تم تثبيت واجبات Block 1 و Block 2 كما هي بدون أي تعديل. لإضافة أو تعديل واجبات جديدة، اختر <strong>Block 3</strong> من القائمة بالأعلى.
+            </p>
+          </div>
+        </div>
+      )}
+      {canAdminEdit && onAddHomework && (
         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-3.5 rounded-2xl border border-emerald-200 shadow-2xs flex items-center justify-between gap-3 animate-fade-in" dir="rtl">
           <div className="text-right">
             <h4 className="text-xs font-black text-emerald-950">التحكم المباشر للأدمن ⚙️</h4>
@@ -570,7 +582,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
                 {/* Actions: Done check and Admin controls */}
                 <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center flex-wrap sm:flex-nowrap w-full sm:w-auto justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60">
-                  {isAdminEditMode && (
+                  {canAdminEdit && (
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => onEditHomework?.(hw)}

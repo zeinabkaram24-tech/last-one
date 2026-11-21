@@ -15,7 +15,7 @@ import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
-import { isGrade2Item } from '../lib/supabase';
+import { isGrade2Item, isFrozenPeriod } from '../lib/supabase';
 
 interface ClassworkViewProps {
   currentClass: ClassId;
@@ -43,6 +43,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   onDeleteClasswork,
   onAddClasswork,
 }) => {
+  const isPeriodFrozen = isFrozenPeriod(currentBlock, currentWeek);
+  const canAdminEdit = isAdminEditMode && !isPeriodFrozen;
+
   const matchesClass = (c: any) => {
     if (!isGrade2Item(c)) return false;
     const cid = c.class_id || c.classId;
@@ -259,8 +262,18 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Admin Quick Add Row */}
-      {isAdminEditMode && onAddClasswork && (
+      {/* Admin Quick Add Row or Frozen Notice */}
+      {isAdminEditMode && isPeriodFrozen && (
+        <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-300 shadow-2xs flex items-center justify-between gap-3 animate-fade-in" dir="rtl">
+          <div className="text-right">
+            <h4 className="text-xs font-black text-amber-950">🔒 Block {currentBlock} مجمد بالكامل للقراءة فقط</h4>
+            <p className="text-[11px] font-bold text-amber-800 mt-0.5">
+              تم تثبيت بيانات Block 1 و Block 2 كما هي بدون أي تعديل. لإضافة أو تعديل خطط جديدة، اختر <strong>Block 3</strong> من القائمة بالأعلى.
+            </p>
+          </div>
+        </div>
+      )}
+      {canAdminEdit && onAddClasswork && (
         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-3.5 rounded-2xl border border-emerald-200 shadow-2xs flex items-center justify-between gap-3 animate-fade-in" dir="rtl">
           <div className="text-right">
             <h4 className="text-xs font-black text-emerald-950">التحكم المباشر للأدمن ⚙️</h4>
@@ -484,7 +497,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
                   {/* Actions (Check completion & Admin Controls) */}
                   <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 w-full sm:w-auto justify-end">
-                    {isAdminEditMode && (
+                    {canAdminEdit && (
                       cwEntry ? (
                         <div className="flex items-center gap-1.5">
                           <button
