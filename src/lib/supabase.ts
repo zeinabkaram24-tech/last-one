@@ -666,11 +666,9 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
 
   const sbData = sbRes && !sbRes.error && Array.isArray(sbRes.data) && sbRes.data.length > 0 ? sbRes.data : null;
 
-  if (sbData) {
-    const dbItems = (sbData as ClassworkRow[])
-      .map(rowToClasswork)
-      .filter((c) => isGrade2Item(c) && !isFrozenPeriod(c.block, c.week));
-    dbItems.forEach((c) => {
+  if (srvData && Array.isArray(srvData.classwork) && srvData.classwork.length > 0) {
+    const activeSrvCw = srvData.classwork.filter((c: ClassworkEntry) => !isFrozenPeriod(c.block, c.week));
+    activeSrvCw.forEach((c: ClassworkEntry) => {
       if (c && c.id && !deletedSet.has(c.id)) {
         const existing = resultMap.get(c.id);
         resultMap.set(c.id, {
@@ -681,9 +679,13 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
         });
       }
     });
-  } else if (srvData && Array.isArray(srvData.classwork) && srvData.classwork.length > 0) {
-    const activeSrvCw = srvData.classwork.filter((c: ClassworkEntry) => !isFrozenPeriod(c.block, c.week));
-    activeSrvCw.forEach((c: ClassworkEntry) => {
+  }
+
+  if (sbData) {
+    const dbItems = (sbData as ClassworkRow[])
+      .map(rowToClasswork)
+      .filter((c) => isGrade2Item(c) && !isFrozenPeriod(c.block, c.week));
+    dbItems.forEach((c) => {
       if (c && c.id && !deletedSet.has(c.id)) {
         const existing = resultMap.get(c.id);
         resultMap.set(c.id, {
@@ -1005,13 +1007,10 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
 
   const sbData = sbRes && !sbRes.error && Array.isArray(sbRes.data) && sbRes.data.length > 0 ? sbRes.data : null;
 
-  if (sbData) {
-    const dbItems = (sbData as HomeworkRow[])
-      .map(rowToHomework)
-      .filter((h) => isGrade2Item(h) && !isFrozenPeriod(h.block, h.week));
-    dbItems.forEach((h) => {
-      if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
-      if (h && h.id && !deletedSet.has(h.id)) {
+  if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {
+    const activeSrvHw = srvData.homework.filter((h: HomeworkEntry) => !isFrozenPeriod(h.block, h.week));
+    activeSrvHw.forEach((h: HomeworkEntry) => {
+      if (h && h.id && !deletedSet.has(h.id) && !h.id.endsWith('-Tue-arabic-dictation-alert')) {
         const existing = resultMap.get(h.id);
         resultMap.set(h.id, {
           ...existing,
@@ -1021,10 +1020,15 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         });
       }
     });
-  } else if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {
-    const activeSrvHw = srvData.homework.filter((h: HomeworkEntry) => !isFrozenPeriod(h.block, h.week));
-    activeSrvHw.forEach((h: HomeworkEntry) => {
-      if (h && h.id && !deletedSet.has(h.id) && !h.id.endsWith('-Tue-arabic-dictation-alert')) {
+  }
+
+  if (sbData) {
+    const dbItems = (sbData as HomeworkRow[])
+      .map(rowToHomework)
+      .filter((h) => isGrade2Item(h) && !isFrozenPeriod(h.block, h.week));
+    dbItems.forEach((h) => {
+      if (h && h.id && h.id.endsWith('-Tue-arabic-dictation-alert')) return;
+      if (h && h.id && !deletedSet.has(h.id)) {
         const existing = resultMap.get(h.id);
         resultMap.set(h.id, {
           ...existing,

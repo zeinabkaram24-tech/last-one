@@ -39,6 +39,10 @@ export const BLOCK2_WEEK6_SPECIAL_NOTES: TomorrowSpecialNote[] = SPECIAL_TEACHER
   (n) => Number(n.block || 1) === 2 && Number(n.week || 1) === 6
 );
 
+export const BLOCK2_WEEK7_SPECIAL_NOTES: TomorrowSpecialNote[] = SPECIAL_TEACHER_NOTES.filter(
+  (n) => Number(n.block || 1) === 2 && Number(n.week || 1) === 7
+);
+
 export const WEEK5_SPECIAL_NOTES: TomorrowSpecialNote[] = SPECIAL_TEACHER_NOTES.filter(
   (n) => Number(n.block || 1) === 1 && Number(n.week || 1) === 5
 );

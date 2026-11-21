@@ -1,10 +1,10 @@
 import { ClassId, SchoolDay } from '../types';
-import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK4_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
+import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES, BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK4_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES, BLOCK2_WEEK7_SPECIAL_NOTES, WEEK5_SPECIAL_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage, isFrozenPeriod, withTimeout, fetchPlannerDataCached, invalidatePlannerDataCache } from '../lib/supabase';
 import initialData from '../data/initialData.json';
 
-export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK4_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES };
+export { BLOCK2_WEEK1_SPECIAL_NOTES, BLOCK2_WEEK2_SPECIAL_NOTES, BLOCK2_WEEK3_SPECIAL_NOTES, BLOCK2_WEEK4_SPECIAL_NOTES, BLOCK2_WEEK5_SPECIAL_NOTES, BLOCK2_WEEK6_SPECIAL_NOTES, BLOCK2_WEEK7_SPECIAL_NOTES };
 
 export const WEEK4_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   // G2A: Session 2 is Wednesday (Prepare Wednesday evening)
@@ -592,7 +592,13 @@ export async function getTomorrowNotesForDay(
 
   // Base official notes for Block/Week or EffectiveWeek from static files
   const baseNotes: TomorrowSpecialNote[] =
-    block === 2 && (week === 6 || effectiveWeek === 6)
+    block === 2 && (week === 7 || effectiveWeek === 7)
+      ? BLOCK2_WEEK7_SPECIAL_NOTES.filter(
+          (n) =>
+            (n.classId === classId || (n.classId as any) === 'ALL') &&
+            n.targetDay === targetDay
+        )
+      : block === 2 && (week === 6 || effectiveWeek === 6)
       ? BLOCK2_WEEK6_SPECIAL_NOTES.filter(
           (n) =>
             (n.classId === classId || (n.classId as any) === 'ALL') &&
@@ -946,7 +952,14 @@ export async function getTomorrowNotesForDay(
     dynamicNotes.forEach((n) => {
       if (isGrade2TomorrowNote(n)) {
         const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-        map.set(key, n);
+        const existing = map.get(key);
+        map.set(key, {
+          ...existing,
+          ...n,
+          pdfUrl: n.pdfUrl || existing?.pdfUrl,
+          title: n.title || existing?.title,
+          bagItem: n.bagItem || existing?.bagItem,
+        });
       }
     });
 
@@ -1483,7 +1496,7 @@ export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
 let frozenTomorrowIdSetCache: Set<string> | null = null;
 function isFrozenTomorrowNoteId(noteId: string): boolean {
   if (!noteId) return false;
-  if (/^(?:tn|tomorrow)-b[12]-/i.test(noteId)) return true;
+  if (/^(?:tn|tomorrow)-(?:b1-|b2-w[1-6]-)/i.test(noteId)) return true;
   if (!frozenTomorrowIdSetCache) {
     const set = new Set<string>();
     const sources: any[] = [
