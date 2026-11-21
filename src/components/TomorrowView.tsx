@@ -1543,7 +1543,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           </div>
           {isAdminEditMode && isFrozenPeriod(currentBlock, currentWeek) && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-300 text-[11px] font-black rounded-lg">
-              🔒 Block {currentBlock} مجمد للقراءة فقط
+              🔒 Block {currentBlock} W{currentWeek} مجمد للقراءة فقط
             </span>
           )}
           {isAdminEditMode && !isFrozenPeriod(currentBlock, currentWeek) && onAddTomorrowNote && (

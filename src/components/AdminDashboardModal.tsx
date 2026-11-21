@@ -114,13 +114,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [previewTab, setPreviewTab] = useState<'classwork' | 'homework' | 'tomorrow'>('classwork');
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
-  // Synchronize when modal opens — auto-focus Block 3 Week 1 when viewing frozen Block 1/2
+  // Synchronize when modal opens — auto-focus Block 2 Week 7 when viewing frozen Block 1 / Block 2 (W1-6)
   useEffect(() => {
     if (isOpen) {
       if (isFrozenPeriod(currentBlock, currentWeek)) {
-        setPlanBlock(3);
-        setPlanWeek(1);
-        setTargetBlock(3);
+        setPlanBlock(2);
+        setPlanWeek(7);
+        setTargetBlock(2);
       } else {
         if (currentBlock) {
           setPlanBlock(currentBlock);
@@ -1093,9 +1093,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   const blocks = [1, 2, 3, 4];
-  const planWeeks = planBlock === 2 ? [1, 2, 3, 4, 5, 6] : [1, 2, 3, 4, 5];
+  const planWeeks = planBlock === 2 ? [1, 2, 3, 4, 5, 6, 7] : [1, 2, 3, 4, 5];
   const isPlanPeriodFrozen = isFrozenPeriod(planBlock, planWeek);
-  const sections = ['Main sheet', 'Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'];
+  const sections = ['Main sheet', 'Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7'];
 
   return (
     <>
@@ -1246,7 +1246,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                             onClick={() => {
                               setPlanBlock(b);
                               setParsedResult(null);
-                              if (b !== 2 && planWeek > 5) {
+                              if (b === 2 && planWeek <= 6) {
+                                setPlanWeek(7);
+                              } else if (b !== 2 && planWeek > 5) {
                                 setPlanWeek(1);
                               }
                             }}
@@ -1269,19 +1271,19 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     {isPlanPeriodFrozen && (
                       <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-950 font-bold">
                         <span>
-                          🔒 Block 1 و Block 2 مجمدان على وضعهما الحالي (للقراءة فقط) ولا يمكن تعديلهما أو استبدالهما. لإدخال مدخلات جديدة انتقل إلى Block 3.
+                          🔒 Block 1 و Block 2 (الأسابيع 1-6) مجمدان على وضعهما الحالي (للقراءة فقط). لإدخال مدخلات جديدة انتقل إلى Block 2 Week 7 أو Block 3.
                         </span>
                         <button
                           type="button"
                           onClick={() => {
-                            setPlanBlock(3);
-                            setPlanWeek(1);
+                            setPlanBlock(2);
+                            setPlanWeek(7);
                             setParsedResult(null);
                             setErrorMessage(null);
                           }}
                           className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[11px] shrink-0 cursor-pointer"
                         >
-                          الانتقال إلى Block 3 - Week 1 ⬅️
+                          الانتقال إلى Block 2 - Week 7 ⬅️
                         </button>
                       </div>
                     )}
@@ -1292,7 +1294,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <label className="block text-xs font-black text-slate-800 mb-1.5">
                       2. اختر الأسبوع (Target Week):
                     </label>
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-7 gap-2">
                       {planWeeks.map((w) => (
                         <button
                           key={w}

@@ -782,7 +782,7 @@ export async function getTomorrowNotesForDay(
 
   try {
     // Run active-week queries in parallel with strict 1500ms timeouts for fast cross-device loading
-    const cwQuery = block === 2
+    const cwQuery = (block === 2 && week <= 6)
       ? supabase
           .from('classwork')
           .select('*')
@@ -824,8 +824,8 @@ export async function getTomorrowNotesForDay(
 
     const dynamicNotes: TomorrowSpecialNote[] = [];
 
-    // Map classwork to TomorrowSpecialNote (only for block !== 2; in block 2, only dedicated notes are used)
-    if (block !== 2 && cwList && Array.isArray(cwList)) {
+    // Map classwork to TomorrowSpecialNote (frozen Block 2 W1-6 uses dedicated notes only; Block 2 W7+ & Block 3+ allow active detection)
+    if ((block !== 2 || week >= 7) && cwList && Array.isArray(cwList)) {
       cwList.forEach((cw: any) => {
         const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|spelling\s*bee|سبيلنج|تسميع|تقييم/i.test((cw.title + ' ' + (cw.details || '')).toLowerCase());
         const isTomorrowNote = cw.id?.startsWith('tomorrow-') || cw.id?.startsWith('tn-') || cw.id?.startsWith('custom-');
@@ -855,11 +855,11 @@ export async function getTomorrowNotesForDay(
         const isSocial = hw.subject === 'Social Studies';
         const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|spelling\s*bee|سبيلنج|تسميع|تقييم/i.test(((hw.task || '') + ' ' + (hw.details || '')).toLowerCase());
         
-        // In Block 2, allow Social Studies homework
-        if (block === 2 && !isSocial) return;
+        // In Block 2 Weeks 1-6, allow Social Studies homework
+        if (block === 2 && week <= 6 && !isSocial) return;
 
         // Ordinary homework or Arabic homework must NEVER be mapped as a tomorrow quiz note!
-        if (!isSocial && (!isQuiz || hw.subject === 'Arabic' || (hw.week && hw.week > 4))) return;
+        if (!isSocial && (!isQuiz || hw.subject === 'Arabic' || (block === 2 && week <= 6 && hw.week && hw.week > 4))) return;
         const unpacked = unpackHomeworkDetails(hw.details);
         dynamicNotes.push({
           id: hw.id,

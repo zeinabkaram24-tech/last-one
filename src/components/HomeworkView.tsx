@@ -265,9 +265,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
       {isAdminEditMode && isPeriodFrozen && (
         <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-300 shadow-2xs flex items-center justify-between gap-3 animate-fade-in" dir="rtl">
           <div className="text-right">
-            <h4 className="text-xs font-black text-amber-950">🔒 Block {currentBlock} مجمد بالكامل للقراءة فقط</h4>
+            <h4 className="text-xs font-black text-amber-950">🔒 Block {currentBlock} (Week {currentWeek}) مجمد للقراءة فقط</h4>
             <p className="text-[11px] font-bold text-amber-800 mt-0.5">
-              تم تثبيت واجبات Block 1 و Block 2 كما هي بدون أي تعديل. لإضافة أو تعديل واجبات جديدة، اختر <strong>Block 3</strong> من القائمة بالأعلى.
+              تم تثبيت واجبات Block 1 و Block 2 (الأسابيع 1-6) كما هي بدون أي تعديل. لإضافة أو تعديل واجبات جديدة، اختر <strong>Block 2 Week 7</strong> أو <strong>Block 3</strong> من القائمة بالأعلى.
             </p>
           </div>
         </div>

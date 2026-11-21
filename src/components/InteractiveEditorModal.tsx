@@ -190,14 +190,14 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
           setTargetDay(initialData.targetDay || selectedDay);
         }
       } else {
-        // Defaults for Add Mode — auto-target Block 3 Week 1 if current view is frozen (Block 1 or Block 2)
+        // Defaults for Add Mode — auto-target Block 2 Week 7 if current view is frozen (Block 1 or Block 2 Weeks 1-6)
         setClassId(initialData?.classId || currentClass);
         setSubject(initialData?.subject || 'Arabic');
         const requestedBlock = initialData?.block || currentBlock;
         const requestedWeek = initialData?.week || currentWeek;
         const isRequestedFrozen = isFrozenPeriod(requestedBlock, requestedWeek);
-        setBlock(isRequestedFrozen ? 3 : requestedBlock);
-        setWeek(isRequestedFrozen ? 1 : requestedWeek);
+        setBlock(isRequestedFrozen ? 2 : requestedBlock);
+        setWeek(isRequestedFrozen ? 7 : requestedWeek);
         setTitle(initialData?.title || '');
         setDetails(initialData?.details || '');
         setPages(initialData?.pages || '');
@@ -715,8 +715,10 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
                 onChange={(e) => setWeek(Number(e.target.value))}
                 className="w-full text-xs font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
               >
-                {(block === 2 ? [1, 2, 3, 4, 5, 6] : [1, 2, 3, 4, 5]).map((w) => (
-                  <option key={w} value={w}>الأسبوع {w}</option>
+                {(block === 2 ? [1, 2, 3, 4, 5, 6, 7] : [1, 2, 3, 4, 5]).map((w) => (
+                  <option key={w} value={w} disabled={isFrozenPeriod(block, w)}>
+                    الأسبوع {w}{isFrozenPeriod(block, w) ? ' (🔒 مجمد)' : ''}
+                  </option>
                 ))}
               </select>
             </div>
@@ -724,7 +726,7 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
 
           {isFrozenPeriod(block, week) && (
             <div className="p-3 bg-amber-50 border border-amber-300 rounded-2xl text-xs font-bold text-amber-950">
-              🔒 Block {block} مجمد للقراءة فقط ولا يمكن الحفظ فيه. انتقل إلى <strong>Block 3</strong> لإدخال التعديلات الجديدة.
+              🔒 Block {block} (Week {week}) مجمد للقراءة فقط ولا يمكن الحفظ فيه. انتقل إلى <strong>Block 2 Week 7</strong> أو <strong>Block 3</strong> لإدخال التعديلات الجديدة.
             </div>
           )}
 

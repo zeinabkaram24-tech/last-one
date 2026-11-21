@@ -604,10 +604,16 @@ export function saveLocalCustomHomework(entries: HomeworkEntry[], mode: 'merge' 
   } catch {}
 }
 
-// Freeze Block 1 (all weeks) and Block 2 (all weeks) in static initialData.json — read-only & instant loading
-export function isFrozenPeriod(block?: number | null, _week?: number | null): boolean {
+// Freeze Block 1 (all weeks) and Block 2 (Weeks 1-6); Block 2 Week 7+ and Block 3+ remain active & editable
+export function isFrozenPeriod(block?: number | null, week?: number | null): boolean {
   const b = Number(block) || 1;
-  return b === 1 || b === 2;
+  if (b === 1) return true;
+  if (b === 2) {
+    const w = Number(week);
+    if (!w || Number.isNaN(w)) return true;
+    return w <= 6;
+  }
+  return false;
 }
 
 function isFrozenInitialItemId(id: string, collection: 'classwork' | 'homework'): boolean {
@@ -640,7 +646,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
           .from('classwork')
           .select('*')
           .in('class_id', ['G2A', 'G2B', 'G2C'])
-          .gt('block', 2)
+          .or('block.gt.2,and(block.eq.2,week.gte.7)')
           .order('period', { ascending: true }),
         1200,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
@@ -979,7 +985,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           .from('homework')
           .select('*')
           .in('class_id', ['G2A', 'G2B', 'G2C'])
-          .gt('block', 2)
+          .or('block.gt.2,and(block.eq.2,week.gte.7)')
           .order('created_at', { ascending: false }),
         1200,
         { data: null, error: { message: 'Supabase homework query timeout' } }

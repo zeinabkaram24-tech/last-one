@@ -277,7 +277,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 {(BLOCK_WEEK_DATES[currentBlock]
                   ? Object.keys(BLOCK_WEEK_DATES[currentBlock]).map(Number).sort((a, b) => a - b)
-                  : [1, 2, 3, 4, 5, 6]
+                  : [1, 2, 3, 4, 5, 6, 7]
                 ).map((w) => {
                   const range = BLOCK_WEEK_DATES[currentBlock]?.[w];
                   return (

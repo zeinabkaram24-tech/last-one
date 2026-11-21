@@ -242,10 +242,10 @@ export default function App() {
     return saved ? Number(saved) : 2;
   });
 
-  // Current Week (1..6) - Default to Week 6
+  // Current Week (1..7) - Default to Week 7
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = appStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 6;
+    return saved ? Number(saved) : 7;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
@@ -579,7 +579,7 @@ export default function App() {
         const localWeek = appStorage.getItem(STORAGE_KEYS.WEEK);
         const resolvedDbWeek = settings.g2_current_week || settings.current_week;
         if (!localWeek && resolvedDbWeek) {
-          setCurrentWeek(Number(resolvedDbWeek) || 6);
+          setCurrentWeek(Number(resolvedDbWeek) || 7);
         }
         const localDay = appStorage.getItem(STORAGE_KEYS.DAY);
         const resolvedDbDay = settings.g2_selected_day || settings.selected_day;
@@ -1285,7 +1285,7 @@ export default function App() {
           if (isSupabaseConfigured) {
             savePlannerSetting('current_block', String(b)).catch(() => {});
           }
-          const nextWeek = b === 2 ? 6 : 1;
+          const nextWeek = b === 2 ? 7 : 1;
           setCurrentWeek(nextWeek);
           appStorage.setItem(STORAGE_KEYS.WEEK, String(nextWeek));
           if (isSupabaseConfigured) {

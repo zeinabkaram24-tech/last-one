@@ -213,22 +213,28 @@ function getInitialDataCached(): any {
   return initialDataCache;
 }
 
-function isFrozenBlockServer(block?: any): boolean {
+function isFrozenBlockServer(block?: any, week?: any): boolean {
   const b = Number(block);
-  return b === 1 || b === 2;
+  if (b === 1) return true;
+  if (b === 2) {
+    const w = Number(week);
+    if (!w || Number.isNaN(w)) return true;
+    return w <= 6;
+  }
+  return false;
 }
 
 let frozenItemIdsServerCache: Set<string> | null = null;
 function isFrozenItemIdServer(id?: string): boolean {
   if (!id) return false;
-  if (/^(?:cw|hw|tn|tomorrow)-b[12]-/i.test(id)) return true;
+  if (/^(?:cw|hw|tn|tomorrow)-(?:b1|b2-w[1-6])-/i.test(id)) return true;
   if (!frozenItemIdsServerCache) {
     const set = new Set<string>();
     const init = getInitialDataCached();
     ['classwork', 'homework', 'tomorrowNotes'].forEach((key) => {
       const list = Array.isArray(init?.[key]) ? init[key] : [];
       list.forEach((item: any) => {
-        if (item && item.id && isFrozenBlockServer(item.block || 1)) {
+        if (item && item.id && isFrozenBlockServer(item.block || 1, item.week || 1)) {
           set.add(item.id);
         }
       });
@@ -514,13 +520,13 @@ app.post('/api/supabase/delete-week3', async (req, res) => {
     // 1. Delete week 3 ONLY for non-frozen blocks (block > 2) from local planner_data.json
     const data = getStoredPlannerData();
     if (Array.isArray(data.classwork)) {
-      data.classwork = data.classwork.filter((c: any) => isFrozenBlockServer(c.block || 1) || Number(c.week) !== 3);
+      data.classwork = data.classwork.filter((c: any) => isFrozenBlockServer(c.block || 1, c.week || 1) || Number(c.week) !== 3);
     }
     if (Array.isArray(data.homework)) {
-      data.homework = data.homework.filter((h: any) => isFrozenBlockServer(h.block || 1) || Number(h.week) !== 3);
+      data.homework = data.homework.filter((h: any) => isFrozenBlockServer(h.block || 1, h.week || 1) || Number(h.week) !== 3);
     }
     if (Array.isArray(data.tomorrowNotes)) {
-      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => isFrozenBlockServer(n.block || 1) || Number(n.week) !== 3);
+      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => isFrozenBlockServer(n.block || 1, n.week || 1) || Number(n.week) !== 3);
     }
     saveStoredPlannerData(data);
     broadcastPlannerUpdate('planner_updated', { source: 'delete_week3' });
@@ -556,11 +562,11 @@ app.post('/api/supabase/delete-tomorrow-week4', async (req, res) => {
     // 1. Delete week 4 tomorrow notes (only block > 2) from local planner_data.json
     const data = getStoredPlannerData();
     if (Array.isArray(data.tomorrowNotes)) {
-      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => isFrozenBlockServer(n.block || 1) || (Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week-4') && !n.id?.includes('week4')));
+      data.tomorrowNotes = data.tomorrowNotes.filter((n: any) => isFrozenBlockServer(n.block || 1, n.week || 1) || (Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week-4') && !n.id?.includes('week4')));
     }
     // Also remove any rogue tomorrow items stored directly in classwork or homework table (only block > 2)
     if (Array.isArray(data.classwork)) {
-      data.classwork = data.classwork.filter((c: any) => isFrozenBlockServer(c.block || 1) || !(Number(c.week) === 4 && (c.id?.startsWith('tomorrow-') || c.id?.startsWith('tn-w4'))));
+      data.classwork = data.classwork.filter((c: any) => isFrozenBlockServer(c.block || 1, c.week || 1) || !(Number(c.week) === 4 && (c.id?.startsWith('tomorrow-') || c.id?.startsWith('tn-w4'))));
     }
     if (Array.isArray(data.deletedTomorrowNoteIds)) {
       data.deletedTomorrowNoteIds = data.deletedTomorrowNoteIds.filter((id: string) => isFrozenItemIdServer(id) || (!id.includes('w4') && !id.includes('week4') && !id.includes('week-4')));
@@ -580,7 +586,7 @@ app.post('/api/supabase/delete-tomorrow-week4', async (req, res) => {
           try {
             const parsed = JSON.parse(psRow.value);
             if (Array.isArray(parsed)) {
-              const updated = parsed.filter((n: any) => isFrozenBlockServer(n.block || 1) || (Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week4')));
+              const updated = parsed.filter((n: any) => isFrozenBlockServer(n.block || 1, n.week || 1) || (Number(n.week || n.blockWeek || 1) !== 4 && !n.id?.includes('w4') && !n.id?.includes('week4')));
               await client.from('planner_settings').upsert({
                 key: 'tomorrow_special_notes',
                 value: JSON.stringify(updated),
@@ -1003,9 +1009,9 @@ app.post('/api/planner-data', (req, res) => {
         })
       : [];
 
-    const mutableCw = normalizedCw.filter((c: any) => !isFrozenBlockServer(c.block || block || 1));
-    const mutableHw = normalizedHw.filter((h: any) => !isFrozenBlockServer(h.block || block || 1));
-    const mutableTn = normalizedTn.filter((n: any) => !isFrozenBlockServer(n.block || block || 1));
+    const mutableCw = normalizedCw.filter((c: any) => !isFrozenBlockServer(c.block || block || 1, c.week || week || 1));
+    const mutableHw = normalizedHw.filter((h: any) => !isFrozenBlockServer(h.block || block || 1, h.week || week || 1));
+    const mutableTn = normalizedTn.filter((n: any) => !isFrozenBlockServer(n.block || block || 1, n.week || week || 1));
 
     if (mode === 'replace') {
       // Intelligently infer target block, week, and classId if not explicitly provided
@@ -1013,9 +1019,9 @@ app.post('/api/planner-data', (req, res) => {
       const targetWeek = Number(week) || Number(normalizedCw[0]?.week) || Number(normalizedHw[0]?.week) || Number(normalizedTn[0]?.week) || 1;
       const targetClassId = classId || normalizedCw[0]?.classId || normalizedHw[0]?.classId || normalizedTn[0]?.classId || 'ALL';
 
-      if (isFrozenBlockServer(targetBlock)) {
+      if (isFrozenBlockServer(targetBlock, targetWeek)) {
         return res.status(403).json({
-          error: 'Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل أو الاستبدال عليهما.',
+          error: 'Block 1 و Block 2 (الأسابيع 1-6) مجمدان على وضعهما الحالي ولا يمكن التعديل أو الاستبدال عليهما.',
           frozen: true,
         });
       }
@@ -1023,7 +1029,7 @@ app.post('/api/planner-data', (req, res) => {
       // 1. If classwork is provided, replace classwork for this block, week, and target class (never touch frozen items)
       if (Array.isArray(classwork)) {
         current.classwork = current.classwork.filter((cw: any) => {
-          if (isFrozenBlockServer(cw.block || 1)) return true;
+          if (isFrozenBlockServer(cw.block || 1, cw.week || 1)) return true;
           const isTargetBlockWeek = Number(cw.block || 1) === targetBlock && Number(cw.week || 1) === targetWeek;
           const isTargetClass = targetClassId === 'ALL' || cw.classId === targetClassId || cw.class_id === targetClassId;
           return !(isTargetBlockWeek && isTargetClass);
@@ -1034,7 +1040,7 @@ app.post('/api/planner-data', (req, res) => {
       // 2. If homework is provided, replace homework for this block, week, and target class (never touch frozen items)
       if (Array.isArray(homework)) {
         current.homework = current.homework.filter((hw: any) => {
-          if (isFrozenBlockServer(hw.block || 1)) return true;
+          if (isFrozenBlockServer(hw.block || 1, hw.week || 1)) return true;
           const isTargetBlockWeek = Number(hw.block || 1) === targetBlock && Number(hw.week || 1) === targetWeek;
           const isTargetClass = targetClassId === 'ALL' || hw.classId === targetClassId || hw.class_id === targetClassId;
           return !(isTargetBlockWeek && isTargetClass);
@@ -1045,7 +1051,7 @@ app.post('/api/planner-data', (req, res) => {
       // 3. If tomorrowNotes is provided, replace tomorrowNotes for this block, week, and target class (never touch frozen items)
       if (Array.isArray(tomorrowNotes)) {
         current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => {
-          if (isFrozenBlockServer(n.block || 1)) return true;
+          if (isFrozenBlockServer(n.block || 1, n.week || 1)) return true;
           const isTargetBlockWeek = Number(n.block || 1) === targetBlock && Number(n.week || 1) === targetWeek;
           const isTargetClass = targetClassId === 'ALL' || n.classId === targetClassId || n.class_id === targetClassId;
           return !(isTargetBlockWeek && isTargetClass);
@@ -1053,12 +1059,12 @@ app.post('/api/planner-data', (req, res) => {
         current.tomorrowNotes.push(...mutableTn);
       }
     } else {
-      // Reject request if all supplied items belong solely to frozen blocks
+      // Reject request if all supplied items belong solely to frozen blocks/weeks
       const totalIncoming = normalizedCw.length + normalizedHw.length + normalizedTn.length;
       const totalMutable = mutableCw.length + mutableHw.length + mutableTn.length;
       if (totalIncoming > 0 && totalMutable === 0) {
         return res.status(403).json({
-          error: 'Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما.',
+          error: 'Block 1 و Block 2 (الأسابيع 1-6) مجمدان على وضعهما الحالي ولا يمكن التعديل عليهما.',
           frozen: true,
         });
       }
@@ -1127,11 +1133,11 @@ app.post('/api/planner-data/delete', (req, res) => {
     if (!current.deletedTomorrowNoteIds) current.deletedTomorrowNoteIds = [];
     if (!current.deletedHistory) current.deletedHistory = [];
 
-    // Filter out any IDs belonging to frozen Block 1 or Block 2
+    // Filter out any IDs belonging to frozen Block 1 or Block 2 (Weeks 1-6)
     const frozenIdInCurrent = new Set<string>();
     const scanList = type === 'classwork' ? current.classwork : type === 'homework' ? current.homework : current.tomorrowNotes;
     scanList.forEach((item: any) => {
-      if (item && item.id && isFrozenBlockServer(item.block || 1)) {
+      if (item && item.id && isFrozenBlockServer(item.block || 1, item.week || 1)) {
         frozenIdInCurrent.add(item.id);
       }
     });
@@ -1139,7 +1145,7 @@ app.post('/api/planner-data/delete', (req, res) => {
     const targetIds = rawTargetIds.filter((tId) => !frozenIdInCurrent.has(tId) && !isFrozenItemIdServer(tId));
     if (rawTargetIds.length > 0 && targetIds.length === 0) {
       return res.status(403).json({
-        error: 'Block 1 و Block 2 مجمدان على وضعهما الحالي ولا يمكن الحذف منهما.',
+        error: 'Block 1 و Block 2 (الأسابيع 1-6) مجمدان على وضعهما الحالي ولا يمكن الحذف منهما.',
         frozen: true,
       });
     }
@@ -1147,7 +1153,7 @@ app.post('/api/planner-data/delete', (req, res) => {
     const timestamp = Date.now();
 
     if (type === 'classwork') {
-      const itemsToDelete = current.classwork.filter((c: any) => targetIds.includes(c.id) && !isFrozenBlockServer(c.block || 1));
+      const itemsToDelete = current.classwork.filter((c: any) => targetIds.includes(c.id) && !isFrozenBlockServer(c.block || 1, c.week || 1));
       itemsToDelete.forEach((item) => {
         // Prevent duplicate entries in history
         if (!current.deletedHistory!.some((h: any) => h.id === item.id)) {
@@ -1159,14 +1165,14 @@ app.post('/api/planner-data/delete', (req, res) => {
           });
         }
       });
-      current.classwork = current.classwork.filter((c: any) => isFrozenBlockServer(c.block || 1) || !targetIds.includes(c.id));
+      current.classwork = current.classwork.filter((c: any) => isFrozenBlockServer(c.block || 1, c.week || 1) || !targetIds.includes(c.id));
       targetIds.forEach((tId) => {
         if (!current.deletedPlannerItemIds.includes(tId)) {
           current.deletedPlannerItemIds.push(tId);
         }
       });
     } else if (type === 'homework') {
-      const itemsToDelete = current.homework.filter((h: any) => targetIds.includes(h.id) && !isFrozenBlockServer(h.block || 1));
+      const itemsToDelete = current.homework.filter((h: any) => targetIds.includes(h.id) && !isFrozenBlockServer(h.block || 1, h.week || 1));
       itemsToDelete.forEach((item) => {
         if (!current.deletedHistory!.some((h: any) => h.id === item.id)) {
           current.deletedHistory!.push({
@@ -1177,14 +1183,14 @@ app.post('/api/planner-data/delete', (req, res) => {
           });
         }
       });
-      current.homework = current.homework.filter((h: any) => isFrozenBlockServer(h.block || 1) || !targetIds.includes(h.id));
+      current.homework = current.homework.filter((h: any) => isFrozenBlockServer(h.block || 1, h.week || 1) || !targetIds.includes(h.id));
       targetIds.forEach((tId) => {
         if (!current.deletedPlannerItemIds.includes(tId)) {
           current.deletedPlannerItemIds.push(tId);
         }
       });
     } else if (type === 'tomorrowNotes') {
-      const itemsToDelete = current.tomorrowNotes.filter((n: any) => targetIds.includes(n.id) && !isFrozenBlockServer(n.block || 1));
+      const itemsToDelete = current.tomorrowNotes.filter((n: any) => targetIds.includes(n.id) && !isFrozenBlockServer(n.block || 1, n.week || 1));
       itemsToDelete.forEach((item) => {
         if (!current.deletedHistory!.some((h: any) => h.id === item.id)) {
           current.deletedHistory!.push({
@@ -1195,7 +1201,7 @@ app.post('/api/planner-data/delete', (req, res) => {
           });
         }
       });
-      current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => isFrozenBlockServer(n.block || 1) || !targetIds.includes(n.id));
+      current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => isFrozenBlockServer(n.block || 1, n.week || 1) || !targetIds.includes(n.id));
       targetIds.forEach((tId) => {
         if (!current.deletedTomorrowNoteIds.includes(tId)) {
           current.deletedTomorrowNoteIds.push(tId);
@@ -1926,9 +1932,9 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
     Thursday: 'Sunday',
   };
 
-  // 1. Auto-detect Week if mentioned anywhere in text (e.g. Week 6 / الأسبوع السادس / الاسبوع 6)
+  // 1. Auto-detect Week if mentioned anywhere in text (e.g. Week 7 / الأسبوع السابع / الاسبوع 7)
   let activeWeek = Number(week) || 1;
-  const weekMatch = planText.match(/week\s*([1-6])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|السادس|[1-6])|الاسبوع\s*([1-6])|اسبوع\s*([1-6])/i);
+  const weekMatch = planText.match(/week\s*([1-7])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|[1-7])|الاسبوع\s*([1-7])|اسبوع\s*([1-7])/i);
   if (weekMatch) {
     if (weekMatch[1]) activeWeek = Number(weekMatch[1]);
     else if (weekMatch[3]) activeWeek = Number(weekMatch[3]);
@@ -1939,6 +1945,7 @@ function heuristicParser(planText: string, classId: string, block: number = 1, w
     else if (/الرابع|4/.test(weekMatch[2])) activeWeek = 4;
     else if (/الخامس|5/.test(weekMatch[2])) activeWeek = 5;
     else if (/السادس|6/.test(weekMatch[2])) activeWeek = 6;
+    else if (/السابع|7/.test(weekMatch[2])) activeWeek = 7;
   }
 
   // 2. Auto-detect single subject if document is dedicated to a specific subject (e.g. Math, Social Studies, etc.)
@@ -2370,9 +2377,9 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
       }
     }
 
-    // Auto-detect Week if text mentions Week 1 to 6 / الأسبوع الأول إلى السادس
+    // Auto-detect Week if text mentions Week 1 to 7 / الأسبوع الأول إلى السابع
     let detectedWeek = Number(week) || 2;
-    const weekMatch = extractedPdfText.match(/week\s*([1-6])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|السادس|[1-6])|الاسبوع\s*([1-6])|اسبوع\s*([1-6])/i);
+    const weekMatch = extractedPdfText.match(/week\s*([1-7])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|[1-7])|الاسبوع\s*([1-7])|اسبوع\s*([1-7])/i);
     if (weekMatch) {
       if (weekMatch[1]) detectedWeek = Number(weekMatch[1]);
       else if (weekMatch[3]) detectedWeek = Number(weekMatch[3]);
@@ -2383,6 +2390,7 @@ app.post('/api/parse-weekly-plan-pdf', async (req, res) => {
       else if (/الرابع|4/.test(weekMatch[2])) detectedWeek = 4;
       else if (/الخامس|5/.test(weekMatch[2])) detectedWeek = 5;
       else if (/السادس|6/.test(weekMatch[2])) detectedWeek = 6;
+      else if (/السابع|7/.test(weekMatch[2])) detectedWeek = 7;
     }
 
     const targetClasses = targetClass === 'ALL' ? ['G2A', 'G2B', 'G2C'] : [targetClass];
@@ -2541,9 +2549,9 @@ app.post('/api/parse-weekly-plan', async (req, res) => {
       return res.status(400).json({ error: 'planText is required' });
     }
 
-    // Auto-detect Week if text mentions Week 1 to 6 / الأسبوع الأول إلى السادس
+    // Auto-detect Week if text mentions Week 1 to 7 / الأسبوع الأول إلى السابع
     let detectedWeek = Number(week) || 2;
-    const weekMatch = planText.match(/week\s*([1-6])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|السادس|[1-6])|الاسبوع\s*([1-6])|اسبوع\s*([1-6])/i);
+    const weekMatch = planText.match(/week\s*([1-7])|الأسبوع\s*(الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|[1-7])|الاسبوع\s*([1-7])|اسبوع\s*([1-7])/i);
     if (weekMatch) {
       if (weekMatch[1]) detectedWeek = Number(weekMatch[1]);
       else if (weekMatch[3]) detectedWeek = Number(weekMatch[3]);
@@ -2554,6 +2562,7 @@ app.post('/api/parse-weekly-plan', async (req, res) => {
       else if (/الرابع|4/.test(weekMatch[2])) detectedWeek = 4;
       else if (/الخامس|5/.test(weekMatch[2])) detectedWeek = 5;
       else if (/السادس|6/.test(weekMatch[2])) detectedWeek = 6;
+      else if (/السابع|7/.test(weekMatch[2])) detectedWeek = 7;
     }
 
     const targetClasses = (!classId || classId === 'ALL') ? ['G2A', 'G2B', 'G2C'] : [classId];
